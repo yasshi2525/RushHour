@@ -1,3 +1,7 @@
+test-results/
+tmp/
+routes/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

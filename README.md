@@ -1,1 +1,1 @@
-# RushHourGameGo
+# RushHour
