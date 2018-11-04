@@ -1,6 +1,8 @@
 package app
 
 import (
+	"github.com/yasshi2525/RushHour/app/models"
+
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
 )
@@ -38,7 +40,9 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(InitDB)
+	revel.OnAppStart(InitDB, 1)
+	revel.OnAppStart(MigrateDB, 2)
+	revel.OnAppStart(InitGame, 3)
 	// revel.OnAppStart(FillCache)
 
 	revel.OnAppStop(CloseDB)
@@ -89,10 +93,22 @@ func InitDB() {
 	revel.RevelLog.Info("connect database successfully")
 }
 
+// MigrateDB migrate database
+func MigrateDB() {
+	Db.AutoMigrate(&models.Player{})
+}
+
 // CloseDB close database connection
 func CloseDB() {
 	if err := Db.Close(); err != nil {
 		revel.AppLog.Error("failed to close the database", "error", err)
 	}
 	revel.RevelLog.Info("disconnect database successfully")
+}
+
+// InitGame setup RushHour envirionment
+func InitGame() {
+	var admin models.Player
+	Db.Where(models.Player{DisplayName: "Admin", Password: "encodedPassword"}).FirstOrCreate(&admin)
+	revel.AppLog.Info("created Admin player")
 }
