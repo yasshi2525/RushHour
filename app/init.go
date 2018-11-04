@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
 )
 
@@ -10,6 +11,9 @@ var (
 
 	// BuildTime revel app build-time (ldflags)
 	BuildTime string
+
+	// Db connection to the database
+	Db *gorm.DB
 )
 
 func init() {
@@ -34,8 +38,10 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	// revel.OnAppStart(InitDB)
+	revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
+
+	revel.OnAppStop(CloseDB)
 }
 
 // HeaderFilter adds common security headers
@@ -57,3 +63,36 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
+
+// InitDB connect database
+func InitDB() {
+	var err error
+
+	driver, found := revel.Config.String("db.driver")
+
+	if !found {
+		panic("db.drvier is not defined")
+	}
+
+	spec, found := revel.Config.String("db.spec")
+
+	if !found {
+		panic("db.spec is not defined")
+	}
+
+	Db, err = gorm.Open(driver, spec)
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	revel.RevelLog.Info("connect database successfully")
+}
+
+// CloseDB close database connection
+func CloseDB() {
+	if err := Db.Close(); err != nil {
+		revel.AppLog.Error("failed to close the database", "error", err)
+	}
+	revel.RevelLog.Info("disconnect database successfully")
+}
