@@ -3,7 +3,7 @@ tmp/
 routes/
 node_modules/
 .vscode/
-public/js/bundle.js
+public/js/bundle.*.js
 
 # Binaries for programs and plugins
 *.exe

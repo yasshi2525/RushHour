@@ -1,6 +1,5 @@
 {{set . "title" "Home"}}
 {{append . "moreStyles" "css/debug.css"}}
-{{append . "moreScripts" "js/bundle.js"}}
 {{template "header.html" .}}
 
 <header class="jumbotron" style="background-color:#A9F16C">
@@ -22,4 +21,5 @@
   </div>
 </div>
 
+{{append . "moreScripts" "js/bundle.index.js"}}
 {{template "footer.html" .}}
