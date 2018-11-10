@@ -1,7 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom'
+import Canvas from './components/Canvas';
 
-ReactDOM.render(
-	<h1>Hello, world!</h1>,
-	document.getElementById('like_button_container')
-  );
+ReactDOM.render(<Canvas />, document.getElementById("rushhourContainer"));
