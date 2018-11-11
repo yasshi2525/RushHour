@@ -1,4 +1,4 @@
-import * as Type from '../actions';
+import * as Type from "../actions";
 
 const initialState = {
     payload: {

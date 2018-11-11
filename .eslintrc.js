@@ -15,6 +15,7 @@ module.exports = {
         "react"
     ],
     "rules": {
+        "quotes": [2, "double"],
         // JSX で react の import を必須化
         "react/jsx-uses-react": 1,
         // 変数使用有無の検査対象に jsx記法を含める

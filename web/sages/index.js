@@ -1,4 +1,4 @@
-import { takeLatest } from 'redux-saga/effects'
+import { takeLatest } from "redux-saga/effects"
 import { FETCH_MAP_REQUESTED } from "../actions";
 import fetchGameMap from "./gamemap";
 
