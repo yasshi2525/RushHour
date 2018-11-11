@@ -1,6 +1,6 @@
 import "./style.css";
-import React from 'react';
-import * as PIXI from 'pixi.js';
+import React from "react";
+import * as PIXI from "pixi.js";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 export default class Canvas extends React.Component {
