@@ -1,7 +1,7 @@
-import { takeLatest } from "redux-saga/effects"
-import { FETCH_MAP_REQUESTED } from "../actions";
+import { takeLatest } from "redux-saga/effects";
+import { ActionType } from "../actions";
 import fetchGameMap from "./gamemap";
 
 export default function* rushHourSaga() {
-    yield takeLatest(FETCH_MAP_REQUESTED, fetchGameMap);
+    yield takeLatest(ActionType.FETCH_MAP_REQUESTED, fetchGameMap);
 }

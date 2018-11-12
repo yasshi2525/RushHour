@@ -1,7 +1,9 @@
 import React from "react";
-import Canvas from "./Canvas"
-import { requestFetchMap } from "../actions"
 import { connect } from "react-redux";
+import ProtoTypes from "prop-types";
+import { EMPTY_MAP } from "../consts";
+import { requestFetchMap } from "../actions";
+import Canvas from "./Canvas";
 
 // ゲーム画面のルートコンポーネント
 class GameBoard extends React.Component {
@@ -9,6 +11,7 @@ class GameBoard extends React.Component {
     constructor(props) {
         super(props);
         this.readOnly = props.readOnly;
+        this.gamemap = EMPTY_MAP;
     }
 
     render () {
@@ -16,11 +19,15 @@ class GameBoard extends React.Component {
             <div>
                 <div>{ JSON.stringify(this.props.state.payload) }</div>
                 <button onClick={() => this.props.dispatch(requestFetchMap(1))}>fetch</button>
-                <Canvas readOnly= {this.readOnly} />
+                <Canvas readOnly= {this.readOnly} gamemap={this.gamemap} />
             </div>
         );
     }
 }
+
+GameBoard.propTypes = {
+    readOnly: ProtoTypes.bool
+};
 
 function mapStateToProps(state) {
     return {state};

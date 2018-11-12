@@ -15,6 +15,7 @@ module.exports = {
         "react"
     ],
     "rules": {
+        "semi": [2, "always"],
         "quotes": [2, "double"],
         // JSX で react の import を必須化
         "react/jsx-uses-react": 1,
