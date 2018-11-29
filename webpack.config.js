@@ -4,7 +4,7 @@ module.exports = {
     watch: true,
     mode: "development",
     entry: {
-        index: ["./web/index.js", "./web/game.jsx"]
+        index: ["./web/index.js", "./web/game.tsx"]
     },
     output: {
         path: path.join(__dirname, "public/js"),
@@ -17,13 +17,16 @@ module.exports = {
                 use: ["style-loader", "css-loader"],
             },      
             {
-                test: /\.jsx$/,
-                exclude: /node_modules/,
-                use: ["babel-loader"]
+                test: /\.tsx?$/,
+                use: ["awesome-typescript-loader"]
+            },
+            { 
+                enforce: "pre", test: /\.js$/, 
+                loader: "source-map-loader" 
             }
         ],
     }, 
     resolve: {
-        extensions: [".js", ".jsx"]
+        extensions: [".js", ".jsx", ".ts", ".tsx"]
     },
 };

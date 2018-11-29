@@ -9,7 +9,7 @@ module.exports = {
         "ecmaFeatures": {
             "jsx": true
         },
-        "ecmaVersion": 2018
+        "ecmaVersion": 6
     },
     "plugins": [
         "react"
@@ -22,6 +22,6 @@ module.exports = {
         // 変数使用有無の検査対象に jsx記法を含める
         "react/jsx-uses-vars": 1,
         // console.log の使用を警告
-        "no-console": 1,
+        "no-console": 1
     }
 };
