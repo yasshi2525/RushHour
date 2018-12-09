@@ -1,12 +1,13 @@
 import BaseModel from "./base";
 import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
 
+
 export default class <T extends Monitorable> extends BaseModel implements MonitorContrainer {
 
     childOptions: {[index:string]: {}};
     Child: { new (props: {[index:string]: {}}): T };
 
-    children: {[index: string]: Monitorable};
+    children: {[index: string]: T};
 
     constructor(
         newInstance: { new (props: {[index:string]: {}}): T }, 
@@ -76,12 +77,16 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
     }
 
     reset() {
-        Object.keys(this.children).forEach(id => this.children[id].reset());
+        this.forEachChild(c => c.reset());
         super.reset();
     }
 
     end() {
-        Object.keys(this.children).forEach(id => this.children[id].end());
+        this.forEachChild(c => c.end());
         super.end();
+    }
+
+    forEachChild(func: (c: T) => any) {
+        Object.keys(this.children).forEach(id => func(this.children[id]));
     }
 }

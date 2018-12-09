@@ -52,14 +52,6 @@ export default class extends PointModel implements Monitorable {
             sprite => sprite.alpha = value));
     }
 
-    protected setupSprite() {
-        if (this.sprite !== undefined) {
-            this.sprite.setTransform(this.props.x, this.props.y, this.props.scale, this.props.scale);
-            this.sprite.anchor.set(this.props.anchor.x, this.props.anchor.y);
-            this.sprite.alpha = this.props.alpha;
-        }
-    }
-
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
@@ -68,6 +60,14 @@ export default class extends PointModel implements Monitorable {
             this.setupSprite();
             this.container.addChild(this.sprite);
         });
+    }
+
+    protected setupSprite() {
+        if (this.sprite !== undefined) {
+            this.sprite.setTransform(this.props.x, this.props.y, this.props.scale, this.props.scale);
+            this.sprite.anchor.set(this.props.anchor.x, this.props.anchor.y);
+            this.sprite.alpha = this.props.alpha;
+        }
     }
 
     setupAfterCallback() {

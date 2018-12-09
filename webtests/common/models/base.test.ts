@@ -8,36 +8,27 @@ beforeEach(() => {
     instance.setupUpdateCallback();
 });
 
-describe("addDefaultValues", () => {
-    test("call handler when registered key is specified", () => {
-        const testHandler = jest.fn(() => {});
-    
+describe("calls handler", () => {
+    const testHandler = jest.fn(() => {});
+
+    test("call update handler when registered key is specified", () => {
         instance.addUpdateCallback("id", testHandler);
         instance.merge("id", 100);
         expect(testHandler).toBeCalled();
     });
-});
 
-describe("begin", () => {
-    test("call handler", () => {
-        const testHandler = jest.fn(() => {});
+    test("call before handler", () => {
         instance.addBeforeCallback(testHandler);        
-
         instance.begin();
         expect(testHandler).toBeCalled();
     });
-});
 
-describe("end", () => {
-    test("call handler", () => {
-        const testHandler = jest.fn(() => {});
+    test("call after handler", () => {
         instance.addAfterCallback(testHandler);        
-
         instance.end();
         expect(testHandler).toBeCalled();
     });
 });
-
 
 describe("setInitialValues", () => {
     test("don't set value when unregistered key is specified", () => {
