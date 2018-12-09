@@ -3,6 +3,7 @@ tmp/
 routes/
 node_modules/
 .vscode/
+coverage/
 public/js/bundle.*.js
 
 # Binaries for programs and plugins

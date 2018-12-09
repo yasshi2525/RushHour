@@ -1,5 +1,11 @@
 {
+    "moduleResolution": "node",
     "compilerOptions": {
+        "baseUrl": "./",
+        "paths": {
+            "@/*": ["web/*"]
+        },
+        "esModuleInterop": true,
         "sourceMap": true,
         "target": "es6",
         "module": "es2015",

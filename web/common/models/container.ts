@@ -10,7 +10,7 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
 
     constructor(
         newInstance: { new (props: {[index:string]: {}}): T }, 
-        newInstanceOptions: {[index:string]: {}}) {
+        newInstanceOptions: {[index:string]: {}} = {}) {
         super();
 
         this.Child = newInstance;
@@ -50,12 +50,14 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
     }
 
     removeChild(id: string) {
-        this.children[id].end();
-        delete this.children[id];
-        this.change();
+        if (this.existsChild(id)) {
+            this.children[id].end();
+            delete this.children[id];
+            this.change();
+        }
     }
 
-    mergeChild(props: {id: string}) {
+    mergeChild(props: {id: string, [propName: string]: any}) {
         if (this.existsChild(props.id)) {
             this.updateChild(props);
         } else {
@@ -63,7 +65,7 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
         }
     }
 
-    mergeChildren(payload: {id: string}[]) {
+    mergeChildren(payload: {id: string, [propName: string]: any}[]) {
         payload.forEach((props => this.mergeChild(props)));
 
         // payloadに含まれない child を削除する

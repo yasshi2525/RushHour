@@ -9,11 +9,12 @@ const spriteOption = (name: string, app: PIXI.Application) => ({
     loader: app.loader
 })
 
-export class GameModel {
+export default class {
     stage: PIXI.Container; 
     loader: PIXI.loaders.Loader;
     renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     payload: {[index:string]: MonitorContainer<Monitorable>} = {}
+    changed: boolean = false;
 
     constructor(options: {app: PIXI.Application}) {
         this.stage = options.app.stage;
@@ -41,16 +42,20 @@ export class GameModel {
         Object.keys(payload).forEach(key => {
             if (this.payload[key] !== undefined) {
                 this.payload[key].mergeChildren(payload[key]);
+                if (this.payload[key].isChanged()) {
+                    this.changed = true;
+                }
             }
         });
     }
 
     isChanged() {
-        return Object.keys(this.payload).find(key => this.payload[key].isChanged());
+        return this.changed;
     }
 
     render() {
         this.renderer.render(this.stage);
         Object.keys(this.payload).forEach(key => this.payload[key].reset());
+        this.changed = false;
     }
 }

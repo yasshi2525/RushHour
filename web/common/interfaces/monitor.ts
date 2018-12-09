@@ -2,7 +2,6 @@
  * 変更監視ができるクラスを表すインタフェース
  */
 export interface Monitorable {
-
     /**
      * デフォルト値を設定します。
      * ここでセットされた値は監視対象プロパティになります。
@@ -34,6 +33,8 @@ export interface Monitorable {
      * 監視を開始します。
      */
     begin(): void;
+
+    get(key: string): any;
 
     /**
      * keyに対応するプロパティが定義されているとき、値を更新します.

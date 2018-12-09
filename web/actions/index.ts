@@ -12,6 +12,6 @@ export const requestFetchMap = createAction(ActionType.FETCH_MAP_REQUESTED);
 export const moveSprite = createAction(ActionType.MOVE_SPRITE, resolve => {
     return (key: string, id: string, x: number, y: number) => resolve({key, id, x, y});
 })
-export const destroySprite =createAction(ActionType.DESTROY_SPRITE, resolve => {
+export const destroySprite = createAction(ActionType.DESTROY_SPRITE, resolve => {
     return (key: string, id: string) => resolve({key, id});
 })

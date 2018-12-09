@@ -1,12 +1,11 @@
 import { Monitorable } from "../interfaces/monitor";
 
 const defaultValues: {id: string} = {id: "no value"};
-const updateCallbacks: {[index: string]: (value: any) => void} = {};
 
 /**
  * 変更監視ができるオブジェクト
  */
-export default abstract class implements Monitorable {
+export default class implements Monitorable {
     /**
      * 監視対象プロパティ
      */
@@ -32,14 +31,14 @@ export default abstract class implements Monitorable {
     /**
      * 前回 reset時以降、値が更新されているかどうか
      */
-    protected changed: boolean = true;
+    protected changed: boolean = false;
 
     /**
      * initialValueが存在しないときの値を設定します。
      * ここで登録した値は以降変更可能で監視対象になります。
      * @param props 
      */
-    protected addDefaultValues(props: {[index: string]: {}} = {}) {
+    addDefaultValues(props: {[index: string]: {}}) {
         Object.keys(props).forEach(key => this.props[key] = props[key]);
     }
 
@@ -47,7 +46,7 @@ export default abstract class implements Monitorable {
         this.addDefaultValues(defaultValues);
     }
 
-    setInitialValues(initialValues: {[index: string]: {}} = {}) {
+    setInitialValues(initialValues: {[index: string]: {}}) {
         Object.keys(initialValues).filter(key => this.props[key] !== undefined)
             .forEach(key => this.props[key] = initialValues[key]);
     }
@@ -57,12 +56,16 @@ export default abstract class implements Monitorable {
      * @param key 監視対象のプロパティ名
      * @param callback 
      */
-    protected addUpdateCallback(key: string, callback: (value: any) => void ) {
+    addUpdateCallback(key: string, callback: (value: any) => void ) {
         this.updateCallbacks[key] = callback;
     }
 
     setupUpdateCallback() {
-        Object.keys(updateCallbacks).forEach(key => {this.addUpdateCallback(key, updateCallbacks[key])});
+        //do-nothing
+    }
+    
+    addBeforeCallback(handler: (value: {[index: string]: any }) => void) {
+        this.beforeCallbacks.push(handler);
     }
 
     setupBeforeCallback() {
@@ -71,6 +74,10 @@ export default abstract class implements Monitorable {
 
     begin() {
         this.beforeCallbacks.forEach(func => func(this.props));
+    }
+
+    addAfterCallback(handler: (value: {[index: string]: any }) => void) {
+        this.afterCallbacks.push(handler);
     }
 
     setupAfterCallback() {
@@ -94,7 +101,9 @@ export default abstract class implements Monitorable {
 
         if (this.props[key] != value) {
             this.props[key] = value;
-            this.updateCallbacks[key](value);
+            if (this.updateCallbacks[key] !== undefined) {
+                this.updateCallbacks[key](value);
+            }
             this.change();
         }
     }
@@ -103,7 +112,7 @@ export default abstract class implements Monitorable {
      * propsに指定されたすべてのプロパティ値を更新します。
      * @param payload 
      */
-    mergeAll(payload: {[index: string]:any} = {}) {
+    mergeAll(payload: {[index: string]:any}) {
         Object.keys(payload).forEach((key => this.merge(key, payload[key])));
     }
 
@@ -117,6 +126,10 @@ export default abstract class implements Monitorable {
 
     reset() {
         this.changed = false;
+    }
+
+    get(key: string) {
+        return this.props[key];
     }
 }
 

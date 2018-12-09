@@ -2,7 +2,7 @@ import "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
-import { GameModel } from "../common/model";
+import GameModel from "../common/model";
 import { RushHourStatus } from "../state";
 
 const imageResources = ["residence", "company"];

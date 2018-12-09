@@ -27,6 +27,9 @@ module.exports = {
         ],
     }, 
     resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "web")
+        },
         extensions: [".js", ".jsx", ".ts", ".tsx"]
     },
 };

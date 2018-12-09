@@ -18,11 +18,11 @@ const defaultValues: {
 const ifExists = <T>(target: any, callback: (target: T) => void) =>
     (target !== undefined) ? { execute: callback(target)} : function(){};
 
-export default abstract class extends PointModel implements Monitorable {
-    name: string;
-    container: PIXI.Container;
-    loader: PIXI.loaders.Loader;
-    sprite?: PIXI.Sprite;
+export default class extends PointModel implements Monitorable {
+    protected name: string;
+    protected container: PIXI.Container;
+    protected loader: PIXI.loaders.Loader;
+    protected sprite?: PIXI.Sprite;
 
     constructor(options: { name: string, container: PIXI.Container, loader: PIXI.loaders.Loader }) {
         super();
@@ -62,8 +62,9 @@ export default abstract class extends PointModel implements Monitorable {
 
     setupBeforeCallback() {
         super.setupBeforeCallback();
-        this.beforeCallbacks.push(() => {
-            this.sprite = new PIXI.Sprite(this.loader.resources[this.name].texture);
+        this.addBeforeCallback(() => {
+            let resource = this.loader.resources[this.name];
+            this.sprite = new PIXI.Sprite(resource ? resource.texture : undefined);
             this.setupSprite();
             this.container.addChild(this.sprite);
         });
@@ -71,6 +72,13 @@ export default abstract class extends PointModel implements Monitorable {
 
     setupAfterCallback() {
         super.setupAfterCallback();
-        this.afterCallbacks.push(() => ifExists<PIXI.Sprite>(this.sprite, sprite => this.container.removeChild(sprite)));
+        this.addAfterCallback(() => ifExists<PIXI.Sprite>(this.sprite, sprite => {
+            this.container.removeChild(sprite);
+            this.sprite = undefined;
+        }));
+    }
+
+    getSprite() {
+        return this.sprite;
     }
 }
