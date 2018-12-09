@@ -79,4 +79,9 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
         Object.keys(this.children).forEach(id => this.children[id].reset());
         super.reset();
     }
+
+    end() {
+        Object.keys(this.children).forEach(id => this.children[id].end());
+        super.end();
+    }
 }

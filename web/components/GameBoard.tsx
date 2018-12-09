@@ -9,7 +9,6 @@ export class GameBoard extends React.Component<RushHourStatus, RushHourStatus> {
 
     constructor(props: RushHourStatus) {
         super(props);
-        this.state = Object.assign({}, props);
     }
 
     render () {
@@ -18,13 +17,9 @@ export class GameBoard extends React.Component<RushHourStatus, RushHourStatus> {
                 <button onClick={() => this.props.dispatch(requestFetchMap())}>fetch</button>
                 <button onClick={() => this.props.dispatch(moveSprite("residences", "1", 500, 500))}>move</button>
                 <button onClick={() => this.props.dispatch(destroySprite("residences", "1"))}>destroy</button>
-                <Canvas readOnly = {this.state.readOnly} />
+                <Canvas readOnly = {this.props.readOnly} />
             </div>
         );
-    }
-
-    componentWillReceiveProps(props: RushHourStatus) {
-        this.setState({ map: props.map});
     }
 }
 

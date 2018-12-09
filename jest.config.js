@@ -1,12 +1,14 @@
 module.exports = {
     preset: "ts-jest",
-    testMatch: ["<rootDir>/webtests/**/*.test.ts"],
+    testMatch: ["<rootDir>/webtests/**/*.test.(ts|tsx)"],
     collectCoverage: true,
     collectCoverageFrom: [
-        "<rootDir>/web/**/*.(ts|tsx)"
+        "**/*.(ts|tsx)"
     ],
     moduleNameMapper: {
-        "^@/(.+)": "<rootDir>/web/$1"
+        "^@/(.+)": "<rootDir>/web/$1",
+        "\\.(css|less)$": "identity-obj-proxy"
     },
-    setupFiles: ["jest-canvas-mock"]
+    setupFiles: ["jest-canvas-mock"],
+    setupTestFrameworkScriptFile: "<rootDir>/setup.ts"
 };

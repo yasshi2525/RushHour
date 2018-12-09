@@ -10,7 +10,7 @@ beforeEach(() => {
 
 describe("addDefaultValues", () => {
     test("call handler when registered key is specified", () => {
-       const testHandler = jest.fn(() => {});
+        const testHandler = jest.fn(() => {});
     
         instance.addUpdateCallback("id", testHandler);
         instance.merge("id", 100);

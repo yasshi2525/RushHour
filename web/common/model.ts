@@ -58,4 +58,8 @@ export default class {
         Object.keys(this.payload).forEach(key => this.payload[key].reset());
         this.changed = false;
     }
+
+    unmount() {
+        Object.keys(this.payload).forEach(key => this.payload[key].end());
+    }
 }

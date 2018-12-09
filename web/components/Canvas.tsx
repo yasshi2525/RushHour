@@ -7,8 +7,9 @@ import { RushHourStatus } from "../state";
 
 const imageResources = ["residence", "company"];
 
+
 // Pixi.js が作成する canvas を管理するコンポーネント
-class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
+export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     app: PIXI.Application;
     model: GameModel;
     ref: React.RefObject<HTMLDivElement>;
@@ -25,16 +26,6 @@ class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.app.loader.load();
         this.model = new GameModel({ app: this.app });
         this.ref = React.createRef<HTMLDivElement>();
-        this.state = Object.assign({}, props);
-    }
-
-    componentWillReceiveProps(props: RushHourStatus) {
-        this.setState({map: props.map}, () => {
-            this.model.mergeAll(this.state.map);
-            if (this.model.isChanged()) {
-                this.model.render();
-            }
-        } );
     }
 
     render() {
@@ -46,6 +37,17 @@ class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         if (this.ref.current !== null) {
             this.ref.current.appendChild(this.app.view);
         } 
+    }
+
+    componentDidUpdate() {
+        this.model.mergeAll(this.props.map);
+        if (this.model.isChanged()) {
+            this.model.render();
+        }
+    }
+
+    componentWillUnmount() {
+        this.model.unmount();
     }
 }
 

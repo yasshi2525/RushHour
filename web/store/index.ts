@@ -1,17 +1,10 @@
 import { createStore, applyMiddleware } from "redux";
 import createSagaMiddleware from "redux-saga";
-import { RushHourStatus } from "../state";
+import { defaultState } from "../state";
 import rootReducer from "../reducers"; 
-import rushHourSaga from "../sages";
+import rushHourSaga from "../sagas";
 
-const initState: RushHourStatus = {
-    readOnly: true,
-    map: {
-        "residences": [],
-        "companies": []
-    }
-};
 const sagaMiddleware = createSagaMiddleware();
-export const store = createStore(rootReducer, initState, applyMiddleware(sagaMiddleware));
+export const store = createStore(rootReducer, defaultState, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rushHourSaga);
 

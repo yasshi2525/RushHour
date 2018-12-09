@@ -16,6 +16,13 @@ export interface GameMap {
 export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
-    application?: PIXI.Application,
-    map: GameMap,
+    map: GameMap
 }
+
+export const defaultState: RushHourStatus = {
+    readOnly: true,
+    map: {
+        "residences": [],
+        "companies": []
+    }
+};
