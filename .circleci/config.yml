@@ -1,0 +1,103 @@
+version: 2
+
+jobs:
+  pre-test:
+    machine: true
+    steps: 
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+
+      - persist_to_workspace:
+          root: .
+          paths: [cc-test-reporter]
+
+  test-client:
+    docker:
+      - image: circleci/node
+
+    steps:
+      - checkout
+
+      # load cc-test-reporter
+      - attach_workspace:
+          at: .
+
+      # reuse node_modules
+      - restore_cache:
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+      - run: npm install
+
+      - save_cache:
+          paths: [node_modules]
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+      - run: 
+          name: Run Test
+          command: |
+            npm test
+            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json"
+
+      # reuse compiled js file
+      - run: npm run build
+
+      - store_test_results:
+          path: coverage
+
+      - persist_to_workspace:
+          root: .
+          paths: 
+            - public/js
+            - codeclimate.client.json
+
+  test-server:
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+
+    docker:
+      - image: circleci/golang:latest
+      - image: circleci/mariadb:latest
+        environment: 
+          MYSQL_USER: rushhourgo
+          MYSQL_PASSWORD: rushhourgo
+          MYSQL_DATABASE: rushhourgo
+
+    steps:
+      - checkout
+
+      # load cc-test-reporter
+      - attach_workspace:
+          at: ~/project
+
+      - run: go get github.com/jinzhu/gorm
+      - run: go get github.com/revel/revel
+      - run: go get github.com/revel/cmd/revel
+      
+      - run: /go/bin/revel test -m dev
+
+      # TODO: coverage
+
+  upload-coverage:
+    machine: true
+    environment:
+      CC_TEST_REPORTER_ID: d089f5de52d5f084943cffbf7281df1a041a0926cf1d184ec90ebafdbdfd3f42
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Upload coverage results to Code Climate
+          command: |
+            ./cc-test-reporter sum-coverage tmp/coverage/codeclimate.*.json -p 1
+            ./cc-test-reporter upload-coverage
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - pre-test
+      - test-client:
+          requires: [pre-test]
+      - test-server:
+          requires: [pre-test]
