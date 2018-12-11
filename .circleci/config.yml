@@ -39,7 +39,7 @@ jobs:
           name: Run Test
           command: |
             npm test
-            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json"
+            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage
 
       # reuse compiled js file
       - run: npm run build
@@ -100,4 +100,4 @@ workflows:
       - test-client:
           requires: [pre-test]
       - test-server:
-          requires: [pre-test]
+          requires: [pre-test, test-client]
