@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-    watch: true,
+    watch: false,
     mode: "development",
     entry: {
         index: ["./web/index.js", "./web/game.tsx"]

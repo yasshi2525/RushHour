@@ -54,7 +54,7 @@ jobs:
             - codeclimate.client.json
 
   test-server:
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/yasshi2525/RushHour
 
     docker:
       - image: circleci/golang:latest
