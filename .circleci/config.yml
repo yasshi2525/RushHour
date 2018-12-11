@@ -39,7 +39,7 @@ jobs:
           name: Run Test
           command: |
             npm test
-            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage
+            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage/lcov.info
 
       # reuse compiled js file
       - run: npm run build
@@ -52,6 +52,9 @@ jobs:
           paths: 
             - public/js
             - codeclimate.client.json
+
+      - store_artifacts:
+          path: coverage
 
   test-server:
     working_directory: /go/src/github.com/yasshi2525/RushHour
