@@ -44,17 +44,11 @@ jobs:
       # reuse compiled js file
       - run: npm run build
 
-      - store_test_results:
-          path: coverage
-
       - persist_to_workspace:
           root: .
           paths: 
             - public/js
             - codeclimate.client.json
-
-      - store_artifacts:
-          path: coverage
 
   test-server:
     working_directory: /go/src/github.com/yasshi2525/RushHour
@@ -104,3 +98,5 @@ workflows:
           requires: [pre-test]
       - test-server:
           requires: [pre-test, test-client]
+      - upload-coverage:
+          requires: [test-server, test-client]
