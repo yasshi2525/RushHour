@@ -86,7 +86,7 @@ jobs:
       - run:
           name: Upload coverage results to Code Climate
           command: |
-            ./cc-test-reporter sum-coverage tmp/coverage/codeclimate.*.json -p 1
+            ./cc-test-reporter sum-coverage codeclimate.*.json -p 1
             ./cc-test-reporter upload-coverage
 
 workflows:
