@@ -69,6 +69,7 @@ jobs:
           at: .
 
       - run: go get github.com/jinzhu/gorm
+      - run: go get github.com/go-sql-driver/mysql
       - run: go get github.com/revel/revel
       - run: go get github.com/revel/cmd/revel
 
