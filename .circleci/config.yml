@@ -66,7 +66,7 @@ jobs:
 
       # load cc-test-reporter
       - attach_workspace:
-          at: ~/project
+          at: .
 
       - run: go get github.com/jinzhu/gorm
       - run: go get github.com/revel/revel
@@ -76,8 +76,6 @@ jobs:
       - run: go test -coverprofile c.out ./...
       - run: ./cc-test-reporter after-build
       - run: /go/bin/revel test -m dev
-
-      # TODO: coverage
 
   upload-coverage:
     machine: true
