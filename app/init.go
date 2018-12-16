@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/models/entities"
 
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
@@ -85,6 +85,7 @@ func InitDB() {
 	}
 
 	Db, err = gorm.Open(driver, spec)
+	Db.LogMode(true)
 
 	if err != nil {
 		panic("failed to connect database")
@@ -95,7 +96,17 @@ func InitDB() {
 
 // MigrateDB migrate database
 func MigrateDB() {
-	Db.AutoMigrate(&models.Player{})
+	Db.AutoMigrate(
+		&entities.Company{},
+		&entities.Residence{},
+		&entities.Human{},
+		&entities.Player{},
+		&entities.RailNode{},
+		&entities.RailEdge{},
+		&entities.Platform{},
+		&entities.Gate{},
+		&entities.Station{},
+	)
 }
 
 // CloseDB close database connection
@@ -108,7 +119,42 @@ func CloseDB() {
 
 // InitGame setup RushHour envirionment
 func InitGame() {
-	var admin models.Player
-	Db.Where(models.Player{DisplayName: "Admin", Password: "encodedPassword"}).FirstOrCreate(&admin)
+	var admin entities.Player
+	var residence entities.Residence
+	var company entities.Company
+	var human entities.Human
+	var railNode entities.RailNode
+
+	Db.Where(entities.Player{DisplayName: "Admin", Password: "encodedPassword"}).FirstOrCreate(&admin)
 	revel.AppLog.Info("created Admin player")
+
+	Db.FirstOrCreate(
+		&residence,
+		entities.Residence{
+			Point: entities.Point{X: 5, Y: 5},
+		})
+	Db.FirstOrCreate(
+		&company,
+		entities.Company{
+			Point: entities.Point{X: 10, Y: 10},
+		})
+	Db.FirstOrCreate(
+		&human,
+		entities.Human{
+			Point:     entities.Point{X: 10, Y: 10},
+			FromRefer: residence.ID,
+			ToRefer:   company.ID,
+			On:        entities.OnGround,
+		})
+
+	revel.AppLog.Info("created Public Facilities")
+
+	Db.FirstOrCreate(
+		&railNode,
+		entities.RailNode{
+			Owner: entities.Owner{OwnerRefer: admin.ID},
+			Point: entities.Point{X: 100, Y: 100},
+		})
+
+	revel.AppLog.Info("created Private Facilities")
 }

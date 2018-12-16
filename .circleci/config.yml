@@ -71,7 +71,10 @@ jobs:
       - run: go get github.com/jinzhu/gorm
       - run: go get github.com/revel/revel
       - run: go get github.com/revel/cmd/revel
-      
+
+      - run: ./cc-test-reporter before-build
+      - run: go test -coverprofile c.out ./...
+      - run: ./cc-test-reporter after-build
       - run: /go/bin/revel test -m dev
 
       # TODO: coverage
