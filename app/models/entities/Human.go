@@ -20,7 +20,7 @@ type Human struct {
 	Point
 	FromRefer uint
 	ToRefer   uint
-	From      Residence `gorm:"foreignkey:FromRefer"`
-	To        Company   `gorm:"foreignkey:ToRefer"`
+	From      Residence `gorm:"foreignkey:FromRefer;association_foreignkey:ID"`
+	To        Company   `gorm:"foreignkey:ToRefer;association_foreignkey:ID"`
 	On        Standing  `gorm:"type:int"`
 }

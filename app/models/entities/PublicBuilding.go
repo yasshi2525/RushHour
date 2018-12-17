@@ -18,5 +18,3 @@ type Residence struct {
 
 	capacity uint
 }
-
-const ResidenceProdist = 10

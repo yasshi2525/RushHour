@@ -35,11 +35,17 @@ func TestInitGame(t *testing.T) {
 		&Station{},
 	)
 
+	testDB.Model(&Human{}).AddForeignKey("from_refer", "residences(id)", "RESTRICT", "RESTRICT")
+	testDB.Model(&Human{}).AddForeignKey("to_refer", "companies(id)", "RESTRICT", "RESTRICT")
+
 	t.Run("create Human", func(t *testing.T) {
 		var (
-			from   Residence
-			to     Company
-			target Human
+			from       Residence
+			to         Company
+			target     Human
+			slave      Human
+			fetch      Human
+			slavefetch Human
 		)
 
 		testDB.FirstOrCreate(&from, Residence{
@@ -54,7 +60,32 @@ func TestInitGame(t *testing.T) {
 			FromRefer: from.ID,
 			ToRefer:   to.ID,
 			Point:     TestPointCenter,
+			On:        OnGround,
 		})
+
+		testDB.FirstOrCreate(&slave, Human{
+			FromRefer: from.ID,
+			ToRefer:   to.ID,
+			Point:     TestPointCenter,
+			On:        OnTrain,
+		})
+
+		testDB.Preload("From").Preload("To").Find(&fetch, target.ID)
+		testDB.Preload("From").Preload("To").Find(&slavefetch, slave.ID)
+
+		if &fetch == nil {
+			t.Error("Human is nil")
+		}
+
+		if fetch.From.ID != from.ID {
+			t.Error("Human.From is nil")
+		}
+		if fetch.To.ID != to.ID {
+			t.Error("Human.To is nil")
+		}
+		if fetch.X == 0 || fetch.Y == 0 {
+			t.Error("Human.X/Y is nil")
+		}
 
 		testDB.Delete(&from)
 		testDB.Delete(&to)
@@ -67,6 +98,8 @@ func TestInitGame(t *testing.T) {
 			node       RailNode
 			platform   Platform
 			gate       Gate
+			station    Station
+			fetch      Station
 		)
 
 		testDB.FirstOrCreate(
@@ -79,23 +112,44 @@ func TestInitGame(t *testing.T) {
 		testDB.FirstOrCreate(
 			&node,
 			RailNode{
-				Owner: Owner{OwnerRefer: testPlayer.ID},
-				Point: TestPointCenter,
+				Ownable: Ownable{OwnerRefer: testPlayer.ID},
+				Point:   TestPointCenter,
 			})
 
 		testDB.FirstOrCreate(
 			&platform,
 			Platform{
-				Owner: Owner{OwnerRefer: testPlayer.ID},
-				On:    node,
+				Ownable: Ownable{OwnerRefer: testPlayer.ID},
+				On:      &node,
 			})
 
 		testDB.FirstOrCreate(
 			&gate,
 			Gate{
-				Owner: Owner{OwnerRefer: testPlayer.ID},
+				Ownable: Ownable{OwnerRefer: testPlayer.ID},
 			})
 
+		testDB.FirstOrCreate(
+			&station,
+			Station{
+				Ownable:       Ownable{OwnerRefer: testPlayer.ID},
+				GaterRefer:    gate.ID,
+				PlatformRefer: platform.ID,
+			})
+
+		testDB.Find(&fetch, station.ID)
+
+		if &fetch.Owner == nil {
+			t.Error("Station.Owner is nil")
+		}
+		if &fetch.Gate == nil {
+			t.Error("Station.Gate is nil")
+		}
+		if &fetch.Platform == nil {
+			t.Error("Station.Platform is nil")
+		}
+
+		testDB.Delete(&station)
 		testDB.Delete(&gate)
 		testDB.Delete(&platform)
 		testDB.Delete(&node)
