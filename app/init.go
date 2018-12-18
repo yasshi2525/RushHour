@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/yasshi2525/RushHour/app/models/entities"
+	"github.com/yasshi2525/RushHour/app/services"
 
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
@@ -45,7 +46,8 @@ func init() {
 	revel.OnAppStart(InitGame, 3)
 	// revel.OnAppStart(FillCache)
 
-	revel.OnAppStop(CloseDB)
+	revel.OnAppStop(StopGame, 1)
+	revel.OnAppStop(CloseDB, 2)
 }
 
 // HeaderFilter adds common security headers
@@ -119,5 +121,11 @@ func CloseDB() {
 
 // InitGame setup RushHour envirionment
 func InitGame() {
+	revel.AppLog.Info("init game")
+	services.Start()
+}
 
+func StopGame() {
+	revel.AppLog.Info("stop game")
+	services.Stop()
 }
