@@ -52,7 +52,9 @@ jobs:
 
   test-server:
     working_directory: /go/src/github.com/yasshi2525/RushHour
-
+    environment:
+      CC_TEST_REPORTER_ID: d089f5de52d5f084943cffbf7281df1a041a0926cf1d184ec90ebafdbdfd3f42
+      
     docker:
       - image: circleci/golang:latest
       - image: circleci/mariadb:latest
