@@ -1,0 +1,9 @@
+{% extends "!layout.html" %}
+{% block sidebartoc %}
+    {%- if sphinx_version[:3] >= '1.2' %}
+    {{ toctree (maxdepth=3, includehidden=True) }}
+    {% else %}
+    {{ toctree(maxdepth=3) }}
+    {% endif %}
+{{ super() }}
+{% endblock %}

@@ -5,6 +5,8 @@ node_modules/
 .vscode/
 coverage/
 public/js/bundle.*.js
+docs/_build
+docs/_ext/__pycache__
 
 # Binaries for programs and plugins
 *.exe
