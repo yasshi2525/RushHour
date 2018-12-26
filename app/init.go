@@ -41,10 +41,7 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(InitDB, 1)
-	revel.OnAppStart(MigrateDB, 2)
-	revel.OnAppStart(InitGame, 3)
-	// revel.OnAppStart(FillCache)
+	revel.OnAppStart(InitGame, 1)
 
 	revel.OnAppStop(StopGame, 1)
 	revel.OnAppStop(CloseDB, 2)
@@ -122,10 +119,9 @@ func CloseDB() {
 // InitGame setup RushHour envirionment
 func InitGame() {
 	revel.AppLog.Info("init game")
-	services.Start()
+	go services.Main()
 }
 
 func StopGame() {
 	revel.AppLog.Info("stop game")
-	services.Stop()
 }
