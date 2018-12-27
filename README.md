@@ -1,3 +1,3 @@
 # RushHour
 
-[![CircleCI](https://circleci.com/gh/yasshi2525/RushHour.svg?style=svg)](https://circleci.com/gh/yasshi2525/RushHour)
+[![CircleCI](https://circleci.com/gh/yasshi2525/RushHour.svg?style=svg)](https://circleci.com/gh/yasshi2525/RushHour) [![Maintainability](https://api.codeclimate.com/v1/badges/badbd06162278423cdfa/maintainability)](https://codeclimate.com/github/yasshi2525/RushHour/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/badbd06162278423cdfa/test_coverage)](https://codeclimate.com/github/yasshi2525/RushHour/test_coverage)
