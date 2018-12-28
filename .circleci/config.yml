@@ -70,6 +70,10 @@ jobs:
       - attach_workspace:
           at: .
 
+      - restore_cache: 
+          keys:
+            - v1-pkg-cache
+
       - run: go get github.com/BurntSushi/toml
       - run: go get github.com/jinzhu/gorm
       - run: go get github.com/go-sql-driver/mysql
@@ -80,6 +84,11 @@ jobs:
       - run: go test -coverprofile c.out ./...
       - run: ./cc-test-reporter after-build
       - run: /go/bin/revel test -m dev
+
+      - save_cache:
+          key: v1-pkg-cache
+          paths:
+            - "/go/pkg"
 
   upload-coverage:
     machine: true

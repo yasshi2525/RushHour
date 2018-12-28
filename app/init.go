@@ -44,7 +44,9 @@ func init() {
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(LoadConf, 1)
-	revel.OnAppStart(InitGame, 2)
+	revel.OnAppStart(InitDB, 2)
+	revel.OnAppStart(MigrateDB, 3)
+	revel.OnAppStart(InitGame, 4)
 
 	revel.OnAppStop(StopGame, 1)
 	revel.OnAppStop(CloseDB, 2)
