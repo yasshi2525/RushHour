@@ -1,6 +1,8 @@
 package app
 
 import (
+	"github.com/BurntSushi/toml"
+	"github.com/yasshi2525/RushHour/app/models"
 	"github.com/yasshi2525/RushHour/app/models/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 
@@ -41,7 +43,8 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(InitGame, 1)
+	revel.OnAppStart(LoadConf, 1)
+	revel.OnAppStart(InitGame, 2)
 
 	revel.OnAppStop(StopGame, 1)
 	revel.OnAppStop(CloseDB, 2)
@@ -124,4 +127,11 @@ func InitGame() {
 
 func StopGame() {
 	revel.AppLog.Info("stop game")
+}
+
+func LoadConf() {
+	_, err := toml.DecodeFile("conf/game.conf", &models.Config)
+	if err != nil {
+		revel.AppLog.Errorf("failed to load conf", err)
+	}
 }
