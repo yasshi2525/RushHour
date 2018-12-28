@@ -48,7 +48,7 @@ func TestCost(t *testing.T) {
 
 	step := &Step{"test", from, to, 2}
 
-	if got := step.Cost(); got != 5 {
+	if got := step.Cost(); got != 10.0 {
 		t.Errorf("Cost(%v, %v) == %f, want %f", from, to, got, 10.0)
 	}
 }

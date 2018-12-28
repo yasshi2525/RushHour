@@ -42,8 +42,8 @@ type Human struct {
 
 	FromID     uint
 	ToID       uint
-	From       *Residence
-	To         *Company
+	From       *Residence `gorm:"foreignKey:FromID"`
+	To         *Company   `gorm:"foreignKey:ToID"`
 	OnPlatform *Platform
 	OnTrain    *Train
 	On         Standing

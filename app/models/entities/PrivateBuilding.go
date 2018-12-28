@@ -4,8 +4,8 @@ import "github.com/jinzhu/gorm"
 
 // Owneable means this faciliites in under the control by Player.
 type Ownable struct {
-	OwnerRefer uint
-	Owner      *Player `gorm:"foreignKey:OwnerRefer"`
+	OwnerID uint
+	Owner   *Player `gorm:"foreignKey:OwnerID"`
 }
 
 // RailNode represents rail track as point.
@@ -36,7 +36,7 @@ type RailEdge struct {
 type Platform struct {
 	gorm.Model
 	Ownable
-	Junction
+	Junction `gorm:"-"`
 
 	In       *Station
 	On       *RailNode
@@ -49,7 +49,7 @@ type Platform struct {
 type Gate struct {
 	gorm.Model
 	Ownable
-	Junction
+	Junction `gorm:"-"`
 
 	In *Station
 	// Num represents how many Human can pass at the same time

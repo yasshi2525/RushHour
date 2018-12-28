@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	TestPoint0      = Point{X: 0, Y: 0}
-	TestPointNear   = Point{X: 1, Y: 1}
+	in              = []*Step{}
+	out             = []*Step{}
+	TestPoint0      = Junction{Point: &Point{X: 0, Y: 0}, In: in, Out: out}
+	TestPointNear   = Junction{Point: &Point{X: 1, Y: 1}, In: in, Out: out}
 	TestPointCenter = Point{X: 2, Y: 2}
-	TestPointFar    = Point{X: 3, Y: 3}
+	TestPointFar    = Junction{Point: &Point{X: 3, Y: 3}, In: in, Out: out}
 )
 
 func TestInitGame(t *testing.T) {
@@ -22,6 +24,8 @@ func TestInitGame(t *testing.T) {
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	//testDB.LogMode(true)
 
 	testDB.AutoMigrate(
 		&Company{},
@@ -49,11 +53,11 @@ func TestInitGame(t *testing.T) {
 		)
 
 		testDB.FirstOrCreate(&from, Residence{
-			Point: TestPointNear,
+			Junction: TestPointNear,
 		})
 
 		testDB.FirstOrCreate(&to, Company{
-			Point: TestPointFar,
+			Junction: TestPointFar,
 		})
 
 		testDB.FirstOrCreate(&target, Human{
@@ -112,27 +116,27 @@ func TestInitGame(t *testing.T) {
 		testDB.FirstOrCreate(
 			&node,
 			RailNode{
-				Ownable: Ownable{OwnerRefer: testPlayer.ID},
+				Ownable: Ownable{OwnerID: testPlayer.ID},
 				Point:   TestPointCenter,
 			})
 
 		testDB.FirstOrCreate(
 			&platform,
 			Platform{
-				Ownable: Ownable{OwnerRefer: testPlayer.ID},
+				Ownable: Ownable{OwnerID: testPlayer.ID},
 				On:      &node,
 			})
 
 		testDB.FirstOrCreate(
 			&gate,
 			Gate{
-				Ownable: Ownable{OwnerRefer: testPlayer.ID},
+				Ownable: Ownable{OwnerID: testPlayer.ID},
 			})
 
 		testDB.FirstOrCreate(
 			&station,
 			Station{
-				Ownable:    Ownable{OwnerRefer: testPlayer.ID},
+				Ownable:    Ownable{OwnerID: testPlayer.ID},
 				GateID:     gate.ID,
 				PlatformID: platform.ID,
 			})

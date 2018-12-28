@@ -27,8 +27,8 @@ func (p *Point) IsIn(center *Point, scale float64) bool {
 // There is more than two Junction on same geographically xy if Human cannot move.
 type Junction struct {
 	*Point
-	Out []*Step
-	In  []*Step
+	Out []*Step `gorm:"-"`
+	In  []*Step `gorm:"-"`
 }
 
 // Step represents two Junction is logically connected.

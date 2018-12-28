@@ -8,7 +8,7 @@ import (
 type Company struct {
 	gorm.Model
 	Junction
-	Targets []Human
+	Targets []Human `gorm:"-"`
 
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale uint
@@ -18,7 +18,7 @@ type Company struct {
 type Residence struct {
 	gorm.Model
 	Junction
-	Targets []Human
+	Targets []Human `gorm:"-"`
 
 	capacity uint
 }
