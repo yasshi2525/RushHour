@@ -35,8 +35,8 @@ func TestInitGame(t *testing.T) {
 		&Station{},
 	)
 
-	testDB.Model(&Human{}).AddForeignKey("from_refer", "residences(id)", "RESTRICT", "RESTRICT")
-	testDB.Model(&Human{}).AddForeignKey("to_refer", "companies(id)", "RESTRICT", "RESTRICT")
+	testDB.Model(&Human{}).AddForeignKey("from_id", "residences(id)", "RESTRICT", "RESTRICT")
+	testDB.Model(&Human{}).AddForeignKey("to_id", "companies(id)", "RESTRICT", "RESTRICT")
 
 	t.Run("create Human", func(t *testing.T) {
 		var (
@@ -57,17 +57,17 @@ func TestInitGame(t *testing.T) {
 		})
 
 		testDB.FirstOrCreate(&target, Human{
-			FromRefer: from.ID,
-			ToRefer:   to.ID,
-			Point:     TestPointCenter,
-			On:        OnGround,
+			FromID: from.ID,
+			ToID:   to.ID,
+			Point:  TestPointCenter,
+			On:     OnGround,
 		})
 
 		testDB.FirstOrCreate(&slave, Human{
-			FromRefer: from.ID,
-			ToRefer:   to.ID,
-			Point:     TestPointCenter,
-			On:        OnTrain,
+			FromID: from.ID,
+			ToID:   to.ID,
+			Point:  TestPointCenter,
+			On:     OnTrain,
 		})
 
 		testDB.Preload("From").Preload("To").Find(&fetch, target.ID)
@@ -132,9 +132,9 @@ func TestInitGame(t *testing.T) {
 		testDB.FirstOrCreate(
 			&station,
 			Station{
-				Ownable:       Ownable{OwnerRefer: testPlayer.ID},
-				GaterRefer:    gate.ID,
-				PlatformRefer: platform.ID,
+				Ownable:    Ownable{OwnerRefer: testPlayer.ID},
+				GateID:     gate.ID,
+				PlatformID: platform.ID,
 			})
 
 		testDB.Find(&fetch, station.ID)

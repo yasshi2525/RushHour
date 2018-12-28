@@ -2,7 +2,7 @@ package entities
 
 import "github.com/jinzhu/gorm"
 
-// Owner means this faciliites in under the control by Player.
+// Owneable means this faciliites in under the control by Player.
 type Ownable struct {
 	OwnerRefer uint
 	Owner      *Player `gorm:"foreignKey:OwnerRefer"`
@@ -25,10 +25,10 @@ type RailEdge struct {
 	gorm.Model
 	Ownable
 
-	FromRefer uint
-	ToRefer   uint
-	From      *RailNode `gorm:"foreignKey:FromRefer"`
-	To        *RailNode `gorm:"foreignKey:ToRefer"`
+	FromID uint
+	ToID   uint
+	From   *RailNode
+	To     *RailNode
 }
 
 // Platform is the base Human wait for Train.
@@ -36,7 +36,9 @@ type RailEdge struct {
 type Platform struct {
 	gorm.Model
 	Ownable
+	Junction
 
+	In       *Station
 	On       *RailNode
 	Capacity uint
 	Occupied uint
@@ -47,8 +49,9 @@ type Platform struct {
 type Gate struct {
 	gorm.Model
 	Ownable
-	Point
+	Junction
 
+	In *Station
 	// Num represents how many Human can pass at the same time
 	Num uint
 	// Mobility represents time one Human pass Gate.
@@ -62,11 +65,11 @@ type Station struct {
 	gorm.Model
 	Ownable
 
-	Name          string
-	PlatformRefer uint
-	GaterRefer    uint
-	Platform      *Platform `gorm:"foreignKey:PlatformRefer"`
-	Gate          *Gate     `gorm:"foreignKey:GateRefer"`
+	Name       string
+	PlatformID uint
+	GateID     uint
+	Platform   *Platform
+	Gate       *Gate
 }
 
 // LineTaskType represents the state what Train should do now.
@@ -89,9 +92,17 @@ type LineTask struct {
 	gorm.Model
 	Ownable
 
-	Type      LineTaskType `gorm:"type:int"`
-	NextRefer uint
-	Next      *LineTask `gorm:"foreignKey:NextRefer"`
+	Type   LineTaskType
+	NextID uint
+	Next   *LineTask
+}
+
+type Line struct {
+	gorm.Model
+	Ownable
+
+	Name  string
+	Tasks []*LineTask
 }
 
 // Train carries Human from Station to Station.

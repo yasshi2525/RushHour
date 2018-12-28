@@ -1,11 +1,14 @@
 package entities
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+)
 
 // Company is the destination of Human
 type Company struct {
 	gorm.Model
-	Point
+	Junction
+	Targets []Human
 
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale uint
@@ -14,7 +17,8 @@ type Company struct {
 // Residence generate Human in a period
 type Residence struct {
 	gorm.Model
-	Point
+	Junction
+	Targets []Human
 
 	capacity uint
 }
