@@ -1,11 +1,9 @@
-package routers
-
-import "github.com/yasshi2525/RushHour/app/models/entities"
+package entities
 
 // Node is wrapper of Junction for routing.
 // The chain of Node represents one route.
 type Node struct {
-	Original *entities.Junction
+	Original *Junction
 	Cost     float64
 	Via      *Node
 	Out      []*Edge
@@ -14,7 +12,7 @@ type Node struct {
 
 // Edge is wrapper of Step for routing.
 type Edge struct {
-	Original *entities.Step
+	Original *Step
 	From     *Node
 	To       *Node
 }

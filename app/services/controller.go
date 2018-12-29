@@ -3,15 +3,15 @@ package services
 import (
 	"time"
 
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func ViewMap() {
 	start := time.Now()
 	defer WarnLongExec(start, 2, "ユーザ表示要求", false)
 
-	models.MuStatic.RLock()
-	defer models.MuStatic.RUnlock()
+	entities.MuStatic.RLock()
+	defer entities.MuStatic.RUnlock()
 }
 
 func ChangeMap(msg string) {

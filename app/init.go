@@ -1,8 +1,7 @@
 package app
 
 import (
-	"github.com/yasshi2525/RushHour/app/models"
-	"github.com/yasshi2525/RushHour/app/models/entities"
+	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 
 	"github.com/jinzhu/gorm"
@@ -42,7 +41,7 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(models.LoadConf, 1)
+	revel.OnAppStart(entities.LoadConf, 1)
 	revel.OnAppStart(initDB, 2)
 	revel.OnAppStart(migrateDB, 3)
 	revel.OnAppStart(initGame, 4)

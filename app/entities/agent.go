@@ -1,11 +1,9 @@
-package routers
-
-import "github.com/yasshi2525/RushHour/app/models/entities"
+package entities
 
 // Agent is the wrapper of Human.
 // Agent can move concerting minimum cost route.
 type Agent struct {
-	entities.Human
+	Human
 	Current Edge
 }
 

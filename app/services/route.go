@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var cancelChannel chan string
@@ -19,8 +19,8 @@ func StartRouting(msg string) {
 	reflectCtx, reflectCancel := context.WithCancel(routingContext)
 
 	go func() {
-		models.MuRoute.Lock()
-		defer models.MuRoute.Unlock()
+		entities.MuRoute.Lock()
+		defer entities.MuRoute.Unlock()
 		defer routingCancel()
 		search(searchCtx, searchCancel, msg)
 		reflect(reflectCtx, reflectCancel, msg)
@@ -38,11 +38,11 @@ func CancelRouting(msg string) {
 
 func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 	defer cancel()
-	models.MuStatic.RLock()
-	defer models.MuStatic.RUnlock()
+	entities.MuStatic.RLock()
+	defer entities.MuStatic.RUnlock()
 
-	models.MuAgent.RLock()
-	defer models.MuAgent.RUnlock()
+	entities.MuAgent.RLock()
+	defer entities.MuAgent.RUnlock()
 
 	for i := 0; i < 10; i++ {
 		select {
@@ -57,8 +57,8 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 
 func reflect(ctx context.Context, cancel context.CancelFunc, msg string) {
 	defer cancel()
-	models.MuAgent.Lock()
-	defer models.MuAgent.Unlock()
+	entities.MuAgent.Lock()
+	defer entities.MuAgent.Unlock()
 
 	for i := 0; i < 10; i++ {
 		select {

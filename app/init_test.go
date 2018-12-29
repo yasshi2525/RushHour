@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	. "github.com/yasshi2525/RushHour/app/models/entities"
+	. "github.com/yasshi2525/RushHour/app/entities"
 )
 
 var (

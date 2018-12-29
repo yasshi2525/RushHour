@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var gamemaster *time.Ticker
@@ -20,18 +20,18 @@ func proceed() {
 		start := time.Now()
 
 		// 経路探索中の場合、ゲームを進行しない
-		models.MuRoute.Lock()
+		entities.MuRoute.Lock()
 
-		models.MuStatic.Lock()
+		entities.MuStatic.Lock()
 
-		models.MuAgent.Lock()
+		entities.MuAgent.Lock()
 
 		time.Sleep(600 * time.Millisecond)
 
-		models.MuAgent.Unlock()
-		models.MuStatic.Unlock()
+		entities.MuAgent.Unlock()
+		entities.MuStatic.Unlock()
 
-		models.MuRoute.Unlock()
+		entities.MuRoute.Unlock()
 
 		WarnLongExec(start, 2, "ゲーム進行", false)
 	}

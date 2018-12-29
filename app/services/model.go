@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var modelChannel chan string
@@ -24,11 +24,11 @@ func watchModel() {
 
 		CancelRouting(msg)
 
-		models.MuStatic.Lock()
-		models.MuAgent.Lock()
+		entities.MuStatic.Lock()
+		entities.MuAgent.Lock()
 
-		models.MuAgent.Unlock()
-		models.MuStatic.Unlock()
+		entities.MuAgent.Unlock()
+		entities.MuStatic.Unlock()
 
 		StartRouting(msg)
 

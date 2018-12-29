@@ -1,15 +1,15 @@
-package handlers
+package services
 
 import (
 	"testing"
 
-	"github.com/yasshi2525/RushHour/app/models"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func TestCreateResidence(t *testing.T) {
-	models.InitStorage()
-	models.Config.Residence.Capacity = 10
-	models.Config.Residence.Interval = 1
+	entities.InitStorage()
+	entities.Config.Residence.Capacity = 10
+	entities.Config.Residence.Interval = 1
 
 	residence := CreateResidence(1, 1)
 
@@ -21,14 +21,14 @@ func TestCreateResidence(t *testing.T) {
 }
 
 func TestCreateCompany(t *testing.T) {
-	models.InitStorage()
-	models.Config.Company.Scale = 1
+	entities.InitStorage()
+	entities.Config.Company.Scale = 1
 
 	RemoveCompany(CreateCompany(1, 1))
 }
 
 func TestCreateStep(t *testing.T) {
-	models.InitStorage()
+	entities.InitStorage()
 
 	r := CreateResidence(1, 1)
 	c := CreateCompany(2, 2)
@@ -43,7 +43,7 @@ func TestCreateStep(t *testing.T) {
 	RemoveResidence(r)
 	RemoveCompany(c)
 
-	if got := len(models.StaticModel.Steps); got != 0 {
+	if got := len(entities.StaticModel.Steps); got != 0 {
 		t.Errorf("Steps size should be 0, but %d", got)
 	}
 }

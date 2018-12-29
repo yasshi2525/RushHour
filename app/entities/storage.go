@@ -1,11 +1,10 @@
-package models
+package entities
 
 import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/models/entities"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -31,12 +30,12 @@ type company struct {
 }
 
 type staticModel struct {
-	Residences map[uint]*entities.Residence
-	Companies  map[uint]*entities.Company
-	Gates      map[uint]*entities.Gate
-	Platforms  map[uint]*entities.Platform
-	Train      map[uint]*entities.Train
-	Steps      map[uint]*entities.Step
+	Residences map[uint]*Residence
+	Companies  map[uint]*Company
+	Gates      map[uint]*Gate
+	Platforms  map[uint]*Platform
+	Train      map[uint]*Train
+	Steps      map[uint]*Step
 }
 
 type agentModel struct {
@@ -83,11 +82,11 @@ func LoadConf() {
 // InitStorage initialize storage
 func InitStorage() {
 	StaticModel = staticModel{
-		Companies:  make(map[uint]*entities.Company),
-		Residences: make(map[uint]*entities.Residence),
-		Gates:      make(map[uint]*entities.Gate),
-		Platforms:  make(map[uint]*entities.Platform),
-		Steps:      make(map[uint]*entities.Step),
+		Companies:  make(map[uint]*Company),
+		Residences: make(map[uint]*Residence),
+		Gates:      make(map[uint]*Gate),
+		Platforms:  make(map[uint]*Platform),
+		Steps:      make(map[uint]*Step),
 	}
 	AgentModel = agentModel{}
 	RouteTemplate = routeTemplate{}

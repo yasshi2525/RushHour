@@ -50,5 +50,5 @@ type Step struct {
 
 // Cost is calculated by distance * weight of Step
 func (s *Step) Cost() float64 {
-	return s.From.Dist(&s.From.Point) * s.Weight
+	return s.From.Dist(&s.To.Point) * s.Weight
 }
