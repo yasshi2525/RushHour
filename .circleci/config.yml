@@ -74,6 +74,7 @@ jobs:
           keys:
             - v1-pkg-cache
 
+      - run: go get gopkg.in/go-playground/validator.v9
       - run: go get github.com/BurntSushi/toml
       - run: go get github.com/jinzhu/gorm
       - run: go get github.com/go-sql-driver/mysql

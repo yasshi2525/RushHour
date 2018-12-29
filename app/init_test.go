@@ -11,10 +11,10 @@ import (
 var (
 	in              = []*Step{}
 	out             = []*Step{}
-	TestPoint0      = Junction{Point: &Point{X: 0, Y: 0}, In: in, Out: out}
-	TestPointNear   = Junction{Point: &Point{X: 1, Y: 1}, In: in, Out: out}
+	TestPoint0      = Junction{Point: Point{X: 0, Y: 0}, In: in, Out: out}
+	TestPointNear   = Junction{Point: Point{X: 1, Y: 1}, In: in, Out: out}
 	TestPointCenter = Point{X: 2, Y: 2}
-	TestPointFar    = Junction{Point: &Point{X: 3, Y: 3}, In: in, Out: out}
+	TestPointFar    = Junction{Point: Point{X: 3, Y: 3}, In: in, Out: out}
 )
 
 func TestInitGame(t *testing.T) {

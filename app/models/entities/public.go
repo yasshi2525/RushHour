@@ -1,8 +1,19 @@
 package entities
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 )
+
+// NewModel create new gorm.Model
+func NewModel(id uint32) gorm.Model {
+	return gorm.Model{
+		ID:        uint(id),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+}
 
 // Company is the destination of Human
 type Company struct {
@@ -11,7 +22,7 @@ type Company struct {
 	Targets []Human `gorm:"-"`
 
 	// Scale : if Scale is bigger, more Human destinate Company
-	Scale uint
+	Scale float64
 }
 
 // Residence generate Human in a period
@@ -20,5 +31,6 @@ type Residence struct {
 	Junction
 	Targets []Human `gorm:"-"`
 
-	capacity uint
+	Capacity  uint
+	Available float64
 }

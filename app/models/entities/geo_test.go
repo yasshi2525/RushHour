@@ -43,8 +43,8 @@ func TestIsIn(t *testing.T) {
 }
 
 func TestCost(t *testing.T) {
-	from := &Junction{&Point{0, 0}, []*Step{}, []*Step{}}
-	to := &Junction{&Point{3, 4}, []*Step{}, []*Step{}}
+	from := &Junction{Point{0, 0}, []*Step{}, []*Step{}}
+	to := &Junction{Point{3, 4}, []*Step{}, []*Step{}}
 
 	step := &Step{"test", from, to, 2}
 

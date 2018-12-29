@@ -26,9 +26,18 @@ func (p *Point) IsIn(center *Point, scale float64) bool {
 // Junction is a logical Point that connects Edges.
 // There is more than two Junction on same geographically xy if Human cannot move.
 type Junction struct {
-	*Point
+	Point
 	Out []*Step `gorm:"-"`
 	In  []*Step `gorm:"-"`
+}
+
+// NewJunction create Juntion
+func NewJunction(x float64, y float64) Junction {
+	return Junction{
+		Point: Point{X: x, Y: y},
+		Out:   []*Step{},
+		In:    []*Step{},
+	}
 }
 
 // Step represents two Junction is logically connected.
@@ -41,5 +50,5 @@ type Step struct {
 
 // Cost is calculated by distance * weight of Step
 func (s *Step) Cost() float64 {
-	return s.To.Dist(s.From.Point) * s.weight
+	return s.To.Dist(&s.From.Point) * s.weight
 }

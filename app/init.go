@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/BurntSushi/toml"
 	"github.com/yasshi2525/RushHour/app/models"
 	"github.com/yasshi2525/RushHour/app/models/entities"
 	"github.com/yasshi2525/RushHour/app/services"
@@ -43,13 +42,13 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(LoadConf, 1)
-	revel.OnAppStart(InitDB, 2)
-	revel.OnAppStart(MigrateDB, 3)
-	revel.OnAppStart(InitGame, 4)
+	revel.OnAppStart(models.LoadConf, 1)
+	revel.OnAppStart(initDB, 2)
+	revel.OnAppStart(migrateDB, 3)
+	revel.OnAppStart(initGame, 4)
 
-	revel.OnAppStop(StopGame, 1)
-	revel.OnAppStop(CloseDB, 2)
+	revel.OnAppStop(stopGame, 1)
+	revel.OnAppStop(closeDB, 2)
 }
 
 // HeaderFilter adds common security headers
@@ -73,7 +72,7 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //}
 
 // InitDB connect database
-func InitDB() {
+func initDB() {
 	var err error
 
 	driver, found := revel.Config.String("db.driver")
@@ -99,7 +98,7 @@ func InitDB() {
 }
 
 // MigrateDB migrate database
-func MigrateDB() {
+func migrateDB() {
 	Db.AutoMigrate(
 		&entities.Company{},
 		&entities.Residence{},
@@ -114,7 +113,7 @@ func MigrateDB() {
 }
 
 // CloseDB close database connection
-func CloseDB() {
+func closeDB() {
 	if err := Db.Close(); err != nil {
 		revel.AppLog.Error("failed to close the database", "error", err)
 	}
@@ -122,18 +121,11 @@ func CloseDB() {
 }
 
 // InitGame setup RushHour envirionment
-func InitGame() {
+func initGame() {
 	revel.AppLog.Info("init game")
 	go services.Main()
 }
 
-func StopGame() {
+func stopGame() {
 	revel.AppLog.Info("stop game")
-}
-
-func LoadConf() {
-	_, err := toml.DecodeFile("conf/game.conf", &models.Config)
-	if err != nil {
-		revel.AppLog.Errorf("failed to load conf", err)
-	}
 }
