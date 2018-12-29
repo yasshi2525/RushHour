@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var gamemaster *time.Ticker
 
+// StartProcedure start game.
 func StartProcedure() {
 	gamemaster = time.NewTicker(1 * time.Second)
 
@@ -20,23 +20,24 @@ func proceed() {
 		start := time.Now()
 
 		// 経路探索中の場合、ゲームを進行しない
-		entities.MuRoute.Lock()
+		MuRoute.Lock()
 
-		entities.MuStatic.Lock()
+		MuStatic.Lock()
 
-		entities.MuAgent.Lock()
+		MuDynamic.Lock()
 
 		time.Sleep(600 * time.Millisecond)
 
-		entities.MuAgent.Unlock()
-		entities.MuStatic.Unlock()
+		MuDynamic.Unlock()
+		MuStatic.Unlock()
 
-		entities.MuRoute.Unlock()
+		MuRoute.Unlock()
 
 		WarnLongExec(start, 2, "ゲーム進行", false)
 	}
 }
 
+// StopProcedure stop game
 func StopProcedure() {
 	if gamemaster != nil {
 		revel.AppLog.Info("中止処理 開始")

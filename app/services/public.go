@@ -11,9 +11,9 @@ import (
 
 // CreateResidence creates Residence and registers it to storage and step
 func CreateResidence(x float64, y float64) *entities.Residence {
-	id := uint(atomic.AddUint64(&entities.NextID.Residence, 1))
-	capacity := entities.Config.Residence.Capacity
-	available := entities.Config.Residence.Interval * rand.Float64()
+	id := uint(atomic.AddUint64(&NextID.Residence, 1))
+	capacity := Config.Residence.Capacity
+	available := Config.Residence.Interval * rand.Float64()
 
 	residence := &entities.Residence{
 		Model:     entities.NewModel(id),
@@ -23,13 +23,13 @@ func CreateResidence(x float64, y float64) *entities.Residence {
 		Targets:   []entities.Human{},
 	}
 
-	entities.StaticModel.Residences[id] = residence
+	Static.Residences[id] = residence
 	logNode("Residence", id, "created", &residence.Point)
 
-	for _, c := range entities.StaticModel.Companies {
+	for _, c := range Static.Companies {
 		createStep(&residence.Junction, &c.Junction, 1.0)
 	}
-	for _, g := range entities.StaticModel.Gates {
+	for _, g := range Static.Gates {
 		createStep(&residence.Junction, &g.Junction, 1.0)
 	}
 
@@ -37,19 +37,25 @@ func CreateResidence(x float64, y float64) *entities.Residence {
 }
 
 // RemoveResidence remove Residence and related Step from storage
-func RemoveResidence(r *entities.Residence) {
+func RemoveResidence(id uint) {
+	r := Static.Residences[id]
+	if r == nil {
+		revel.AppLog.Warnf("residence(%d) is already removed.", id)
+		return
+	}
+
 	for _, s := range r.Out {
-		delete(entities.StaticModel.Steps, s.ID)
+		delete(Static.Steps, s.ID)
 		logStep("removed", s)
 	}
-	delete(entities.StaticModel.Residences, r.ID)
+	delete(Static.Residences, r.ID)
 	logNode("Residence", r.ID, "removed", &r.Point)
 }
 
 // CreateCompany creates Company and registers it to storage and step
 func CreateCompany(x float64, y float64) *entities.Company {
-	id := uint(atomic.AddUint64(&entities.NextID.Company, 1))
-	scale := entities.Config.Company.Scale
+	id := uint(atomic.AddUint64(&NextID.Company, 1))
+	scale := Config.Company.Scale
 
 	company := &entities.Company{
 		Model:    entities.NewModel(id),
@@ -58,13 +64,13 @@ func CreateCompany(x float64, y float64) *entities.Company {
 		Targets:  []entities.Human{},
 	}
 
-	entities.StaticModel.Companies[id] = company
+	Static.Companies[id] = company
 	logNode("Company", id, "created", &company.Point)
 
-	for _, r := range entities.StaticModel.Residences {
+	for _, r := range Static.Residences {
 		createStep(&r.Junction, &company.Junction, 1.0)
 	}
-	for _, g := range entities.StaticModel.Gates {
+	for _, g := range Static.Gates {
 		createStep(&g.Junction, &company.Junction, 1.0)
 	}
 
@@ -72,17 +78,22 @@ func CreateCompany(x float64, y float64) *entities.Company {
 }
 
 // RemoveCompany remove Company and related Step from storage
-func RemoveCompany(c *entities.Company) {
+func RemoveCompany(id uint) {
+	c := Static.Companies[id]
+	if c == nil {
+		revel.AppLog.Warnf("company(%d) is already removed.", id)
+		return
+	}
 	for _, s := range c.In {
-		delete(entities.StaticModel.Steps, s.ID)
+		delete(Static.Steps, s.ID)
 		logStep("removed", s)
 	}
-	delete(entities.StaticModel.Companies, c.ID)
+	delete(Static.Companies, c.ID)
 	logNode("Company", c.ID, "removed", &c.Point)
 }
 
 func createStep(from *entities.Junction, to *entities.Junction, weight float64) *entities.Step {
-	id := uint(atomic.AddUint64(&entities.NextID.Step, 1))
+	id := uint(atomic.AddUint64(&NextID.Step, 1))
 	step := &entities.Step{
 		ID:     id,
 		From:   from,
@@ -91,7 +102,7 @@ func createStep(from *entities.Junction, to *entities.Junction, weight float64) 
 	}
 	from.Out = append(from.Out, step)
 	to.In = append(to.In, step)
-	entities.StaticModel.Steps[id] = step
+	Static.Steps[id] = step
 	logStep("created", step)
 	return step
 }

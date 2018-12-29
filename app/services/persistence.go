@@ -3,33 +3,33 @@ package services
 import (
 	"time"
 
-	"github.com/yasshi2525/RushHour/app/entities"
-
 	"github.com/revel/revel"
 )
 
+// Restore get model from database
 func Restore() {
 	revel.AppLog.Info("DBリストア 開始")
 	defer revel.AppLog.Info("DBリストア 終了")
 
-	entities.MuStatic.Lock()
-	defer entities.MuStatic.Unlock()
+	MuStatic.Lock()
+	defer MuStatic.Unlock()
 
-	entities.MuAgent.Lock()
-	defer entities.MuAgent.Unlock()
+	MuDynamic.Lock()
+	defer MuDynamic.Unlock()
 
 	time.Sleep(1 * time.Second)
 }
 
+// Backup set model to database
 func Backup() {
 	revel.AppLog.Info("バックアップ 開始")
 	defer revel.AppLog.Info("バックアップ 終了")
 
-	entities.MuStatic.RLock()
-	defer entities.MuStatic.RUnlock()
+	MuStatic.RLock()
+	defer MuStatic.RUnlock()
 
-	entities.MuAgent.RLock()
-	defer entities.MuAgent.RUnlock()
+	MuDynamic.RLock()
+	defer MuDynamic.RUnlock()
 
 	time.Sleep(10 * time.Second)
 }

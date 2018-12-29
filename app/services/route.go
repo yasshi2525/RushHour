@@ -5,28 +5,31 @@ import (
 	"time"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var cancelChannel chan string
 var routingContext context.Context
 var routingCancel context.CancelFunc
+
+// IsSearching represents whether searching is executed or not.
 var IsSearching bool
 
+// StartRouting start searching.
 func StartRouting(msg string) {
 	routingContext, routingCancel = context.WithCancel(context.Background())
 	searchCtx, searchCancel := context.WithCancel(routingContext)
 	reflectCtx, reflectCancel := context.WithCancel(routingContext)
 
 	go func() {
-		entities.MuRoute.Lock()
-		defer entities.MuRoute.Unlock()
+		MuRoute.Lock()
+		defer MuRoute.Unlock()
 		defer routingCancel()
 		search(searchCtx, searchCancel, msg)
 		reflect(reflectCtx, reflectCancel, msg)
 	}()
 }
 
+// CancelRouting stop current executing searching.
 func CancelRouting(msg string) {
 	if routingCancel != nil {
 		routingCancel()
@@ -38,11 +41,11 @@ func CancelRouting(msg string) {
 
 func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 	defer cancel()
-	entities.MuStatic.RLock()
-	defer entities.MuStatic.RUnlock()
+	MuStatic.RLock()
+	defer MuStatic.RUnlock()
 
-	entities.MuAgent.RLock()
-	defer entities.MuAgent.RUnlock()
+	MuDynamic.RLock()
+	defer MuDynamic.RUnlock()
 
 	for i := 0; i < 10; i++ {
 		select {
@@ -57,8 +60,8 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 
 func reflect(ctx context.Context, cancel context.CancelFunc, msg string) {
 	defer cancel()
-	entities.MuAgent.Lock()
-	defer entities.MuAgent.Unlock()
+	MuDynamic.Lock()
+	defer MuDynamic.Unlock()
 
 	for i := 0; i < 10; i++ {
 		select {

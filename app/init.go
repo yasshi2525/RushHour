@@ -41,10 +41,11 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(entities.LoadConf, 1)
-	revel.OnAppStart(initDB, 2)
-	revel.OnAppStart(migrateDB, 3)
-	revel.OnAppStart(initGame, 4)
+	revel.OnAppStart(services.LoadConf, 1)
+	revel.OnAppStart(services.InitStorage, 2)
+	revel.OnAppStart(initDB, 3)
+	revel.OnAppStart(migrateDB, 4)
+	revel.OnAppStart(initGame, 5)
 
 	revel.OnAppStop(stopGame, 1)
 	revel.OnAppStop(closeDB, 2)

@@ -1,10 +1,11 @@
-package entities
+package services
 
 import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
 	"github.com/revel/revel"
+	"github.com/yasshi2525/RushHour/app/entities"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -30,12 +31,12 @@ type company struct {
 }
 
 type staticModel struct {
-	Residences map[uint]*Residence
-	Companies  map[uint]*Company
-	Gates      map[uint]*Gate
-	Platforms  map[uint]*Platform
-	Train      map[uint]*Train
-	Steps      map[uint]*Step
+	Residences map[uint]*entities.Residence
+	Companies  map[uint]*entities.Company
+	Gates      map[uint]*entities.Gate
+	Platforms  map[uint]*entities.Platform
+	Train      map[uint]*entities.Train
+	Steps      map[uint]*entities.Step
 }
 
 type agentModel struct {
@@ -50,20 +51,20 @@ var Config config
 // NextID has what number should be set
 var NextID nextID
 
-// StaticModel is viewable feature including Step infomation.
-var StaticModel staticModel
+// Static is viewable feature including Step infomation.
+var Static staticModel
 
-// AgentModel is hidden feature and not be persisted/
-var AgentModel agentModel
+// Dynamic is hidden feature and not be persisted/
+var Dynamic agentModel
 
 // RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate routeTemplate
 
-// MuStatic is mutex lock for StaticModel
+// MuStatic is mutex lock for Static
 var MuStatic sync.RWMutex
 
-// MuAgent is mutex lock for AgentModel
-var MuAgent sync.RWMutex
+// MuDynamic is mutex lock for Dynamic
+var MuDynamic sync.RWMutex
 
 // MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
@@ -81,17 +82,17 @@ func LoadConf() {
 
 // InitStorage initialize storage
 func InitStorage() {
-	StaticModel = staticModel{
-		Companies:  make(map[uint]*Company),
-		Residences: make(map[uint]*Residence),
-		Gates:      make(map[uint]*Gate),
-		Platforms:  make(map[uint]*Platform),
-		Steps:      make(map[uint]*Step),
+	Static = staticModel{
+		Companies:  make(map[uint]*entities.Company),
+		Residences: make(map[uint]*entities.Residence),
+		Gates:      make(map[uint]*entities.Gate),
+		Platforms:  make(map[uint]*entities.Platform),
+		Steps:      make(map[uint]*entities.Step),
 	}
-	AgentModel = agentModel{}
+	Dynamic = agentModel{}
 	RouteTemplate = routeTemplate{}
 
 	MuStatic = sync.RWMutex{}
-	MuAgent = sync.RWMutex{}
+	MuDynamic = sync.RWMutex{}
 	MuRoute = sync.Mutex{}
 }

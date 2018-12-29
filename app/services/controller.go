@@ -2,18 +2,14 @@ package services
 
 import (
 	"time"
-
-	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// ViewMap immitates user requests view
+// TODO remove
 func ViewMap() {
 	start := time.Now()
 	defer WarnLongExec(start, 2, "ユーザ表示要求", false)
 
-	entities.MuStatic.RLock()
-	defer entities.MuStatic.RUnlock()
-}
-
-func ChangeMap(msg string) {
-	UpdateModel(msg)
+	MuStatic.RLock()
+	defer MuStatic.RUnlock()
 }
