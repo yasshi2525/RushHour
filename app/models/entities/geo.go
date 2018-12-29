@@ -42,13 +42,13 @@ func NewJunction(x float64, y float64) Junction {
 
 // Step represents two Junction is logically connected.
 type Step struct {
-	UID    string
+	ID     uint
 	From   *Junction
 	To     *Junction
-	weight float64
+	Weight float64
 }
 
 // Cost is calculated by distance * weight of Step
 func (s *Step) Cost() float64 {
-	return s.To.Dist(&s.From.Point) * s.weight
+	return s.From.Dist(&s.From.Point) * s.Weight
 }

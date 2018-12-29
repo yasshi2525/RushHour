@@ -10,8 +10,9 @@ import (
 )
 
 type nextID struct {
-	Residence uint32
-	Company   uint32
+	Residence uint64
+	Company   uint64
+	Step      uint64
 }
 
 type config struct {
@@ -30,8 +31,12 @@ type company struct {
 }
 
 type staticModel struct {
-	Residences []entities.Residence
-	Companies  []entities.Company
+	Residences map[uint]*entities.Residence
+	Companies  map[uint]*entities.Company
+	Gates      map[uint]*entities.Gate
+	Platforms  map[uint]*entities.Platform
+	Train      map[uint]*entities.Train
+	Steps      map[uint]*entities.Step
 }
 
 type agentModel struct {
@@ -40,15 +45,28 @@ type agentModel struct {
 type routeTemplate struct {
 }
 
+// Config defines game feature
 var Config config
+
+// NextID has what number should be set
 var NextID nextID
 
+// StaticModel is viewable feature including Step infomation.
 var StaticModel staticModel
+
+// AgentModel is hidden feature and not be persisted/
 var AgentModel agentModel
+
+// RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate routeTemplate
 
+// MuStatic is mutex lock for StaticModel
 var MuStatic sync.RWMutex
+
+// MuAgent is mutex lock for AgentModel
 var MuAgent sync.RWMutex
+
+// MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
 
 // LoadConf load and validate game.conf
@@ -64,7 +82,13 @@ func LoadConf() {
 
 // InitStorage initialize storage
 func InitStorage() {
-	StaticModel = staticModel{}
+	StaticModel = staticModel{
+		Companies:  make(map[uint]*entities.Company),
+		Residences: make(map[uint]*entities.Residence),
+		Gates:      make(map[uint]*entities.Gate),
+		Platforms:  make(map[uint]*entities.Platform),
+		Steps:      make(map[uint]*entities.Step),
+	}
 	AgentModel = agentModel{}
 	RouteTemplate = routeTemplate{}
 

@@ -7,9 +7,9 @@ import (
 )
 
 // NewModel create new gorm.Model
-func NewModel(id uint32) gorm.Model {
+func NewModel(id uint) gorm.Model {
 	return gorm.Model{
-		ID:        uint(id),
+		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -19,6 +19,7 @@ func NewModel(id uint32) gorm.Model {
 type Company struct {
 	gorm.Model
 	Junction
+
 	Targets []Human `gorm:"-"`
 
 	// Scale : if Scale is bigger, more Human destinate Company
@@ -29,6 +30,7 @@ type Company struct {
 type Residence struct {
 	gorm.Model
 	Junction
+
 	Targets []Human `gorm:"-"`
 
 	Capacity  uint

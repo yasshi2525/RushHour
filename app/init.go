@@ -123,6 +123,7 @@ func closeDB() {
 // InitGame setup RushHour envirionment
 func initGame() {
 	revel.AppLog.Info("init game")
+
 	go services.Main()
 }
 

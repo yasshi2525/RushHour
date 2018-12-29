@@ -2,7 +2,7 @@ package entities
 
 import "github.com/jinzhu/gorm"
 
-// Owneable means this faciliites in under the control by Player.
+// Ownable means this faciliites in under the control by Player.
 type Ownable struct {
 	OwnerID uint
 	Owner   *Player `gorm:"foreignKey:OwnerID"`
@@ -97,6 +97,7 @@ type LineTask struct {
 	Next   *LineTask
 }
 
+// Line represents how Train should run.
 type Line struct {
 	gorm.Model
 	Ownable
