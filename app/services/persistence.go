@@ -1,6 +1,9 @@
 package services
 
 import (
+	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -8,10 +11,16 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-var db *gorm.DB
+var (
+	db       *gorm.DB
+	excludes *[]string
+)
+
+type eachCallback func(v reflect.Value)
 
 // InitPersistence prepares database connection and migrate
 func InitPersistence() {
+	excludes = &[]string{"Steps"}
 
 	db = connectDB()
 	configureDB(db)
@@ -53,15 +62,53 @@ func migrateDB(database *gorm.DB) *gorm.DB {
 		&entities.Company{},
 		&entities.RailNode{},
 		&entities.RailEdge{},
+		&entities.Station{},
 		&entities.Platform{},
 		&entities.Gate{},
-		&entities.Station{},
 		&entities.LineTask{},
 		&entities.Line{},
-		&entities.Step{},
+		//&entities.Step{}, Step is out of target for persistence because it can intruduce by other resources
 		&entities.Train{},
 		&entities.Human{},
 	)
+
+	// Player has private resources
+	for _, t := range []interface{}{
+		&entities.RailNode{},
+		&entities.RailEdge{},
+		&entities.Station{},
+		&entities.Platform{},
+		&entities.Gate{},
+		&entities.LineTask{},
+		&entities.Line{},
+		&entities.Train{},
+	} {
+		db.Model(t).AddForeignKey("owner_id", "player(id)", "RESTRICT", "RESTRICT")
+	}
+
+	// RailEdge connects RailNode
+	db.Model(&entities.RailEdge{}).AddForeignKey("from_id", "rail_node(id)", "CASCADE", "RESTRICT")
+	db.Model(&entities.RailEdge{}).AddForeignKey("to_id", "rail_node(id)", "CASCADE", "RESTRICT")
+
+	// Station composes Platforms and Gates
+	db.Model(&entities.Platform{}).AddForeignKey("on_id", "rail_node(id)", "RESTRICT", "RESTRICT")
+	db.Model(&entities.Platform{}).AddForeignKey("in_id", "station(id)", "CASCADE", "RESTRICT")
+	db.Model(&entities.Gate{}).AddForeignKey("in_id", "station(id)", "CASCADE", "RESTRICT")
+
+	// Line composes LineTasks
+	db.Model(&entities.LineTask{}).AddForeignKey("line_id", "line(id)", "CASCADE", "RESTRICT")
+	// LineTask is chainable
+	db.Model(&entities.LineTask{}).AddForeignKey("next_id", "line_task(id)", "SET NULL", "RESTRICT")
+
+	// Train runs on a chain of Line
+	db.Model(&entities.Train{}).AddForeignKey("task_id", "line_task(id)", "RESTRICT", "RESTRICT")
+
+	// Human departs from Residence and destinates to Company
+	db.Model(&entities.Human{}).AddForeignKey("from_id", "residence(id)", "RESTRICT", "RESTRICT")
+	db.Model(&entities.Human{}).AddForeignKey("to_id", "company(id)", "RESTRICT", "RESTRICT")
+	// Human is sometimes on Platform or on Train
+	db.Model(&entities.Human{}).AddForeignKey("on_platform_id", "platform(id)", "RESTRICT", "RESTRICT")
+	db.Model(&entities.Human{}).AddForeignKey("on_train_id", "train(id)", "RESTRICT", "RESTRICT")
 
 	return db
 }
@@ -92,6 +139,29 @@ func Restore() {
 	time.Sleep(1 * time.Second)
 }
 
+func eachEntity(skips *[]string, callback eachCallback) {
+	rt, rv := reflect.TypeOf(Static), reflect.ValueOf(Static)
+	for i := 0; i < rt.NumField(); i++ {
+		if f := rv.Field(i); f.Kind() == reflect.Map {
+			// skip specific field
+			shouldSkip := false
+			for _, skip := range *skips {
+				if strings.Compare(rt.Field(i).Name, skip) == 0 {
+					shouldSkip = true
+					break
+				}
+			}
+			if !shouldSkip {
+				for _, e := range f.MapKeys() {
+					callback(f.MapIndex(e))
+				}
+			}
+		} else {
+			revel.AppLog.Warnf("%s is not map", f.Kind().String())
+		}
+	}
+}
+
 // Backup set model to database
 func Backup() {
 	revel.AppLog.Info("バックアップ 開始")
@@ -103,7 +173,29 @@ func Backup() {
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
-	db.Begin()
+	tx := db.Begin()
 
-	db.Commit()
+	// resolve refer
+	eachEntity(excludes, func(val reflect.Value) {
+		if v, ok := val.Interface().(entities.Resolvable); ok {
+			v.ResolveRef()
+		} else {
+			revel.AppLog.Warnf("%s is not resolvable", val.String())
+		}
+	})
+
+	// upsert
+	eachEntity(excludes, func(val reflect.Value) {
+		db.Save(val.Elem().Interface())
+	})
+
+	// remove old resources
+	for _, resource := range EntityTypes {
+		for _, id := range WillRemove[resource] {
+			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", resource)
+			db.Exec(sql, time.Now(), time.Now(), id)
+		}
+	}
+
+	tx.Commit()
 }

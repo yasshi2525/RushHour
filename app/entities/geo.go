@@ -4,8 +4,8 @@ import "math"
 
 // Point represents geographical location on game map
 type Point struct {
-	X float64
-	Y float64
+	X float64 `gorm:"index;not null"`
+	Y float64 `gorm:"index;not null"`
 }
 
 // Dist calculate a distance between two Point
@@ -41,6 +41,7 @@ func NewJunction(x float64, y float64) Junction {
 }
 
 // Step represents two Junction is logically connected.
+// Step is out of target for persistence because it can intruduce by other resources.
 type Step struct {
 	ID     uint
 	From   *Junction

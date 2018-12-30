@@ -24,29 +24,40 @@ type Human struct {
 	Point
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
-	Available float64
+	Available float64 `gorm:"not null"`
 
 	// Mobilty represents how many meters Human can move in a second.
-	Mobility float64
+	Mobility float64 `gorm:"not null"`
 
 	// Angle represents where Human looks for. The unit is radian.
-	Angle float64
+	Angle float64 `gorm:"not null"`
 
 	// Lifespan represents how many seconds Human can live.
 	// Human will die after specific term with keeping stay
 	// in order to save memory resources.
-	Lifespan float64
+	Lifespan float64 `gorm:"not null"`
 
 	// Progress is [0,1] value representing how much Human proceed current task.
-	Progress float64
+	Progress float64 `gorm:"not null"`
 
-	FromID     uint
-	ToID       uint
-	From       *Residence `gorm:"foreignKey:FromID"`
-	To         *Company   `gorm:"foreignKey:ToID"`
-	OnPlatform *Platform
-	OnTrain    *Train
-	On         Standing
+	From       *Residence `gorm:"-"`
+	To         *Company   `gorm:"-"`
+	OnPlatform *Platform  `gorm:"-"`
+	OnTrain    *Train     `gorm:"-"`
+	On         Standing   `gorm:"-"`
+
+	FromID       uint `gorm:"not null"`
+	ToID         uint `gorm:"not null"`
+	OnPlatformID uint
+	OnTrainID    uint
+}
+
+// ResolveRef resolve commuting reference
+func (h *Human) ResolveRef() {
+	h.FromID = h.From.ID
+	h.ToID = h.To.ID
+	h.OnPlatformID = h.OnPlatform.ID
+	h.OnTrainID = h.OnTrain.ID
 }
 
 // TurnTo make Human turn head to dest.

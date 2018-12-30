@@ -23,7 +23,7 @@ type Company struct {
 	Targets []Human `gorm:"-"`
 
 	// Scale : if Scale is bigger, more Human destinate Company
-	Scale float64
+	Scale float64 `gorm:"not null"`
 }
 
 // Residence generate Human in a period
@@ -33,6 +33,6 @@ type Residence struct {
 
 	Targets []Human `gorm:"-"`
 
-	Capacity  uint
-	Available float64
+	Capacity  uint    `gorm:"not null"`
+	Available float64 `gorm:"not null"`
 }

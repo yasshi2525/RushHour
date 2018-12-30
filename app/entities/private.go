@@ -2,10 +2,22 @@ package entities
 
 import "github.com/jinzhu/gorm"
 
+// Resolvable set some_id fields from reference.
+// Resolvable is for database migration
+type Resolvable interface {
+	ResolveRef()
+}
+
 // Ownable means this faciliites in under the control by Player.
 type Ownable struct {
-	OwnerID uint
-	Owner   *Player `gorm:"foreignKey:OwnerID"`
+	Owner *Player
+
+	OwnerID uint `gorm:"not null"`
+}
+
+// ResolveRef resolve ownerID from Owner
+func (o *Ownable) ResolveRef() {
+	o.OwnerID = o.Owner.ID
 }
 
 // RailNode represents rail track as point.
@@ -15,8 +27,13 @@ type RailNode struct {
 	Ownable
 	Point
 
-	In  []RailEdge
-	Out []RailEdge
+	In  []*RailEdge `gorm:"-"`
+	Out []*RailEdge `gorm:"-"`
+}
+
+// ResolveRef resolve Owner reference
+func (rn *RailNode) ResolveRef() {
+	rn.Ownable.ResolveRef()
 }
 
 // RailEdge connects from RailNode to RailNode.
@@ -25,10 +42,33 @@ type RailEdge struct {
 	gorm.Model
 	Ownable
 
-	FromID uint
-	ToID   uint
-	From   *RailNode
-	To     *RailNode
+	From *RailNode `gorm:"-"`
+	To   *RailNode `gorm:"-"`
+
+	FromID uint `gorm:"not null"`
+	ToID   uint `gorm:"not null"`
+}
+
+// ResolveRef resolve Owner reference
+func (re *RailEdge) ResolveRef() {
+	re.Ownable.ResolveRef()
+	re.FromID = re.From.ID
+	re.ToID = re.To.ID
+}
+
+// Station composes on Platform and Gate
+type Station struct {
+	gorm.Model
+	Ownable
+
+	Name     string
+	Platform *Platform `gorm:"-"`
+	Gate     *Gate     `gorm:"-"`
+}
+
+// ResolveRef resolve Owner reference
+func (st *Station) ResolveRef() {
+	st.Ownable.ResolveRef()
 }
 
 // Platform is the base Human wait for Train.
@@ -36,12 +76,22 @@ type RailEdge struct {
 type Platform struct {
 	gorm.Model
 	Ownable
-	Junction `gorm:"-"`
+	Junction
 
-	In       *Station
-	On       *RailNode
-	Capacity uint
-	Occupied uint
+	In       *Station  `gorm:"-"`
+	On       *RailNode `gorm:"-"`
+	Capacity uint      `gorm:"not null"`
+	Occupied uint      `gorm:"not null"`
+
+	InID uint `gorm:"not null"`
+	OnID uint `gorm:"not null"`
+}
+
+// ResolveRef resolve Owner and Station reference
+func (p *Platform) ResolveRef() {
+	p.Ownable.ResolveRef()
+	p.InID = p.In.ID
+	p.OnID = p.On.ID
 }
 
 // Gate represents ticket gate in Station.
@@ -49,27 +99,23 @@ type Platform struct {
 type Gate struct {
 	gorm.Model
 	Ownable
-	Junction `gorm:"-"`
+	Junction
 
-	In *Station
+	In *Station `gorm:"-"`
 	// Num represents how many Human can pass at the same time
-	Num uint
+	Num uint `gorm:"not null"`
 	// Mobility represents time one Human pass Gate.
-	Mobility float64
+	Mobility float64 `gorm:"not null"`
 	// Occupied represents how many Gate are used by Human.
-	Occupied uint
+	Occupied uint `gorm:"not null"`
+
+	InID uint `gorm:"not null"`
 }
 
-// Station compose on Platform and Gate
-type Station struct {
-	gorm.Model
-	Ownable
-
-	Name       string
-	PlatformID uint
-	GateID     uint
-	Platform   *Platform
-	Gate       *Gate
+// ResolveRef resolve Owner and Station reference
+func (g *Gate) ResolveRef() {
+	g.Ownable.ResolveRef()
+	g.InID = g.In.ID
 }
 
 // LineTaskType represents the state what Train should do now.
@@ -92,9 +138,19 @@ type LineTask struct {
 	gorm.Model
 	Ownable
 
-	Type   LineTaskType
+	Line *Line        `gorm:"-"`
+	Type LineTaskType `gorm:"not null"`
+	Next *LineTask    `gorm:"-"`
+
+	LineID uint `gorm:"not null"`
 	NextID uint
-	Next   *LineTask
+}
+
+// ResolveRef resolve Owner and Line reference
+func (lt *LineTask) ResolveRef() {
+	lt.Ownable.ResolveRef()
+	lt.LineID = lt.Line.ID
+	lt.NextID = lt.Next.ID
 }
 
 // Line represents how Train should run.
@@ -103,7 +159,12 @@ type Line struct {
 	Ownable
 
 	Name  string
-	Tasks []*LineTask
+	Tasks []*LineTask `gorm:"-"`
+}
+
+// ResolveRef resolve Owner reference
+func (l *Line) ResolveRef() {
+	l.Ownable.ResolveRef()
 }
 
 // Train carries Human from Station to Station.
@@ -111,9 +172,19 @@ type Train struct {
 	gorm.Model
 	Ownable
 	Point
-	Capacity uint
+
+	Capacity uint `gorm:"not null"`
 	// Mobility represents how many Human can get off at the same time.
-	Mobility uint
-	Speed    float64
-	Name     string
+	Mobility uint      `gorm:"not null"`
+	Speed    float64   `gorm:"not null"`
+	Name     string    `gorm:"not null"`
+	Task     *LineTask `gorm:"-"`
+
+	TaskID uint `gorm:"not null"`
+}
+
+// ResolveRef resolve Owner reference
+func (t *Train) ResolveRef() {
+	t.Ownable.ResolveRef()
+	t.TaskID = t.Task.ID
 }

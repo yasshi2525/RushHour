@@ -34,33 +34,35 @@ const (
 	COMPANY              = "company"
 	RAILNODE             = "railnode"
 	RAILEDGE             = "railedge"
+	STATION              = "station"
 	GATE                 = "gate"
 	PLATFORM             = "platform"
-	STATION              = "station"
-	LINESTASK            = "linetask"
 	LINE                 = "line"
+	LINETASK             = "linetask"
 	STEP                 = "step"
 	TRAIN                = "train"
 	HUMAN                = "human"
 )
 
 // EntityTypes is list of all entities.
+// Dependecy order.
 var EntityTypes []EntityType
 
+// Dependecy order.
 type staticModel struct {
 	Players    map[uint]*entities.Player
 	Residences map[uint]*entities.Residence
 	Companies  map[uint]*entities.Company
 	RailNodes  map[uint]*entities.RailNode
 	RailEdges  map[uint]*entities.RailEdge
+	Stations   map[uint]*entities.Station
 	Gates      map[uint]*entities.Gate
 	Platforms  map[uint]*entities.Platform
-	Stations   map[uint]*entities.Station
-	LineTasks  map[uint]*entities.LineTask
 	Lines      map[uint]*entities.Line
+	LineTasks  map[uint]*entities.LineTask
 	Steps      map[uint]*entities.Step
 	Trains     map[uint]*entities.Train
-	Humen      map[uint]*entities.Human
+	Humans     map[uint]*entities.Human
 }
 
 type agentModel struct {
@@ -115,9 +117,11 @@ func InitStorage() {
 		RESIDENCE,
 		RAILNODE,
 		RAILEDGE,
+		STATION,
 		GATE,
 		PLATFORM,
-		STATION,
+		LINE,
+		LINETASK,
 		STEP,
 		TRAIN,
 		HUMAN,
@@ -129,15 +133,16 @@ func InitStorage() {
 		Residences: make(map[uint]*entities.Residence),
 		RailNodes:  make(map[uint]*entities.RailNode),
 		RailEdges:  make(map[uint]*entities.RailEdge),
+		Stations:   make(map[uint]*entities.Station),
 		Gates:      make(map[uint]*entities.Gate),
 		Platforms:  make(map[uint]*entities.Platform),
-		Stations:   make(map[uint]*entities.Station),
-		LineTasks:  make(map[uint]*entities.LineTask),
 		Lines:      make(map[uint]*entities.Line),
+		LineTasks:  make(map[uint]*entities.LineTask),
 		Steps:      make(map[uint]*entities.Step),
 		Trains:     make(map[uint]*entities.Train),
-		Humen:      make(map[uint]*entities.Human),
+		Humans:     make(map[uint]*entities.Human),
 	}
+
 	Dynamic = agentModel{}
 	RouteTemplate = routeTemplate{}
 

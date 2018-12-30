@@ -8,6 +8,13 @@ import (
 	"github.com/revel/revel"
 )
 
+var (
+	numUser        = 10
+	viewInterval   = 1 * time.Second
+	updateInterval = 30 * time.Second
+	backupInterval = 30 * time.Second
+)
+
 type opCallback func(source string, target string)
 
 // Main immitates some user requests some actions.
@@ -17,11 +24,11 @@ func Main() {
 	StartModelWatching()
 	StartProcedure()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < numUser; i++ {
 		source := fmt.Sprintf("user%d", i)
-		tickOp(source, "dummy", 1, func(src string, tar string) { ViewMap() })
+		tickOp(source, "dummy", viewInterval, func(src string, tar string) { ViewMap() })
 		for _, target := range []string{"residence", "company"} {
-			tickOp(source, target, 30, func(src string, tar string) {
+			tickOp(source, target, updateInterval, func(src string, tar string) {
 				revel.AppLog.Infof("%s create %s", src, tar)
 				UpdateModel(&Operation{
 					Source: src,
@@ -33,7 +40,7 @@ func Main() {
 			})
 		}
 		for _, target := range []string{"residence", "company"} {
-			tickOp(source, target, 30, func(src string, tar string) {
+			tickOp(source, target, updateInterval, func(src string, tar string) {
 				revel.AppLog.Infof("%s remove %s", src, tar)
 				UpdateModel(&Operation{
 					Source: src,
@@ -44,7 +51,7 @@ func Main() {
 		}
 	}
 
-	var backup = time.NewTicker(1 * time.Minute)
+	var backup = time.NewTicker(backupInterval)
 	go func() {
 		for range backup.C {
 			Backup()
@@ -52,11 +59,11 @@ func Main() {
 	}()
 }
 
-func tickOp(source string, target string, interval int, callback opCallback) {
+func tickOp(source string, target string, interval time.Duration, callback opCallback) {
 	go func() {
-		sleep := rand.Intn(interval)
+		sleep := rand.Intn(int(interval.Seconds()))
 		time.Sleep(time.Duration(sleep) * time.Second)
-		t := time.NewTicker(time.Duration(interval) * time.Second)
+		t := time.NewTicker(interval)
 		for range t.C {
 			callback(source, target)
 		}
