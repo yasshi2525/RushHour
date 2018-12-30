@@ -21,6 +21,7 @@
         "jsx": "react"
     },
     "exclude": [
+        "app",
         "node_modules",
         "public/js/bundle.*.js"
     ]

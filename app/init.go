@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 
 	"github.com/jinzhu/gorm"
@@ -43,12 +42,11 @@ func init() {
 	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(services.LoadConf, 1)
 	revel.OnAppStart(services.InitStorage, 2)
-	revel.OnAppStart(initDB, 3)
-	revel.OnAppStart(migrateDB, 4)
-	revel.OnAppStart(initGame, 5)
+	revel.OnAppStart(services.InitPersistence, 3)
+	revel.OnAppStart(initGame, 4)
 
 	revel.OnAppStop(stopGame, 1)
-	revel.OnAppStop(closeDB, 2)
+	revel.OnAppStop(services.TerminatePersistence, 2)
 }
 
 // HeaderFilter adds common security headers
@@ -70,55 +68,6 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
-
-// InitDB connect database
-func initDB() {
-	var err error
-
-	driver, found := revel.Config.String("db.driver")
-
-	if !found {
-		panic("db.drvier is not defined")
-	}
-
-	spec, found := revel.Config.String("db.spec")
-
-	if !found {
-		panic("db.spec is not defined")
-	}
-
-	Db, err = gorm.Open(driver, spec)
-	Db.LogMode(true)
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	revel.RevelLog.Info("connect database successfully")
-}
-
-// MigrateDB migrate database
-func migrateDB() {
-	Db.AutoMigrate(
-		&entities.Company{},
-		&entities.Residence{},
-		&entities.Human{},
-		&entities.Player{},
-		&entities.RailNode{},
-		&entities.RailEdge{},
-		&entities.Platform{},
-		&entities.Gate{},
-		&entities.Station{},
-	)
-}
-
-// CloseDB close database connection
-func closeDB() {
-	if err := Db.Close(); err != nil {
-		revel.AppLog.Error("failed to close the database", "error", err)
-	}
-	revel.RevelLog.Info("disconnect database successfully")
-}
 
 // InitGame setup RushHour envirionment
 func initGame() {

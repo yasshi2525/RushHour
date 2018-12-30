@@ -9,12 +9,6 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
-type nextID struct {
-	Residence uint64
-	Company   uint64
-	Step      uint64
-}
-
 type config struct {
 	Residence residence
 	Company   company
@@ -30,13 +24,43 @@ type company struct {
 	Scale float64 `validate:"gt=0"`
 }
 
+// EntityType represents type of resources indicating database table name
+type EntityType string
+
+// EntityType represents type of resources indicating database table name
+const (
+	PLAYER    EntityType = "player"
+	RESIDENCE            = "residence"
+	COMPANY              = "company"
+	RAILNODE             = "railnode"
+	RAILEDGE             = "railedge"
+	GATE                 = "gate"
+	PLATFORM             = "platform"
+	STATION              = "station"
+	LINESTASK            = "linetask"
+	LINE                 = "line"
+	STEP                 = "step"
+	TRAIN                = "train"
+	HUMAN                = "human"
+)
+
+// EntityTypes is list of all entities.
+var EntityTypes []EntityType
+
 type staticModel struct {
+	Players    map[uint]*entities.Player
 	Residences map[uint]*entities.Residence
 	Companies  map[uint]*entities.Company
+	RailNodes  map[uint]*entities.RailNode
+	RailEdges  map[uint]*entities.RailEdge
 	Gates      map[uint]*entities.Gate
 	Platforms  map[uint]*entities.Platform
-	Train      map[uint]*entities.Train
+	Stations   map[uint]*entities.Station
+	LineTasks  map[uint]*entities.LineTask
+	Lines      map[uint]*entities.Line
 	Steps      map[uint]*entities.Step
+	Trains     map[uint]*entities.Train
+	Humen      map[uint]*entities.Human
 }
 
 type agentModel struct {
@@ -49,10 +73,13 @@ type routeTemplate struct {
 var Config config
 
 // NextID has what number should be set
-var NextID nextID
+var NextID map[EntityType]*uint64
 
 // Static is viewable feature including Step infomation.
 var Static staticModel
+
+// WillRemove represents the list of deleting in next Backup()
+var WillRemove map[EntityType][]uint
 
 // Dynamic is hidden feature and not be persisted/
 var Dynamic agentModel
@@ -82,15 +109,46 @@ func LoadConf() {
 
 // InitStorage initialize storage
 func InitStorage() {
+	EntityTypes = []EntityType{
+		PLAYER,
+		COMPANY,
+		RESIDENCE,
+		RAILNODE,
+		RAILEDGE,
+		GATE,
+		PLATFORM,
+		STATION,
+		STEP,
+		TRAIN,
+		HUMAN,
+	}
+
 	Static = staticModel{
+		Players:    make(map[uint]*entities.Player),
 		Companies:  make(map[uint]*entities.Company),
 		Residences: make(map[uint]*entities.Residence),
+		RailNodes:  make(map[uint]*entities.RailNode),
+		RailEdges:  make(map[uint]*entities.RailEdge),
 		Gates:      make(map[uint]*entities.Gate),
 		Platforms:  make(map[uint]*entities.Platform),
+		Stations:   make(map[uint]*entities.Station),
+		LineTasks:  make(map[uint]*entities.LineTask),
+		Lines:      make(map[uint]*entities.Line),
 		Steps:      make(map[uint]*entities.Step),
+		Trains:     make(map[uint]*entities.Train),
+		Humen:      make(map[uint]*entities.Human),
 	}
 	Dynamic = agentModel{}
 	RouteTemplate = routeTemplate{}
+
+	WillRemove = make(map[EntityType][]uint)
+	NextID = make(map[EntityType]*uint64)
+
+	for _, t := range EntityTypes {
+		WillRemove[t] = []uint{}
+		var i uint64 = 1
+		NextID[t] = &i
+	}
 
 	MuStatic = sync.RWMutex{}
 	MuDynamic = sync.RWMutex{}

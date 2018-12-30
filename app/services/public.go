@@ -11,7 +11,7 @@ import (
 
 // CreateResidence creates Residence and registers it to storage and step
 func CreateResidence(x float64, y float64) *entities.Residence {
-	id := uint(atomic.AddUint64(&NextID.Residence, 1))
+	id := uint(atomic.AddUint64(NextID[RESIDENCE], 1))
 	capacity := Config.Residence.Capacity
 	available := Config.Residence.Interval * rand.Float64()
 
@@ -49,12 +49,13 @@ func RemoveResidence(id uint) {
 		logStep("removed", s)
 	}
 	delete(Static.Residences, r.ID)
+	WillRemove[RESIDENCE] = append(WillRemove[RESIDENCE], r.ID)
 	logNode("Residence", r.ID, "removed", &r.Point)
 }
 
 // CreateCompany creates Company and registers it to storage and step
 func CreateCompany(x float64, y float64) *entities.Company {
-	id := uint(atomic.AddUint64(&NextID.Company, 1))
+	id := uint(atomic.AddUint64(NextID[COMPANY], 1))
 	scale := Config.Company.Scale
 
 	company := &entities.Company{
@@ -89,11 +90,12 @@ func RemoveCompany(id uint) {
 		logStep("removed", s)
 	}
 	delete(Static.Companies, c.ID)
+	WillRemove[COMPANY] = append(WillRemove[COMPANY], c.ID)
 	logNode("Company", c.ID, "removed", &c.Point)
 }
 
 func createStep(from *entities.Junction, to *entities.Junction, weight float64) *entities.Step {
-	id := uint(atomic.AddUint64(&NextID.Step, 1))
+	id := uint(atomic.AddUint64(NextID[STEP], 1))
 	step := &entities.Step{
 		ID:     id,
 		From:   from,
