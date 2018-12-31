@@ -129,7 +129,6 @@ func Restore() {
 }
 
 func setNextID() {
-	// nextIDの設定
 	for _, resource := range StaticTypes {
 		sql := fmt.Sprintf("SELECT max(id) as max_id FROM %s", resource)
 		var result resultMax
@@ -152,13 +151,14 @@ func setNextID() {
 
 func fetchStatic() {
 	for idx, resource := range StaticTypes {
-
+		// select文組み立て
 		table := fmt.Sprintf("%s", resource)
 		rows, err := db.Table(table).Where("deleted_at is null").Rows()
 		if err != nil {
 			panic(fmt.Sprintf("failed to fetch: %s", err))
 		}
 		for rows.Next() {
+			// 対応する Struct を作成
 			obj := reflect.New(reflect.TypeOf(StaticInstances[idx]).Elem())
 			objptr := reflect.Indirect(obj).Addr().Interface()
 
@@ -166,6 +166,7 @@ func fetchStatic() {
 				panic(err)
 			}
 
+			// Static に登録
 			objid := reflect.ValueOf(objptr).Elem().FieldByName("ID")
 			reflect.ValueOf(Static).Field(idx).SetMapIndex(objid, obj)
 		}
@@ -175,15 +176,17 @@ func fetchStatic() {
 func resolveStatic() {
 	revel.AppLog.Debug("resolveStatic")
 	foreachStatic(func(raw reflect.Value) {
-		rt := reflect.TypeOf(raw)
-		revel.AppLog.Debugf("type of raw = %s", rt.String())
-		if _, ok := rt.FieldByName("OwnerID"); ok {
-			owner := Static.Players[uint(raw.FieldByName("OwnerID").Uint())]
-			raw.Set(reflect.ValueOf(owner))
+		obj := raw.Elem()
+		rt := reflect.TypeOf(obj.Interface())
+
+		// OwnerID -> Owner
+		if _, ok := rt.FieldByName("Ownable"); ok {
+			ownable := obj.FieldByName("Ownable")
+			optr, oid := ownable.FieldByName("Owner"), ownable.FieldByName("OwnerID")
+			owner := Static.Players[uint(oid.Uint())]
+			optr.Set(reflect.ValueOf(owner))
 		}
-		revel.AppLog.Debugf("val = %v", raw)
 	})
-	time.Sleep(5 * time.Second)
 }
 
 func generateDynamics() {
@@ -218,14 +221,28 @@ func Backup() {
 
 	tx := db.Begin()
 
-	// resolve refer
-	foreachStatic(func(val reflect.Value) {
-		if v, ok := val.Interface().(entities.Resolvable); ok {
-			v.ResolveRef()
-		} else {
-			revel.AppLog.Warnf("%s is not resolvable", val.String())
-		}
-	})
+	// resolve mutable refer
+	// Object -> ObjectID
+	for _, val := range Static.LineTasks {
+		val.ResolveRef()
+	}
+	for _, val := range Static.Trains {
+		val.ResolveRef()
+	}
+	for _, val := range Static.Humans {
+		val.ResolveRef()
+	}
+
+	/*
+		//全部やるときは↓
+		foreachStatic(func(val reflect.Value) {
+			if v, ok := val.Interface().(entities.Resolvable); ok {
+				v.ResolveRef()
+			} else {
+				revel.AppLog.Warnf("%s is not resolvable", val.String())
+			}
+		})
+	*/
 
 	// upsert
 	foreachStatic(func(val reflect.Value) {
