@@ -24,31 +24,60 @@ func Main() {
 	StartModelWatching()
 	StartProcedure()
 
+	// admin
+	for _, target := range []string{"residence", "company"} {
+		tickOp("admin", target, updateInterval, func(src string, tar string) {
+			revel.AppLog.Infof("%s create %s", src, tar)
+			UpdateModel(&Operation{
+				Source: src,
+				Op:     "create",
+				Target: tar,
+				X:      rand.Float64() * 100,
+				Y:      rand.Float64() * 100,
+			})
+		})
+		tickOp("admin", target, updateInterval, func(src string, tar string) {
+			revel.AppLog.Infof("%s remove %s", src, tar)
+			UpdateModel(&Operation{
+				Source: src,
+				Op:     "remove",
+				Target: tar,
+			})
+		})
+	}
+
+	// user
 	for i := 0; i < numUser; i++ {
 		source := fmt.Sprintf("user%d", i)
-		tickOp(source, "dummy", viewInterval, func(src string, tar string) { ViewMap() })
-		for _, target := range []string{"residence", "company"} {
-			tickOp(source, target, updateInterval, func(src string, tar string) {
-				revel.AppLog.Infof("%s create %s", src, tar)
-				UpdateModel(&Operation{
-					Source: src,
-					Op:     "create",
-					Target: tar,
-					X:      rand.Float64() * 100,
-					Y:      rand.Float64() * 100,
-				})
+		revel.AppLog.Infof("%s create Player", source)
+		UpdateModel(&Operation{
+			Source: source,
+			Op:     "create",
+			Target: "player",
+			OName:  source,
+		})
+
+		tickOp(source, "rail_node", updateInterval, func(src string, tar string) {
+			revel.AppLog.Infof("%s create %s", src, tar)
+			UpdateModel(&Operation{
+				Source: src,
+				Op:     "create",
+				Target: tar,
+				OName:  src,
+				X:      rand.Float64() * 100,
+				Y:      rand.Float64() * 100,
 			})
-		}
-		for _, target := range []string{"residence", "company"} {
-			tickOp(source, target, updateInterval, func(src string, tar string) {
-				revel.AppLog.Infof("%s remove %s", src, tar)
-				UpdateModel(&Operation{
-					Source: src,
-					Op:     "remove",
-					Target: tar,
-				})
+		})
+
+		tickOp(source, "rail_node", updateInterval, func(src string, tar string) {
+			revel.AppLog.Infof("%s delete %s", src, tar)
+			UpdateModel(&Operation{
+				Source: src,
+				Op:     "remove",
+				Target: tar,
+				OName:  src,
 			})
-		}
+		})
 	}
 
 	var backup = time.NewTicker(backupInterval)

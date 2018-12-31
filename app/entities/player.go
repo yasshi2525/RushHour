@@ -6,6 +6,12 @@ import "github.com/jinzhu/gorm"
 type Player struct {
 	gorm.Model
 
-	DisplayName string
-	Password    string
+	DisplayName string `gorm:"not null"`
+	LoginID     string `gorm:"not null,index"`
+	Password    string `gorm:"not null"`
+}
+
+// ResolveRef do nothing for implementing Resolvable
+func (p *Player) ResolveRef() {
+	// do-nothing
 }

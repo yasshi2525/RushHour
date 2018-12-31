@@ -8,6 +8,11 @@ type Point struct {
 	Y float64 `gorm:"index;not null"`
 }
 
+// NewPoint create Point
+func NewPoint(x float64, y float64) Point {
+	return Point{X: x, Y: y}
+}
+
 // Dist calculate a distance between two Point
 func (p *Point) Dist(oth *Point) float64 {
 	return math.Sqrt((oth.X-p.X)*(oth.X-p.X) + (oth.Y-p.Y)*(oth.Y-p.Y))
@@ -34,7 +39,7 @@ type Junction struct {
 // NewJunction create Juntion
 func NewJunction(x float64, y float64) Junction {
 	return Junction{
-		Point: Point{X: x, Y: y},
+		Point: NewPoint(x, y),
 		Out:   []*Step{},
 		In:    []*Step{},
 	}

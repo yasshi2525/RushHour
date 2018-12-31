@@ -46,7 +46,8 @@ func init() {
 	revel.OnAppStart(initGame, 4)
 
 	revel.OnAppStop(stopGame, 1)
-	revel.OnAppStop(services.TerminatePersistence, 2)
+	revel.OnAppStop(services.Backup, 2)
+	revel.OnAppStop(services.TerminatePersistence, 3)
 }
 
 // HeaderFilter adds common security headers

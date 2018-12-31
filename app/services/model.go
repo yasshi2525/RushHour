@@ -15,6 +15,7 @@ type Operation struct {
 	X      float64
 	Y      float64
 	Op     string
+	OName  string
 }
 
 var modelChannel chan *Operation
@@ -38,6 +39,8 @@ func watchModel() {
 		MuDynamic.Lock()
 
 		switch msg.Target {
+		case "player":
+			CreatePlayer(msg.OName, msg.OName, msg.OName)
 		case "residence":
 			switch msg.Op {
 			case "create":
@@ -64,6 +67,32 @@ func watchModel() {
 					}
 				} else {
 					RemoveCompany(msg.ID)
+				}
+			}
+		case "rail_node":
+			switch msg.Op {
+			case "create":
+				if o, err := FetchOwner(msg.OName); err == nil {
+					CreateRailNode(o, msg.X, msg.Y)
+				} else {
+					revel.AppLog.Warnf("invalid Player: %s", err)
+				}
+			case "remove":
+				if msg.ID == 0 {
+					for _, rn := range Static.RailNodes {
+						if o, err := FetchOwner(msg.OName); err == nil {
+							RemoveRailNode(o, rn.ID)
+						} else {
+							revel.AppLog.Warnf("invalid Player: %s", err)
+						}
+						break
+					}
+				} else {
+					if o, err := FetchOwner(msg.OName); err == nil {
+						RemoveRailNode(o, msg.ID)
+					} else {
+						revel.AppLog.Warnf("invalid Player: %s", err)
+					}
 				}
 			}
 		}

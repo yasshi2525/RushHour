@@ -20,7 +20,7 @@ func CreateResidence(x float64, y float64) *entities.Residence {
 		Junction:  entities.NewJunction(x, y),
 		Capacity:  capacity,
 		Available: available,
-		Targets:   []entities.Human{},
+		Targets:   []*entities.Human{},
 	}
 
 	Static.Residences[id] = residence
@@ -40,7 +40,7 @@ func CreateResidence(x float64, y float64) *entities.Residence {
 func RemoveResidence(id uint) {
 	r := Static.Residences[id]
 	if r == nil {
-		revel.AppLog.Warnf("residence(%d) is already removed.", id)
+		revel.AppLog.Warnf("Residence(%d) is already removed.", id)
 		return
 	}
 
@@ -62,7 +62,7 @@ func CreateCompany(x float64, y float64) *entities.Company {
 		Model:    entities.NewModel(id),
 		Junction: entities.NewJunction(x, y),
 		Scale:    scale,
-		Targets:  []entities.Human{},
+		Targets:  []*entities.Human{},
 	}
 
 	Static.Companies[id] = company
@@ -82,7 +82,7 @@ func CreateCompany(x float64, y float64) *entities.Company {
 func RemoveCompany(id uint) {
 	c := Static.Companies[id]
 	if c == nil {
-		revel.AppLog.Warnf("company(%d) is already removed.", id)
+		revel.AppLog.Warnf("Company(%d) is already removed.", id)
 		return
 	}
 	for _, s := range c.In {

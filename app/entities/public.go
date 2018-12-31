@@ -20,7 +20,7 @@ type Company struct {
 	gorm.Model
 	Junction
 
-	Targets []Human `gorm:"-"`
+	Targets []*Human `gorm:"-"`
 
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale float64 `gorm:"not null"`
@@ -36,7 +36,7 @@ type Residence struct {
 	gorm.Model
 	Junction
 
-	Targets []Human `gorm:"-"`
+	Targets []*Human `gorm:"-"`
 
 	Capacity  uint    `gorm:"not null"`
 	Available float64 `gorm:"not null"`

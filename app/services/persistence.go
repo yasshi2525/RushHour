@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	db *gorm.DB
+	db      *gorm.DB
+	logMode = false
 )
 
 type eachCallback func(v reflect.Value)
@@ -46,7 +47,7 @@ func connectDB() *gorm.DB {
 }
 
 func configureDB(database *gorm.DB) *gorm.DB {
-	database.LogMode(true)
+	database.LogMode(logMode)
 	db.SingularTable(true)
 	return database
 }
@@ -174,12 +175,13 @@ func fetchStatic() {
 func resolveStatic() {
 	revel.AppLog.Debug("resolveStatic")
 	foreachStatic(func(raw reflect.Value) {
-		//val := raw.Interface()
+		rt := reflect.TypeOf(raw)
+		revel.AppLog.Debugf("type of raw = %s", rt.String())
+		if _, ok := rt.FieldByName("OwnerID"); ok {
+			owner := Static.Players[uint(raw.FieldByName("OwnerID").Uint())]
+			raw.Set(reflect.ValueOf(owner))
+		}
 		revel.AppLog.Debugf("val = %v", raw)
-		/*rt, rv := reflect.TypeOf(val), reflect.ValueOf(val)
-		for i := 0; i < rt.NumField(); i++ {
-			revel.AppLog.Debugf("%s: %v", rt.Field(i).Name, rv.Field(i))
-		}*/
 	})
 	time.Sleep(5 * time.Second)
 }

@@ -15,6 +15,14 @@ type Ownable struct {
 	OwnerID uint `gorm:"not null"`
 }
 
+// NewOwnable create Juntion
+func NewOwnable(o *Player) Ownable {
+	return Ownable{
+		Owner:   o,
+		OwnerID: o.ID,
+	}
+}
+
 // ResolveRef resolve ownerID from Owner
 func (o *Ownable) ResolveRef() {
 	o.OwnerID = o.Owner.ID
