@@ -2,8 +2,6 @@ package entities
 
 import (
 	"math"
-
-	"github.com/jinzhu/gorm"
 )
 
 // Standing is for judgement Human placement on same X, Y
@@ -20,7 +18,7 @@ const (
 
 // Human commute from Residence to Company by Train
 type Human struct {
-	gorm.Model
+	Model
 	Point
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
@@ -40,11 +38,11 @@ type Human struct {
 	// Progress is [0,1] value representing how much Human proceed current task.
 	Progress float64 `gorm:"not null"`
 
-	From       *Residence `gorm:"-"`
-	To         *Company   `gorm:"-"`
-	OnPlatform *Platform  `gorm:"-"`
-	OnTrain    *Train     `gorm:"-"`
-	On         Standing   `gorm:"-"`
+	From       *Residence `gorm:"-" json:"-"`
+	To         *Company   `gorm:"-" json:"-"`
+	OnPlatform *Platform  `gorm:"-" json:"-"`
+	OnTrain    *Train     `gorm:"-" json:"-"`
+	On         Standing   `gorm:"-" json:"-"`
 
 	FromID       uint `gorm:"not null"`
 	ToID         uint `gorm:"not null"`

@@ -117,6 +117,9 @@ func Restore() {
 	revel.AppLog.Info("DBリストア 開始")
 	defer revel.AppLog.Info("DBリストア 終了")
 
+	start := time.Now()
+	defer WarnLongExec(start, 5, "DBリストア", true)
+
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()

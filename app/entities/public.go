@@ -2,13 +2,19 @@ package entities
 
 import (
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
-// NewModel create new gorm.Model
-func NewModel(id uint) gorm.Model {
-	return gorm.Model{
+// Model based on gorm.Model
+type Model struct {
+	ID        uint       `gorm:"primary_key"`
+	CreatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `gorm:"index" json:"-"`
+}
+
+// NewModel create new Model
+func NewModel(id uint) Model {
+	return Model{
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -17,7 +23,7 @@ func NewModel(id uint) gorm.Model {
 
 // Company is the destination of Human
 type Company struct {
-	gorm.Model
+	Model
 	Junction
 
 	Targets []*Human `gorm:"-"`
@@ -33,7 +39,7 @@ func (c *Company) ResolveRef() {
 
 // Residence generate Human in a period
 type Residence struct {
-	gorm.Model
+	Model
 	Junction
 
 	Targets []*Human `gorm:"-"`

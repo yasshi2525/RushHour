@@ -32,8 +32,8 @@ func (p *Point) IsIn(center *Point, scale float64) bool {
 // There is more than two Junction on same geographically xy if Human cannot move.
 type Junction struct {
 	Point
-	Out []*Step `gorm:"-"`
-	In  []*Step `gorm:"-"`
+	Out []*Step `gorm:"-" json:"-"`
+	In  []*Step `gorm:"-" json:"-"`
 }
 
 // NewJunction create Juntion

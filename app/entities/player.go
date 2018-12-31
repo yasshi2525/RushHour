@@ -1,14 +1,12 @@
 package entities
 
-import "github.com/jinzhu/gorm"
-
 // Player represents user information
 type Player struct {
-	gorm.Model
+	Model
 
 	DisplayName string `gorm:"not null"`
-	LoginID     string `gorm:"not null,index"`
-	Password    string `gorm:"not null"`
+	LoginID     string `gorm:"not null,index json:"-""`
+	Password    string `gorm:"not null" json:"-"`
 }
 
 // ResolveRef do nothing for implementing Resolvable

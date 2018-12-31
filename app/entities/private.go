@@ -1,7 +1,5 @@
 package entities
 
-import "github.com/jinzhu/gorm"
-
 // Resolvable set some_id fields from reference.
 // Resolvable is for database migration
 type Resolvable interface {
@@ -10,7 +8,7 @@ type Resolvable interface {
 
 // Ownable means this faciliites in under the control by Player.
 type Ownable struct {
-	Owner *Player
+	Owner *Player `gorm:"-" json:"-"`
 
 	OwnerID uint `gorm:"not null"`
 }
@@ -31,12 +29,12 @@ func (o *Ownable) ResolveRef() {
 // RailNode represents rail track as point.
 // Station only stands on RailNode.
 type RailNode struct {
-	gorm.Model
+	Model
 	Ownable
 	Point
 
-	In  []*RailEdge `gorm:"-"`
-	Out []*RailEdge `gorm:"-"`
+	In  []*RailEdge `gorm:"-" json:"-"`
+	Out []*RailEdge `gorm:"-" json:"-"`
 }
 
 // ResolveRef resolve Owner reference
@@ -47,11 +45,11 @@ func (rn *RailNode) ResolveRef() {
 // RailEdge connects from RailNode to RailNode.
 // It's directional.
 type RailEdge struct {
-	gorm.Model
+	Model
 	Ownable
 
-	From *RailNode `gorm:"-"`
-	To   *RailNode `gorm:"-"`
+	From *RailNode `gorm:"-" json:"-"`
+	To   *RailNode `gorm:"-" json:"-"`
 
 	FromID uint `gorm:"not null"`
 	ToID   uint `gorm:"not null"`
@@ -66,12 +64,12 @@ func (re *RailEdge) ResolveRef() {
 
 // Station composes on Platform and Gate
 type Station struct {
-	gorm.Model
+	Model
 	Ownable
 
 	Name     string
-	Platform *Platform `gorm:"-"`
-	Gate     *Gate     `gorm:"-"`
+	Platform *Platform `gorm:"-" json:"-"`
+	Gate     *Gate     `gorm:"-" json:"-"`
 }
 
 // ResolveRef resolve Owner reference
@@ -82,12 +80,12 @@ func (st *Station) ResolveRef() {
 // Platform is the base Human wait for Train.
 // Platform can enter only through Gate.
 type Platform struct {
-	gorm.Model
+	Model
 	Ownable
 	Junction
 
-	In       *Station  `gorm:"-"`
-	On       *RailNode `gorm:"-"`
+	In       *Station  `gorm:"-" json:"-"`
+	On       *RailNode `gorm:"-" json:"-"`
 	Capacity uint      `gorm:"not null"`
 	Occupied uint      `gorm:"not null"`
 
@@ -105,11 +103,11 @@ func (p *Platform) ResolveRef() {
 // Gate represents ticket gate in Station.
 // Human must pass Gate to enter/leave Platform.
 type Gate struct {
-	gorm.Model
+	Model
 	Ownable
 	Junction
 
-	In *Station `gorm:"-"`
+	In *Station `gorm:"-" json:"-"`
 	// Num represents how many Human can pass at the same time
 	Num uint `gorm:"not null"`
 	// Mobility represents time one Human pass Gate.
@@ -143,12 +141,12 @@ const (
 // LineTask is the element of Line.
 // The chain of LineTask represents Line structure.
 type LineTask struct {
-	gorm.Model
+	Model
 	Ownable
 
-	Line *Line        `gorm:"-"`
+	Line *Line        `gorm:"-" json:"-"`
 	Type LineTaskType `gorm:"not null"`
-	Next *LineTask    `gorm:"-"`
+	Next *LineTask    `gorm:"-" json:"-"`
 
 	LineID uint `gorm:"not null"`
 	NextID uint
@@ -163,11 +161,11 @@ func (lt *LineTask) ResolveRef() {
 
 // Line represents how Train should run.
 type Line struct {
-	gorm.Model
+	Model
 	Ownable
 
 	Name  string
-	Tasks []*LineTask `gorm:"-"`
+	Tasks []*LineTask `gorm:"-" json:"-"`
 }
 
 // ResolveRef resolve Owner reference
@@ -177,7 +175,7 @@ func (l *Line) ResolveRef() {
 
 // Train carries Human from Station to Station.
 type Train struct {
-	gorm.Model
+	Model
 	Ownable
 	Point
 
@@ -186,7 +184,7 @@ type Train struct {
 	Mobility uint      `gorm:"not null"`
 	Speed    float64   `gorm:"not null"`
 	Name     string    `gorm:"not null"`
-	Task     *LineTask `gorm:"-"`
+	Task     *LineTask `gorm:"-" json:"-"`
 
 	TaskID uint `gorm:"not null"`
 }

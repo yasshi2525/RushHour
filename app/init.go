@@ -43,9 +43,9 @@ func init() {
 	revel.OnAppStart(services.LoadConf, 1)
 	revel.OnAppStart(services.InitStorage, 2)
 	revel.OnAppStart(services.InitPersistence, 3)
-	revel.OnAppStart(initGame, 4)
+	revel.OnAppStart(InitGame, 4)
 
-	revel.OnAppStop(stopGame, 1)
+	revel.OnAppStop(StopGame, 1)
 	revel.OnAppStop(services.Backup, 2)
 	revel.OnAppStop(services.TerminatePersistence, 3)
 }
@@ -71,12 +71,13 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //}
 
 // InitGame setup RushHour envirionment
-func initGame() {
+func InitGame() {
 	revel.AppLog.Info("init game")
 
 	go services.Main()
 }
 
-func stopGame() {
+// StopGame do nothing
+func StopGame() {
 	revel.AppLog.Info("stop game")
 }
