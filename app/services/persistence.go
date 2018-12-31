@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,16 +11,13 @@ import (
 )
 
 var (
-	db       *gorm.DB
-	excludes *[]string
+	db *gorm.DB
 )
 
 type eachCallback func(v reflect.Value)
 
 // InitPersistence prepares database connection and migrate
 func InitPersistence() {
-	excludes = &[]string{"Steps"}
-
 	db = connectDB()
 	configureDB(db)
 	migrateDB(db)
@@ -56,21 +52,7 @@ func configureDB(database *gorm.DB) *gorm.DB {
 }
 
 func migrateDB(database *gorm.DB) *gorm.DB {
-	db.AutoMigrate(
-		&entities.Player{},
-		&entities.Residence{},
-		&entities.Company{},
-		&entities.RailNode{},
-		&entities.RailEdge{},
-		&entities.Station{},
-		&entities.Platform{},
-		&entities.Gate{},
-		&entities.LineTask{},
-		&entities.Line{},
-		//&entities.Step{}, Step is out of target for persistence because it can intruduce by other resources
-		&entities.Train{},
-		&entities.Human{},
-	)
+	db.AutoMigrate(StaticInstances...)
 
 	// Player has private resources
 	for _, t := range []interface{}{
@@ -125,6 +107,10 @@ func closeDB() {
 	revel.AppLog.Info("disconnect database successfully")
 }
 
+type resultMax struct {
+	MaxID uint64
+}
+
 // Restore get model from database
 func Restore() {
 	revel.AppLog.Info("DBリストア 開始")
@@ -132,29 +118,82 @@ func Restore() {
 
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
-
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
 
-	time.Sleep(1 * time.Second)
+	setNextID()
+	fetchStatic()
+	resolveStatic()
+	generateDynamics()
 }
 
-func eachEntity(skips *[]string, callback eachCallback) {
+func setNextID() {
+	// nextIDの設定
+	for _, resource := range StaticTypes {
+		sql := fmt.Sprintf("SELECT max(id) as max_id FROM %s", resource)
+		var result resultMax
+
+		if err := db.Raw(sql).Scan(&result).Error; err != nil {
+			panic(fmt.Sprintf("cannot get max id of %s, %v", resource, err))
+		}
+
+		result.MaxID++
+		NextID.Static[resource] = &result.MaxID
+		revel.AppLog.Debugf("NextID.Static[%s] = %d", resource, *NextID.Static[resource])
+	}
+
+	for _, resource := range DynamicTypes {
+		var i uint64 = 1
+		NextID.Dynamic[resource] = &i
+		revel.AppLog.Debugf("NextID.Dynamic[%s] = %d", resource, *NextID.Dynamic[resource])
+	}
+}
+
+func fetchStatic() {
+	for idx, resource := range StaticTypes {
+
+		table := fmt.Sprintf("%s", resource)
+		rows, err := db.Table(table).Where("deleted_at is null").Rows()
+		if err != nil {
+			panic(fmt.Sprintf("failed to fetch: %s", err))
+		}
+		for rows.Next() {
+			obj := reflect.New(reflect.TypeOf(StaticInstances[idx]).Elem())
+			objptr := reflect.Indirect(obj).Addr().Interface()
+
+			if err := db.ScanRows(rows, objptr); err != nil {
+				panic(err)
+			}
+
+			objid := reflect.ValueOf(objptr).Elem().FieldByName("ID")
+			reflect.ValueOf(Static).Field(idx).SetMapIndex(objid, obj)
+		}
+	}
+}
+
+func resolveStatic() {
+	revel.AppLog.Debug("resolveStatic")
+	foreachStatic(func(raw reflect.Value) {
+		//val := raw.Interface()
+		revel.AppLog.Debugf("val = %v", raw)
+		/*rt, rv := reflect.TypeOf(val), reflect.ValueOf(val)
+		for i := 0; i < rt.NumField(); i++ {
+			revel.AppLog.Debugf("%s: %v", rt.Field(i).Name, rv.Field(i))
+		}*/
+	})
+	time.Sleep(5 * time.Second)
+}
+
+func generateDynamics() {
+
+}
+
+func foreachStatic(callback eachCallback) {
 	rt, rv := reflect.TypeOf(Static), reflect.ValueOf(Static)
 	for i := 0; i < rt.NumField(); i++ {
 		if f := rv.Field(i); f.Kind() == reflect.Map {
-			// skip specific field
-			shouldSkip := false
-			for _, skip := range *skips {
-				if strings.Compare(rt.Field(i).Name, skip) == 0 {
-					shouldSkip = true
-					break
-				}
-			}
-			if !shouldSkip {
-				for _, e := range f.MapKeys() {
-					callback(f.MapIndex(e))
-				}
+			for _, e := range f.MapKeys() {
+				callback(f.MapIndex(e))
 			}
 		} else {
 			revel.AppLog.Warnf("%s is not map", f.Kind().String())
@@ -164,7 +203,9 @@ func eachEntity(skips *[]string, callback eachCallback) {
 
 // Backup set model to database
 func Backup() {
+	start := time.Now()
 	revel.AppLog.Info("バックアップ 開始")
+	defer WarnLongExec(start, 2, "バックアップ", true)
 	defer revel.AppLog.Info("バックアップ 終了")
 
 	MuStatic.RLock()
@@ -176,7 +217,7 @@ func Backup() {
 	tx := db.Begin()
 
 	// resolve refer
-	eachEntity(excludes, func(val reflect.Value) {
+	foreachStatic(func(val reflect.Value) {
 		if v, ok := val.Interface().(entities.Resolvable); ok {
 			v.ResolveRef()
 		} else {
@@ -185,15 +226,15 @@ func Backup() {
 	})
 
 	// upsert
-	eachEntity(excludes, func(val reflect.Value) {
-		db.Save(val.Elem().Interface())
+	foreachStatic(func(val reflect.Value) {
+		tx.Save(reflect.Indirect(val).Addr().Interface())
 	})
 
 	// remove old resources
-	for _, resource := range EntityTypes {
+	for _, resource := range StaticTypes {
 		for _, id := range WillRemove[resource] {
 			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", resource)
-			db.Exec(sql, time.Now(), time.Now(), id)
+			tx.Exec(sql, time.Now(), time.Now(), id)
 		}
 	}
 

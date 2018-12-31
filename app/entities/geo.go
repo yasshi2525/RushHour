@@ -39,17 +39,3 @@ func NewJunction(x float64, y float64) Junction {
 		In:    []*Step{},
 	}
 }
-
-// Step represents two Junction is logically connected.
-// Step is out of target for persistence because it can intruduce by other resources.
-type Step struct {
-	ID     uint
-	From   *Junction
-	To     *Junction
-	Weight float64
-}
-
-// Cost is calculated by distance * weight of Step
-func (s *Step) Cost() float64 {
-	return s.From.Dist(&s.To.Point) * s.Weight
-}

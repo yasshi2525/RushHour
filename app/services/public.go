@@ -11,7 +11,7 @@ import (
 
 // CreateResidence creates Residence and registers it to storage and step
 func CreateResidence(x float64, y float64) *entities.Residence {
-	id := uint(atomic.AddUint64(NextID[RESIDENCE], 1))
+	id := uint(atomic.AddUint64(NextID.Static[RESIDENCE], 1))
 	capacity := Config.Residence.Capacity
 	available := Config.Residence.Interval * rand.Float64()
 
@@ -45,7 +45,7 @@ func RemoveResidence(id uint) {
 	}
 
 	for _, s := range r.Out {
-		delete(Static.Steps, s.ID)
+		delete(Dynamic.Steps, s.ID)
 		logStep("removed", s)
 	}
 	delete(Static.Residences, r.ID)
@@ -55,7 +55,7 @@ func RemoveResidence(id uint) {
 
 // CreateCompany creates Company and registers it to storage and step
 func CreateCompany(x float64, y float64) *entities.Company {
-	id := uint(atomic.AddUint64(NextID[COMPANY], 1))
+	id := uint(atomic.AddUint64(NextID.Static[COMPANY], 1))
 	scale := Config.Company.Scale
 
 	company := &entities.Company{
@@ -86,7 +86,7 @@ func RemoveCompany(id uint) {
 		return
 	}
 	for _, s := range c.In {
-		delete(Static.Steps, s.ID)
+		delete(Dynamic.Steps, s.ID)
 		logStep("removed", s)
 	}
 	delete(Static.Companies, c.ID)
@@ -95,7 +95,7 @@ func RemoveCompany(id uint) {
 }
 
 func createStep(from *entities.Junction, to *entities.Junction, weight float64) *entities.Step {
-	id := uint(atomic.AddUint64(NextID[STEP], 1))
+	id := uint(atomic.AddUint64(NextID.Dynamic[STEP], 1))
 	step := &entities.Step{
 		ID:     id,
 		From:   from,
@@ -104,7 +104,7 @@ func createStep(from *entities.Junction, to *entities.Junction, weight float64) 
 	}
 	from.Out = append(from.Out, step)
 	to.In = append(to.In, step)
-	Static.Steps[id] = step
+	Dynamic.Steps[id] = step
 	logStep("created", step)
 	return step
 }

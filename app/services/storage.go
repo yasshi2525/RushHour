@@ -24,29 +24,42 @@ type company struct {
 	Scale float64 `validate:"gt=0"`
 }
 
-// EntityType represents type of resources indicating database table name
-type EntityType string
+// StaticType represents type of resources for persistence
+type StaticType string
 
-// EntityType represents type of resources indicating database table name
+// DynamicType represents type of resources not for persistence
+type DynamicType uint
+
+// StaticType represents type of resources indicating database table name
 const (
-	PLAYER    EntityType = "player"
+	PLAYER    StaticType = "player"
 	RESIDENCE            = "residence"
 	COMPANY              = "company"
-	RAILNODE             = "railnode"
-	RAILEDGE             = "railedge"
+	RAILNODE             = "rail_node"
+	RAILEDGE             = "rail_edge"
 	STATION              = "station"
 	GATE                 = "gate"
 	PLATFORM             = "platform"
 	LINE                 = "line"
-	LINETASK             = "linetask"
-	STEP                 = "step"
+	LINETASK             = "line_task"
 	TRAIN                = "train"
 	HUMAN                = "human"
 )
 
-// EntityTypes is list of all entities.
+// DynamicType represents type of resources not for persistence
+const (
+	STEP DynamicType = iota
+)
+
+// StaticTypes is list of all presistence resources.
 // Dependecy order.
-var EntityTypes []EntityType
+var StaticTypes []StaticType
+
+// DynamicTypes is list of all non-persistence resources.
+var DynamicTypes []DynamicType
+
+// StaticInstances is list of each struc instance.
+var StaticInstances []interface{}
 
 // Dependecy order.
 type staticModel struct {
@@ -60,12 +73,12 @@ type staticModel struct {
 	Platforms  map[uint]*entities.Platform
 	Lines      map[uint]*entities.Line
 	LineTasks  map[uint]*entities.LineTask
-	Steps      map[uint]*entities.Step
 	Trains     map[uint]*entities.Train
 	Humans     map[uint]*entities.Human
 }
 
-type agentModel struct {
+type dynamicModel struct {
+	Steps map[uint]*entities.Step
 }
 
 type routeTemplate struct {
@@ -74,17 +87,22 @@ type routeTemplate struct {
 // Config defines game feature
 var Config config
 
+type nextID struct {
+	Static  map[StaticType]*uint64
+	Dynamic map[DynamicType]*uint64
+}
+
 // NextID has what number should be set
-var NextID map[EntityType]*uint64
+var NextID nextID
 
 // Static is viewable feature including Step infomation.
 var Static staticModel
 
 // WillRemove represents the list of deleting in next Backup()
-var WillRemove map[EntityType][]uint
+var WillRemove map[StaticType][]uint
 
-// Dynamic is hidden feature and not be persisted/
-var Dynamic agentModel
+// Dynamic is hidden feature and not be persisted.
+var Dynamic dynamicModel
 
 // RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate routeTemplate
@@ -111,10 +129,10 @@ func LoadConf() {
 
 // InitStorage initialize storage
 func InitStorage() {
-	EntityTypes = []EntityType{
+	StaticTypes = []StaticType{
 		PLAYER,
-		COMPANY,
 		RESIDENCE,
+		COMPANY,
 		RAILNODE,
 		RAILEDGE,
 		STATION,
@@ -122,15 +140,32 @@ func InitStorage() {
 		PLATFORM,
 		LINE,
 		LINETASK,
-		STEP,
 		TRAIN,
 		HUMAN,
+	}
+	DynamicTypes = []DynamicType{
+		STEP,
+	}
+
+	StaticInstances = []interface{}{
+		&entities.Player{},
+		&entities.Residence{},
+		&entities.Company{},
+		&entities.RailNode{},
+		&entities.RailEdge{},
+		&entities.Station{},
+		&entities.Gate{},
+		&entities.Platform{},
+		&entities.Line{},
+		&entities.LineTask{},
+		&entities.Train{},
+		&entities.Human{},
 	}
 
 	Static = staticModel{
 		Players:    make(map[uint]*entities.Player),
-		Companies:  make(map[uint]*entities.Company),
 		Residences: make(map[uint]*entities.Residence),
+		Companies:  make(map[uint]*entities.Company),
 		RailNodes:  make(map[uint]*entities.RailNode),
 		RailEdges:  make(map[uint]*entities.RailEdge),
 		Stations:   make(map[uint]*entities.Station),
@@ -138,21 +173,23 @@ func InitStorage() {
 		Platforms:  make(map[uint]*entities.Platform),
 		Lines:      make(map[uint]*entities.Line),
 		LineTasks:  make(map[uint]*entities.LineTask),
-		Steps:      make(map[uint]*entities.Step),
 		Trains:     make(map[uint]*entities.Train),
 		Humans:     make(map[uint]*entities.Human),
 	}
 
-	Dynamic = agentModel{}
+	Dynamic = dynamicModel{
+		Steps: make(map[uint]*entities.Step),
+	}
 	RouteTemplate = routeTemplate{}
 
-	WillRemove = make(map[EntityType][]uint)
-	NextID = make(map[EntityType]*uint64)
+	WillRemove = make(map[StaticType][]uint)
+	NextID = nextID{
+		Static:  make(map[StaticType]*uint64),
+		Dynamic: make(map[DynamicType]*uint64),
+	}
 
-	for _, t := range EntityTypes {
+	for _, t := range StaticTypes {
 		WillRemove[t] = []uint{}
-		var i uint64 = 1
-		NextID[t] = &i
 	}
 
 	MuStatic = sync.RWMutex{}

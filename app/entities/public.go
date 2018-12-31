@@ -26,6 +26,11 @@ type Company struct {
 	Scale float64 `gorm:"not null"`
 }
 
+// ResolvRef do nothing (for implements Resolvable)
+func (c *Company) ResolveRef() {
+	// do-nothing
+}
+
 // Residence generate Human in a period
 type Residence struct {
 	gorm.Model
@@ -35,4 +40,9 @@ type Residence struct {
 
 	Capacity  uint    `gorm:"not null"`
 	Available float64 `gorm:"not null"`
+}
+
+// ResolvRef do nothing (for implements Resolvable)
+func (r *Residence) ResolveRef() {
+	// do-nothing
 }
