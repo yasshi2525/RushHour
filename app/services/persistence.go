@@ -190,7 +190,22 @@ func resolveStatic() {
 }
 
 func generateDynamics() {
-
+	for _, r := range Static.Residences {
+		// R -> C
+		for _, c := range Static.Companies {
+			createStep(&r.Junction, &c.Junction, 1.0)
+		}
+		// R -> G
+		for _, g := range Static.Gates {
+			createStep(&r.Junction, &g.Junction, 1.0)
+		}
+	}
+	for _, c := range Static.Companies {
+		// G -> C
+		for _, g := range Static.Gates {
+			createStep(&g.Junction, &c.Junction, 1.0)
+		}
+	}
 }
 
 func foreachStatic(callback eachCallback) {
