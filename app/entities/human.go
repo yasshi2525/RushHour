@@ -2,6 +2,8 @@ package entities
 
 import (
 	"math"
+
+	"github.com/revel/revel"
 )
 
 // Standing is for judgement Human placement on same X, Y
@@ -50,12 +52,35 @@ type Human struct {
 	OnTrainID    uint
 }
 
-// ResolveRef resolve commuting reference
+// ResolveRef set id from reference
 func (h *Human) ResolveRef() {
 	h.FromID = h.From.ID
 	h.ToID = h.To.ID
 	h.OnPlatformID = h.OnPlatform.ID
 	h.OnTrainID = h.OnTrain.ID
+}
+
+// Resolve set reference
+func (h *Human) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Residence:
+			h.From = obj
+			obj.Targets[h.ID] = h
+		case *Company:
+			h.To = obj
+			obj.Targets[h.ID] = h
+		case *Platform:
+			h.OnPlatform = obj
+			obj.Passenger[h.ID] = h
+		case *Train:
+			h.OnTrain = obj
+			obj.Passenger[h.ID] = h
+		default:
+			revel.AppLog.Warnf("invalid type: %T", obj)
+		}
+	}
+	h.ResolveRef()
 }
 
 // TurnTo make Human turn head to dest.

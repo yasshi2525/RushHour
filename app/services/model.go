@@ -2,15 +2,17 @@ package services
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/revel/revel"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 // Operation represents request for model
 type Operation struct {
 	Source string
-	Target string
+	Target entities.StaticRes
 	ID     uint
 	X      float64
 	Y      float64
@@ -20,11 +22,25 @@ type Operation struct {
 
 var modelChannel chan *Operation
 
+var mkFuncs map[entities.StaticRes]interface{}
+var rmFuncs map[entities.StaticRes]interface{}
+
 // StartModelWatching setup watching model
 func StartModelWatching() {
 	defer revel.AppLog.Debug("モデルチャネル セットアップ終了")
 
 	modelChannel = make(chan *Operation, 10)
+
+	mkFuncs = make(map[entities.StaticRes]interface{})
+	mkFuncs[entities.PLAYER] = CreatePlayer
+	mkFuncs[entities.RESIDENCE] = CreateResidence
+	mkFuncs[entities.COMPANY] = CreateCompany
+	mkFuncs[entities.RAILNODE] = CreateRailNode
+
+	rmFuncs = make(map[entities.StaticRes]interface{})
+	rmFuncs[entities.RESIDENCE] = RemoveResidence
+	rmFuncs[entities.COMPANY] = RemoveResidence
+	rmFuncs[entities.RAILNODE] = RemoveResidence
 
 	go watchModel()
 }
@@ -38,61 +54,46 @@ func watchModel() {
 		MuStatic.Lock()
 		MuDynamic.Lock()
 
-		switch msg.Target {
-		case "player":
-			CreatePlayer(msg.OName, msg.OName, msg.OName)
-		case "residence":
-			switch msg.Op {
-			case "create":
-				CreateResidence(msg.X, msg.Y)
-			case "remove":
-				if msg.ID == 0 {
-					for _, r := range Static.Residences {
-						RemoveResidence(r.ID)
-						break
-					}
-				} else {
-					RemoveResidence(msg.ID)
-				}
-			}
-		case "company":
-			switch msg.Op {
-			case "create":
-				CreateCompany(msg.X, msg.Y)
-			case "remove":
-				if msg.ID == 0 {
-					for _, c := range Static.Companies {
-						RemoveCompany(c.ID)
-						break
-					}
-				} else {
-					RemoveCompany(msg.ID)
-				}
-			}
-		case "rail_node":
-			switch msg.Op {
-			case "create":
-				if o, err := FetchOwner(msg.OName); err == nil {
-					CreateRailNode(o, msg.X, msg.Y)
+		switch msg.Op {
+		case "create":
+			rv := reflect.ValueOf(mkFuncs[msg.Target])
+			switch msg.Target {
+			case entities.PLAYER:
+				CreatePlayer(msg.OName, msg.OName, msg.OName)
+			case entities.RESIDENCE:
+				fallthrough
+			case entities.COMPANY:
+				rv.Call([]reflect.Value{
+					reflect.ValueOf(msg.X),
+					reflect.ValueOf(msg.Y)})
+			default:
+				if owner, err := FetchOwner(msg.OName); err != nil {
+					rv.Call([]reflect.Value{
+						reflect.ValueOf(owner),
+						reflect.ValueOf(msg.X),
+						reflect.ValueOf(msg.Y)})
 				} else {
 					revel.AppLog.Warnf("invalid Player: %s", err)
 				}
-			case "remove":
-				if msg.ID == 0 {
-					for _, rn := range Static.RailNodes {
-						if o, err := FetchOwner(msg.OName); err == nil {
-							RemoveRailNode(o, rn.ID)
-						} else {
-							revel.AppLog.Warnf("invalid Player: %s", err)
-						}
-						break
-					}
+			}
+
+		case "remove":
+			rv := reflect.ValueOf(rmFuncs[msg.Target])
+			if msg.ID == 0 {
+				msg.ID = randID(msg.Target)
+			}
+			switch msg.Target {
+			case entities.RESIDENCE:
+				fallthrough
+			case entities.COMPANY:
+				rv.Call([]reflect.Value{reflect.ValueOf(msg.ID)})
+			default:
+				if owner, err := FetchOwner(msg.OName); err != nil {
+					rv.Call([]reflect.Value{
+						reflect.ValueOf(owner),
+						reflect.ValueOf(msg.ID)})
 				} else {
-					if o, err := FetchOwner(msg.OName); err == nil {
-						RemoveRailNode(o, msg.ID)
-					} else {
-						revel.AppLog.Warnf("invalid Player: %s", err)
-					}
+					revel.AppLog.Warnf("invalid Player: %s", err)
 				}
 			}
 		}
@@ -106,8 +107,18 @@ func watchModel() {
 	}
 }
 
+// randID return random id existing in repository
+func randID(t entities.StaticRes) uint {
+	mapdata := Repo.Meta.StaticValue[t]
+	for _, e := range mapdata.MapKeys() {
+		return uint(mapdata.MapIndex(e).Uint())
+	}
+	return 0
+}
+
 // UpdateModel queues user request.
 func UpdateModel(msg *Operation) {
+	revel.AppLog.Infof("%+v", msg)
 	select {
 	case modelChannel <- msg:
 	default:

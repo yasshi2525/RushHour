@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/revel/revel"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 	backupInterval = 30 * time.Second
 )
 
-type opCallback func(source string, target string)
+type opCallback func(source string, target entities.StaticRes)
 
 // Main immitates some user requests some actions.
 // TODO remove it
@@ -25,58 +26,26 @@ func Main() {
 	StartProcedure()
 
 	// admin
-	for _, target := range []string{"residence", "company"} {
-		tickOp("admin", target, updateInterval, func(src string, tar string) {
-			revel.AppLog.Infof("%s create %s", src, tar)
-			UpdateModel(&Operation{
-				Source: src,
-				Op:     "create",
-				Target: tar,
-				X:      rand.Float64() * 100,
-				Y:      rand.Float64() * 100,
-			})
+	for _, target := range []entities.StaticRes{entities.RESIDENCE, entities.COMPANY} {
+		tickOp("admin", target, updateInterval, func(src string, tar entities.StaticRes) {
+			UpdateModel(mkOp(src, tar))
 		})
-		tickOp("admin", target, updateInterval, func(src string, tar string) {
-			revel.AppLog.Infof("%s remove %s", src, tar)
-			UpdateModel(&Operation{
-				Source: src,
-				Op:     "remove",
-				Target: tar,
-			})
+		tickOp("admin", target, updateInterval, func(src string, tar entities.StaticRes) {
+			UpdateModel(rmOp(src, tar))
 		})
 	}
 
 	// user
 	for i := 0; i < numUser; i++ {
 		source := fmt.Sprintf("user%d", i)
-		revel.AppLog.Infof("%s create Player", source)
-		UpdateModel(&Operation{
-			Source: source,
-			Op:     "create",
-			Target: "player",
-			OName:  source,
+		UpdateModel(mkOp(source, entities.PLAYER))
+
+		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.StaticRes) {
+			UpdateModel(mkOp(src, tar))
 		})
 
-		tickOp(source, "rail_node", updateInterval, func(src string, tar string) {
-			revel.AppLog.Infof("%s create %s", src, tar)
-			UpdateModel(&Operation{
-				Source: src,
-				Op:     "create",
-				Target: tar,
-				OName:  src,
-				X:      rand.Float64() * 100,
-				Y:      rand.Float64() * 100,
-			})
-		})
-
-		tickOp(source, "rail_node", updateInterval, func(src string, tar string) {
-			revel.AppLog.Infof("%s delete %s", src, tar)
-			UpdateModel(&Operation{
-				Source: src,
-				Op:     "remove",
-				Target: tar,
-				OName:  src,
-			})
+		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.StaticRes) {
+			UpdateModel(rmOp(src, tar))
 		})
 	}
 
@@ -88,7 +57,29 @@ func Main() {
 	}()
 }
 
-func tickOp(source string, target string, interval time.Duration, callback opCallback) {
+// mkOp returns creation operation
+func mkOp(src string, target entities.StaticRes) *Operation {
+	return &Operation{
+		Source: src,
+		Op:     "create",
+		Target: target,
+		OName:  src,
+		X:      rand.Float64() * 100,
+		Y:      rand.Float64() * 100,
+	}
+}
+
+// rmOp returns deletion operation
+func rmOp(src string, target entities.StaticRes) *Operation {
+	return &Operation{
+		Source: src,
+		Op:     "remove",
+		Target: target,
+		OName:  src,
+	}
+}
+
+func tickOp(source string, target entities.StaticRes, interval time.Duration, callback opCallback) {
 	go func() {
 		sleep := rand.Intn(int(interval.Seconds()))
 		time.Sleep(time.Duration(sleep) * time.Second)

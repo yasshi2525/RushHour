@@ -5,23 +5,32 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var (
 	db      *gorm.DB
-	logMode = false
+	logMode = true
 )
 
 type eachCallback func(v reflect.Value)
 
 // InitPersistence prepares database connection and migrate
 func InitPersistence() {
+	revel.AppLog.Info("start init for persistence")
+	defer revel.AppLog.Info("end init for persistence")
+
 	db = connectDB()
 	configureDB(db)
 	migrateDB(db)
+}
+
+// TerminatePersistence defines the end task before application shutdown
+func TerminatePersistence() {
+	closeDB()
 }
 
 func connectDB() *gorm.DB {
@@ -46,76 +55,67 @@ func connectDB() *gorm.DB {
 	return database
 }
 
-func configureDB(database *gorm.DB) *gorm.DB {
+func configureDB(database *gorm.DB) {
 	database.LogMode(logMode)
-	db.SingularTable(true)
-	return database
 }
 
-func migrateDB(database *gorm.DB) *gorm.DB {
-	db.AutoMigrate(StaticInstances...)
+func migrateDB(database *gorm.DB) {
+	foreign := make(map[entities.StaticRes]string)
 
-	// Player has private resources
-	for _, t := range []interface{}{
-		&entities.RailNode{},
-		&entities.RailEdge{},
-		&entities.Station{},
-		&entities.Platform{},
-		&entities.Gate{},
-		&entities.LineTask{},
-		&entities.Line{},
-		&entities.Train{},
-	} {
-		db.Model(t).AddForeignKey("owner_id", "player(id)", "RESTRICT", "RESTRICT")
+	// create instance corresponding to each record
+	for _, key := range Repo.Meta.StaticList {
+		proto := key.Obj()
+		db.AutoMigrate(&proto)
+
+		revel.AppLog.Debugf("migrated for %T", proto)
+
+		// foreign key for owner
+		if _, ok := key.Type().FieldByName("Ownable"); ok {
+			owner := fmt.Sprintf("%s(id)", key.Table())
+			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
+
+			revel.AppLog.Debugf("added owner foreign key for %s table", owner)
+		}
+
+		foreign[key] = fmt.Sprintf("%s(id)", key.Table())
 	}
 
 	// RailEdge connects RailNode
-	db.Model(&entities.RailEdge{}).AddForeignKey("from_id", "rail_node(id)", "CASCADE", "RESTRICT")
-	db.Model(&entities.RailEdge{}).AddForeignKey("to_id", "rail_node(id)", "CASCADE", "RESTRICT")
+	db.Model(entities.RAILEDGE.Obj()).AddForeignKey("from_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
+	db.Model(entities.RAILEDGE.Obj()).AddForeignKey("to_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
 
 	// Station composes Platforms and Gates
-	db.Model(&entities.Platform{}).AddForeignKey("on_id", "rail_node(id)", "RESTRICT", "RESTRICT")
-	db.Model(&entities.Platform{}).AddForeignKey("in_id", "station(id)", "CASCADE", "RESTRICT")
-	db.Model(&entities.Gate{}).AddForeignKey("in_id", "station(id)", "CASCADE", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj()).AddForeignKey("on_id", foreign[entities.RAILNODE], "RESTRICT", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj()).AddForeignKey("in_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
+	db.Model(entities.GATE.Obj()).AddForeignKey("in_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
 
 	// Line composes LineTasks
-	db.Model(&entities.LineTask{}).AddForeignKey("line_id", "line(id)", "CASCADE", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("line_id", foreign[entities.LINE], "CASCADE", "RESTRICT")
 	// LineTask is chainable
-	db.Model(&entities.LineTask{}).AddForeignKey("next_id", "line_task(id)", "SET NULL", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("next_id", foreign[entities.LINETASK], "SET NULL", "RESTRICT")
 
 	// Train runs on a chain of Line
-	db.Model(&entities.Train{}).AddForeignKey("task_id", "line_task(id)", "RESTRICT", "RESTRICT")
+	db.Model(entities.TRAIN.Obj()).AddForeignKey("task_id", foreign[entities.LINETASK], "RESTRICT", "RESTRICT")
 
 	// Human departs from Residence and destinates to Company
-	db.Model(&entities.Human{}).AddForeignKey("from_id", "residence(id)", "RESTRICT", "RESTRICT")
-	db.Model(&entities.Human{}).AddForeignKey("to_id", "company(id)", "RESTRICT", "RESTRICT")
+	db.Model(entities.HUMAN.Obj()).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")
+	db.Model(entities.HUMAN.Obj()).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
 	// Human is sometimes on Platform or on Train
-	db.Model(&entities.Human{}).AddForeignKey("on_platform_id", "platform(id)", "RESTRICT", "RESTRICT")
-	db.Model(&entities.Human{}).AddForeignKey("on_train_id", "train(id)", "RESTRICT", "RESTRICT")
-
-	return db
-}
-
-// TerminatePersistence defines the end task before application shutdown
-func TerminatePersistence() {
-	closeDB()
+	db.Model(entities.HUMAN.Obj()).AddForeignKey("on_platform_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
+	db.Model(entities.HUMAN.Obj()).AddForeignKey("on_train_id", foreign[entities.TRAIN], "RESTRICT", "RESTRICT")
 }
 
 func closeDB() {
 	if err := db.Close(); err != nil {
-		revel.AppLog.Error("failed to close the database", "error", err)
+		panic(err)
 	}
 	revel.AppLog.Info("disconnect database successfully")
 }
 
-type resultMax struct {
-	MaxID uint64
-}
-
 // Restore get model from database
 func Restore() {
-	revel.AppLog.Info("DBリストア 開始")
-	defer revel.AppLog.Info("DBリストア 終了")
+	revel.AppLog.Info("start restore from database")
+	defer revel.AppLog.Info("end restore from database")
 
 	start := time.Now()
 	defer WarnLongExec(start, 5, "DBリストア", true)
@@ -128,108 +128,127 @@ func Restore() {
 	setNextID()
 	fetchStatic()
 	resolveStatic()
-	generateDynamics()
+	genDynamics()
 }
 
+// setNextID set max id as NextID from database for Restore()
 func setNextID() {
-	for _, resource := range StaticTypes {
-		sql := fmt.Sprintf("SELECT max(id) as max_id FROM %s", resource)
-		var result resultMax
-
-		if err := db.Raw(sql).Scan(&result).Error; err != nil {
-			panic(fmt.Sprintf("cannot get max id of %s, %v", resource, err))
+	for _, key := range Repo.Meta.StaticList {
+		var maxID struct {
+			V uint64
 		}
-
-		result.MaxID++
-		NextID.Static[resource] = &result.MaxID
-		revel.AppLog.Debugf("NextID.Static[%s] = %d", resource, *NextID.Static[resource])
-	}
-
-	for _, resource := range DynamicTypes {
-		var i uint64 = 1
-		NextID.Dynamic[resource] = &i
-		revel.AppLog.Debugf("NextID.Dynamic[%s] = %d", resource, *NextID.Dynamic[resource])
+		sql := fmt.Sprintf("SELECT max(id) as v FROM %s", key.Table())
+		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
+			maxID.V++
+			Repo.Static.NextIDs[key] = &maxID.V
+			revel.AppLog.Debugf("set NextID[%s] = %d", key, Repo.Static.NextIDs[key])
+		} else {
+			panic(err)
+		}
 	}
 }
 
+// fetchStatic selects records for Restore()
 func fetchStatic() {
-	for idx, resource := range StaticTypes {
+	for _, key := range Repo.Meta.StaticList {
 		// select文組み立て
-		table := fmt.Sprintf("%s", resource)
-		rows, err := db.Table(table).Where("deleted_at is null").Rows()
-		if err != nil {
-			panic(fmt.Sprintf("failed to fetch: %s", err))
-		}
-		for rows.Next() {
-			// 対応する Struct を作成
-			obj := reflect.New(reflect.TypeOf(StaticInstances[idx]).Elem())
-			objptr := reflect.Indirect(obj).Addr().Interface()
+		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
+			for rows.Next() {
+				// 対応する Struct を作成
+				obj := key.Obj()
+				if err := db.ScanRows(rows, &obj); err == nil {
+					// Static に登録
+					objid := reflect.ValueOf(obj).FieldByName("ID")
+					Repo.Meta.StaticValue[key].SetMapIndex(objid, reflect.ValueOf(obj))
 
-			if err := db.ScanRows(rows, objptr); err != nil {
-				panic(err)
-			}
-
-			// Static に登録
-			objid := reflect.ValueOf(objptr).Elem().FieldByName("ID")
-			reflect.ValueOf(Static).Field(idx).SetMapIndex(objid, obj)
-		}
-	}
-}
-
-func resolveStatic() {
-	revel.AppLog.Debug("resolveStatic")
-	foreachStatic(func(raw reflect.Value) {
-		obj := raw.Elem()
-		rt := reflect.TypeOf(obj.Interface())
-
-		// OwnerID -> Owner
-		if _, ok := rt.FieldByName("Ownable"); ok {
-			ownable := obj.FieldByName("Ownable")
-			optr, oid := ownable.FieldByName("Owner"), ownable.FieldByName("OwnerID")
-			owner := Static.Players[uint(oid.Uint())]
-			optr.Set(reflect.ValueOf(owner))
-		}
-	})
-}
-
-func generateDynamics() {
-	for _, r := range Static.Residences {
-		// R -> C
-		for _, c := range Static.Companies {
-			createStep(&r.Junction, &c.Junction, 1.0)
-		}
-		// R -> G
-		for _, g := range Static.Gates {
-			createStep(&r.Junction, &g.Junction, 1.0)
-		}
-	}
-	for _, c := range Static.Companies {
-		// G -> C
-		for _, g := range Static.Gates {
-			createStep(&g.Junction, &c.Junction, 1.0)
-		}
-	}
-}
-
-func foreachStatic(callback eachCallback) {
-	rt, rv := reflect.TypeOf(Static), reflect.ValueOf(Static)
-	for i := 0; i < rt.NumField(); i++ {
-		if f := rv.Field(i); f.Kind() == reflect.Map {
-			for _, e := range f.MapKeys() {
-				callback(f.MapIndex(e))
+					revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, objid.Interface(), obj)
+				} else {
+					panic(err)
+				}
 			}
 		} else {
-			revel.AppLog.Warnf("%s is not map", f.Kind().String())
+			panic(err)
+		}
+
+	}
+}
+
+// resolveStatic set pointer from id for Restore()
+func resolveStatic() {
+	for _, rn := range Repo.Static.RailNodes {
+		rn.Resolve(Repo.Static.Players[rn.OwnerID])
+	}
+	for _, re := range Repo.Static.RailEdges {
+		re.Resolve(Repo.Static.RailNodes[re.FromID], Repo.Static.RailNodes[re.ToID])
+	}
+	for _, st := range Repo.Static.Stations {
+		st.Resolve(Repo.Static.Players[st.OwnerID])
+	}
+	for _, g := range Repo.Static.Gates {
+		g.Resolve(Repo.Static.Stations[g.InStationID])
+	}
+	for _, p := range Repo.Static.Platforms {
+		p.Resolve(Repo.Static.RailNodes[p.OnRailNodeID], Repo.Static.Stations[p.InStationID])
+	}
+	for _, l := range Repo.Static.Lines {
+		l.Resolve(Repo.Static.Players[l.OwnerID])
+	}
+	for _, lt := range Repo.Static.LineTasks {
+		lt.Resolve(Repo.Static.Lines[lt.LineID])
+		// nullable fields
+		if lt.NextID != 0 {
+			lt.Resolve(Repo.Static.Lines[lt.LineID], Repo.Static.LineTasks[lt.NextID])
+		}
+	}
+	for _, t := range Repo.Static.Trains {
+		t.Resolve(Repo.Static.LineTasks[t.TaskID])
+	}
+	for _, h := range Repo.Static.Humans {
+		h.Resolve(Repo.Static.Residences[h.FromID], Repo.Static.Companies[h.ToID])
+		// nullable fields
+		if h.OnPlatformID != 0 {
+			h.Resolve(Repo.Static.Platforms[h.OnPlatformID])
+		}
+		if h.OnTrainID != 0 {
+			h.Resolve(Repo.Static.Platforms[h.OnTrainID])
+		}
+	}
+}
+
+// genDynamics create Dynamic instances
+func genDynamics() {
+	for _, r := range Repo.Static.Residences {
+		// R -> C, G
+		GenStepResidence(r)
+	}
+	for _, c := range Repo.Static.Companies {
+		// G -> C
+		for _, g := range Repo.Static.Gates {
+			GenStep(g, c, Config.Human.Weight)
+		}
+	}
+	for _, p := range Repo.Static.Platforms {
+		// G <-> P
+		g := p.InStation.Gate
+		GenStep(p, g, Config.Human.Weight)
+		GenStep(g, p, Config.Human.Weight)
+
+		// P <-> P
+		for _, p2 := range Repo.Static.Platforms {
+			if p != p2 {
+				GenStep(p, p2, Config.Train.Weight)
+			}
 		}
 	}
 }
 
 // Backup set model to database
 func Backup() {
+	revel.AppLog.Info("start backup")
+	defer revel.AppLog.Info("end backup")
+
 	start := time.Now()
-	revel.AppLog.Info("バックアップ 開始")
 	defer WarnLongExec(start, 2, "バックアップ", true)
-	defer revel.AppLog.Info("バックアップ 終了")
 
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
@@ -237,43 +256,46 @@ func Backup() {
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
+	updateForeignKey()
+
 	tx := db.Begin()
 
-	// resolve mutable refer
-	// Object -> ObjectID
-	for _, val := range Static.LineTasks {
-		val.ResolveRef()
-	}
-	for _, val := range Static.Trains {
-		val.ResolveRef()
-	}
-	for _, val := range Static.Humans {
-		val.ResolveRef()
-	}
+	persistStatic(tx)
 
-	/*
-		//全部やるときは↓
-		foreachStatic(func(val reflect.Value) {
-			if v, ok := val.Interface().(entities.Resolvable); ok {
-				v.ResolveRef()
-			} else {
-				revel.AppLog.Warnf("%s is not resolvable", val.String())
-			}
-		})
-	*/
+	tx.Commit()
+}
 
+func updateForeignKey() {
+	// set id from reference
+	for _, lt := range Repo.Static.LineTasks {
+		lt.ResolveRef()
+	}
+	for _, t := range Repo.Static.Trains {
+		t.ResolveRef()
+	}
+	for _, h := range Repo.Static.Humans {
+		h.ResolveRef()
+	}
+}
+
+func persistStatic(tx *gorm.DB) {
 	// upsert
-	foreachStatic(func(val reflect.Value) {
-		tx.Save(reflect.Indirect(val).Addr().Interface())
-	})
-
-	// remove old resources
-	for _, resource := range StaticTypes {
-		for _, id := range WillRemove[resource] {
-			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", resource)
-			tx.Exec(sql, time.Now(), time.Now(), id)
+	for _, res := range Repo.Meta.StaticList {
+		mapdata := Repo.Meta.StaticValue[res]
+		for _, key := range mapdata.MapKeys() {
+			obj := mapdata.MapIndex(key).Interface()
+			tx.Save(obj)
+			revel.AppLog.Debugf("persist %T(%d): %+v", obj, key.Uint(), obj)
 		}
 	}
 
-	tx.Commit()
+	// remove old resources
+	for _, key := range Repo.Meta.StaticList {
+		for _, id := range Repo.Static.WillRemove[key] {
+			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
+			tx.Exec(sql, time.Now(), time.Now(), id)
+			revel.AppLog.Debugf("delete %s(%d)", key.Table(), id)
+		}
+		Repo.Static.WillRemove[key] = Repo.Static.WillRemove[key][:0]
+	}
 }
