@@ -23,46 +23,32 @@ func NewModel(id uint) Model {
 	}
 }
 
-// Resolvable set some_id fields from reference.
-// Resolvable is for database migration
-type Resolvable interface {
-	// ResolveRef set id from object
-	ResolveRef()
+// Owner means this faciliites in under the control by Player.
+type Owner struct {
+	Own     *Player `gorm:"-" json:"-"`
+	OwnerID uint    `gorm:"not null" json:"owner_id"`
 }
 
-// OwnableEntity works as auth level
-type OwnableEntity interface {
-	// Permits represents Player is permitted to control
-	Permits(*Player) bool
-}
-
-// Ownable means this faciliites in under the control by Player.
-type Ownable struct {
-	Owner *Player `gorm:"-" json:"-"`
-
-	OwnerID uint `gorm:"not null" json:"owner_id"`
-}
-
-// NewOwnable create Juntion
-func NewOwnable(o *Player) Ownable {
-	return Ownable{
-		Owner:   o,
+// NewOwner create Juntion
+func NewOwner(o *Player) Owner {
+	return Owner{
+		Own:     o,
 		OwnerID: o.ID,
 	}
 }
 
 // ResolveRef resolve ownerID from Owner
-func (o *Ownable) ResolveRef() {
-	o.OwnerID = o.Owner.ID
+func (o *Owner) ResolveRef() {
+	o.OwnerID = o.Own.ID
 }
 
 // Permits always permits to Admin, Owner.
-func (o *Ownable) Permits(target *Player) bool {
+func (o *Owner) Permits(target *Player) bool {
 	switch target.Level {
 	case Admin:
 		return true
 	case Normal:
-		return o.Owner == target
+		return o.Own == target
 	case Guest:
 		return false
 	default:

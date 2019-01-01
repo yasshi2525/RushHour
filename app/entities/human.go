@@ -45,11 +45,41 @@ type Human struct {
 	OnPlatform *Platform  `gorm:"-" json:"-"`
 	OnTrain    *Train     `gorm:"-" json:"-"`
 	On         Standing   `gorm:"-" json:"-"`
+	out        map[uint]*Step
 
 	FromID       uint `gorm:"not null"`
 	ToID         uint `gorm:"not null"`
 	OnPlatformID uint
 	OnTrainID    uint
+}
+
+// NewHuman create instance
+func NewHuman(id uint, x float64, y float64) *Human {
+	return &Human{
+		Model: NewModel(id),
+		Point: NewPoint(x, y),
+		out:   make(map[uint]*Step),
+	}
+}
+
+// Idx returns unique id field.
+func (h *Human) Idx() uint {
+	return h.ID
+}
+
+// Pos returns entities' position
+func (h *Human) Pos() *Point {
+	return &h.Point
+}
+
+// Out returns where it can go to
+func (h *Human) Out() map[uint]*Step {
+	return h.out
+}
+
+// In returns where it comes from
+func (h *Human) In() map[uint]*Step {
+	return nil
 }
 
 // ResolveRef set id from reference

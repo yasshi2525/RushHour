@@ -65,12 +65,12 @@ func migrateDB(database *gorm.DB) {
 	// create instance corresponding to each record
 	for _, key := range Repo.Meta.StaticList {
 		proto := key.Obj()
-		db.AutoMigrate(&proto)
+		db.AutoMigrate(proto)
 
 		revel.AppLog.Debugf("migrated for %T", proto)
 
 		// foreign key for owner
-		if _, ok := key.Type().FieldByName("Ownable"); ok {
+		if _, ok := proto.(entities.Ownable); ok {
 			owner := fmt.Sprintf("%s(id)", key.Table())
 			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
 
@@ -85,14 +85,17 @@ func migrateDB(database *gorm.DB) {
 	db.Model(entities.RAILEDGE.Obj()).AddForeignKey("to_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
 
 	// Station composes Platforms and Gates
-	db.Model(entities.PLATFORM.Obj()).AddForeignKey("on_id", foreign[entities.RAILNODE], "RESTRICT", "RESTRICT")
-	db.Model(entities.PLATFORM.Obj()).AddForeignKey("in_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
-	db.Model(entities.GATE.Obj()).AddForeignKey("in_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj()).AddForeignKey("on_rail_node_id", foreign[entities.RAILNODE], "RESTRICT", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj()).AddForeignKey("in_station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
+	db.Model(entities.GATE.Obj()).AddForeignKey("in_station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
 
 	// Line composes LineTasks
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("line_id", foreign[entities.LINE], "CASCADE", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("rail_line_id", foreign[entities.LINE], "CASCADE", "RESTRICT")
 	// LineTask is chainable
 	db.Model(entities.LINETASK.Obj()).AddForeignKey("next_id", foreign[entities.LINETASK], "SET NULL", "RESTRICT")
+	// LineTask is sometimes on rail or platform
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("moving_id", foreign[entities.RAILEDGE], "RESTRICT", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("stay_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
 
 	// Train runs on a chain of Line
 	db.Model(entities.TRAIN.Obj()).AddForeignKey("task_id", foreign[entities.LINETASK], "RESTRICT", "RESTRICT")
@@ -141,7 +144,7 @@ func setNextID() {
 		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
 			maxID.V++
 			Repo.Static.NextIDs[key] = &maxID.V
-			revel.AppLog.Debugf("set NextID[%s] = %d", key, Repo.Static.NextIDs[key])
+			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Repo.Static.NextIDs[key])
 		} else {
 			panic(err)
 		}
@@ -155,13 +158,15 @@ func fetchStatic() {
 		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
 			for rows.Next() {
 				// 対応する Struct を作成
-				obj := key.Obj()
-				if err := db.ScanRows(rows, &obj); err == nil {
+				base := key.Obj()
+				if err := db.ScanRows(rows, base); err == nil {
 					// Static に登録
-					objid := reflect.ValueOf(obj).FieldByName("ID")
-					Repo.Meta.StaticValue[key].SetMapIndex(objid, reflect.ValueOf(obj))
-
-					revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, objid.Interface(), obj)
+					if obj, ok := base.(entities.Indexable); ok {
+						Repo.Meta.StaticValue[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, obj.Idx(), obj)
+					} else {
+						panic(fmt.Errorf("invalid type %T: %+v", base, base))
+					}
 				} else {
 					panic(err)
 				}
@@ -190,14 +195,20 @@ func resolveStatic() {
 	for _, p := range Repo.Static.Platforms {
 		p.Resolve(Repo.Static.RailNodes[p.OnRailNodeID], Repo.Static.Stations[p.InStationID])
 	}
-	for _, l := range Repo.Static.Lines {
+	for _, l := range Repo.Static.RailLines {
 		l.Resolve(Repo.Static.Players[l.OwnerID])
 	}
 	for _, lt := range Repo.Static.LineTasks {
-		lt.Resolve(Repo.Static.Lines[lt.LineID])
+		lt.Resolve(Repo.Static.RailLines[lt.LineID])
 		// nullable fields
 		if lt.NextID != 0 {
-			lt.Resolve(Repo.Static.Lines[lt.LineID], Repo.Static.LineTasks[lt.NextID])
+			lt.Resolve(Repo.Static.LineTasks[lt.NextID])
+		}
+		if lt.StayID != 0 {
+			lt.Resolve(Repo.Static.Platforms[lt.StayID])
+		}
+		if lt.MovingID != 0 {
+			lt.Resolve(Repo.Static.RailEdges[lt.MovingID])
 		}
 	}
 	for _, t := range Repo.Static.Trains {

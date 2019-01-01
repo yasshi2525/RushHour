@@ -12,7 +12,7 @@ import (
 var (
 	numUser        = 10
 	viewInterval   = 1 * time.Second
-	updateInterval = 30 * time.Second
+	updateInterval = 10 * time.Second
 	backupInterval = 30 * time.Second
 )
 

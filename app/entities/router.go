@@ -3,7 +3,7 @@ package entities
 // Node is wrapper of Junction for routing.
 // The chain of Node represents one route.
 type Node struct {
-	Original *Junction
+	Original Locationable
 	Cost     float64
 	Via      *Node
 	Out      []*Edge

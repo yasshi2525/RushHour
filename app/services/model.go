@@ -39,8 +39,8 @@ func StartModelWatching() {
 
 	rmFuncs = make(map[entities.StaticRes]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
-	rmFuncs[entities.COMPANY] = RemoveResidence
-	rmFuncs[entities.RAILNODE] = RemoveResidence
+	rmFuncs[entities.COMPANY] = RemoveCompany
+	rmFuncs[entities.RAILNODE] = RemoveRailNode
 
 	go watchModel()
 }
@@ -59,7 +59,7 @@ func watchModel() {
 			rv := reflect.ValueOf(mkFuncs[msg.Target])
 			switch msg.Target {
 			case entities.PLAYER:
-				CreatePlayer(msg.OName, msg.OName, msg.OName)
+				CreatePlayer(msg.OName, msg.OName, msg.OName, entities.Normal)
 			case entities.RESIDENCE:
 				fallthrough
 			case entities.COMPANY:
@@ -67,7 +67,7 @@ func watchModel() {
 					reflect.ValueOf(msg.X),
 					reflect.ValueOf(msg.Y)})
 			default:
-				if owner, err := FetchOwner(msg.OName); err != nil {
+				if owner, err := FetchOwner(msg.OName); err == nil {
 					rv.Call([]reflect.Value{
 						reflect.ValueOf(owner),
 						reflect.ValueOf(msg.X),
@@ -80,7 +80,12 @@ func watchModel() {
 		case "remove":
 			rv := reflect.ValueOf(rmFuncs[msg.Target])
 			if msg.ID == 0 {
-				msg.ID = randID(msg.Target)
+				var ok bool
+				msg.ID, ok = randID(msg.Target)
+				if !ok {
+					revel.AppLog.Warnf("no deleting data %s", msg.Target)
+					break
+				}
 			}
 			switch msg.Target {
 			case entities.RESIDENCE:
@@ -88,7 +93,7 @@ func watchModel() {
 			case entities.COMPANY:
 				rv.Call([]reflect.Value{reflect.ValueOf(msg.ID)})
 			default:
-				if owner, err := FetchOwner(msg.OName); err != nil {
+				if owner, err := FetchOwner(msg.OName); err == nil {
 					rv.Call([]reflect.Value{
 						reflect.ValueOf(owner),
 						reflect.ValueOf(msg.ID)})
@@ -108,20 +113,21 @@ func watchModel() {
 }
 
 // randID return random id existing in repository
-func randID(t entities.StaticRes) uint {
+func randID(t entities.StaticRes) (uint, bool) {
 	mapdata := Repo.Meta.StaticValue[t]
 	for _, e := range mapdata.MapKeys() {
-		return uint(mapdata.MapIndex(e).Uint())
+		return uint(e.Uint()), true
 	}
-	return 0
+	revel.AppLog.Warnf("nodata %s", t)
+	return 0, false
 }
 
 // UpdateModel queues user request.
 func UpdateModel(msg *Operation) {
-	revel.AppLog.Infof("%+v", msg)
+	revel.AppLog.Infof("updatemodel op = %+v", *msg)
 	select {
 	case modelChannel <- msg:
 	default:
-		revel.AppLog.Errorf("モデル変更キュー溢れ %v", msg)
+		revel.AppLog.Errorf("モデル変更キュー溢れ %+v", *msg)
 	}
 }

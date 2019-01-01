@@ -84,9 +84,9 @@ func (t StaticRes) API() string {
 	return Meta.Static[t].API
 }
 
-// Obj returns prototype of instance
+// Obj returns prototype pointer of instance
 func (t StaticRes) Obj() interface{} {
-	return reflect.New(Meta.StaticType[t]).Interface()
+	return reflect.New(Meta.StaticType[t].Elem().Elem()).Elem().Addr().Interface()
 }
 
 // Type returns type of field
@@ -104,7 +104,7 @@ type StaticModel struct {
 	Stations   map[uint]*Station   `json:"stations"`
 	Gates      map[uint]*Gate      `json:"gates"`
 	Platforms  map[uint]*Platform  `json:"platforms"`
-	Lines      map[uint]*Line      `json:"lines"`
+	RailLines  map[uint]*RailLine  `json:"rail_lines"`
 	LineTasks  map[uint]*LineTask  `json:"line_tasks"`
 	Trains     map[uint]*Train     `json:"trains"`
 	Humans     map[uint]*Human     `json:"humans"`
@@ -165,7 +165,7 @@ func initMetaModel() *MetaModel {
 	meta.Static[STATION] = &MetaStatic{"Station", "st", "stations", "stations"}
 	meta.Static[GATE] = &MetaStatic{"Gate", "g", "gates", "gates"}
 	meta.Static[PLATFORM] = &MetaStatic{"Platform", "p", "platforms", "platforms"}
-	meta.Static[LINE] = &MetaStatic{"Line", "l", "lines", "lines"}
+	meta.Static[LINE] = &MetaStatic{"RailLine", "l", "rail_lines", "rail_lines"}
 	meta.Static[LINETASK] = &MetaStatic{"LineTask", "lt", "line_tasks", "line_tasks"}
 	meta.Static[TRAIN] = &MetaStatic{"Train", "t", "trains", "trains"}
 	meta.Static[HUMAN] = &MetaStatic{"Human", "h", "humen", "humans"}
@@ -183,7 +183,7 @@ func initModel(meta *MetaModel) (*StaticModel, *DynamicModel) {
 		make(map[uint]*Station),
 		make(map[uint]*Gate),
 		make(map[uint]*Platform),
-		make(map[uint]*Line),
+		make(map[uint]*RailLine),
 		make(map[uint]*LineTask),
 		make(map[uint]*Train),
 		make(map[uint]*Human),
@@ -219,7 +219,7 @@ func resolveModel(meta *MetaModel, static *StaticModel, dynamic *DynamicModel) {
 	meta.StaticType[STATION] = reflect.TypeOf(static.Stations)
 	meta.StaticType[GATE] = reflect.TypeOf(static.Gates)
 	meta.StaticType[PLATFORM] = reflect.TypeOf(static.Platforms)
-	meta.StaticType[LINE] = reflect.TypeOf(static.Lines)
+	meta.StaticType[LINE] = reflect.TypeOf(static.RailLines)
 	meta.StaticType[LINETASK] = reflect.TypeOf(static.LineTasks)
 	meta.StaticType[TRAIN] = reflect.TypeOf(static.Trains)
 	meta.StaticType[HUMAN] = reflect.TypeOf(static.Humans)
@@ -232,7 +232,7 @@ func resolveModel(meta *MetaModel, static *StaticModel, dynamic *DynamicModel) {
 	meta.StaticValue[STATION] = reflect.ValueOf(static.Stations)
 	meta.StaticValue[GATE] = reflect.ValueOf(static.Gates)
 	meta.StaticValue[PLATFORM] = reflect.ValueOf(static.Platforms)
-	meta.StaticValue[LINE] = reflect.ValueOf(static.Lines)
+	meta.StaticValue[LINE] = reflect.ValueOf(static.RailLines)
 	meta.StaticValue[LINETASK] = reflect.ValueOf(static.LineTasks)
 	meta.StaticValue[TRAIN] = reflect.ValueOf(static.Trains)
 	meta.StaticValue[HUMAN] = reflect.ValueOf(static.Humans)

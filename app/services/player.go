@@ -10,7 +10,7 @@ import (
 )
 
 // CreatePlayer creates player.
-func CreatePlayer(loginid string, displayname string, password string) (*entities.Player, error) {
+func CreatePlayer(loginid string, displayname string, password string, level entities.PlayerType) (*entities.Player, error) {
 	// duplication check
 	for _, oth := range Repo.Static.Players {
 		if strings.Compare(loginid, oth.LoginID) == 0 {
@@ -23,6 +23,7 @@ func CreatePlayer(loginid string, displayname string, password string) (*entitie
 	player.LoginID = loginid
 	player.DisplayName = displayname
 	player.Password = password
+	player.Level = level
 
 	Repo.Static.Players[player.ID] = player
 	revel.AppLog.Infof("Player(%d) %s was created", player.ID, loginid)

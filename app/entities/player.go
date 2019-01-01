@@ -14,7 +14,7 @@ const (
 type Player struct {
 	Model
 
-	Level       PlayerType `gorm:"not null`
+	Level       PlayerType `gorm:"not null"`
 	DisplayName string     `gorm:"not null"`
 	LoginID     string     `gorm:"not null,index" json:"-"`
 	Password    string     `gorm:"not null" json:"-"`
@@ -27,7 +27,12 @@ func NewPlayer(id uint) *Player {
 	}
 }
 
+// Idx returns unique id field.
+func (o *Player) Idx() uint {
+	return o.ID
+}
+
 // ResolveRef do nothing for implementing Resolvable
-func (p *Player) ResolveRef() {
+func (o *Player) ResolveRef() {
 	// do-nothing
 }

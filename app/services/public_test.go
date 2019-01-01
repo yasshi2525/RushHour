@@ -41,10 +41,10 @@ func TestCreateStep(t *testing.T) {
 	r := CreateResidence(1, 1)
 	c := CreateCompany(2, 2)
 
-	if got := len(r.Out); got != 1 {
+	if got := len(r.Out()); got != 1 {
 		t.Errorf("Residence should be out 1, but %d", got)
 	}
-	if got := len(c.In); got != 1 {
+	if got := len(c.In()); got != 1 {
 		t.Errorf("Company should be in 1, but %d", got)
 	}
 
