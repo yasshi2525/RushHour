@@ -2,12 +2,14 @@ package services
 
 import (
 	"testing"
+
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func TestCreateResidence(t *testing.T) {
 	InitStorage()
 	var i uint64 = 1
-	NextID.Static[RESIDENCE] = &i
+	Repo.Static.NextIDs[entities.RESIDENCE] = &i
 	Config.Residence.Capacity = 10
 	Config.Residence.Interval = 1
 
@@ -23,7 +25,7 @@ func TestCreateResidence(t *testing.T) {
 func TestCreateCompany(t *testing.T) {
 	InitStorage()
 	var i uint64 = 1
-	NextID.Static[COMPANY] = &i
+	Repo.Static.NextIDs[entities.COMPANY] = &i
 	Config.Company.Scale = 1
 
 	RemoveCompany(CreateCompany(1, 1).ID)
@@ -32,9 +34,9 @@ func TestCreateCompany(t *testing.T) {
 func TestCreateStep(t *testing.T) {
 	InitStorage()
 	var i, j, k uint64 = 1, 1, 1
-	NextID.Static[RESIDENCE] = &i
-	NextID.Static[COMPANY] = &j
-	NextID.Dynamic[STEP] = &k
+	Repo.Static.NextIDs[entities.RESIDENCE] = &i
+	Repo.Static.NextIDs[entities.COMPANY] = &j
+	Repo.Dynamic.NextIDs[entities.STEP] = &k
 
 	r := CreateResidence(1, 1)
 	c := CreateCompany(2, 2)
@@ -49,7 +51,7 @@ func TestCreateStep(t *testing.T) {
 	RemoveResidence(r.ID)
 	RemoveCompany(c.ID)
 
-	if got := len(Dynamic.Steps); got != 0 {
+	if got := len(Repo.Dynamic.Steps); got != 0 {
 		t.Errorf("Steps size should be 0, but %d", got)
 	}
 }

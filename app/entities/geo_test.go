@@ -1,6 +1,8 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDist(t *testing.T) {
 	pivot := &Point{0, 0}
@@ -43,8 +45,8 @@ func TestIsIn(t *testing.T) {
 }
 
 func TestCost(t *testing.T) {
-	from := &Junction{Point{0, 0}, []*Step{}, []*Step{}}
-	to := &Junction{Point{3, 4}, []*Step{}, []*Step{}}
+	from := NewResidence(1, 0, 0)
+	to := NewCompany(1, 3, 4)
 
 	step := &Step{1, from, to, 2.0}
 
