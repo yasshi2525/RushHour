@@ -54,7 +54,6 @@ func StartSimulation() {
 			UpdateModel(rmOp(src, tar))
 		})
 	}
-
 	simWg.Wait()
 	revel.AppLog.Info("simulation was succeesfully started.")
 }
@@ -102,11 +101,11 @@ func rmOp(src string, target entities.StaticRes) *Operation {
 func tickOp(source string, target entities.StaticRes, interval time.Duration, callback opCallback) {
 	simWg.Add(1)
 	go func() {
+		simWg.Done()
 		sleep := time.Duration(rand.Intn(int(interval.Seconds())))
 		time.Sleep(sleep * time.Second)
 		t := time.NewTicker(interval)
 		simCh <- t
-		simWg.Done()
 		for range t.C {
 			callback(source, target)
 		}

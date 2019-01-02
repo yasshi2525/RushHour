@@ -23,10 +23,10 @@ func StartRouting(msg string) {
 	reflectCtx, reflectCancel := context.WithCancel(routingContext)
 
 	go func() {
-		start := time.Now()
 		MuRoute.Lock()
 		defer MuRoute.Unlock()
 		defer routingCancel()
+		start := time.Now()
 
 		if ok := search(searchCtx, searchCancel, msg); ok {
 			if reflectTo(reflectCtx, reflectCancel, msg) {
