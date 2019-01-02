@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"github.com/revel/revel"
+	"fmt"
 )
 
 // LineTaskType represents the state what Train should do now.
@@ -25,23 +25,26 @@ type LineTask struct {
 	Owner
 
 	RailLine *RailLine    `gorm:"-" json:"-"`
-	Type     LineTaskType `gorm:"not null"`
+	Type     LineTaskType `gorm:"not null" json:"type"`
 	Next     *LineTask    `gorm:"-" json:"-"`
 
 	Stay   *Platform `gorm:"-" json:"-"`
 	Moving *RailEdge `gorm:"-" json:"-"`
 
-	RailLineID uint `gorm:"not null"`
-	NextID     uint
-	StayID     uint
-	MovingID   uint
+	Trains map[uint]*Train `gorm:"-" json:"-"`
+
+	RailLineID uint `gorm:"not null" json:"lid"`
+	NextID     uint `json:"next,omitempty"`
+	StayID     uint `json:"pid,omitempty"`
+	MovingID   uint `json:"reid,omitempty"`
 }
 
 // NewLineTask create instance
 func NewLineTask(id uint, l *RailLine) *LineTask {
 	return &LineTask{
-		Model: NewModel(id),
-		Owner: l.Owner,
+		Model:  NewModel(id),
+		Owner:  l.Owner,
+		Trains: make(map[uint]*Train),
 	}
 }
 
@@ -54,6 +57,7 @@ func (lt *LineTask) Idx() uint {
 func (lt *LineTask) Init() {
 	lt.Model.Init()
 	lt.Owner.Init()
+	lt.Trains = make(map[uint]*Train)
 }
 
 // Pos returns entities' position
@@ -82,14 +86,23 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *RailLine:
 			lt.Owner, lt.RailLine = obj.Owner, obj
+			obj.Resolve(lt)
 		case *LineTask:
 			lt.Next = obj
 		case *Platform:
 			lt.Stay = obj
 		case *RailEdge:
 			lt.Moving = obj
+		case *Train:
+			lt.Trains[obj.ID] = obj
+			switch lt.Type {
+			case OnDeparture:
+				lt.Stay.Resolve(obj)
+			default:
+				lt.Moving.Resolve(obj)
+			}
 		default:
-			revel.AppLog.Warnf("invalid type %T: %+v", obj, obj)
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
 
@@ -99,7 +112,9 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 // ResolveRef set id from reference
 func (lt *LineTask) ResolveRef() {
 	lt.Owner.ResolveRef()
-	lt.RailLineID = lt.RailLine.ID
+	if lt.RailLine != nil {
+		lt.RailLineID = lt.RailLine.ID
+	}
 	if lt.Next != nil {
 		lt.NextID = lt.Next.ID
 	}
@@ -144,4 +159,35 @@ func (lt *LineTask) Cost() float64 {
 	default:
 		return lt.Moving.Cost()
 	}
+}
+
+// String represents status
+func (lt *LineTask) String() string {
+	next, stay, moving := "", "", ""
+	if lt.Next != nil {
+		next = fmt.Sprintf(",next=%d", lt.Next.ID)
+	}
+	if lt.Stay != nil {
+		stay = fmt.Sprintf(",p=%d", lt.Stay.ID)
+	}
+	if lt.Moving != nil {
+		moving = fmt.Sprintf(",re=%d", lt.Moving.ID)
+	}
+
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s:%v:%s", Meta.Static[LINETASK].Short,
+		lt.ID, lt.Type, lt.RailLine.ID, next, stay, moving, lt.Pos(), lt.RailLine.Name)
+}
+
+func (ltt LineTaskType) String() string {
+	switch ltt {
+	case OnDeparture:
+		return "dept"
+	case OnMoving:
+		return "move"
+	case OnStopping:
+		return "stop"
+	case OnPassing:
+		return "pass"
+	}
+	return "????"
 }

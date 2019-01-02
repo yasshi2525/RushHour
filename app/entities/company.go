@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Company is the destination of Human
 type Company struct {
 	Model
@@ -8,6 +12,7 @@ type Company struct {
 	Targets map[uint]*Human `gorm:"-" json:"-"`
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale float64 `gorm:"not null" json:"scale"`
+	Name  string  `json:"name"`
 }
 
 // NewCompany create new instance without setting parameters
@@ -53,7 +58,26 @@ func (c *Company) In() map[uint]*Step {
 	return c.in
 }
 
+// Resolve set reference
+func (c *Company) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Human:
+			c.Targets[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
+	c.ResolveRef()
+}
+
 // ResolveRef do nothing (for implements Resolvable)
 func (c *Company) ResolveRef() {
 	// do-nothing
+}
+
+// String represents status
+func (c *Company) String() string {
+	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", Meta.Static[COMPANY].Short,
+		c.ID, len(c.in), len(c.Targets), c.Pos(), c.Name)
 }

@@ -177,6 +177,9 @@ func initMetaModel() *MetaModel {
 	meta.Static[TRAIN] = &MetaStatic{"Train", "t", "trains", "trains"}
 	meta.Static[HUMAN] = &MetaStatic{"Human", "h", "humen", "humans"}
 
+	meta.Dynamic[STEP] = &MetaDynamic{"Step", "s"}
+	meta.Dynamic[AGENT] = &MetaDynamic{"Agent", "a"}
+
 	return meta
 }
 

@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -60,6 +61,6 @@ func (p *Point) Div(to *Point, progress float64) *Point {
 	}
 }
 
-/*func (p *Point) String() string {
-	return fmt.Sprintf("(%f, %f)", p.X, p.Y)
-}*/
+func (p *Point) String() string {
+	return fmt.Sprintf("(%.2f,%.2f)", p.X, p.Y)
+}

@@ -1,11 +1,15 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // RailLine represents how Train should run.
 type RailLine struct {
 	Model
 	Owner
 
-	Name  string
+	Name  string             `json:"name"`
 	Tasks map[uint]*LineTask `gorm:"-" json:"-"`
 }
 
@@ -55,8 +59,17 @@ func (l *RailLine) IsIn(center *Point, scale float64) bool {
 }
 
 // Resolve set reference
-func (l *RailLine) Resolve(o *Player) {
-	l.Own = o
+func (l *RailLine) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Player:
+			l.Own = obj
+		case *LineTask:
+			l.Tasks[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	l.ResolveRef()
 }
 
@@ -68,4 +81,10 @@ func (l *RailLine) ResolveRef() {
 // Permits represents Player is permitted to control
 func (l *RailLine) Permits(o *Player) bool {
 	return l.Owner.Permits(o)
+}
+
+// String represents status
+func (l *RailLine) String() string {
+	return fmt.Sprintf("%s(%d):lt=%d:%v:%s", Meta.Static[LINE],
+		l.ID, len(l.Tasks), l.Pos(), l.Name)
 }

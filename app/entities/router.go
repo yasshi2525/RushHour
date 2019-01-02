@@ -75,17 +75,18 @@ func (e *Edge) Cost() float64 {
 	return e.Base.Cost()
 }
 
-type NodeQueue []*Node
+// nodeQueue is open list for searching
+type nodeQueue []*Node
 
-func (q NodeQueue) Len() int {
+func (q nodeQueue) Len() int {
 	return len(q)
 }
 
-func (q NodeQueue) Swap(i, j int) {
+func (q nodeQueue) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
 
-func (q NodeQueue) Less(i, j int) bool {
+func (q nodeQueue) Less(i, j int) bool {
 	return q[i].Cost < q[j].Cost
 }
 
@@ -93,7 +94,7 @@ func (q NodeQueue) Less(i, j int) bool {
 // Initial cost of connected Node must be max float64 value.
 func (n *Node) WalkThrough() {
 	var x *Node
-	var q NodeQueue = []*Node{n}
+	var q nodeQueue = []*Node{n}
 	n.Cost = 0
 
 	for len(q) > 0 {

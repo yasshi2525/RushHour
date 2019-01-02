@@ -77,16 +77,20 @@ func resolveStatic() {
 		rn.Resolve(Static.Players[rn.OwnerID])
 	}
 	for _, re := range Static.RailEdges {
-		re.Resolve(Static.RailNodes[re.FromID], Static.RailNodes[re.ToID])
+		re.Resolve(
+			Static.RailNodes[re.FromID],
+			Static.RailNodes[re.ToID])
 	}
 	for _, st := range Static.Stations {
 		st.Resolve(Static.Players[st.OwnerID])
 	}
 	for _, g := range Static.Gates {
-		g.Resolve(Static.Stations[g.InStationID])
+		g.Resolve(Static.Stations[g.StationID])
 	}
 	for _, p := range Static.Platforms {
-		p.Resolve(Static.RailNodes[p.OnRailNodeID], Static.Stations[p.InStationID])
+		p.Resolve(
+			Static.RailNodes[p.RailNodeID],
+			Static.Stations[p.StationID])
 	}
 	for _, l := range Static.RailLines {
 		l.Resolve(Static.Players[l.OwnerID])
@@ -110,11 +114,11 @@ func resolveStatic() {
 	for _, h := range Static.Humans {
 		h.Resolve(Static.Residences[h.FromID], Static.Companies[h.ToID])
 		// nullable fields
-		if h.OnPlatformID != 0 {
-			h.Resolve(Static.Platforms[h.OnPlatformID])
+		if h.PlatformID != 0 {
+			h.Resolve(Static.Platforms[h.PlatformID])
 		}
-		if h.OnTrainID != 0 {
-			h.Resolve(Static.Platforms[h.OnTrainID])
+		if h.TrainID != 0 {
+			h.Resolve(Static.Platforms[h.TrainID])
 		}
 	}
 }

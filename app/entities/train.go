@@ -1,21 +1,29 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Train carries Human from Station to Station.
 type Train struct {
 	Model
 	Owner
 
-	Capacity uint `gorm:"not null"`
+	Capacity uint `gorm:"not null" json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
-	Mobility uint    `gorm:"not null"`
-	Speed    float64 `gorm:"not null"`
-	Name     string  `gorm:"not null"`
-	Progress float64 `gorm:"not null"`
+	Mobility uint    `gorm:"not null" json:"mobility"`
+	Speed    float64 `gorm:"not null" json:"speed"`
+	Name     string  `gorm:"not null" json:"name"`
+	Progress float64 `gorm:"not null" json:"progress"`
 
-	Task      *LineTask       `gorm:"-" json:"-"`
-	Passenger map[uint]*Human `gorm:"-" json:"-"`
+	Task       *LineTask       `gorm:"-" json:"-"`
+	Passenger  map[uint]*Human `gorm:"-" json:"-"`
+	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
+	OnPlatform *Platform       `gorm:"-" json:"-"`
 
-	TaskID uint
+	TaskID     uint `json:"ltid,omitempty"`
+	RailEdgeID uint `gorm:"-" json:"reid,omitempty"`
+	PlatformID uint `gorm:"-" json:"pid,omitempty"`
 }
 
 // NewTrain creates instance
@@ -53,19 +61,51 @@ func (t *Train) IsIn(center *Point, scale float64) bool {
 	return t.Pos().IsIn(center, scale)
 }
 
-// Resolve set reference
-func (t *Train) Resolve(lt *LineTask) {
-	t.Owner, t.Task = lt.Owner, lt
+// Resolve set ID from reference
+func (t *Train) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *LineTask:
+			t.Owner, t.Task = obj.Owner, obj
+			obj.Resolve(t)
+		case *RailEdge:
+			t.OnRailEdge = obj
+		case *Platform:
+			t.OnPlatform = obj
+		case *Human:
+			t.Passenger[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	t.ResolveRef()
 }
 
 // ResolveRef set id from reference
 func (t *Train) ResolveRef() {
 	t.Owner.ResolveRef()
-	t.TaskID = t.Task.ID
+	if t.Task != nil {
+		t.TaskID = t.Task.ID
+	}
+	if t.OnRailEdge != nil {
+		t.RailEdgeID = t.OnRailEdge.ID
+	}
+	if t.OnPlatform != nil {
+		t.PlatformID = t.OnPlatform.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (t *Train) Permits(o *Player) bool {
 	return t.Owner.Permits(o)
+}
+
+// String represents status
+func (t *Train) String() string {
+	ltstr := ""
+	if t.Task != nil {
+		ltstr = fmt.Sprintf(",lt=%d", t.Task.ID)
+	}
+	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%v:%s", Meta.Static[TRAIN].Short,
+		t.ID, len(t.Passenger), t.Capacity, ltstr, t.Progress, t.Pos(), t.Name)
 }

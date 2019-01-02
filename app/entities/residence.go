@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Residence generate Human in a period
 type Residence struct {
 	Model
@@ -10,6 +14,7 @@ type Residence struct {
 	Capacity uint            `gorm:"not null" json:"cap"`
 	// Wait represents how msec after it generates Human
 	Wait float64 `gorm:"not null" json:"wait"`
+	Name string  `json:"name"`
 }
 
 // NewResidence create new instance without setting parameters
@@ -57,7 +62,25 @@ func (r *Residence) In() map[uint]*Step {
 	return r.in
 }
 
+// Resolve set reference
+func (r *Residence) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Human:
+			r.Targets[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
+	r.ResolveRef()
+}
+
 // ResolveRef do nothing (for implements Resolvable)
 func (r *Residence) ResolveRef() {
 	// do-nothing
+}
+
+func (r *Residence) String() string {
+	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Static[RESIDENCE].Short,
+		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)
 }

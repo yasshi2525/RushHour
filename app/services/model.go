@@ -135,7 +135,7 @@ func randID(t entities.StaticRes) (uint, bool) {
 
 // UpdateModel queues user request.
 func UpdateModel(msg *Operation) {
-	revel.AppLog.Infof("updatemodel op = %+v", *msg)
+	//revel.AppLog.Infof("updatemodel op = %+v", *msg)
 	select {
 	case modelChannel <- msg:
 	default:

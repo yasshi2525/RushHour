@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Station composes on Platform and Gate
 type Station struct {
 	Model
@@ -8,7 +12,10 @@ type Station struct {
 	Platform *Platform `gorm:"-" json:"-"`
 	Gate     *Gate     `gorm:"-" json:"-"`
 
-	Name string
+	PlatformID uint `gorm:"-" json:"pid"`
+	GateID     uint `gorm:"-" json:"gid"`
+
+	Name string `json:"name"`
 }
 
 // NewStation create new instance.
@@ -18,6 +25,8 @@ func NewStation(stid uint, gid uint, pid uint, rn *RailNode) (*Station, *Gate, *
 		Owner:      rn.Owner,
 		in:         make(map[uint]*Step),
 		out:        make(map[uint]*Step),
+		Trains:     make(map[uint]*Train),
+		Passenger:  make(map[uint]*Human),
 		OnRailNode: rn,
 	}
 	rn.OverPlatform = p
@@ -68,17 +77,41 @@ func (st *Station) IsIn(center *Point, scale float64) bool {
 }
 
 // Resolve set reference from id.
-func (st *Station) Resolve(o *Player) {
-	st.Own = o
+func (st *Station) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Player:
+			st.Own = obj
+		case *Gate:
+			st.Gate = obj
+		case *Platform:
+			st.Platform = obj
+			st.Gate.Resolve(obj)
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	st.ResolveRef()
 }
 
 // ResolveRef resolve Owner reference
 func (st *Station) ResolveRef() {
 	st.Owner.ResolveRef()
+	if st.Platform != nil {
+		st.PlatformID = st.Platform.ID
+	}
+	if st.Gate != nil {
+		st.GateID = st.Gate.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (st *Station) Permits(o *Player) bool {
 	return st.Owner.Permits(o)
+}
+
+// String represents status
+func (st *Station) String() string {
+	return fmt.Sprintf("%s(%d):g=%d,p=%d:%v:%s", Meta.Static[STATION].Short,
+		st.ID, st.Platform.ID, st.Gate.ID, st.Pos(), st.Name)
 }

@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // RailEdge connects from RailNode to RailNode.
 // It's directional.
 type RailEdge struct {
@@ -8,17 +12,20 @@ type RailEdge struct {
 	from *RailNode
 	to   *RailNode
 
-	FromID uint `gorm:"not null"`
-	ToID   uint `gorm:"not null"`
+	Trains map[uint]*Train `gorm:"-" json:"-"`
+
+	FromID uint `gorm:"not null" json:"from"`
+	ToID   uint `gorm:"not null" json:"to"`
 }
 
 // NewRailEdge create new instance and relates RailNode
 func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Model: NewModel(id),
-		Owner: f.Owner,
-		from:  f,
-		to:    t,
+		Model:  NewModel(id),
+		Owner:  f.Owner,
+		from:   f,
+		to:     t,
+		Trains: make(map[uint]*Train),
 	}
 	re.ResolveRef()
 
@@ -36,6 +43,7 @@ func (re *RailEdge) Idx() uint {
 func (re *RailEdge) Init() {
 	re.Model.Init()
 	re.Owner.Init()
+	re.Trains = make(map[uint]*Train)
 }
 
 // Pos returns location
@@ -69,24 +77,46 @@ func (re *RailEdge) Unrelate() {
 	delete(re.to.InEdge, re.ID)
 }
 
-// Resolve set reference.
-func (re *RailEdge) Resolve(from *RailNode, to *RailNode) {
-	re.Owner, re.from, re.to = from.Owner, from, to
-
-	from.OutEdge[re.ID] = re
-	to.InEdge[re.ID] = re
-
+// Resolve set reference
+func (re *RailEdge) Resolve(args ...interface{}) {
+	var doneFrom bool
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *RailNode:
+			if !doneFrom {
+				re.Owner, re.from = obj.Owner, obj
+				doneFrom = true
+			} else {
+				re.to = obj
+			}
+		case *Train:
+			re.Trains[obj.ID] = obj
+			obj.Resolve(re)
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	re.ResolveRef()
 }
 
 // ResolveRef set id from reference
 func (re *RailEdge) ResolveRef() {
 	re.Owner.ResolveRef()
-	re.FromID = re.from.ID
-	re.ToID = re.to.ID
+	if re.from != nil {
+		re.FromID = re.from.ID
+	}
+	if re.to != nil {
+		re.ToID = re.to.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (re *RailEdge) Permits(o *Player) bool {
 	return re.Owner.Permits(o)
+}
+
+// String represents status
+func (re *RailEdge) String() string {
+	return fmt.Sprintf("%s(%d):f=%d,t=%d:%v", Meta.Static[RAILEDGE],
+		re.ID, re.from.ID, re.to.ID, re.Pos())
 }

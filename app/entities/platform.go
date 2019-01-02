@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Platform is the base Human wait for Train.
 // Platform can enter only through Gate.
 type Platform struct {
@@ -10,14 +14,18 @@ type Platform struct {
 	in  map[uint]*Step
 
 	InStation  *Station        `gorm:"-" json:"-"`
+	WithGate   *Gate           `gorm:"-" json:"-"`
 	OnRailNode *RailNode       `gorm:"-" json:"-"`
 	Passenger  map[uint]*Human `gorm:"-" json:"-"`
 
-	Capacity uint `gorm:"not null"`
-	Occupied uint `gorm:"not null"`
+	Trains map[uint]*Train `gorm:"-" json:"-"`
 
-	InStationID  uint `gorm:"not null"`
-	OnRailNodeID uint `gorm:"not null"`
+	Capacity uint `gorm:"not null" json:"cap"`
+	Occupied uint `gorm:"not null" json:"used"`
+
+	StationID  uint `gorm:"not null" json:"stid"`
+	GateID     uint `gorm:"-" json:"gid"`
+	RailNodeID uint `gorm:"not null" json:"rnid"`
 }
 
 // Idx returns unique id field.
@@ -32,6 +40,7 @@ func (p *Platform) Init() {
 	p.out = make(map[uint]*Step)
 	p.in = make(map[uint]*Step)
 	p.Passenger = make(map[uint]*Human)
+	p.Trains = make(map[uint]*Train)
 }
 
 // Pos returns location
@@ -55,19 +64,52 @@ func (p *Platform) In() map[uint]*Step {
 }
 
 // Resolve set reference
-func (p *Platform) Resolve(rn *RailNode, st *Station) {
-	p.Owner, p.OnRailNode, p.InStation = rn.Owner, rn, st
+func (p *Platform) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *RailNode:
+			p.Owner, p.OnRailNode = obj.Owner, obj
+			obj.Resolve(p)
+		case *Station:
+			p.InStation = obj
+			obj.Resolve(p)
+		case *Gate:
+			p.WithGate = obj
+		case *Train:
+			p.Trains[obj.ID] = obj
+			obj.Resolve(p)
+		case *Human:
+			p.Passenger[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	p.ResolveRef()
 }
 
 // ResolveRef set id from reference
 func (p *Platform) ResolveRef() {
 	p.Owner.ResolveRef()
-	p.OnRailNodeID = p.OnRailNode.ID
-	p.InStationID = p.InStation.ID
+	if p.OnRailNode != nil {
+		p.RailNodeID = p.OnRailNode.ID
+	}
+	if p.WithGate != nil {
+		p.GateID = p.WithGate.ID
+	}
+	if p.InStation != nil {
+		p.StationID = p.InStation.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (p *Platform) Permits(o *Player) bool {
 	return p.Owner.Permits(o)
+}
+
+// String represents status
+func (p *Platform) String() string {
+	return fmt.Sprintf("%s(%d):st=%d,g=%d,i=%d,o=%d,h=%d/%d:%v:%s", Meta.Static[PLATFORM].Short,
+		p.ID, p.InStation.ID, p.WithGate.ID,
+		len(p.in), len(p.out), len(p.Passenger), p.Capacity,
+		p.Pos(), p.InStation.Name)
 }

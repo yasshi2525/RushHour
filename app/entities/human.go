@@ -1,9 +1,8 @@
 package entities
 
 import (
+	"fmt"
 	"math"
-
-	"github.com/revel/revel"
 )
 
 // Standing is for judgement Human placement on same X, Y
@@ -24,21 +23,21 @@ type Human struct {
 	Point
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
-	Available float64 `gorm:"not null"`
+	Available float64 `gorm:"not null" json:"available"`
 
 	// Mobilty represents how many meters Human can move in a second.
-	Mobility float64 `gorm:"not null"`
+	Mobility float64 `gorm:"not null" json:"mobility"`
 
 	// Angle represents where Human looks for. The unit is radian.
-	Angle float64 `gorm:"not null"`
+	Angle float64 `gorm:"not null" json:"angle"`
 
 	// Lifespan represents how many seconds Human can live.
 	// Human will die after specific term with keeping stay
 	// in order to save memory resources.
-	Lifespan float64 `gorm:"not null"`
+	Lifespan float64 `gorm:"not null" json:"lifespan"`
 
 	// Progress is [0,1] value representing how much Human proceed current task.
-	Progress float64 `gorm:"not null"`
+	Progress float64 `gorm:"not null" json:"progress"`
 
 	From       *Residence `gorm:"-" json:"-"`
 	To         *Company   `gorm:"-" json:"-"`
@@ -47,10 +46,10 @@ type Human struct {
 	On         Standing   `gorm:"-" json:"-"`
 	out        map[uint]*Step
 
-	FromID       uint `gorm:"not null"`
-	ToID         uint `gorm:"not null"`
-	OnPlatformID uint
-	OnTrainID    uint
+	FromID     uint `gorm:"not null" json:"rid"`
+	ToID       uint `gorm:"not null" json:"cid"`
+	PlatformID uint `json:"pid,omitempty"`
+	TrainID    uint `json:"tid,omitempty"`
 }
 
 // NewHuman create instance
@@ -98,8 +97,8 @@ func (h *Human) In() map[uint]*Step {
 func (h *Human) ResolveRef() {
 	h.FromID = h.From.ID
 	h.ToID = h.To.ID
-	h.OnPlatformID = h.OnPlatform.ID
-	h.OnTrainID = h.OnTrain.ID
+	h.PlatformID = h.OnPlatform.ID
+	h.TrainID = h.OnTrain.ID
 }
 
 // Resolve set reference
@@ -108,18 +107,18 @@ func (h *Human) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Residence:
 			h.From = obj
-			obj.Targets[h.ID] = h
+			obj.Resolve(h)
 		case *Company:
 			h.To = obj
-			obj.Targets[h.ID] = h
+			obj.Resolve(h)
 		case *Platform:
 			h.OnPlatform = obj
-			obj.Passenger[h.ID] = h
+			obj.Resolve(h)
 		case *Train:
 			h.OnTrain = obj
-			obj.Passenger[h.ID] = h
+			obj.Resolve(h)
 		default:
-			revel.AppLog.Warnf("invalid type: %T", obj)
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
 	h.ResolveRef()
@@ -193,4 +192,18 @@ func (h *Human) ShouldGetIn(to *Train) bool {
 func (h *Human) ShouldGetOff(from *Train) bool {
 	// TODO
 	return false
+}
+
+// String represents status
+func (h *Human) String() string {
+	pstr, tstr := "", ""
+	if h.OnPlatform != nil {
+		pstr = fmt.Sprintf(",p=%d", h.OnPlatform.ID)
+	}
+	if h.OnTrain != nil {
+		tstr = fmt.Sprintf(",t=%d", h.OnTrain.ID)
+	}
+
+	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v", Meta.Static[HUMAN].Short,
+		h.ID, h.From.ID, h.To.ID, pstr, tstr, h.Available, h.Lifespan, h.Progress, h.Pos())
 }

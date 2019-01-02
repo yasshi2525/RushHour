@@ -1,5 +1,7 @@
 package entities
 
+import "fmt"
+
 // Step represents two Relayable is logically connected.
 // Step is out of target for persistence because it can derived by other resources.
 type Step struct {
@@ -60,4 +62,10 @@ func (s *Step) Cost() float64 {
 func (s *Step) Unrelate() {
 	delete(s.from.Out(), s.ID)
 	delete(s.to.In(), s.ID)
+}
+
+// String represents status
+func (s *Step) String() string {
+	return fmt.Sprintf("%s(%v):from=%v,to=%v,w=%.2f:%v", Meta.Dynamic[STEP].Short,
+		s.ID, s.from, s.to, s.Weight, s.Pos())
 }

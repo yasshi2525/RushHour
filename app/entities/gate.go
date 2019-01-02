@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // Gate represents ticket gate in Station.
 // Human must pass Gate to enter/leave Platform.
 type Gate struct {
@@ -9,16 +13,18 @@ type Gate struct {
 	out map[uint]*Step
 	in  map[uint]*Step
 
-	InStation *Station `gorm:"-" json:"-"`
+	InStation    *Station  `gorm:"-" json:"-"`
+	WithPlatform *Platform `gorm:"-" json:"-"`
 
 	// Num represents how many Human can pass at the same time
-	Num uint `gorm:"not null"`
+	Num uint `gorm:"not null" json:"num"`
 	// Mobility represents time one Human pass Gate.
-	Mobility float64 `gorm:"not null"`
+	Mobility float64 `gorm:"not null" json:"mobility"`
 	// Occupied represents how many Gate are used by Human.
-	Occupied uint `gorm:"not null"`
+	Occupied uint `gorm:"not null" json:"occupied"`
 
-	InStationID uint `gorm:"not null"`
+	StationID  uint `gorm:"not null" json:"stid"`
+	PlatformID uint `gorm:"-" json:"pid"`
 }
 
 // Idx returns unique id field.
@@ -36,7 +42,7 @@ func (g *Gate) Init() {
 
 // Pos returns location
 func (g *Gate) Pos() *Point {
-	return g.InStation.Pos()
+	return g.WithPlatform.Pos()
 }
 
 // IsIn returns it should be view or not.
@@ -55,18 +61,43 @@ func (g *Gate) In() map[uint]*Step {
 }
 
 // Resolve set reference
-func (g *Gate) Resolve(st *Station) {
-	g.Owner, g.InStation = st.Owner, st
+func (g *Gate) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Player:
+			g.Own = obj
+		case *Station:
+			g.InStation = obj
+			obj.Resolve(g)
+		case *Platform:
+			g.WithPlatform = obj
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	g.ResolveRef()
 }
 
 // ResolveRef set id from reference
 func (g *Gate) ResolveRef() {
 	g.Owner.ResolveRef()
-	g.InStationID = g.InStation.ID
+	if g.InStation != nil {
+		g.StationID = g.InStation.ID
+	}
+	if g.WithPlatform != nil {
+		g.PlatformID = g.WithPlatform.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (g *Gate) Permits(o *Player) bool {
 	return g.Owner.Permits(o)
+}
+
+// String represents status
+func (g *Gate) String() string {
+	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d:%v:%s", Meta.Static[GATE].Short,
+		g.ID, g.InStation.ID, g.WithPlatform.ID,
+		len(g.in), len(g.out),
+		g.Pos(), g.InStation.Name)
 }

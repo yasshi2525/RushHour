@@ -31,7 +31,7 @@ func (m *Model) Init() {
 // Owner means this faciliites in under the control by Player.
 type Owner struct {
 	Own     *Player `gorm:"-" json:"-"`
-	OwnerID uint    `gorm:"not null" json:"owner_id"`
+	OwnerID uint    `gorm:"not null" json:"oid"`
 }
 
 // NewOwner create Juntion
@@ -49,7 +49,9 @@ func (o *Owner) Init() {
 
 // ResolveRef resolve ownerID from Owner
 func (o *Owner) ResolveRef() {
-	o.OwnerID = o.Own.ID
+	if o != nil {
+		o.OwnerID = o.Own.ID
+	}
 }
 
 // Permits always permits to Admin, Owner.

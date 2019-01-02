@@ -1,14 +1,20 @@
 package entities
 
+import (
+	"fmt"
+)
+
 // RailNode represents rail track as point.
 // Station only stands on RailNode.
 type RailNode struct {
 	Model
 	Owner
 	Point
-	InEdge       map[uint]*RailEdge `gorm:"-" json:"-"`
-	OutEdge      map[uint]*RailEdge `gorm:"-" json:"-"`
-	OverPlatform *Platform          `gorm:"-" json:"-"`
+	InEdge  map[uint]*RailEdge `gorm:"-" json:"-"`
+	OutEdge map[uint]*RailEdge `gorm:"-" json:"-"`
+
+	OverPlatform *Platform `gorm:"-" json:"-"`
+	PlatformID   uint      `gorm:"-" json:"pid,omitempty"`
 }
 
 // NewRailNode create new instance.
@@ -46,17 +52,40 @@ func (rn *RailNode) IsIn(center *Point, scale float64) bool {
 }
 
 // Resolve set reference
-func (rn *RailNode) Resolve(owner *Player) {
-	rn.Own = owner
+func (rn *RailNode) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Player:
+			rn.Own = obj
+		case *Platform:
+			rn.OverPlatform = obj
+			obj.Resolve(rn)
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 	rn.ResolveRef()
 }
 
 // ResolveRef set id from reference
 func (rn *RailNode) ResolveRef() {
 	rn.Owner.ResolveRef()
+	if rn.OverPlatform != nil {
+		rn.PlatformID = rn.OverPlatform.ID
+	}
 }
 
 // Permits represents Player is permitted to control
 func (rn *RailNode) Permits(o *Player) bool {
 	return rn.Owner.Permits(o)
+}
+
+// String represents status
+func (rn *RailNode) String() string {
+	pstr := ""
+	if rn.OverPlatform != nil {
+		pstr = fmt.Sprintf(",p=%d", rn.OverPlatform.ID)
+	}
+	return fmt.Sprintf("%s(%d):i=%d,o=%d%s:%v", Meta.Static[RAILNODE].Short,
+		rn.ID, len(rn.InEdge), len(rn.OutEdge), pstr, rn.Pos())
 }
