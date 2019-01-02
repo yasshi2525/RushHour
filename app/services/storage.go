@@ -29,8 +29,8 @@ var MuDynamic sync.RWMutex
 // MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
 
-// InitStorage initialize storage
-func InitStorage() {
+// InitRepository initialize storage
+func InitRepository() {
 	Meta, Static, Dynamic = entities.InitGameMap()
 	RouteTemplate = make(map[uint][]*entities.Node)
 

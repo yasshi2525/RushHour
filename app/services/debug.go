@@ -22,7 +22,6 @@ type opCallback func(source string, target entities.StaticRes)
 // Main immitates some user requests some actions.
 // TODO remove it
 func Main() {
-	Restore()
 	StartModelWatching()
 	StartProcedure()
 

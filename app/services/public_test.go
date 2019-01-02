@@ -7,7 +7,7 @@ import (
 )
 
 func TestCreateResidence(t *testing.T) {
-	InitStorage()
+	Init()
 	var i uint64 = 1
 	Static.NextIDs[entities.RESIDENCE] = &i
 	Config.Residence.Capacity = 10
@@ -23,7 +23,7 @@ func TestCreateResidence(t *testing.T) {
 }
 
 func TestCreateCompany(t *testing.T) {
-	InitStorage()
+	Init()
 	var i uint64 = 1
 	Static.NextIDs[entities.COMPANY] = &i
 	Config.Company.Scale = 1
@@ -32,7 +32,7 @@ func TestCreateCompany(t *testing.T) {
 }
 
 func TestCreateStep(t *testing.T) {
-	InitStorage()
+	Init()
 	var i, j, k uint64 = 1, 1, 1
 	Static.NextIDs[entities.RESIDENCE] = &i
 	Static.NextIDs[entities.COMPANY] = &j

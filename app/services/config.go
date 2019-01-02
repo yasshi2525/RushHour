@@ -1,8 +1,9 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/BurntSushi/toml"
-	"github.com/revel/revel"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -37,10 +38,10 @@ var Config config
 // LoadConf load and validate game.conf
 func LoadConf() {
 	if _, err := toml.DecodeFile("conf/game.conf", &Config); err != nil {
-		revel.AppLog.Errorf("failed to load conf: %v", err)
+		panic(fmt.Errorf("failed to load conf: %v", err))
 	}
 
 	if err := validator.New().Struct(Config); err != nil {
-		revel.AppLog.Errorf("%v", err)
+		panic(err)
 	}
 }

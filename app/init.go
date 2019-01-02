@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/yasshi2525/RushHour/app/services"
 
-	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
 )
 
@@ -13,9 +12,6 @@ var (
 
 	// BuildTime revel app build-time (ldflags)
 	BuildTime string
-
-	// Db connection to the database
-	Db *gorm.DB
 )
 
 func init() {
@@ -40,14 +36,11 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	revel.OnAppStart(services.LoadConf, 1)
-	revel.OnAppStart(services.InitStorage, 2)
-	revel.OnAppStart(services.InitPersistence, 3)
-	revel.OnAppStart(InitGame, 4)
+	revel.OnAppStart(services.Init, 1)
+	revel.OnAppStart(InitGame, 2)
 
 	revel.OnAppStop(StopGame, 1)
-	revel.OnAppStop(services.Backup, 2)
-	revel.OnAppStop(services.TerminatePersistence, 3)
+	revel.OnAppStop(services.Terminate, 2)
 }
 
 // HeaderFilter adds common security headers

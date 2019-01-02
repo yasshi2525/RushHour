@@ -14,9 +14,7 @@ type ApiTest struct {
 // Before starts game
 func (t *ApiTest) Before() {
 	println("Set up")
-	services.LoadConf()
-	services.InitStorage()
-	services.InitPersistence()
+	services.Init()
 	app.InitGame()
 }
 
@@ -32,6 +30,5 @@ func (t *ApiTest) After() {
 	println("Tear down")
 
 	app.StopGame()
-	services.Backup()
-	services.TerminatePersistence()
+	services.Terminate()
 }
