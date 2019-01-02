@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -16,9 +15,14 @@ func NewPoint(x float64, y float64) Point {
 	return Point{X: x, Y: y}
 }
 
-// Dist calculate a distance between two Point
-func (p *Point) Dist(oth *Point) float64 {
-	return math.Sqrt((oth.X-p.X)*(oth.X-p.X) + (oth.Y-p.Y)*(oth.Y-p.Y))
+// Init do nothing, just implements Initializable
+func (p *Point) Init() {
+	// do-nothing
+}
+
+// Pos returns self
+func (p *Point) Pos() *Point {
+	return p
 }
 
 // IsIn returns true when Point is in specified area
@@ -29,6 +33,18 @@ func (p *Point) IsIn(center *Point, scale float64) bool {
 		p.X < center.X+len/2 &&
 		p.Y > center.Y-len/2 &&
 		p.Y < center.Y+len/2
+}
+
+// IsInLine returns true when this or to or center is in.
+func (p *Point) IsInLine(to *Point, center *Point, scale float64) bool {
+	return p.IsIn(center, scale) ||
+		p.Center(to).IsIn(center, scale) ||
+		to.IsIn(center, scale)
+}
+
+// Dist calculate a distance between two Point
+func (p *Point) Dist(oth *Point) float64 {
+	return math.Sqrt((oth.X-p.X)*(oth.X-p.X) + (oth.Y-p.Y)*(oth.Y-p.Y))
 }
 
 // Center returns devided point.
@@ -44,6 +60,6 @@ func (p *Point) Div(to *Point, progress float64) *Point {
 	}
 }
 
-func (p *Point) String() string {
+/*func (p *Point) String() string {
 	return fmt.Sprintf("(%f, %f)", p.X, p.Y)
-}
+}*/

@@ -24,7 +24,7 @@ func (t *ApiTest) Before() {
 func (t *ApiTest) TestThatIndexPageWorks() {
 	t.Get("/api/v1/gamemap")
 	t.AssertOk()
-	t.AssertContentType("text/html; charset=utf-8")
+	t.AssertContentType("application/json; charset=utf-8")
 }
 
 // After stops game

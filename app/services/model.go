@@ -114,7 +114,7 @@ func watchModel() {
 
 // randID return random id existing in repository
 func randID(t entities.StaticRes) (uint, bool) {
-	mapdata := Repo.Meta.StaticValue[t]
+	mapdata := Repo.Meta.StaticMap[t]
 	for _, e := range mapdata.MapKeys() {
 		return uint(e.Uint()), true
 	}

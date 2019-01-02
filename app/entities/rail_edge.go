@@ -32,26 +32,20 @@ func (re *RailEdge) Idx() uint {
 	return re.ID
 }
 
+// Init do nothing
+func (re *RailEdge) Init() {
+	re.Model.Init()
+	re.Owner.Init()
+}
+
 // Pos returns location
 func (re *RailEdge) Pos() *Point {
 	return re.from.Pos().Center(re.to.Pos())
 }
 
-// Out returns where it can go to
-func (re *RailEdge) Out() map[uint]*Step {
-	return nil
-}
-
-// In returns where it comes from
-func (re *RailEdge) In() map[uint]*Step {
-	return nil
-}
-
 // IsIn return true when from, to, center is in,
 func (re *RailEdge) IsIn(center *Point, scale float64) bool {
-	return re.from.Pos().IsIn(center, scale) ||
-		re.to.Pos().IsIn(center, scale) ||
-		re.Pos().IsIn(center, scale)
+	return re.from.Pos().IsInLine(re.to.Pos(), center, scale)
 }
 
 // From represents start point

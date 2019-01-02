@@ -51,19 +51,15 @@ func (st *Station) Idx() uint {
 	return st.ID
 }
 
+// Init creates map.
+func (st *Station) Init() {
+	st.Model.Init()
+	st.Owner.Init()
+}
+
 // Pos returns location
 func (st *Station) Pos() *Point {
 	return st.Platform.Pos()
-}
-
-// Out returns where it can go to
-func (st *Station) Out() map[uint]*Step {
-	return nil
-}
-
-// In returns where it comes from
-func (st *Station) In() map[uint]*Step {
-	return nil
 }
 
 // IsIn returns it should be view or not.

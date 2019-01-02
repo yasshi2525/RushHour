@@ -66,11 +66,10 @@ func GenID(raw interface{}) uint {
 }
 
 // GenStep generate Step and resister it
-func GenStep(from entities.Locationable, to entities.Locationable, weight float64) *entities.Step {
-	revel.AppLog.Infof("from: %+v to: %+v", from, to)
+func GenStep(from entities.Relayable, to entities.Relayable, weight float64) *entities.Step {
 	s := entities.NewStep(GenID(entities.STEP), from, to, weight)
 	Repo.Dynamic.Steps[s.ID] = s
-	logStep("created", s)
+	//logStep("created", s)
 	return s
 }
 

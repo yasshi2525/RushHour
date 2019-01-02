@@ -1,16 +1,16 @@
 package entities
 
-// Step represents two Locationable is logically connected.
+// Step represents two Relayable is logically connected.
 // Step is out of target for persistence because it can derived by other resources.
 type Step struct {
 	ID     uint
-	from   Locationable
-	to     Locationable
+	from   Relayable
+	to     Relayable
 	Weight float64
 }
 
 // NewStep create new instance and relation to Junction
-func NewStep(id uint, f Locationable, t Locationable, weight float64) *Step {
+func NewStep(id uint, f Relayable, t Relayable, weight float64) *Step {
 	step := &Step{
 		ID:     id,
 		from:   f,
@@ -22,13 +22,32 @@ func NewStep(id uint, f Locationable, t Locationable, weight float64) *Step {
 	return step
 }
 
+// Idx returns unique id field.
+func (s *Step) Idx() uint {
+	return s.ID
+}
+
+// Init do nothing
+func (s *Step) Init() {
+}
+
+// Pos returns center
+func (s *Step) Pos() *Point {
+	return s.from.Pos().Center(s.to.Pos())
+}
+
+// IsIn returns it should be view or not.
+func (s *Step) IsIn(center *Point, scale float64) bool {
+	return s.from.Pos().IsInLine(s.to.Pos(), center, scale)
+}
+
 // From returns where Step comes from
-func (s *Step) From() Locationable {
+func (s *Step) From() Relayable {
 	return s.from
 }
 
 // To returns where Step goes to
-func (s *Step) To() Locationable {
+func (s *Step) To() Relayable {
 	return s.to
 }
 

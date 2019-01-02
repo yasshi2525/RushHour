@@ -24,17 +24,17 @@ type LineTask struct {
 	Model
 	Owner
 
-	Line *RailLine    `gorm:"-" json:"-"`
-	Type LineTaskType `gorm:"not null"`
-	Next *LineTask    `gorm:"-" json:"-"`
+	RailLine *RailLine    `gorm:"-" json:"-"`
+	Type     LineTaskType `gorm:"not null"`
+	Next     *LineTask    `gorm:"-" json:"-"`
 
 	Stay   *Platform `gorm:"-" json:"-"`
 	Moving *RailEdge `gorm:"-" json:"-"`
 
-	LineID   uint `gorm:"not null"`
-	NextID   uint
-	StayID   uint
-	MovingID uint
+	RailLineID uint `gorm:"not null"`
+	NextID     uint
+	StayID     uint
+	MovingID   uint
 }
 
 // NewLineTask create instance
@@ -50,6 +50,12 @@ func (lt *LineTask) Idx() uint {
 	return lt.ID
 }
 
+// Init do nothing
+func (lt *LineTask) Init() {
+	lt.Model.Init()
+	lt.Owner.Init()
+}
+
 // Pos returns entities' position
 func (lt *LineTask) Pos() *Point {
 	switch lt.Type {
@@ -58,16 +64,6 @@ func (lt *LineTask) Pos() *Point {
 	default:
 		return lt.Moving.Pos()
 	}
-}
-
-// In returns nil
-func (lt *LineTask) In() map[uint]*Step {
-	return nil
-}
-
-// Out returns nil
-func (lt *LineTask) Out() map[uint]*Step {
-	return nil
 }
 
 // IsIn returns it should be view or not.
@@ -85,7 +81,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *RailLine:
-			lt.Owner, lt.Line = obj.Owner, obj
+			lt.Owner, lt.RailLine = obj.Owner, obj
 		case *LineTask:
 			lt.Next = obj
 		case *Platform:
@@ -103,7 +99,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 // ResolveRef set id from reference
 func (lt *LineTask) ResolveRef() {
 	lt.Owner.ResolveRef()
-	lt.LineID = lt.Line.ID
+	lt.RailLineID = lt.RailLine.ID
 	if lt.Next != nil {
 		lt.NextID = lt.Next.ID
 	}

@@ -32,19 +32,19 @@ const (
 type MetaModel struct {
 	// Static is data storage
 	Static map[StaticRes]*MetaStatic
-	// StaticType represents type of field
+	// StaticMap represents value of map
+	StaticMap map[StaticRes]reflect.Value
+	// StaticType represents type of map value
 	StaticType map[StaticRes]reflect.Type
-	// StaticValue represents value of field
-	StaticValue map[StaticRes]reflect.Value
 	// StaticList is list of StaticRes
 	StaticList []StaticRes
 
 	// Dynamic is data storage
 	Dynamic map[DynamicRes]*MetaDynamic
-	// DynamicType  represents type of fi
+	// DynamicMap represents value of map
+	DynamicMap map[DynamicRes]reflect.Value
+	// DynamicType represents type of map value
 	DynamicType map[DynamicRes]reflect.Type
-	// DynamicValue represents value of field
-	DynamicValue map[DynamicRes]reflect.Value
 	// DynamicList is data storage
 	DynamicList []DynamicRes
 }
@@ -86,7 +86,9 @@ func (t StaticRes) API() string {
 
 // Obj returns prototype pointer of instance
 func (t StaticRes) Obj() interface{} {
-	return reflect.New(Meta.StaticType[t].Elem().Elem()).Elem().Addr().Interface()
+	obj := reflect.New(Meta.StaticType[t]).Elem().Addr().Interface()
+	obj.(Initializable).Init()
+	return obj
 }
 
 // Type returns type of field
@@ -136,8 +138,8 @@ func InitGameMap() (*MetaModel, *StaticModel, *DynamicModel) {
 func initMetaModel() *MetaModel {
 	meta := &MetaModel{
 		make(map[StaticRes]*MetaStatic),
-		make(map[StaticRes]reflect.Type),
 		make(map[StaticRes]reflect.Value),
+		make(map[StaticRes]reflect.Type),
 		[]StaticRes{PLAYER,
 			RESIDENCE,
 			COMPANY,
@@ -151,8 +153,8 @@ func initMetaModel() *MetaModel {
 			TRAIN,
 			HUMAN},
 		make(map[DynamicRes]*MetaDynamic),
-		make(map[DynamicRes]reflect.Type),
 		make(map[DynamicRes]reflect.Value),
+		make(map[DynamicRes]reflect.Type),
 		[]DynamicRes{STEP},
 	}
 
@@ -198,12 +200,12 @@ func initModel(meta *MetaModel) (*StaticModel, *DynamicModel) {
 
 	for _, res := range meta.StaticList {
 		static.WillRemove[res] = []uint{}
-		var id uint64 = 1
+		var id uint64
 		static.NextIDs[res] = &id
 	}
 
 	for _, res := range meta.DynamicList {
-		var id uint64 = 1
+		var id uint64
 		dynamic.NextIDs[res] = &id
 	}
 
@@ -211,32 +213,28 @@ func initModel(meta *MetaModel) (*StaticModel, *DynamicModel) {
 }
 
 func resolveModel(meta *MetaModel, static *StaticModel, dynamic *DynamicModel) {
-	meta.StaticType[PLAYER] = reflect.TypeOf(static.Players)
-	meta.StaticType[RESIDENCE] = reflect.TypeOf(static.Residences)
-	meta.StaticType[COMPANY] = reflect.TypeOf(static.Companies)
-	meta.StaticType[RAILNODE] = reflect.TypeOf(static.RailNodes)
-	meta.StaticType[RAILEDGE] = reflect.TypeOf(static.RailEdges)
-	meta.StaticType[STATION] = reflect.TypeOf(static.Stations)
-	meta.StaticType[GATE] = reflect.TypeOf(static.Gates)
-	meta.StaticType[PLATFORM] = reflect.TypeOf(static.Platforms)
-	meta.StaticType[LINE] = reflect.TypeOf(static.RailLines)
-	meta.StaticType[LINETASK] = reflect.TypeOf(static.LineTasks)
-	meta.StaticType[TRAIN] = reflect.TypeOf(static.Trains)
-	meta.StaticType[HUMAN] = reflect.TypeOf(static.Humans)
+	meta.StaticMap[PLAYER] = reflect.ValueOf(static.Players)
+	meta.StaticMap[RESIDENCE] = reflect.ValueOf(static.Residences)
+	meta.StaticMap[COMPANY] = reflect.ValueOf(static.Companies)
+	meta.StaticMap[RAILNODE] = reflect.ValueOf(static.RailNodes)
+	meta.StaticMap[RAILEDGE] = reflect.ValueOf(static.RailEdges)
+	meta.StaticMap[STATION] = reflect.ValueOf(static.Stations)
+	meta.StaticMap[GATE] = reflect.ValueOf(static.Gates)
+	meta.StaticMap[PLATFORM] = reflect.ValueOf(static.Platforms)
+	meta.StaticMap[LINE] = reflect.ValueOf(static.RailLines)
+	meta.StaticMap[LINETASK] = reflect.ValueOf(static.LineTasks)
+	meta.StaticMap[TRAIN] = reflect.ValueOf(static.Trains)
+	meta.StaticMap[HUMAN] = reflect.ValueOf(static.Humans)
 
-	meta.StaticValue[PLAYER] = reflect.ValueOf(static.Players)
-	meta.StaticValue[RESIDENCE] = reflect.ValueOf(static.Residences)
-	meta.StaticValue[COMPANY] = reflect.ValueOf(static.Companies)
-	meta.StaticValue[RAILNODE] = reflect.ValueOf(static.RailNodes)
-	meta.StaticValue[RAILEDGE] = reflect.ValueOf(static.RailEdges)
-	meta.StaticValue[STATION] = reflect.ValueOf(static.Stations)
-	meta.StaticValue[GATE] = reflect.ValueOf(static.Gates)
-	meta.StaticValue[PLATFORM] = reflect.ValueOf(static.Platforms)
-	meta.StaticValue[LINE] = reflect.ValueOf(static.RailLines)
-	meta.StaticValue[LINETASK] = reflect.ValueOf(static.LineTasks)
-	meta.StaticValue[TRAIN] = reflect.ValueOf(static.Trains)
-	meta.StaticValue[HUMAN] = reflect.ValueOf(static.Humans)
+	for _, key := range meta.StaticList {
+		mapType := reflect.TypeOf(Meta.StaticMap[key].Interface())
+		meta.StaticType[key] = mapType.Elem().Elem()
+	}
 
-	meta.DynamicType[STEP] = reflect.TypeOf(dynamic.Steps)
-	meta.DynamicValue[STEP] = reflect.ValueOf(dynamic.Steps)
+	meta.DynamicMap[STEP] = reflect.ValueOf(dynamic.Steps)
+
+	for _, key := range meta.DynamicList {
+		mapType := reflect.TypeOf(Meta.DynamicMap[key].Interface())
+		meta.DynamicType[key] = mapType.Elem().Elem()
+	}
 }

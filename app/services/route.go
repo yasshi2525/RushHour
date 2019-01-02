@@ -53,7 +53,7 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 			//revel.AppLog.Infof("search Canceleld %s in %d / 10", msg, i+1)
 			return
 		default:
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
@@ -69,7 +69,7 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) {
 			//revel.AppLog.Infof("reflect Canceleld %s in %d / 10", msg, i+1)
 			return
 		default:
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }

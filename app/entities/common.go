@@ -23,6 +23,11 @@ func NewModel(id uint) Model {
 	}
 }
 
+// Init do nothing, just implements Initializable
+func (m *Model) Init() {
+	// do-nothing
+}
+
 // Owner means this faciliites in under the control by Player.
 type Owner struct {
 	Own     *Player `gorm:"-" json:"-"`
@@ -35,6 +40,11 @@ func NewOwner(o *Player) Owner {
 		Own:     o,
 		OwnerID: o.ID,
 	}
+}
+
+// Init do nothing, just implements Initializable
+func (o *Owner) Init() {
+	// do-nothing
 }
 
 // ResolveRef resolve ownerID from Owner

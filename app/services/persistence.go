@@ -13,10 +13,8 @@ import (
 
 var (
 	db      *gorm.DB
-	logMode = true
+	logMode = false
 )
-
-type eachCallback func(v reflect.Value)
 
 // InitPersistence prepares database connection and migrate
 func InitPersistence() {
@@ -71,7 +69,7 @@ func migrateDB(database *gorm.DB) {
 
 		// foreign key for owner
 		if _, ok := proto.(entities.Ownable); ok {
-			owner := fmt.Sprintf("%s(id)", key.Table())
+			owner := fmt.Sprintf("%s(id)", entities.PLAYER.Table())
 			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
 
 			revel.AppLog.Debugf("added owner foreign key for %s table", owner)
@@ -142,7 +140,6 @@ func setNextID() {
 		}
 		sql := fmt.Sprintf("SELECT max(id) as v FROM %s", key.Table())
 		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
-			maxID.V++
 			Repo.Static.NextIDs[key] = &maxID.V
 			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Repo.Static.NextIDs[key])
 		} else {
@@ -162,8 +159,8 @@ func fetchStatic() {
 				if err := db.ScanRows(rows, base); err == nil {
 					// Static に登録
 					if obj, ok := base.(entities.Indexable); ok {
-						Repo.Meta.StaticValue[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
-						revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, obj.Idx(), obj)
+						Repo.Meta.StaticMap[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						//revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, obj.Idx(), obj)
 					} else {
 						panic(fmt.Errorf("invalid type %T: %+v", base, base))
 					}
@@ -199,7 +196,7 @@ func resolveStatic() {
 		l.Resolve(Repo.Static.Players[l.OwnerID])
 	}
 	for _, lt := range Repo.Static.LineTasks {
-		lt.Resolve(Repo.Static.RailLines[lt.LineID])
+		lt.Resolve(Repo.Static.RailLines[lt.RailLineID])
 		// nullable fields
 		if lt.NextID != 0 {
 			lt.Resolve(Repo.Static.LineTasks[lt.NextID])
@@ -292,11 +289,11 @@ func updateForeignKey() {
 func persistStatic(tx *gorm.DB) {
 	// upsert
 	for _, res := range Repo.Meta.StaticList {
-		mapdata := Repo.Meta.StaticValue[res]
+		mapdata := Repo.Meta.StaticMap[res]
 		for _, key := range mapdata.MapKeys() {
 			obj := mapdata.MapIndex(key).Interface()
 			tx.Save(obj)
-			revel.AppLog.Debugf("persist %T(%d): %+v", obj, key.Uint(), obj)
+			//revel.AppLog.Debugf("persist %T(%d): %+v", obj, key.Uint(), obj)
 		}
 	}
 

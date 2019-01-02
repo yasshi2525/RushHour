@@ -5,21 +5,18 @@ import (
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
-// Response represents general structure of Rest
-type Response struct {
-	State   bool
-	Results interface{}
-}
-
-// ApiV1Game is controller for REST API
-type ApiV1Game struct {
+// APIv1Game is controller for REST API
+type APIv1Game struct {
 	*revel.Controller
 }
 
 // Index returns gamemap
-func (c ApiV1Game) Index() revel.Result {
+func (c APIv1Game) Index() revel.Result {
 
-	r := Response{
+	r := struct {
+		State   bool
+		Results interface{}
+	}{
 		State:   true,
 		Results: services.ViewMap(),
 	}

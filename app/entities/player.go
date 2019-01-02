@@ -16,7 +16,7 @@ type Player struct {
 
 	Level       PlayerType `gorm:"not null"`
 	DisplayName string     `gorm:"not null"`
-	LoginID     string     `gorm:"not null,index" json:"-"`
+	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null" json:"-"`
 }
 
@@ -30,6 +30,11 @@ func NewPlayer(id uint) *Player {
 // Idx returns unique id field.
 func (o *Player) Idx() uint {
 	return o.ID
+}
+
+// Init do nothing
+func (o *Player) Init() {
+	o.Model.Init()
 }
 
 // ResolveRef do nothing for implementing Resolvable

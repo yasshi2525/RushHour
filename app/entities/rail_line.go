@@ -23,6 +23,13 @@ func (l *RailLine) Idx() uint {
 	return l.ID
 }
 
+// Init makes map
+func (l *RailLine) Init() {
+	l.Model.Init()
+	l.Owner.Init()
+	l.Tasks = make(map[uint]*LineTask)
+}
+
 // Pos returns location
 func (l *RailLine) Pos() *Point {
 	sumX, sumY, cnt := 0.0, 0.0, 0.0
@@ -34,16 +41,6 @@ func (l *RailLine) Pos() *Point {
 	if cnt > 0 {
 		return &Point{sumX / cnt, sumY / cnt}
 	}
-	return nil
-}
-
-// Out returns where it can go to
-func (l *RailLine) Out() map[uint]*Step {
-	return nil
-}
-
-// In returns where it comes from
-func (l *RailLine) In() map[uint]*Step {
 	return nil
 }
 

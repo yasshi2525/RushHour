@@ -58,7 +58,6 @@ func RemoveCompany(id uint) {
 }
 
 func logNode(res entities.StaticRes, id uint, op string, p *entities.Point) {
-	revel.AppLog.Infof("p = %+v, nil ? %t", p, p == nil)
 	revel.AppLog.Infof("%s(%d) was %s at %s", res, id, op, p)
 }
 

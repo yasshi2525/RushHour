@@ -27,19 +27,17 @@ func (rn *RailNode) Idx() uint {
 	return rn.ID
 }
 
+// Init makes map
+func (rn *RailNode) Init() {
+	rn.Model.Init()
+	rn.Owner.Init()
+	rn.InEdge = make(map[uint]*RailEdge)
+	rn.OutEdge = make(map[uint]*RailEdge)
+}
+
 // Pos returns location
 func (rn *RailNode) Pos() *Point {
 	return &rn.Point
-}
-
-// Out returns where it can go to
-func (rn *RailNode) Out() map[uint]*Step {
-	return nil
-}
-
-// In returns where it comes from
-func (rn *RailNode) In() map[uint]*Step {
-	return nil
 }
 
 // IsIn returns it should be view or not.

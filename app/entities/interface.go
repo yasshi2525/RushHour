@@ -6,24 +6,36 @@ type Indexable interface {
 	Idx() uint
 }
 
+// Initializable represents that setup is required.
+type Initializable interface {
+	// Init will be called after instanciation.
+	Init()
+}
+
 // Locationable represents physical space.
 type Locationable interface {
+	// Pos returns entities' position.
+	Pos() *Point
+	// IsIn returns it should be view or not.
+	IsIn(*Point, float64) bool
+}
+
+// Relayable represents connectable for Human moving
+type Relayable interface {
 	// Pos returns entities' position.
 	Pos() *Point
 	// In represents how other can reach itself.
 	In() map[uint]*Step
 	// Out represents how itselt can reach other.
 	Out() map[uint]*Step
-	// IsIn returns it should be view or not.
-	IsIn(*Point, float64) bool
 }
 
 // Connectable represents logical connection.
 type Connectable interface {
 	// From represents start point
-	From() Locationable
+	From() Relayable
 	// To represents end point
-	To() Locationable
+	To() Relayable
 	Cost() float64
 }
 

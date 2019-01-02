@@ -13,7 +13,8 @@ var (
 	numUser        = 10
 	viewInterval   = 1 * time.Second
 	updateInterval = 10 * time.Second
-	backupInterval = 30 * time.Second
+	removeInterval = 30 * time.Second
+	backupInterval = 60 * time.Second
 )
 
 type opCallback func(source string, target entities.StaticRes)
@@ -30,7 +31,7 @@ func Main() {
 		tickOp("admin", target, updateInterval, func(src string, tar entities.StaticRes) {
 			UpdateModel(mkOp(src, tar))
 		})
-		tickOp("admin", target, updateInterval, func(src string, tar entities.StaticRes) {
+		tickOp("admin", target, removeInterval, func(src string, tar entities.StaticRes) {
 			UpdateModel(rmOp(src, tar))
 		})
 	}
@@ -44,7 +45,7 @@ func Main() {
 			UpdateModel(mkOp(src, tar))
 		})
 
-		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.StaticRes) {
+		tickOp(source, entities.RAILNODE, removeInterval, func(src string, tar entities.StaticRes) {
 			UpdateModel(rmOp(src, tar))
 		})
 	}

@@ -67,9 +67,21 @@ func (h *Human) Idx() uint {
 	return h.ID
 }
 
+// Init creates map.
+func (h *Human) Init() {
+	h.Model.Init()
+	h.Point.Init()
+	h.out = make(map[uint]*Step)
+}
+
 // Pos returns entities' position
 func (h *Human) Pos() *Point {
 	return &h.Point
+}
+
+// IsIn returns it should be view or not.
+func (h *Human) IsIn(center *Point, scale float64) bool {
+	return h.Pos().IsIn(center, scale)
 }
 
 // Out returns where it can go to

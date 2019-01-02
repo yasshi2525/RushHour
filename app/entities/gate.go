@@ -26,9 +26,22 @@ func (g *Gate) Idx() uint {
 	return g.ID
 }
 
+// Init creates map.
+func (g *Gate) Init() {
+	g.Model.Init()
+	g.Owner.Init()
+	g.out = make(map[uint]*Step)
+	g.in = make(map[uint]*Step)
+}
+
 // Pos returns location
 func (g *Gate) Pos() *Point {
 	return g.InStation.Pos()
+}
+
+// IsIn returns it should be view or not.
+func (g *Gate) IsIn(center *Point, scale float64) bool {
+	return g.Pos().IsIn(center, scale)
 }
 
 // Out returns where it can go to
@@ -39,11 +52,6 @@ func (g *Gate) Out() map[uint]*Step {
 // In returns where it comes from
 func (g *Gate) In() map[uint]*Step {
 	return g.in
-}
-
-// IsIn returns it should be view or not.
-func (g *Gate) IsIn(center *Point, scale float64) bool {
-	return g.Pos().IsIn(center, scale)
 }
 
 // Resolve set reference

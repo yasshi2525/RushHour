@@ -32,6 +32,13 @@ func (t *Train) Idx() uint {
 	return t.ID
 }
 
+// Init makes map
+func (t *Train) Init() {
+	t.Model.Init()
+	t.Owner.Init()
+	t.Passenger = make(map[uint]*Human)
+}
+
 // Pos returns location
 func (t *Train) Pos() *Point {
 	if t.Task == nil {
@@ -39,16 +46,6 @@ func (t *Train) Pos() *Point {
 	}
 	from, to := t.Task.From().Pos(), t.Task.To().Pos()
 	return from.Div(to, t.Progress)
-}
-
-// Out returns where it can go to
-func (t *Train) Out() map[uint]*Step {
-	return nil
-}
-
-// In returns where it comes from
-func (t *Train) In() map[uint]*Step {
-	return nil
 }
 
 // IsIn returns it should be view or not.
