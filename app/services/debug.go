@@ -12,9 +12,9 @@ import (
 var (
 	numUser        = 10
 	viewInterval   = 1 * time.Second
-	updateInterval = 10 * time.Second
-	removeInterval = 30 * time.Second
-	backupInterval = 60 * time.Second
+	updateInterval = 30 * time.Second
+	removeInterval = 1 * time.Minute
+	backupInterval = 10 * time.Second
 )
 
 type opCallback func(source string, target entities.StaticRes)
@@ -82,8 +82,8 @@ func rmOp(src string, target entities.StaticRes) *Operation {
 
 func tickOp(source string, target entities.StaticRes, interval time.Duration, callback opCallback) {
 	go func() {
-		sleep := rand.Intn(int(interval.Seconds()))
-		time.Sleep(time.Duration(sleep) * time.Second)
+		sleep := time.Duration(rand.Intn(int(interval.Seconds())))
+		time.Sleep(sleep * time.Second)
 		t := time.NewTicker(interval)
 		for range t.C {
 			callback(source, target)

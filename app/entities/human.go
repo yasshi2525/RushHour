@@ -11,7 +11,7 @@ type Standing uint
 
 const (
 	// OnGround represents Human still not arrive at Station or get off Train forcefully
-	OnGround Standing = iota
+	OnGround Standing = iota + 1
 	// OnPlatform represents Human enter Station and wait for Train
 	OnPlatform
 	// OnTrain represents Human ride on Train
@@ -37,6 +37,7 @@ type Human struct {
 	// in order to save memory resources.
 	Lifespan float64 `gorm:"not null"`
 
+	Current *Edge `gorm:"not null"`
 	// Progress is [0,1] value representing how much Human proceed current task.
 	Progress float64 `gorm:"not null"`
 

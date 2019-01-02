@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"time"
+
 	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/services"
 )
@@ -12,6 +14,8 @@ type APIv1Game struct {
 
 // Index returns gamemap
 func (c APIv1Game) Index() revel.Result {
+	start := time.Now()
+	defer services.WarnLongExec(start, 1, "JSON生成", true)
 
 	r := struct {
 		State   bool

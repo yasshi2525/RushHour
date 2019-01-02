@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/revel/revel"
 )
 
@@ -21,11 +23,16 @@ func StartRouting(msg string) {
 	reflectCtx, reflectCancel := context.WithCancel(routingContext)
 
 	go func() {
+		start := time.Now()
 		MuRoute.Lock()
 		defer MuRoute.Unlock()
 		defer routingCancel()
-		search(searchCtx, searchCancel, msg)
-		reflectTo(reflectCtx, reflectCancel, msg)
+
+		if ok := search(searchCtx, searchCancel, msg); ok {
+			if reflectTo(reflectCtx, reflectCancel, msg) {
+				WarnLongExec(start, 10, "経路探索", true)
+			}
+		}
 	}()
 }
 
@@ -39,7 +46,7 @@ func CancelRouting(msg string) {
 	}
 }
 
-func search(ctx context.Context, cancel context.CancelFunc, msg string) {
+func search(ctx context.Context, cancel context.CancelFunc, msg string) bool {
 	defer cancel()
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
@@ -47,29 +54,75 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) {
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
-	for i := 0; i < 10; i++ {
+	cnt := 0
+	for _, c := range Repo.Static.Companies {
 		select {
 		case <-ctx.Done():
-			//revel.AppLog.Infof("search Canceleld %s in %d / 10", msg, i+1)
-			return
+			revel.AppLog.Debugf("search Canceleld %s in %d / %d", msg, cnt+1, len(Repo.Static.Companies))
+			return false
 		default:
-			time.Sleep(100 * time.Millisecond)
+			goal, nodes := genNodes(c)
+			entities.GenEdges(nodes, Repo.Dynamic.Steps)
+			goal.WalkThrough()
+			for _, n := range nodes {
+				n.Fix()
+			}
+			RouteTemplate[c.ID] = nodes
+			cnt++
 		}
 	}
+	return true
 }
 
-func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) {
+// genNodes returns it's wrapper Node and all Node
+func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
+	var wrapper *entities.Node
+	ns := []*entities.Node{}
+
+	for _, res := range Repo.Meta.StaticList {
+		if _, ok := res.Obj().(entities.Relayable); ok {
+			mapdata := Repo.Meta.StaticMap[res]
+			for _, key := range mapdata.MapKeys() {
+				obj := mapdata.MapIndex(key).Interface()
+
+				if h, isHuman := obj.(entities.Human); isHuman && h.To != goal {
+					revel.AppLog.Debugf("skip %s(%d) because dept=%s(%d)", res, h.ID, entities.COMPANY, goal.ID)
+					continue
+				}
+
+				n := entities.NewNode(obj.(entities.Relayable))
+				if obj == goal {
+					wrapper = n
+					//revel.AppLog.Debugf("found wrapper %s(%d) for %s(%d)", res, obj.(entities.Indexable).Idx(), entities.COMPANY, goal.ID)
+				}
+				ns = append(ns, n)
+			}
+			//revel.AppLog.Debugf("gen node %s for routing len(%d)", res, len(ns))
+		}
+	}
+	//revel.AppLog.Debugf("gen %d nodes towards %s(%d))", len(ns), entities.COMPANY, goal.ID)
+	return wrapper, ns
+}
+
+func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool {
 	defer cancel()
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
 
-	for i := 0; i < 10; i++ {
+	cnt := 0
+	for _, h := range Repo.Static.Humans {
 		select {
 		case <-ctx.Done():
-			//revel.AppLog.Infof("reflect Canceleld %s in %d / 10", msg, i+1)
-			return
+			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Repo.Static.Humans))
+			return false
 		default:
-			time.Sleep(10 * time.Millisecond)
+			for _, n := range RouteTemplate[h.To.ID] {
+				if n.Base == h {
+					h.Current = n.ViaEdge
+				}
+			}
+			cnt++
 		}
 	}
+	return true
 }

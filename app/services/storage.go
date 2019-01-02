@@ -8,9 +8,6 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-type routeTemplate struct {
-}
-
 // Repository has all data of game
 type Repository struct {
 	// Static is viewable feature including Step infomation.
@@ -25,7 +22,7 @@ type Repository struct {
 var Repo *Repository
 
 // RouteTemplate is default route information in order to avoid huge calculation.
-var RouteTemplate routeTemplate
+var RouteTemplate map[uint][]*entities.Node
 
 // MuStatic is mutex lock for Static
 var MuStatic sync.RWMutex
@@ -45,7 +42,7 @@ func InitStorage() {
 		Dynamic: d,
 	}
 
-	RouteTemplate = routeTemplate{}
+	RouteTemplate = make(map[uint][]*entities.Node)
 
 	MuStatic = sync.RWMutex{}
 	MuDynamic = sync.RWMutex{}
@@ -84,7 +81,7 @@ func DelSteps(steps map[uint]*entities.Step) {
 		s := Repo.Dynamic.Steps[id]
 		s.Unrelate()
 		delete(Repo.Dynamic.Steps, s.ID)
-		logStep("removed", s)
+		//logStep("removed", s)
 	}
 }
 
