@@ -251,6 +251,7 @@ func genDynamics() {
 	}
 	for _, h := range Static.Humans {
 		GenStepHuman(h)
+		Dynamic.Agents[h.ID] = entities.NewAgent(h)
 	}
 }
 

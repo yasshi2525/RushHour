@@ -118,7 +118,7 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool 
 		default:
 			for _, n := range RouteTemplate[h.To.ID] {
 				if n.Base == h {
-					h.Current = n.ViaEdge
+					Dynamic.Agents[h.ID].Current = n.ViaEdge
 				}
 			}
 			cnt++

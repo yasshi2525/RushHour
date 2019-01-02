@@ -9,11 +9,13 @@ import (
 )
 
 // Static is viewable feature including Step infomation.
-var	Static *entities.StaticModel
+var Static *entities.StaticModel
+
 // Dynamic is hidden feature and not be persisted.
-var	Dynamic *entities.DynamicModel
+var Dynamic *entities.DynamicModel
+
 // Meta represents meta information of data structure
-var	Meta *entities.MetaModel
+var Meta *entities.MetaModel
 
 // RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate map[uint][]*entities.Node
@@ -29,7 +31,7 @@ var MuRoute sync.Mutex
 
 // InitStorage initialize storage
 func InitStorage() {
-	Meta, Static, Dynamic := entities.InitGameMap()
+	Meta, Static, Dynamic = entities.InitGameMap()
 	RouteTemplate = make(map[uint][]*entities.Node)
 
 	MuStatic = sync.RWMutex{}

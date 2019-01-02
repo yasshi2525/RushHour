@@ -6,7 +6,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-// Generate Step for Human.
+// GenStepHuman Generate Step for Human.
 // It's depend on where Human stay.
 func GenStepHuman(h *entities.Human) {
 	w := Config.Human.Weight
