@@ -80,11 +80,6 @@ func (t StaticRes) Table() string {
 	return Meta.Static[t].Table
 }
 
-// API returns REST API name
-func (t StaticRes) API() string {
-	return Meta.Static[t].API
-}
-
 // Obj returns prototype pointer of instance
 func (t StaticRes) Obj() interface{} {
 	obj := reflect.New(Meta.StaticType[t]).Elem().Addr().Interface()
@@ -99,18 +94,18 @@ func (t StaticRes) Type() reflect.Type {
 
 // StaticModel represents data structure for view
 type StaticModel struct {
-	Players    map[uint]*Player    `json:"players"`
-	Residences map[uint]*Residence `json:"residences"`
-	Companies  map[uint]*Company   `json:"companies"`
-	RailNodes  map[uint]*RailNode  `json:"rail_nodes"`
-	RailEdges  map[uint]*RailEdge  `json:"rail_edges"`
-	Stations   map[uint]*Station   `json:"stations"`
-	Gates      map[uint]*Gate      `json:"gates"`
-	Platforms  map[uint]*Platform  `json:"platforms"`
-	RailLines  map[uint]*RailLine  `json:"rail_lines"`
-	LineTasks  map[uint]*LineTask  `json:"line_tasks"`
-	Trains     map[uint]*Train     `json:"trains"`
-	Humans     map[uint]*Human     `json:"humans"`
+	Players    map[uint]*Player
+	Residences map[uint]*Residence
+	Companies  map[uint]*Company
+	RailNodes  map[uint]*RailNode
+	RailEdges  map[uint]*RailEdge
+	Stations   map[uint]*Station
+	Gates      map[uint]*Gate
+	Platforms  map[uint]*Platform
+	RailLines  map[uint]*RailLine
+	LineTasks  map[uint]*LineTask
+	Trains     map[uint]*Train
+	Humans     map[uint]*Human
 
 	NextIDs map[StaticRes]*uint64
 	// WillRemove represents the list of deleting in next Backup()

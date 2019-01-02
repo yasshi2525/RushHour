@@ -11,7 +11,7 @@ type Residence struct {
 	out      map[uint]*Step
 	in       map[uint]*Step
 	Targets  map[uint]*Human `gorm:"-" json:"-"`
-	Capacity uint            `gorm:"not null" json:"cap"`
+	Capacity uint            `gorm:"not null" json:"capacity"`
 	// Wait represents how msec after it generates Human
 	Wait float64 `gorm:"not null" json:"wait"`
 	Name string  `json:"name"`

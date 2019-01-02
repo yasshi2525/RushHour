@@ -34,6 +34,16 @@ func (o *Player) Idx() uint {
 	return o.ID
 }
 
+// Pos returns nil
+func (o *Player) Pos() *Point {
+	return nil
+}
+
+// IsIn always returns true in order for user to view other Player
+func (o *Player) IsIn(center *Point, scale float64) bool {
+	return true
+}
+
 // Init do nothing
 func (o *Player) Init() {
 	o.Model.Init()
