@@ -37,10 +37,12 @@ func init() {
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(services.Init, 1)
-	revel.OnAppStart(InitGame, 2)
+	revel.OnAppStart(services.Start, 2)
+	revel.OnAppStart(services.StartSimulation, 3)
 
-	revel.OnAppStop(StopGame, 1)
-	revel.OnAppStop(services.Terminate, 2)
+	revel.OnAppStop(services.StopSimulation, 1)
+	revel.OnAppStop(services.Stop, 2)
+	revel.OnAppStop(services.Terminate, 3)
 }
 
 // HeaderFilter adds common security headers
@@ -62,15 +64,3 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
-
-// InitGame setup RushHour envirionment
-func InitGame() {
-	revel.AppLog.Info("init game")
-
-	go services.Main()
-}
-
-// StopGame do nothing
-func StopGame() {
-	revel.AppLog.Info("stop game")
-}

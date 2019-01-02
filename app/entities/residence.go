@@ -4,11 +4,12 @@ package entities
 type Residence struct {
 	Model
 	Point
-	out       map[uint]*Step
-	in        map[uint]*Step
-	Targets   map[uint]*Human `gorm:"-" json:"-"`
-	Capacity  uint            `gorm:"not null" json:"capacity"`
-	Available float64         `gorm:"not null" json:"available"`
+	out      map[uint]*Step
+	in       map[uint]*Step
+	Targets  map[uint]*Human `gorm:"-" json:"-"`
+	Capacity uint            `gorm:"not null" json:"cap"`
+	// Wait represents how msec after it generates Human
+	Wait float64 `gorm:"not null" json:"wait"`
 }
 
 // NewResidence create new instance without setting parameters

@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/revel/revel"
@@ -14,16 +15,21 @@ var (
 	viewInterval   = 1 * time.Second
 	updateInterval = 30 * time.Second
 	removeInterval = 1 * time.Minute
-	backupInterval = 10 * time.Second
 )
 
 type opCallback func(source string, target entities.StaticRes)
 
-// Main immitates some user requests some actions.
+var simCh chan *time.Ticker
+var simTickers []*time.Ticker
+var simWg *sync.WaitGroup
+
+// StartSimulation immitates some user requests some actions.
 // TODO remove it
-func Main() {
-	StartModelWatching()
-	StartProcedure()
+func StartSimulation() {
+	simTickers = []*time.Ticker{}
+	simCh = make(chan *time.Ticker)
+	simWg = &sync.WaitGroup{}
+	go watchSim()
 
 	// admin
 	for _, target := range []entities.StaticRes{entities.RESIDENCE, entities.COMPANY} {
@@ -49,12 +55,26 @@ func Main() {
 		})
 	}
 
-	var backup = time.NewTicker(backupInterval)
-	go func() {
-		for range backup.C {
-			Backup()
+	simWg.Wait()
+	revel.AppLog.Info("simulation was succeesfully started.")
+}
+
+// StopSimulation stop simulation.
+func StopSimulation() {
+	if simCh != nil {
+		close(simCh)
+		for _, t := range simTickers {
+			t.Stop()
 		}
-	}()
+		revel.AppLog.Info("simulation was succeesfully stopped.")
+	}
+}
+
+func watchSim() {
+	for v := range simCh {
+		simTickers = append(simTickers, v)
+	}
+	revel.AppLog.Info("simulation channel was succeesfully stopped.")
 }
 
 // mkOp returns creation operation
@@ -80,10 +100,13 @@ func rmOp(src string, target entities.StaticRes) *Operation {
 }
 
 func tickOp(source string, target entities.StaticRes, interval time.Duration, callback opCallback) {
+	simWg.Add(1)
 	go func() {
 		sleep := time.Duration(rand.Intn(int(interval.Seconds())))
 		time.Sleep(sleep * time.Second)
 		t := time.NewTicker(interval)
+		simCh <- t
+		simWg.Done()
 		for range t.C {
 			callback(source, target)
 		}

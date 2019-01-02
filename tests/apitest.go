@@ -2,33 +2,24 @@ package tests
 
 import (
 	"github.com/revel/revel/testing"
-	"github.com/yasshi2525/RushHour/app"
-	"github.com/yasshi2525/RushHour/app/services"
 )
 
-// ApiTest is test suite for REST API
-type ApiTest struct {
+// APITest is test suite for REST API
+type APITest struct {
 	testing.TestSuite
 }
 
 // Before starts game
-func (t *ApiTest) Before() {
-	println("Set up")
-	services.Init()
-	app.InitGame()
+func (t *APITest) Before() {
 }
 
 // TestThatIndexPageWorks test
-func (t *ApiTest) TestThatIndexPageWorks() {
+func (t *APITest) TestThatIndexPageWorks() {
 	t.Get("/api/v1/gamemap")
 	t.AssertOk()
 	t.AssertContentType("application/json; charset=utf-8")
 }
 
 // After stops game
-func (t *ApiTest) After() {
-	println("Tear down")
-
-	app.StopGame()
-	services.Terminate()
+func (t *APITest) After() {
 }

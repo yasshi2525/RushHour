@@ -19,6 +19,7 @@ func Init() {
 	start := time.Now()
 	defer WarnLongExec(start, 10, "初期化", true)
 
+	InitLock()
 	LoadConf()
 	InitRepository()
 	db = connectDB()
@@ -29,9 +30,22 @@ func Init() {
 // Terminate finalizes after stopping game
 func Terminate() {
 	if db != nil {
-		Backup()
 		closeDB()
 	}
+}
+
+// Start start game
+func Start() {
+	StartModelWatching()
+	StartProcedure()
+}
+
+// Stop stop game
+func Stop() {
+	StopProcedure()
+	StopModelWatching()
+	StopBackupTicker()
+	Backup()
 }
 
 func connectDB() *gorm.DB {

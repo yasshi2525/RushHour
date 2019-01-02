@@ -1,38 +1,51 @@
 package services
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func TestCreateResidence(t *testing.T) {
-	Init()
+	prev, _ := filepath.Abs(".")
+	defer os.Chdir(prev)
+	os.Chdir("../../")
+
+	LoadConf()
+	InitRepository()
+
 	var i uint64 = 1
 	Static.NextIDs[entities.RESIDENCE] = &i
-	Config.Residence.Capacity = 10
-	Config.Residence.Interval = 1
 
 	residence := CreateResidence(1, 1)
-
-	if got := residence.Available; got > 1 {
-		t.Errorf("Available should <= 1, but = %f", got)
-	}
 
 	RemoveResidence(residence.ID)
 }
 
 func TestCreateCompany(t *testing.T) {
-	Init()
+	prev, _ := filepath.Abs(".")
+	defer os.Chdir(prev)
+	os.Chdir("../../")
+
+	LoadConf()
+	InitRepository()
+
 	var i uint64 = 1
 	Static.NextIDs[entities.COMPANY] = &i
-	Config.Company.Scale = 1
 
 	RemoveCompany(CreateCompany(1, 1).ID)
 }
 
 func TestCreateStep(t *testing.T) {
-	Init()
+	prev, _ := filepath.Abs(".")
+	defer os.Chdir(prev)
+	os.Chdir("../../")
+
+	LoadConf()
+	InitRepository()
+
 	var i, j, k uint64 = 1, 1, 1
 	Static.NextIDs[entities.RESIDENCE] = &i
 	Static.NextIDs[entities.COMPANY] = &j

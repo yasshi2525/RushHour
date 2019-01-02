@@ -8,6 +8,30 @@ import (
 	"github.com/revel/revel"
 )
 
+var backupTicker *time.Ticker
+
+// StartBackupTicker start tikcer
+func StartBackupTicker() {
+	backupTicker = time.NewTicker(Config.Backup.Interval.Duration)
+
+	go watchBackup()
+	revel.AppLog.Info("backup ticker was successfully started.")
+}
+
+// StopBackupTicker stop ticker
+func StopBackupTicker() {
+	if backupTicker != nil {
+		backupTicker.Stop()
+		revel.AppLog.Info("backup ticker was successfully stopped.")
+	}
+}
+
+func watchBackup() {
+	for range backupTicker.C {
+		Backup()
+	}
+}
+
 // Backup set model to database
 func Backup() {
 	revel.AppLog.Info("start backup")

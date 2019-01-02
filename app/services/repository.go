@@ -29,14 +29,17 @@ var MuDynamic sync.RWMutex
 // MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
 
+// InitLock must prepare first.
+func InitLock() {
+	MuStatic = sync.RWMutex{}
+	MuDynamic = sync.RWMutex{}
+	MuRoute = sync.Mutex{}
+}
+
 // InitRepository initialize storage
 func InitRepository() {
 	Meta, Static, Dynamic = entities.InitGameMap()
 	RouteTemplate = make(map[uint][]*entities.Node)
-
-	MuStatic = sync.RWMutex{}
-	MuDynamic = sync.RWMutex{}
-	MuRoute = sync.Mutex{}
 }
 
 // GenID generate ID

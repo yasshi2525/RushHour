@@ -27,9 +27,8 @@ var rmFuncs map[entities.StaticRes]interface{}
 
 // StartModelWatching setup watching model
 func StartModelWatching() {
-	defer revel.AppLog.Debug("モデルチャネル セットアップ終了")
 
-	modelChannel = make(chan *Operation, 10)
+	modelChannel = make(chan *Operation, Config.Game.Queue)
 
 	mkFuncs = make(map[entities.StaticRes]interface{})
 	mkFuncs[entities.PLAYER] = CreatePlayer
@@ -43,6 +42,15 @@ func StartModelWatching() {
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
 
 	go watchModel()
+	revel.AppLog.Info("model watching was successfully started.")
+}
+
+// StopModelWatching closes channel
+func StopModelWatching() {
+	if modelChannel != nil {
+		close(modelChannel)
+		revel.AppLog.Info("model watching was successfully stopped.")
+	}
 }
 
 func watchModel() {
@@ -51,64 +59,67 @@ func watchModel() {
 
 		CancelRouting(msg.Source)
 
-		MuStatic.Lock()
-		MuDynamic.Lock()
-
-		switch msg.Op {
-		case "create":
-			rv := reflect.ValueOf(mkFuncs[msg.Target])
-			switch msg.Target {
-			case entities.PLAYER:
-				CreatePlayer(msg.OName, msg.OName, msg.OName, entities.Normal)
-			case entities.RESIDENCE:
-				fallthrough
-			case entities.COMPANY:
-				rv.Call([]reflect.Value{
-					reflect.ValueOf(msg.X),
-					reflect.ValueOf(msg.Y)})
-			default:
-				if owner, err := FetchOwner(msg.OName); err == nil {
-					rv.Call([]reflect.Value{
-						reflect.ValueOf(owner),
-						reflect.ValueOf(msg.X),
-						reflect.ValueOf(msg.Y)})
-				} else {
-					revel.AppLog.Warnf("invalid Player: %s", err)
-				}
-			}
-
-		case "remove":
-			rv := reflect.ValueOf(rmFuncs[msg.Target])
-			if msg.ID == 0 {
-				var ok bool
-				msg.ID, ok = randID(msg.Target)
-				if !ok {
-					revel.AppLog.Warnf("no deleting data %s", msg.Target)
-					break
-				}
-			}
-			switch msg.Target {
-			case entities.RESIDENCE:
-				fallthrough
-			case entities.COMPANY:
-				rv.Call([]reflect.Value{reflect.ValueOf(msg.ID)})
-			default:
-				if owner, err := FetchOwner(msg.OName); err == nil {
-					rv.Call([]reflect.Value{
-						reflect.ValueOf(owner),
-						reflect.ValueOf(msg.ID)})
-				} else {
-					revel.AppLog.Warnf("invalid Player: %s", err)
-				}
-			}
-		}
-
-		MuDynamic.Unlock()
-		MuStatic.Unlock()
-
+		processMsg(msg)
 		StartRouting(msg.Source)
 
 		WarnLongExec(start, 2, fmt.Sprintf("モデル変更(%v)", msg), false)
+	}
+	revel.AppLog.Info("model watching channel was closed.")
+}
+
+func processMsg(msg *Operation) {
+	MuStatic.Lock()
+	defer MuStatic.Unlock()
+	MuDynamic.Lock()
+	defer MuDynamic.Unlock()
+
+	switch msg.Op {
+	case "create":
+		rv := reflect.ValueOf(mkFuncs[msg.Target])
+		switch msg.Target {
+		case entities.PLAYER:
+			CreatePlayer(msg.OName, msg.OName, msg.OName, entities.Normal)
+		case entities.RESIDENCE:
+			fallthrough
+		case entities.COMPANY:
+			rv.Call([]reflect.Value{
+				reflect.ValueOf(msg.X),
+				reflect.ValueOf(msg.Y)})
+		default:
+			if owner, err := FetchOwner(msg.OName); err == nil {
+				rv.Call([]reflect.Value{
+					reflect.ValueOf(owner),
+					reflect.ValueOf(msg.X),
+					reflect.ValueOf(msg.Y)})
+			} else {
+				revel.AppLog.Warnf("invalid Player: %s", err)
+			}
+		}
+
+	case "remove":
+		rv := reflect.ValueOf(rmFuncs[msg.Target])
+		if msg.ID == 0 {
+			var ok bool
+			msg.ID, ok = randID(msg.Target)
+			if !ok {
+				revel.AppLog.Warnf("no deleting data %s", msg.Target)
+				break
+			}
+		}
+		switch msg.Target {
+		case entities.RESIDENCE:
+			fallthrough
+		case entities.COMPANY:
+			rv.Call([]reflect.Value{reflect.ValueOf(msg.ID)})
+		default:
+			if owner, err := FetchOwner(msg.OName); err == nil {
+				rv.Call([]reflect.Value{
+					reflect.ValueOf(owner),
+					reflect.ValueOf(msg.ID)})
+			} else {
+				revel.AppLog.Warnf("invalid Player: %s", err)
+			}
+		}
 	}
 }
 

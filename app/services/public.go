@@ -11,7 +11,7 @@ import (
 // CreateResidence creates Residence and registers it to storage and step
 func CreateResidence(x float64, y float64) *entities.Residence {
 	r := entities.NewResidence(GenID(entities.RESIDENCE), x, y)
-	r.Available = Config.Residence.Interval * rand.Float64()
+	r.Wait = Config.Residence.Interval.Duration.Seconds() * 1000 * rand.Float64()
 	r.Capacity = Config.Residence.Capacity
 	Static.Residences[r.ID] = r
 	logNode(entities.RESIDENCE, r.ID, "created", r.Pos())
