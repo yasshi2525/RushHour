@@ -15,7 +15,7 @@ func GenStepHuman(h *entities.Human) {
 		// h - C for destination
 		GenStep(h, h.To, w)
 		// h -> G
-		for _, g := range Repo.Static.Gates {
+		for _, g := range Static.Gates {
 			GenStep(h, g, w)
 		}
 	case entities.OnPlatform:

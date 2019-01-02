@@ -10,22 +10,22 @@ import (
 // CreateRailNode create RailNode
 func CreateRailNode(owner *entities.Player, x float64, y float64) *entities.RailNode {
 	rn := entities.NewRailNode(GenID(entities.RAILNODE), owner, x, y)
-	Repo.Static.RailNodes[rn.ID] = rn
+	Static.RailNodes[rn.ID] = rn
 	logOwnableNode(entities.RAILNODE, rn.ID, "created", rn.Pos(), owner)
 	return rn
 }
 
 // RemoveRailNode remove RailNode
 func RemoveRailNode(owner *entities.Player, id uint) error {
-	if rn, ok := Repo.Static.RailNodes[id]; ok {
+	if rn, ok := Static.RailNodes[id]; ok {
 		if in, out := len(rn.InEdge), len(rn.OutEdge); in > 0 || out > 0 {
 			return fmt.Errorf("relations remain RailNode(%d)(in=%d, out=%d)", id, in, out)
 		}
 		if ok, err := IsAuth(owner, rn); !ok {
 			return err
 		}
-		delete(Repo.Static.RailNodes, rn.ID)
-		Repo.Static.WillRemove[entities.RAILNODE] = append(Repo.Static.WillRemove[entities.RAILNODE], id)
+		delete(Static.RailNodes, rn.ID)
+		Static.WillRemove[entities.RAILNODE] = append(Static.WillRemove[entities.RAILNODE], id)
 		logOwnableNode(entities.RAILNODE, id, "removed", rn.Pos(), owner)
 		return nil
 	}

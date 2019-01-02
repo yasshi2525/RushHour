@@ -12,5 +12,5 @@ func ViewMap() interface{} {
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
 
-	return Repo.Static
+	return Static
 }

@@ -8,18 +8,12 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-// Repository has all data of game
-type Repository struct {
-	// Static is viewable feature including Step infomation.
-	Static *entities.StaticModel
-	// Dynamic is hidden feature and not be persisted.
-	Dynamic *entities.DynamicModel
-	// Meta represents meta information of data structure
-	Meta *entities.MetaModel
-}
-
-// Repo has all data of game
-var Repo *Repository
+// Static is viewable feature including Step infomation.
+var	Static *entities.StaticModel
+// Dynamic is hidden feature and not be persisted.
+var	Dynamic *entities.DynamicModel
+// Meta represents meta information of data structure
+var	Meta *entities.MetaModel
 
 // RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate map[uint][]*entities.Node
@@ -35,13 +29,7 @@ var MuRoute sync.Mutex
 
 // InitStorage initialize storage
 func InitStorage() {
-	m, s, d := entities.InitGameMap()
-	Repo = &Repository{
-		Meta:    m,
-		Static:  s,
-		Dynamic: d,
-	}
-
+	Meta, Static, Dynamic := entities.InitGameMap()
 	RouteTemplate = make(map[uint][]*entities.Node)
 
 	MuStatic = sync.RWMutex{}
@@ -53,9 +41,9 @@ func InitStorage() {
 func GenID(raw interface{}) uint {
 	switch res := raw.(type) {
 	case entities.StaticRes:
-		return uint(atomic.AddUint64(Repo.Static.NextIDs[res], 1))
+		return uint(atomic.AddUint64(Static.NextIDs[res], 1))
 	case entities.DynamicRes:
-		return uint(atomic.AddUint64(Repo.Dynamic.NextIDs[res], 1))
+		return uint(atomic.AddUint64(Dynamic.NextIDs[res], 1))
 	default:
 		revel.AppLog.Errorf("invalid type: %T: %+v", raw, raw)
 		return 0
@@ -65,7 +53,7 @@ func GenID(raw interface{}) uint {
 // GenStep generate Step and resister it
 func GenStep(from entities.Relayable, to entities.Relayable, weight float64) *entities.Step {
 	s := entities.NewStep(GenID(entities.STEP), from, to, weight)
-	Repo.Dynamic.Steps[s.ID] = s
+	Dynamic.Steps[s.ID] = s
 	//logStep("created", s)
 	return s
 }
@@ -78,9 +66,9 @@ func DelSteps(steps map[uint]*entities.Step) {
 		ids = append(ids, s.ID)
 	}
 	for _, id := range ids {
-		s := Repo.Dynamic.Steps[id]
+		s := Dynamic.Steps[id]
 		s.Unrelate()
-		delete(Repo.Dynamic.Steps, s.ID)
+		delete(Dynamic.Steps, s.ID)
 		//logStep("removed", s)
 	}
 }

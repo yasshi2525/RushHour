@@ -26,6 +26,7 @@ const (
 	TRAIN
 	HUMAN
 	STEP DynamicRes = iota
+	AGENT
 )
 
 // MetaModel represents meta information of storage in memory
@@ -118,7 +119,8 @@ type StaticModel struct {
 
 // DynamicModel represents data structure for agent
 type DynamicModel struct {
-	Steps map[uint]*Step
+	Steps  map[uint]*Step
+	Agents map[uint]*Agent
 
 	NextIDs map[DynamicRes]*uint64
 }
@@ -155,7 +157,10 @@ func initMetaModel() *MetaModel {
 		make(map[DynamicRes]*MetaDynamic),
 		make(map[DynamicRes]reflect.Value),
 		make(map[DynamicRes]reflect.Type),
-		[]DynamicRes{STEP},
+		[]DynamicRes{
+			STEP,
+			AGENT,
+		},
 	}
 
 	// name, short, table, api, instance, next_id
@@ -195,6 +200,7 @@ func initModel(meta *MetaModel) (*StaticModel, *DynamicModel) {
 
 	dynamic := &DynamicModel{
 		make(map[uint]*Step),
+		make(map[uint]*Agent),
 		make(map[DynamicRes]*uint64),
 	}
 
@@ -232,6 +238,7 @@ func resolveModel(meta *MetaModel, static *StaticModel, dynamic *DynamicModel) {
 	}
 
 	meta.DynamicMap[STEP] = reflect.ValueOf(dynamic.Steps)
+	meta.DynamicMap[AGENT] = reflect.ValueOf(dynamic.Agents)
 
 	for _, key := range meta.DynamicList {
 		mapType := reflect.TypeOf(Meta.DynamicMap[key].Interface())

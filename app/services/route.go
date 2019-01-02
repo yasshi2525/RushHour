@@ -55,14 +55,14 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) bool {
 	defer MuDynamic.RUnlock()
 
 	cnt := 0
-	for _, c := range Repo.Static.Companies {
+	for _, c := range Static.Companies {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("search Canceleld %s in %d / %d", msg, cnt+1, len(Repo.Static.Companies))
+			revel.AppLog.Debugf("search Canceleld %s in %d / %d", msg, cnt+1, len(Static.Companies))
 			return false
 		default:
 			goal, nodes := genNodes(c)
-			entities.GenEdges(nodes, Repo.Dynamic.Steps)
+			entities.GenEdges(nodes, Dynamic.Steps)
 			goal.WalkThrough()
 			for _, n := range nodes {
 				n.Fix()
@@ -79,9 +79,9 @@ func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
 	var wrapper *entities.Node
 	ns := []*entities.Node{}
 
-	for _, res := range Repo.Meta.StaticList {
+	for _, res := range Meta.StaticList {
 		if _, ok := res.Obj().(entities.Relayable); ok {
-			mapdata := Repo.Meta.StaticMap[res]
+			mapdata := Meta.StaticMap[res]
 			for _, key := range mapdata.MapKeys() {
 				obj := mapdata.MapIndex(key).Interface()
 
@@ -110,10 +110,10 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool 
 	defer MuDynamic.Unlock()
 
 	cnt := 0
-	for _, h := range Repo.Static.Humans {
+	for _, h := range Static.Humans {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Repo.Static.Humans))
+			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Static.Humans))
 			return false
 		default:
 			for _, n := range RouteTemplate[h.To.ID] {

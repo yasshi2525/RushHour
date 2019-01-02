@@ -37,7 +37,6 @@ type Human struct {
 	// in order to save memory resources.
 	Lifespan float64 `gorm:"not null"`
 
-	Current *Edge `gorm:"not null"`
 	// Progress is [0,1] value representing how much Human proceed current task.
 	Progress float64 `gorm:"not null"`
 

@@ -61,7 +61,7 @@ func migrateDB(database *gorm.DB) {
 	foreign := make(map[entities.StaticRes]string)
 
 	// create instance corresponding to each record
-	for _, key := range Repo.Meta.StaticList {
+	for _, key := range Meta.StaticList {
 		proto := key.Obj()
 		db.AutoMigrate(proto)
 
@@ -134,14 +134,14 @@ func Restore() {
 
 // setNextID set max id as NextID from database for Restore()
 func setNextID() {
-	for _, key := range Repo.Meta.StaticList {
+	for _, key := range Meta.StaticList {
 		var maxID struct {
 			V uint64
 		}
 		sql := fmt.Sprintf("SELECT max(id) as v FROM %s", key.Table())
 		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
-			Repo.Static.NextIDs[key] = &maxID.V
-			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Repo.Static.NextIDs[key])
+			Static.NextIDs[key] = &maxID.V
+			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Static.NextIDs[key])
 		} else {
 			panic(err)
 		}
@@ -150,7 +150,7 @@ func setNextID() {
 
 // fetchStatic selects records for Restore()
 func fetchStatic() {
-	for _, key := range Repo.Meta.StaticList {
+	for _, key := range Meta.StaticList {
 		// select文組み立て
 		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
 			for rows.Next() {
@@ -159,7 +159,7 @@ func fetchStatic() {
 				if err := db.ScanRows(rows, base); err == nil {
 					// Static に登録
 					if obj, ok := base.(entities.Indexable); ok {
-						Repo.Meta.StaticMap[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						Meta.StaticMap[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
 						//revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, obj.Idx(), obj)
 					} else {
 						panic(fmt.Errorf("invalid type %T: %+v", base, base))
@@ -177,48 +177,48 @@ func fetchStatic() {
 
 // resolveStatic set pointer from id for Restore()
 func resolveStatic() {
-	for _, rn := range Repo.Static.RailNodes {
-		rn.Resolve(Repo.Static.Players[rn.OwnerID])
+	for _, rn := range Static.RailNodes {
+		rn.Resolve(Static.Players[rn.OwnerID])
 	}
-	for _, re := range Repo.Static.RailEdges {
-		re.Resolve(Repo.Static.RailNodes[re.FromID], Repo.Static.RailNodes[re.ToID])
+	for _, re := range Static.RailEdges {
+		re.Resolve(Static.RailNodes[re.FromID], Static.RailNodes[re.ToID])
 	}
-	for _, st := range Repo.Static.Stations {
-		st.Resolve(Repo.Static.Players[st.OwnerID])
+	for _, st := range Static.Stations {
+		st.Resolve(Static.Players[st.OwnerID])
 	}
-	for _, g := range Repo.Static.Gates {
-		g.Resolve(Repo.Static.Stations[g.InStationID])
+	for _, g := range Static.Gates {
+		g.Resolve(Static.Stations[g.InStationID])
 	}
-	for _, p := range Repo.Static.Platforms {
-		p.Resolve(Repo.Static.RailNodes[p.OnRailNodeID], Repo.Static.Stations[p.InStationID])
+	for _, p := range Static.Platforms {
+		p.Resolve(Static.RailNodes[p.OnRailNodeID], Static.Stations[p.InStationID])
 	}
-	for _, l := range Repo.Static.RailLines {
-		l.Resolve(Repo.Static.Players[l.OwnerID])
+	for _, l := range Static.RailLines {
+		l.Resolve(Static.Players[l.OwnerID])
 	}
-	for _, lt := range Repo.Static.LineTasks {
-		lt.Resolve(Repo.Static.RailLines[lt.RailLineID])
+	for _, lt := range Static.LineTasks {
+		lt.Resolve(Static.RailLines[lt.RailLineID])
 		// nullable fields
 		if lt.NextID != 0 {
-			lt.Resolve(Repo.Static.LineTasks[lt.NextID])
+			lt.Resolve(Static.LineTasks[lt.NextID])
 		}
 		if lt.StayID != 0 {
-			lt.Resolve(Repo.Static.Platforms[lt.StayID])
+			lt.Resolve(Static.Platforms[lt.StayID])
 		}
 		if lt.MovingID != 0 {
-			lt.Resolve(Repo.Static.RailEdges[lt.MovingID])
+			lt.Resolve(Static.RailEdges[lt.MovingID])
 		}
 	}
-	for _, t := range Repo.Static.Trains {
-		t.Resolve(Repo.Static.LineTasks[t.TaskID])
+	for _, t := range Static.Trains {
+		t.Resolve(Static.LineTasks[t.TaskID])
 	}
-	for _, h := range Repo.Static.Humans {
-		h.Resolve(Repo.Static.Residences[h.FromID], Repo.Static.Companies[h.ToID])
+	for _, h := range Static.Humans {
+		h.Resolve(Static.Residences[h.FromID], Static.Companies[h.ToID])
 		// nullable fields
 		if h.OnPlatformID != 0 {
-			h.Resolve(Repo.Static.Platforms[h.OnPlatformID])
+			h.Resolve(Static.Platforms[h.OnPlatformID])
 		}
 		if h.OnTrainID != 0 {
-			h.Resolve(Repo.Static.Platforms[h.OnTrainID])
+			h.Resolve(Static.Platforms[h.OnTrainID])
 		}
 	}
 }
@@ -226,30 +226,30 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	walk, train := Config.Human.Weight, Config.Train.Weight
-	for _, r := range Repo.Static.Residences {
+	for _, r := range Static.Residences {
 		// R -> C, G
 		GenStepResidence(r)
 	}
-	for _, c := range Repo.Static.Companies {
+	for _, c := range Static.Companies {
 		// G -> C
-		for _, g := range Repo.Static.Gates {
+		for _, g := range Static.Gates {
 			GenStep(g, c, walk)
 		}
 	}
-	for _, p := range Repo.Static.Platforms {
+	for _, p := range Static.Platforms {
 		// G <-> P
 		g := p.InStation.Gate
 		GenStep(p, g, walk)
 		GenStep(g, p, walk)
 
 		// P <-> P
-		for _, p2 := range Repo.Static.Platforms {
+		for _, p2 := range Static.Platforms {
 			if p != p2 {
 				GenStep(p, p2, train)
 			}
 		}
 	}
-	for _, h := range Repo.Static.Humans {
+	for _, h := range Static.Humans {
 		GenStepHuman(h)
 	}
 }
@@ -279,21 +279,21 @@ func Backup() {
 
 func updateForeignKey() {
 	// set id from reference
-	for _, lt := range Repo.Static.LineTasks {
+	for _, lt := range Static.LineTasks {
 		lt.ResolveRef()
 	}
-	for _, t := range Repo.Static.Trains {
+	for _, t := range Static.Trains {
 		t.ResolveRef()
 	}
-	for _, h := range Repo.Static.Humans {
+	for _, h := range Static.Humans {
 		h.ResolveRef()
 	}
 }
 
 func persistStatic(tx *gorm.DB) {
 	// upsert
-	for _, res := range Repo.Meta.StaticList {
-		mapdata := Repo.Meta.StaticMap[res]
+	for _, res := range Meta.StaticList {
+		mapdata := Meta.StaticMap[res]
 		for _, key := range mapdata.MapKeys() {
 			obj := mapdata.MapIndex(key).Interface()
 			tx.Save(obj)
@@ -302,12 +302,12 @@ func persistStatic(tx *gorm.DB) {
 	}
 
 	// remove old resources
-	for _, key := range Repo.Meta.StaticList {
-		for _, id := range Repo.Static.WillRemove[key] {
+	for _, key := range Meta.StaticList {
+		for _, id := range Static.WillRemove[key] {
 			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
 			tx.Exec(sql, time.Now(), time.Now(), id)
 			revel.AppLog.Debugf("delete %s(%d)", key.Table(), id)
 		}
-		Repo.Static.WillRemove[key] = Repo.Static.WillRemove[key][:0]
+		Static.WillRemove[key] = Static.WillRemove[key][:0]
 	}
 }
