@@ -88,7 +88,6 @@ func (t *Train) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (t *Train) ResolveRef() {
-	t.Owner.ResolveRef()
 	if t.Task != nil {
 		t.TaskID = t.Task.ID
 	}

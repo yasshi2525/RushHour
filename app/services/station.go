@@ -13,11 +13,10 @@ func CreateStation(
 	if err := CheckAuth(o, rn); err != nil {
 		return nil, err
 	}
-	st, g, p := entities.NewStation(
-		GenID(entities.STATION),
-		GenID(entities.GATE),
-		GenID(entities.PLATFORM),
-		rn)
+
+	st := entities.NewStation(GenID(entities.STATION), o)
+	g := entities.NewGate(GenID(entities.GATE), st)
+	p := entities.NewPlatform(GenID(entities.PLATFORM), rn, g, st)
 
 	st.Name = name
 	g.Num = Config.Gate.Num
@@ -33,7 +32,7 @@ func RemoveStation(o *entities.Player, id uint) error {
 	return TryRemove(o, entities.STATION, id, func(obj interface{}) {
 		st := obj.(*entities.Station)
 		delStepStation(st)
-		DelEntity(st)
+		DelEntity(st.Platform, st.Gate, st)
 	})
 }
 

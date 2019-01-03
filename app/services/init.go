@@ -15,7 +15,7 @@ func Init() {
 	defer revel.AppLog.Info("end preparation for game")
 
 	start := time.Now()
-	defer WarnLongExec(start, 10, "初期化", true)
+	defer WarnLongExec(start, Config.Perf.Init.D, "initialization", true)
 
 	InitLock()
 	LoadConf()

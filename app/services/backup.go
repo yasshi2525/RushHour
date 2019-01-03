@@ -14,7 +14,7 @@ var backupTicker *time.Ticker
 
 // StartBackupTicker start tikcer
 func StartBackupTicker() {
-	backupTicker = time.NewTicker(Config.Backup.Interval.Duration)
+	backupTicker = time.NewTicker(Config.Backup.Interval.D)
 
 	go watchBackup()
 	revel.AppLog.Info("backup ticker was successfully started.")
@@ -40,7 +40,7 @@ func Backup() {
 	defer revel.AppLog.Info("end backup")
 
 	start := time.Now()
-	defer WarnLongExec(start, 2, "バックアップ", true)
+	defer WarnLongExec(start, Config.Perf.Backup.D, "backup")
 
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()

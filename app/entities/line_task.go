@@ -122,7 +122,6 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (lt *LineTask) ResolveRef() {
-	lt.Owner.ResolveRef()
 	if lt.RailLine != nil {
 		lt.RailLineID = lt.RailLine.ID
 	}
@@ -140,6 +139,7 @@ func (lt *LineTask) ResolveRef() {
 	}
 }
 
+// UnRef remove related refernce
 func (lt *LineTask) UnRef() {
 	// TODO impl
 }

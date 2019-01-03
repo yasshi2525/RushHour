@@ -104,7 +104,6 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (re *RailEdge) ResolveRef() {
-	re.Owner.ResolveRef()
 	if re.from != nil {
 		re.FromID = re.from.ID
 	}

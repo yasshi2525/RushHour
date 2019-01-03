@@ -19,41 +19,11 @@ type Station struct {
 }
 
 // NewStation create new instance.
-func NewStation(stid uint, gid uint, pid uint, rn *RailNode) (*Station, *Gate, *Platform) {
-	p := &Platform{
-		Base:       NewBase(pid),
-		Owner:      rn.Owner,
-		in:         make(map[uint]*Step),
-		out:        make(map[uint]*Step),
-		Trains:     make(map[uint]*Train),
-		Passengers: make(map[uint]*Human),
-		LineTasks:  make(map[uint]*LineTask),
-		OnRailNode: rn,
+func NewStation(stid uint, o *Player) *Station {
+	return &Station{
+		Base:  NewBase(stid),
+		Owner: NewOwner(o),
 	}
-	rn.OverPlatform = p
-
-	g := &Gate{
-		Base:  NewBase(gid),
-		Owner: rn.Owner,
-		in:    make(map[uint]*Step),
-		out:   make(map[uint]*Step),
-	}
-
-	st := &Station{
-		Base:     NewBase(stid),
-		Owner:    rn.Owner,
-		Platform: p,
-		Gate:     g,
-	}
-
-	p.InStation = st
-	g.InStation = st
-
-	p.ResolveRef()
-	g.ResolveRef()
-	st.ResolveRef()
-
-	return st, g, p
 }
 
 // Idx returns unique id field.
@@ -90,7 +60,7 @@ func (st *Station) Resolve(args ...interface{}) {
 			st.Gate = obj
 		case *Platform:
 			st.Platform = obj
-			st.Gate.Resolve(obj)
+			obj.Resolve(st.Gate)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -100,7 +70,6 @@ func (st *Station) Resolve(args ...interface{}) {
 
 // ResolveRef resolve Owner reference
 func (st *Station) ResolveRef() {
-	st.Owner.ResolveRef()
 	if st.Platform != nil {
 		st.PlatformID = st.Platform.ID
 	}
@@ -122,8 +91,7 @@ func (st *Station) CheckRemove() error {
 
 // UnRef delete related reference
 func (st *Station) UnRef() {
-	st.Platform.UnRef()
-	st.Gate.UnRef()
+
 }
 
 // Permits represents Player is permitted to control

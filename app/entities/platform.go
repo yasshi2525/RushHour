@@ -25,8 +25,29 @@ type Platform struct {
 	Occupied uint `gorm:"-"        json:"used"`
 
 	StationID  uint `gorm:"not null" json:"stid"`
-	GateID     uint `gorm:"-" json:"gid"`
+	GateID     uint `gorm:"-"        json:"gid"`
 	RailNodeID uint `gorm:"not null" json:"rnid"`
+}
+
+// NewPlatform creates instance
+func NewPlatform(pid uint, rn *RailNode, g *Gate, st *Station) *Platform {
+	p := &Platform{
+		Base:       NewBase(pid),
+		Owner:      rn.Owner,
+		in:         make(map[uint]*Step),
+		out:        make(map[uint]*Step),
+		Trains:     make(map[uint]*Train),
+		Passengers: make(map[uint]*Human),
+		LineTasks:  make(map[uint]*LineTask),
+		OnRailNode: rn,
+		InStation:  st,
+		WithGate:   g,
+	}
+	p.ResolveRef()
+	rn.Resolve(p)
+	g.Resolve(p)
+	st.Resolve(p)
+	return p
 }
 
 // Idx returns unique id field.
@@ -80,6 +101,7 @@ func (p *Platform) Resolve(args ...interface{}) {
 			obj.Resolve(p)
 		case *Gate:
 			p.WithGate = obj
+			obj.Resolve(p)
 		case *Train:
 			p.Trains[obj.ID] = obj
 			obj.Resolve(p)
@@ -95,7 +117,6 @@ func (p *Platform) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (p *Platform) ResolveRef() {
-	p.Owner.ResolveRef()
 	if p.OnRailNode != nil {
 		p.RailNodeID = p.OnRailNode.ID
 	}

@@ -37,15 +37,8 @@ func NewOwner(o *Player) Owner {
 	}
 }
 
-// ResolveRef resolve ownerID from Owner
-func (o *Owner) ResolveRef() {
-	if o != nil {
-		o.OwnerID = o.Own.ID
-	}
-}
-
 // Permits always permits to Admin, Owner.
-func (o *Owner) Permits(target *Player) bool {
+func (o Owner) Permits(target *Player) bool {
 	switch target.Level {
 	case Admin:
 		return true

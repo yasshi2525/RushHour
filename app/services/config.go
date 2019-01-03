@@ -11,12 +11,12 @@ import (
 )
 
 type duration struct {
-	time.Duration
+	D time.Duration
 }
 
 func (d *duration) UnmarshalText(text []byte) error {
 	var err error
-	d.Duration, err = time.ParseDuration(string(text))
+	d.D, err = time.ParseDuration(string(text))
 	return err
 }
 
@@ -55,6 +55,16 @@ type cfgBackup struct {
 	Interval duration
 }
 
+type cfgPerf struct {
+	View      duration
+	Game      duration
+	Operation duration
+	Routing   duration
+	Backup    duration
+	Restore   duration
+	Init      duration
+}
+
 type config struct {
 	Residence cfgResidence
 	Company   cfgCompany
@@ -64,6 +74,7 @@ type config struct {
 	Human     cfgHuman
 	Game      cfgGame
 	Backup    cfgBackup
+	Perf      cfgPerf
 }
 
 // Config defines game feature

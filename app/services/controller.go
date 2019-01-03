@@ -12,7 +12,7 @@ import (
 // ViewMap immitates user requests view
 func ViewMap(x float64, y float64, scale float64) interface{} {
 	start := time.Now()
-	defer WarnLongExec(start, 2, "ユーザ表示要求", false)
+	defer WarnLongExec(start, Config.Perf.View.D, "view")
 
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()

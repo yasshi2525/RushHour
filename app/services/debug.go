@@ -46,13 +46,15 @@ func StartSimulation() {
 		source := fmt.Sprintf("user%d", i)
 		UpdateModel(mkOp(source, entities.PLAYER))
 
-		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.ModelType) {
-			UpdateModel(mkOp(src, tar))
-		})
+		for _, target := range []entities.ModelType{entities.RAILNODE, entities.STATION} {
+			tickOp(source, target, updateInterval, func(src string, tar entities.ModelType) {
+				UpdateModel(mkOp(src, tar))
+			})
+			tickOp(source, target, removeInterval, func(src string, tar entities.ModelType) {
+				UpdateModel(rmOp(src, tar))
+			})
+		}
 
-		tickOp(source, entities.RAILNODE, removeInterval, func(src string, tar entities.ModelType) {
-			UpdateModel(rmOp(src, tar))
-		})
 	}
 	simWg.Wait()
 	revel.AppLog.Info("simulation was succeesfully started.")
@@ -113,10 +115,10 @@ func tickOp(source string, target entities.ModelType, interval time.Duration, ca
 }
 
 // WarnLongExec alerts long time consuming task.
-func WarnLongExec(start time.Time, max float64, title string, verbose bool) {
-	if consumed := time.Now().Sub(start).Seconds(); consumed > max {
-		revel.AppLog.Warnf("%s に %.1f sec 消費", title, consumed)
-	} else if verbose {
-		revel.AppLog.Debugf("%s に %.1f sec 消費", title, consumed)
+func WarnLongExec(start time.Time, max time.Duration, title string, verbose ...bool) {
+	if consumed := time.Now().Sub(start); consumed > max {
+		revel.AppLog.Warnf("%s consumed %.2f sec", title, consumed.Seconds())
+	} else if len(verbose) > 0 && verbose[0] {
+		revel.AppLog.Debugf("%s consumed %.2f sec", title, consumed.Seconds())
 	}
 }

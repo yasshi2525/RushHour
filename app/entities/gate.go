@@ -27,6 +27,20 @@ type Gate struct {
 	PlatformID uint `gorm:"-"        json:"pid"`
 }
 
+// NewGate creates instance
+func NewGate(gid uint, st *Station) *Gate {
+	g := &Gate{
+		Base:      NewBase(gid),
+		Owner:     st.Owner,
+		in:        make(map[uint]*Step),
+		out:       make(map[uint]*Step),
+		InStation: st,
+	}
+	g.ResolveRef()
+	st.Resolve(g)
+	return g
+}
+
 // Idx returns unique id field.
 func (g *Gate) Idx() uint {
 	return g.ID
@@ -83,7 +97,6 @@ func (g *Gate) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (g *Gate) ResolveRef() {
-	g.Owner.ResolveRef()
 	if g.InStation != nil {
 		g.StationID = g.InStation.ID
 	}

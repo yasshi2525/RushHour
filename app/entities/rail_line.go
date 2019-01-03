@@ -78,7 +78,6 @@ func (l *RailLine) Resolve(args ...interface{}) {
 
 // ResolveRef set if from reference
 func (l *RailLine) ResolveRef() {
-	l.Owner.ResolveRef()
 }
 
 // Permits represents Player is permitted to control

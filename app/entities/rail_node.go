@@ -62,7 +62,6 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 			rn.Own = obj
 		case *Platform:
 			rn.OverPlatform = obj
-			obj.Resolve(rn)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -72,7 +71,6 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (rn *RailNode) ResolveRef() {
-	rn.Owner.ResolveRef()
 	if rn.OverPlatform != nil {
 		rn.PlatformID = rn.OverPlatform.ID
 	}

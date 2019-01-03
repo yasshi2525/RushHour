@@ -5,7 +5,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -56,7 +55,7 @@ func GenStep(from entities.Relayable, to entities.Relayable, weight float64, rev
 func AddEntity(args ...entities.Indexable) {
 	for _, obj := range args {
 		Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
-		revel.AppLog.Debugf("created %v", obj)
+		//revel.AppLog.Debugf("created %v", obj)
 	}
 }
 
@@ -66,7 +65,7 @@ func DelEntity(args ...entities.UnReferable) {
 		obj.UnRef()
 		Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.Value{})
 		Model.Remove[obj.Type()] = append(Model.Remove[obj.Type()], obj.Idx())
-		revel.AppLog.Debugf("removed %v", obj)
+		//revel.AppLog.Debugf("removed %v", obj)
 	}
 }
 

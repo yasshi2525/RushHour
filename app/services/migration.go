@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -19,8 +18,6 @@ func MigrateDB() {
 
 		proto := key.Obj()
 		db.AutoMigrate(proto)
-
-		revel.AppLog.Debugf("migrated for %T", proto)
 
 		// foreign key for owner
 		if _, ok := proto.(entities.Ownable); ok {

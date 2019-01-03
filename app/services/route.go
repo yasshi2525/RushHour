@@ -30,7 +30,7 @@ func StartRouting(msg string) {
 
 		if ok := search(searchCtx, searchCancel, msg); ok {
 			if reflectTo(reflectCtx, reflectCancel, msg) {
-				WarnLongExec(start, 10, "経路探索", true)
+				WarnLongExec(start, Config.Perf.Routing.D, "routing")
 			}
 		}
 	}()

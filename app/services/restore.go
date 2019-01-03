@@ -15,7 +15,7 @@ func Restore() {
 	defer revel.AppLog.Info("end restore from database")
 
 	start := time.Now()
-	defer WarnLongExec(start, 5, "DBリストア", true)
+	defer WarnLongExec(start, Config.Perf.Restore.D, "restore", true)
 
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
@@ -40,7 +40,6 @@ func setNextID() {
 		sql := fmt.Sprintf("SELECT max(id) as v FROM %s", key.Table())
 		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
 			Model.NextIDs[key] = &maxID.V
-			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Model.NextIDs[key])
 		} else {
 			panic(err)
 		}

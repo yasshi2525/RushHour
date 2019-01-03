@@ -9,7 +9,7 @@ import (
 // CreateResidence creates Residence and registers it to storage and step
 func CreateResidence(x float64, y float64) (*entities.Residence, error) {
 	r := entities.NewResidence(GenID(entities.RESIDENCE), x, y)
-	r.Wait = Config.Residence.Interval.Duration.Seconds() * rand.Float64()
+	r.Wait = Config.Residence.Interval.D.Seconds() * rand.Float64()
 	r.Capacity = Config.Residence.Capacity
 	r.Name = "NoName"
 	AddEntity(r)
@@ -29,7 +29,6 @@ func RemoveResidence(id uint) error {
 		}
 		DelEntity(r)
 	})
-	return nil
 }
 
 // CreateCompany creates Company and registers it to storage and step

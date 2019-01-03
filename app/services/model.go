@@ -35,11 +35,13 @@ func StartModelWatching() {
 	mkFuncs[entities.RESIDENCE] = CreateResidence
 	mkFuncs[entities.COMPANY] = CreateCompany
 	mkFuncs[entities.RAILNODE] = CreateRailNode
+	mkFuncs[entities.STATION] = CreateStation
 
 	rmFuncs = make(map[entities.ModelType]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
 	rmFuncs[entities.COMPANY] = RemoveCompany
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
+	rmFuncs[entities.STATION] = RemoveStation
 
 	go watchModel()
 	revel.AppLog.Info("model watching was successfully started.")
@@ -62,9 +64,13 @@ func watchModel() {
 		processMsg(msg)
 		StartRouting(msg.Source)
 
-		WarnLongExec(start, 2, fmt.Sprintf("モデル変更(%v)", msg), false)
+		WarnLongExec(start, Config.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}
 	revel.AppLog.Info("model watching channel was closed.")
+}
+
+func processOperation() {
+
 }
 
 func processMsg(msg *Operation) {
@@ -76,6 +82,7 @@ func processMsg(msg *Operation) {
 	switch msg.Op {
 	case "create":
 		rv := reflect.ValueOf(mkFuncs[msg.Target])
+		owner, _ := FetchOwner(msg.OName)
 		switch msg.Target {
 		case entities.PLAYER:
 			CreatePlayer(msg.OName, msg.OName, msg.OName, entities.Normal)
@@ -85,14 +92,17 @@ func processMsg(msg *Operation) {
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(msg.X),
 				reflect.ValueOf(msg.Y)})
-		default:
-			if owner, err := FetchOwner(msg.OName); err == nil {
+		case entities.RAILNODE:
+			rv.Call([]reflect.Value{
+				reflect.ValueOf(owner),
+				reflect.ValueOf(msg.X),
+				reflect.ValueOf(msg.Y)})
+		case entities.STATION:
+			if rn := randRailNode(owner); rn != nil {
 				rv.Call([]reflect.Value{
 					reflect.ValueOf(owner),
-					reflect.ValueOf(msg.X),
-					reflect.ValueOf(msg.Y)})
-			} else {
-				revel.AppLog.Warnf("invalid Player: %s", err)
+					reflect.ValueOf(rn),
+					reflect.ValueOf("NoName")})
 			}
 		}
 
@@ -141,4 +151,13 @@ func UpdateModel(msg *Operation) {
 	default:
 		revel.AppLog.Errorf("モデル変更キュー溢れ %+v", *msg)
 	}
+}
+
+func randRailNode(o *entities.Player) *entities.RailNode {
+	for _, rn := range Model.RailNodes {
+		if rn.Permits(o) {
+			return rn
+		}
+	}
+	return nil
 }
