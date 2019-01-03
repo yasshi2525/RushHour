@@ -22,7 +22,7 @@ func ViewMap(x float64, y float64, scale float64) interface{} {
 	for idx, res := range Meta.List {
 		// filter agent, step ...
 		if res.IsVisible() {
-			list := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(res.Type())), 0, 0)
+			list := reflect.MakeSlice(reflect.SliceOf(res.Type()), 0, 0)
 			ForeachModel(res, func(obj interface{}) {
 				// filter out of user view
 				if pos, ok := obj.(entities.Locationable); ok && pos.IsIn(center, scale) {
@@ -40,7 +40,7 @@ func newGameView() reflect.Value {
 	for _, res := range Meta.List {
 		fields = append(fields, reflect.StructField{
 			Name: res.String(),
-			Type: reflect.SliceOf(reflect.PtrTo(res.Type())),
+			Type: reflect.SliceOf(res.Type()),
 			Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", res.API())),
 		})
 	}
