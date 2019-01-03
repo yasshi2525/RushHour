@@ -32,10 +32,9 @@ func NewGate(gid uint, st *Station) *Gate {
 	g := &Gate{
 		Base:      NewBase(gid),
 		Owner:     st.Owner,
-		in:        make(map[uint]*Step),
-		out:       make(map[uint]*Step),
 		InStation: st,
 	}
+	g.Init()
 	g.ResolveRef()
 	st.Resolve(g)
 	return g
@@ -59,6 +58,9 @@ func (g *Gate) Init() {
 
 // Pos returns location
 func (g *Gate) Pos() *Point {
+	if g.WithPlatform == nil {
+		return nil
+	}
 	return g.WithPlatform.Pos()
 }
 
@@ -110,18 +112,40 @@ func (g *Gate) Permits(o *Player) bool {
 	return g.Owner.Permits(o)
 }
 
+// CheckRemove check remain relation.
 func (g *Gate) CheckRemove() error {
 	return nil
 }
 
+// UnRef deletes related reference
 func (g *Gate) UnRef() {
 
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (g *Gate) IsChanged() bool {
+	return g.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (g *Gate) Reset() {
+	g.Base.Reset()
+}
+
 // String represents status
 func (g *Gate) String() string {
-	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d:%v:%s", Meta.Attr[g.Type()].Short,
-		g.ID, g.InStation.ID, g.WithPlatform.ID,
-		len(g.in), len(g.out),
-		g.Pos(), g.InStation.Name)
+	ostr := ""
+	if g.Own != nil {
+		ostr = fmt.Sprintf(":%s", g.Own.Short())
+	}
+	ststr := ""
+	if g.InStation != nil {
+		ststr = fmt.Sprintf(":%s", g.InStation.Name)
+	}
+	posstr := ""
+	if g.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", g.Pos())
+	}
+	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d%s%s%s", Meta.Attr[g.Type()].Short,
+		g.ID, g.StationID, g.PlatformID, len(g.in), len(g.out), posstr, ostr, ststr)
 }

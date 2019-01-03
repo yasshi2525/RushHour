@@ -42,11 +42,12 @@ type LineTask struct {
 
 // NewLineTask create instance
 func NewLineTask(id uint, l *RailLine) *LineTask {
-	return &LineTask{
+	lt := &LineTask{
 		Base:   NewBase(id),
 		Owner:  l.Owner,
-		Trains: make(map[uint]*Train),
 	}
+	lt.Init()
+	return lt
 }
 
 // Idx returns unique id field.
@@ -68,8 +69,14 @@ func (lt *LineTask) Init() {
 func (lt *LineTask) Pos() *Point {
 	switch lt.TaskType {
 	case OnDeparture:
+		if lt.Stay == nil {
+			return nil
+		}
 		return lt.Stay.Pos()
 	default:
+		if lt.Moving == nil {
+			return nil
+		}
 		return lt.Moving.Pos()
 	}
 }
@@ -104,6 +111,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			}
 		case *RailEdge:
 			lt.Moving = obj
+			obj.Resolve(lt)
 		case *Train:
 			lt.Trains[obj.ID] = obj
 			switch lt.TaskType {
@@ -112,6 +120,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			default:
 				lt.Moving.Resolve(obj)
 			}
+			lt.RailLine.Resolve(obj)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -142,6 +151,11 @@ func (lt *LineTask) ResolveRef() {
 // UnRef remove related refernce
 func (lt *LineTask) UnRef() {
 	// TODO impl
+}
+
+// CheckRemove check remain relation.
+func (lt *LineTask) CheckRemove() error {
+	return nil
 }
 
 // Permits represents Player is permitted to control
@@ -179,8 +193,22 @@ func (lt *LineTask) Cost() float64 {
 	}
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (lt *LineTask) IsChanged() bool {
+	return lt.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (lt *LineTask) Reset() {
+	lt.Base.Reset()
+}
+
 // String represents status
 func (lt *LineTask) String() string {
+	ostr := ""
+	if lt.Own != nil {
+		ostr = fmt.Sprintf(":%s", lt.Own.Short())
+	}
 	next, stay, moving := "", "", ""
 	if lt.Next != nil {
 		next = fmt.Sprintf(",next=%d", lt.Next.ID)
@@ -191,9 +219,17 @@ func (lt *LineTask) String() string {
 	if lt.Moving != nil {
 		moving = fmt.Sprintf(",re=%d", lt.Moving.ID)
 	}
-
-	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s:%v:%s", Meta.Attr[lt.Type()].Short,
-		lt.ID, lt.TaskType, lt.RailLine.ID, next, stay, moving, lt.Pos(), lt.RailLine.Name)
+	posstr := ""
+	if lt.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", lt.Pos())
+	}
+	nmstr := ""
+	if lt.RailLine != nil {
+		nmstr = fmt.Sprintf(":%s", lt.RailLine.Name)
+	}
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s", Meta.Attr[lt.Type()].Short,
+		lt.ID, lt.TaskType, lt.RailLineID, next, stay, moving,
+		posstr, ostr, nmstr)
 }
 
 func (ltt LineTaskType) String() string {

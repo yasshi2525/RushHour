@@ -17,12 +17,14 @@ type Company struct {
 
 // NewCompany create new instance without setting parameters
 func NewCompany(id uint, x float64, y float64) *Company {
-	return &Company{
+	c:= &Company{
 		Base:    NewBase(id),
 		Point:   NewPoint(x, y),
 		in:      make(map[uint]*Step),
 		Targets: make(map[uint]*Human),
 	}
+	c.Init()
+	return c
 }
 
 // Idx returns unique id field.
@@ -83,9 +85,19 @@ func (c *Company) ResolveRef() {
 func (c *Company) UnRef() {
 }
 
-// CanRemove check remaining reference
-func (c *Company) CanRemove() (bool, error) {
-	return true, nil
+// CheckRemove check remaining reference
+func (c *Company) CheckRemove() error {
+	return nil
+}
+
+// IsChanged returns true when it is changed after Backup()
+func (c *Company) IsChanged() bool {
+	return c.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (c *Company) Reset() {
+	c.Base.Reset()
 }
 
 // String represents status

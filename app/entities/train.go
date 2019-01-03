@@ -29,11 +29,12 @@ type Train struct {
 
 // NewTrain creates instance
 func NewTrain(id uint, o *Player) *Train {
-	return &Train{
+	t := &Train{
 		Base:       NewBase(id),
 		Owner:      NewOwner(o),
-		Passengers: make(map[uint]*Human),
 	}
+	t.Init()
+	return t
 }
 
 // Idx returns unique id field.
@@ -99,17 +100,40 @@ func (t *Train) ResolveRef() {
 	}
 }
 
+// CheckRemove check remain relation.
+func (t *Train) CheckRemove() error {
+	return nil
+}
+
 // Permits represents Player is permitted to control
 func (t *Train) Permits(o *Player) bool {
 	return t.Owner.Permits(o)
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (t *Train) IsChanged() bool {
+	return t.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (t *Train) Reset() {
+	t.Base.Reset()
+}
+
 // String represents status
 func (t *Train) String() string {
+	ostr := ""
+	if t.Own != nil {
+		ostr = fmt.Sprintf(":%s", t.Own.Short())
+	}
 	ltstr := ""
 	if t.Task != nil {
 		ltstr = fmt.Sprintf(",lt=%d", t.Task.ID)
 	}
-	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%v:%s", Meta.Attr[t.Type()].Short,
-		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, t.Pos(), t.Name)
+	posstr := ""
+	if t.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", t.Pos())
+	}
+	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f%s%s:%s", Meta.Attr[t.Type()].Short,
+		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, posstr, ostr, t.Name)
 }

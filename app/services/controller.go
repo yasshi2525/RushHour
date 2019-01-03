@@ -79,6 +79,11 @@ func TryRemove(
 		return fmt.Errorf("no permission to delete %v", prop)
 	}
 
+	// reference
+	if err := obj.(entities.Removable).CheckRemove(); err != nil {
+		return err
+	}
+
 	callback(obj)
 	return nil
 }

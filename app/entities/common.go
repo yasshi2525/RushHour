@@ -12,6 +12,8 @@ type Base struct {
 	CreatedAt time.Time  `                   json:"-"`
 	UpdatedAt time.Time  `                   json:"-"`
 	DeletedAt *time.Time `gorm:"index"       json:"-"`
+	// Changed represents it need to update database
+	Changed bool `gorm:"-" json:"-"`
 }
 
 // NewBase create new Base
@@ -20,7 +22,18 @@ func NewBase(id uint) Base {
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		Changed: true,
 	}
+}
+
+// IsChanged returns true when it is changed after Backup()
+func (base Base) IsChanged() bool {
+	return base.Changed
+}
+
+// Reset set status as not changed
+func (base Base) Reset() {
+	base.Changed = false
 }
 
 // Owner means this faciliites in under the control by Player.

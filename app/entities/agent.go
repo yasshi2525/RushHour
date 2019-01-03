@@ -11,9 +11,11 @@ type Agent struct {
 
 // NewAgent creates instance
 func NewAgent(h *Human) *Agent {
-	return &Agent{
+	a := &Agent{
 		Human: h,
 	}
+	a.Init()
+	return a
 }
 
 // Init do nothing
@@ -38,6 +40,12 @@ func (a *Agent) Consume(interval float64) {
 
 // String represents status
 func (a *Agent) String() string {
-	return fmt.Sprintf("%s(%d):%v:%v", Meta.Attr[a.Type()].Short,
-		a.Human.ID, a.Current, a.Human.Pos())
+	idstr := "?"
+	posstr := ""
+	if a.Human != nil {
+		idstr = fmt.Sprintf("%d", a.Human.ID)
+		posstr = fmt.Sprintf(":%s", a.Human.Pos())
+	}
+	return fmt.Sprintf("%s(%s):%v%s", Meta.Attr[a.Type()].Short,
+		idstr, a.Current, posstr)
 }

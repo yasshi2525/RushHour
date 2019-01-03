@@ -12,7 +12,8 @@ type RailEdge struct {
 	from *RailNode
 	to   *RailNode
 
-	Trains map[uint]*Train `gorm:"-" json:"-"`
+	Trains    map[uint]*Train    `gorm:"-" json:"-"`
+	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
 
 	FromID uint `gorm:"not null" json:"from"`
 	ToID   uint `gorm:"not null" json:"to"`
@@ -21,12 +22,12 @@ type RailEdge struct {
 // NewRailEdge create new instance and relates RailNode
 func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Base:   NewBase(id),
-		Owner:  f.Owner,
-		from:   f,
-		to:     t,
-		Trains: make(map[uint]*Train),
+		Base:  NewBase(id),
+		Owner: f.Owner,
+		from:  f,
+		to:    t,
 	}
+	re.Init()
 	re.ResolveRef()
 
 	f.OutEdge[re.ID] = re
@@ -47,10 +48,14 @@ func (re *RailEdge) Type() ModelType {
 // Init do nothing
 func (re *RailEdge) Init() {
 	re.Trains = make(map[uint]*Train)
+	re.LineTasks = make(map[uint]*LineTask)
 }
 
 // Pos returns location
 func (re *RailEdge) Pos() *Point {
+	if re.from == nil || re.to == nil {
+		return nil
+	}
 	return re.from.Pos().Center(re.to.Pos())
 }
 
@@ -92,6 +97,8 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 			} else {
 				re.to = obj
 			}
+		case *LineTask:
+			re.LineTasks[obj.ID] = obj
 		case *Train:
 			re.Trains[obj.ID] = obj
 			obj.Resolve(re)
@@ -112,13 +119,44 @@ func (re *RailEdge) ResolveRef() {
 	}
 }
 
+// CheckRemove check remain relation.
+func (re *RailEdge) CheckRemove() error {
+	for _, lt := range re.LineTasks {
+		if err := lt.CheckRemove(); err != nil {
+			return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
+		}
+	}
+	if len(re.Trains) > 0 {
+		return fmt.Errorf("blocked by Train of %v", re.Trains)
+	}
+	return nil
+}
+
 // Permits represents Player is permitted to control
 func (re *RailEdge) Permits(o *Player) bool {
 	return re.Owner.Permits(o)
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (re *RailEdge) IsChanged() bool {
+	return re.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (re *RailEdge) Reset() {
+	re.Base.Reset()
+}
+
 // String represents status
 func (re *RailEdge) String() string {
-	return fmt.Sprintf("%s(%d):f=%d,t=%d:%v", Meta.Attr[re.Type()],
-		re.ID, re.from.ID, re.to.ID, re.Pos())
+	ostr := ""
+	if re.Own != nil {
+		ostr = fmt.Sprintf(":%s", re.Own.Short())
+	}
+	posstr := ""
+	if re.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", re.Pos())
+	}
+	return fmt.Sprintf("%s(%d):f=%d,t=%d%s%s", Meta.Attr[re.Type()].Short,
+		re.ID, re.FromID, re.ToID, posstr, ostr)
 }

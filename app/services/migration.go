@@ -23,8 +23,6 @@ func MigrateDB() {
 		if _, ok := proto.(entities.Ownable); ok {
 			owner := fmt.Sprintf("%s(id)", entities.PLAYER.Table())
 			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
-
-			//revel.AppLog.Debugf("added owner foreign key for %s table", owner)
 		}
 
 		foreign[key] = fmt.Sprintf("%s(id)", key.Table())

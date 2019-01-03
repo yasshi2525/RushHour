@@ -24,9 +24,11 @@ type Player struct {
 
 // NewPlayer create instance
 func NewPlayer(id uint) *Player {
-	return &Player{
+	p := &Player{
 		Base: NewBase(id),
 	}
+	p.Init()
+	return p
 }
 
 // Idx returns unique id field.
@@ -58,10 +60,30 @@ func (o *Player) ResolveRef() {
 	// do-nothing
 }
 
+// CheckRemove check remain relation.
+func (o *Player) CheckRemove() error {
+	return nil
+}
+
 // String represents status
 func (o *Player) String() string {
-	return fmt.Sprintf("%s(%s):lv=%v:%s", Meta.Attr[o.Type()].Short,
-		o.LoginID, o.Level, o.DisplayName)
+	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", Meta.Attr[o.Type()].Short,
+		o.ID, o.LoginID, o.Level, o.DisplayName)
+}
+
+// Short returns short description
+func (o *Player) Short() string {
+	return fmt.Sprintf("%s(%d)", o.LoginID, o.ID)
+}
+
+// IsChanged returns true when it is changed after Backup()
+func (o *Player) IsChanged() bool {
+	return o.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (o *Player) Reset() {
+	o.Base.Reset()
 }
 
 func (pt PlayerType) String() string {

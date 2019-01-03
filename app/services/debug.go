@@ -117,7 +117,7 @@ func tickOp(source string, target entities.ModelType, interval time.Duration, ca
 // WarnLongExec alerts long time consuming task.
 func WarnLongExec(start time.Time, max time.Duration, title string, verbose ...bool) {
 	if consumed := time.Now().Sub(start); consumed > max {
-		revel.AppLog.Warnf("%s consumed %.2f sec", title, consumed.Seconds())
+		revel.AppLog.Warnf("%s consumed %.2f sec (border %.2f sec)", title, consumed.Seconds(), max.Seconds())
 	} else if len(verbose) > 0 && verbose[0] {
 		revel.AppLog.Debugf("%s consumed %.2f sec", title, consumed.Seconds())
 	}

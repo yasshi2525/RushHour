@@ -84,9 +84,19 @@ func (r *Residence) ResolveRef() {
 func (r *Residence) UnRef() {
 }
 
-// CanRemove check remaining reference
-func (r *Residence) CanRemove() (bool, error) {
-	return true, nil
+// CheckRemove check remaining reference
+func (r *Residence) CheckRemove() error {
+	return  nil
+}
+
+// IsChanged returns true when it is changed after Backup()
+func (r *Residence) IsChanged() bool {
+	return r.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (r *Residence) Reset() {
+	r.Base.Reset()
 }
 
 func (r *Residence) String() string {

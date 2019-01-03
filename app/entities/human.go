@@ -54,11 +54,12 @@ type Human struct {
 
 // NewHuman create instance
 func NewHuman(id uint, x float64, y float64) *Human {
-	return &Human{
+	h := &Human{
 		Base:  NewBase(id),
 		Point: NewPoint(x, y),
-		out:   make(map[uint]*Step),
 	}
+	h.Init()
+	return h
 }
 
 // Idx returns unique id field.
@@ -141,6 +142,11 @@ func (h *Human) UnRef() {
 	}
 }
 
+// CheckRemove check remain relation.
+func (h *Human) CheckRemove() error {
+	return nil
+}
+
 // TurnTo make Human turn head to dest.
 func (h *Human) turnTo(dest *Point) *Human {
 	h.Angle = math.Atan2(dest.Y-h.Y, dest.X-h.X)
@@ -211,6 +217,16 @@ func (h *Human) ShouldGetOff(from *Train) bool {
 	return false
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (h *Human) IsChanged() bool {
+	return h.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (h *Human) Reset() {
+	h.Base.Reset()
+}
+
 // String represents status
 func (h *Human) String() string {
 	pstr, tstr := "", ""
@@ -223,5 +239,5 @@ func (h *Human) String() string {
 
 	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v",
 		Meta.Attr[h.Type()].Short,
-		h.ID, h.From.ID, h.To.ID, pstr, tstr, h.Available, h.Lifespan, h.Progress, h.Pos())
+		h.ID, h.FromID, h.ToID, pstr, tstr, h.Available, h.Lifespan, h.Progress, h.Pos())
 }

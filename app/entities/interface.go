@@ -59,3 +59,14 @@ type Ownable interface {
 	// Permits represents Player is permitted to control
 	Permits(*Player) bool
 }
+
+// Persistable represents Differencial backup
+type Persistable interface {
+	IsChanged() bool
+	Reset()
+}
+
+// Removable can check to able to remove
+type Removable interface {
+	CheckRemove() error
+}

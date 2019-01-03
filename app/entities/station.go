@@ -20,10 +20,12 @@ type Station struct {
 
 // NewStation create new instance.
 func NewStation(stid uint, o *Player) *Station {
-	return &Station{
+	st := &Station{
 		Base:  NewBase(stid),
 		Owner: NewOwner(o),
 	}
+	st.Init()
+	return st
 }
 
 // Idx returns unique id field.
@@ -42,6 +44,9 @@ func (st *Station) Init() {
 
 // Pos returns location
 func (st *Station) Pos() *Point {
+	if st.Platform == nil {
+		return nil
+	}
 	return st.Platform.Pos()
 }
 
@@ -55,7 +60,7 @@ func (st *Station) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			st.Own = obj
+			st.Owner = NewOwner(obj)
 		case *Gate:
 			st.Gate = obj
 		case *Platform:
@@ -80,12 +85,6 @@ func (st *Station) ResolveRef() {
 
 // CheckRemove checks related reference
 func (st *Station) CheckRemove() error {
-	if err := st.Gate.CheckRemove(); err != nil {
-		return err
-	}
-	if err := st.Platform.CheckRemove(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -99,8 +98,26 @@ func (st *Station) Permits(o *Player) bool {
 	return st.Owner.Permits(o)
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (st *Station) IsChanged() bool {
+	return st.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (st *Station) Reset() {
+	st.Base.Reset()
+}
+
 // String represents status
 func (st *Station) String() string {
-	return fmt.Sprintf("%s(%d):g=%d,p=%d:%v:%s", Meta.Attr[st.Type()].Short,
-		st.ID, st.Platform.ID, st.Gate.ID, st.Pos(), st.Name)
+	ostr := ""
+	if st.Own != nil {
+		ostr = fmt.Sprintf(":%s", st.Own.Short())
+	}
+	posstr := ""
+	if st.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", st.Pos())
+	}
+	return fmt.Sprintf("%s(%d):g=%d,p=%d%s%s:%s", Meta.Attr[st.Type()].Short,
+		st.ID, st.PlatformID, st.GateID, posstr, ostr, st.Name)
 }

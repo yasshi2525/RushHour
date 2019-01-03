@@ -1,6 +1,8 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Step represents two Relayable is logically connected.
 // Step is out of target for persistence because it can derived by other resources.
@@ -19,6 +21,7 @@ func NewStep(id uint, f Relayable, t Relayable, weight float64) *Step {
 		to:     t,
 		Weight: weight,
 	}
+	step.Init()
 	f.Out()[step.ID] = step
 	t.In()[step.ID] = step
 	return step
@@ -71,6 +74,10 @@ func (s *Step) UnRef() {
 
 // String represents status
 func (s *Step) String() string {
-	return fmt.Sprintf("%s(%v):from=%v,to=%v,w=%.2f:%v", Meta.Attr[s.Type()].Short,
-		s.ID, s.from, s.to, s.Weight, s.Pos())
+	posstr := ""
+	if s.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", s.Pos())
+	}
+	return fmt.Sprintf("%s(%v):from=%v,to=%v,w=%.2f%s", Meta.Attr[s.Type()].Short,
+		s.ID, s.from, s.to, s.Weight, posstr)
 }

@@ -15,10 +15,9 @@ func Init() {
 	defer revel.AppLog.Info("end preparation for game")
 
 	start := time.Now()
-	defer WarnLongExec(start, Config.Perf.Init.D, "initialization", true)
-
 	InitLock()
 	LoadConf()
+	defer WarnLongExec(start, Config.Perf.Init.D, "initialization", true)
 	InitRepository()
 	db = connectDB()
 	MigrateDB()

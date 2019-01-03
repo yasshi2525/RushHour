@@ -71,24 +71,34 @@ func updateForeignKey() {
 
 func persistStatic(tx *gorm.DB) {
 	// upsert
+	updateCnt, skipCnt := 0, 0
 	for _, res := range Meta.List {
 		if res.IsDB() {
-			ForeachModel(res, func(obj interface{}) {
-				tx.Save(obj)
+			ForeachModel(res, func(raw interface{}) {
+				obj := raw.(entities.Persistable)
+				if obj.IsChanged() {
+					tx.Save(obj)
+					obj.Reset()
+					updateCnt++
+				} else {
+					skipCnt++
+				}
 			})
 		}
 	}
 
 	// remove old resources
+	removeCnt := 0
 	for i := len(Meta.List) - 1; i >= 0; i-- {
 		key := Meta.List[i]
 		if key.IsDB() {
 			for _, id := range Model.Remove[key] {
 				sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
 				tx.Exec(sql, time.Now(), time.Now(), id)
-				revel.AppLog.Debugf("delete %v(%d)", key, id)
+				removeCnt++
 			}
 			Model.Remove[key] = Model.Remove[key][:0]
 		}
 	}
+	revel.AppLog.Infof("persisted records (updated %d, deleted %d, skipped %d)", updateCnt, removeCnt, skipCnt)
 }

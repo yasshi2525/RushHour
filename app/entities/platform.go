@@ -34,15 +34,11 @@ func NewPlatform(pid uint, rn *RailNode, g *Gate, st *Station) *Platform {
 	p := &Platform{
 		Base:       NewBase(pid),
 		Owner:      rn.Owner,
-		in:         make(map[uint]*Step),
-		out:        make(map[uint]*Step),
-		Trains:     make(map[uint]*Train),
-		Passengers: make(map[uint]*Human),
-		LineTasks:  make(map[uint]*LineTask),
 		OnRailNode: rn,
 		InStation:  st,
 		WithGate:   g,
 	}
+	p.Init()
 	p.ResolveRef()
 	rn.Resolve(p)
 	g.Resolve(p)
@@ -71,6 +67,9 @@ func (p *Platform) Init() {
 
 // Pos returns location
 func (p *Platform) Pos() *Point {
+	if p.OnRailNode == nil {
+		return nil
+	}
 	return p.OnRailNode.Pos()
 }
 
@@ -130,6 +129,9 @@ func (p *Platform) ResolveRef() {
 
 // CheckRemove checks related reference
 func (p *Platform) CheckRemove() error {
+	if len(p.Trains) > 0 {
+		return fmt.Errorf("blocked by Train of %v", p.Trains)
+	}
 	return nil
 }
 
@@ -154,11 +156,33 @@ func (p *Platform) Permits(o *Player) bool {
 	return p.Owner.Permits(o)
 }
 
+// IsChanged returns true when it is changed after Backup()
+func (p *Platform) IsChanged() bool {
+	return p.Base.IsChanged()
+}
+
+// Reset set status as not changed
+func (p *Platform) Reset() {
+	p.Base.Reset()
+}
+
 // String represents status
 func (p *Platform) String() string {
-	return fmt.Sprintf("%s(%d):st=%d,g=%d,i=%d,o=%d,h=%d/%d:%v:%s",
+	ostr := ""
+	if p.Own != nil {
+		ostr = fmt.Sprintf(":%s", p.Own.Short())
+	}
+	posstr := ""
+	if p.Pos() != nil {
+		posstr = fmt.Sprintf(":%s", p.Pos())
+	}
+	nmstr := ""
+	if p.InStation != nil {
+		nmstr = fmt.Sprintf(":%s", p.InStation.Name)
+	}
+	return fmt.Sprintf("%s(%d):st=%d,g=%d,rn=%d,i=%d,o=%d,h=%d/%d%s%s%s",
 		Meta.Attr[p.Type()].Short,
-		p.ID, p.InStation.ID, p.WithGate.ID,
+		p.ID, p.StationID, p.GateID, p.RailNodeID,
 		len(p.in), len(p.out), len(p.Passengers), p.Capacity,
-		p.Pos(), p.InStation.Name)
+		posstr, ostr, nmstr)
 }
