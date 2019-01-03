@@ -6,7 +6,7 @@ import (
 
 // Station composes on Platform and Gate
 type Station struct {
-	Model
+	Base
 	Owner
 
 	Platform *Platform `gorm:"-" json:"-"`
@@ -21,7 +21,7 @@ type Station struct {
 // NewStation create new instance.
 func NewStation(stid uint, gid uint, pid uint, rn *RailNode) (*Station, *Gate, *Platform) {
 	p := &Platform{
-		Model:      NewModel(pid),
+		Base:       NewBase(pid),
 		Owner:      rn.Owner,
 		in:         make(map[uint]*Step),
 		out:        make(map[uint]*Step),
@@ -32,14 +32,14 @@ func NewStation(stid uint, gid uint, pid uint, rn *RailNode) (*Station, *Gate, *
 	rn.OverPlatform = p
 
 	g := &Gate{
-		Model: NewModel(gid),
+		Base:  NewBase(gid),
 		Owner: rn.Owner,
 		in:    make(map[uint]*Step),
 		out:   make(map[uint]*Step),
 	}
 
 	st := &Station{
-		Model:    NewModel(stid),
+		Base:     NewBase(stid),
 		Owner:    rn.Owner,
 		Platform: p,
 		Gate:     g,
@@ -60,10 +60,13 @@ func (st *Station) Idx() uint {
 	return st.ID
 }
 
+// Type returns type of entitiy
+func (st *Station) Type() ModelType {
+	return STATION
+}
+
 // Init creates map.
 func (st *Station) Init() {
-	st.Model.Init()
-	st.Owner.Init()
 }
 
 // Pos returns location
@@ -112,6 +115,6 @@ func (st *Station) Permits(o *Player) bool {
 
 // String represents status
 func (st *Station) String() string {
-	return fmt.Sprintf("%s(%d):g=%d,p=%d:%v:%s", Meta.Static[STATION].Short,
+	return fmt.Sprintf("%s(%d):g=%d,p=%d:%v:%s", Meta.Attr[st.Type()].Short,
 		st.ID, st.Platform.ID, st.Gate.ID, st.Pos(), st.Name)
 }

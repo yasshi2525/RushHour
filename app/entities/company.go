@@ -6,7 +6,7 @@ import (
 
 // Company is the destination of Human
 type Company struct {
-	Model
+	Base
 	Point
 	in      map[uint]*Step
 	Targets map[uint]*Human `gorm:"-" json:"-"`
@@ -18,7 +18,7 @@ type Company struct {
 // NewCompany create new instance without setting parameters
 func NewCompany(id uint, x float64, y float64) *Company {
 	return &Company{
-		Model:   NewModel(id),
+		Base:    NewBase(id),
 		Point:   NewPoint(x, y),
 		in:      make(map[uint]*Step),
 		Targets: make(map[uint]*Human),
@@ -30,10 +30,13 @@ func (c *Company) Idx() uint {
 	return c.ID
 }
 
+// Type returns type of entitiy
+func (c *Company) Type() ModelType {
+	return COMPANY
+}
+
 // Init creates map.
 func (c *Company) Init() {
-	c.Model.Init()
-	c.Point.Init()
 	c.in = make(map[uint]*Step)
 	c.Targets = make(map[uint]*Human)
 }
@@ -76,8 +79,12 @@ func (c *Company) ResolveRef() {
 	// do-nothing
 }
 
+// UnRef remove reference of related entity
+func (c *Company) UnRef() {
+}
+
 // String represents status
 func (c *Company) String() string {
-	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", Meta.Static[COMPANY].Short,
+	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", Meta.Attr[c.Type()].Short,
 		c.ID, len(c.in), len(c.Targets), c.Pos(), c.Name)
 }

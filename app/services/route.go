@@ -55,14 +55,14 @@ func search(ctx context.Context, cancel context.CancelFunc, msg string) bool {
 	defer MuDynamic.RUnlock()
 
 	cnt := 0
-	for _, c := range Static.Companies {
+	for _, c := range Model.Companies {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("search Canceleld %s in %d / %d", msg, cnt+1, len(Static.Companies))
+			revel.AppLog.Debugf("search Canceleld %s in %d / %d", msg, cnt+1, len(Model.Companies))
 			return false
 		default:
 			goal, nodes := genNodes(c)
-			entities.GenEdges(nodes, Dynamic.Steps)
+			entities.GenEdges(nodes, Model.Steps)
 			goal.WalkThrough()
 			for _, n := range nodes {
 				n.Fix()
@@ -79,24 +79,20 @@ func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
 	var wrapper *entities.Node
 	ns := []*entities.Node{}
 
-	for _, res := range Meta.StaticList {
+	for _, res := range Meta.List {
 		if _, ok := res.Obj().(entities.Relayable); ok {
-			mapdata := Meta.StaticMap[res]
-			for _, key := range mapdata.MapKeys() {
-				obj := mapdata.MapIndex(key).Interface()
-
+			ForeachModel(res, func(obj interface{}) {
 				if h, isHuman := obj.(entities.Human); isHuman && h.To != goal {
 					revel.AppLog.Debugf("skip %s(%d) because dept=%s(%d)", res, h.ID, entities.COMPANY, goal.ID)
-					continue
+					return
 				}
-
 				n := entities.NewNode(obj.(entities.Relayable))
 				if obj == goal {
 					wrapper = n
 					//revel.AppLog.Debugf("found wrapper %s(%d) for %s(%d)", res, obj.(entities.Indexable).Idx(), entities.COMPANY, goal.ID)
 				}
 				ns = append(ns, n)
-			}
+			})
 			//revel.AppLog.Debugf("gen node %s for routing len(%d)", res, len(ns))
 		}
 	}
@@ -110,15 +106,15 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool 
 	defer MuDynamic.Unlock()
 
 	cnt := 0
-	for _, h := range Static.Humans {
+	for _, h := range Model.Humans {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Static.Humans))
+			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Model.Humans))
 			return false
 		default:
 			for _, n := range RouteTemplate[h.To.ID] {
 				if n.Base == h {
-					Dynamic.Agents[h.ID].Current = n.ViaEdge
+					Model.Agents[h.ID].Current = n.ViaEdge
 				}
 			}
 			cnt++

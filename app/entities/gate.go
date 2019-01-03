@@ -7,7 +7,7 @@ import (
 // Gate represents ticket gate in Station.
 // Human must pass Gate to enter/leave Platform.
 type Gate struct {
-	Model
+	Base
 	Owner
 
 	out map[uint]*Step
@@ -24,7 +24,7 @@ type Gate struct {
 	Occupied uint `gorm:"not null" json:"occupied"`
 
 	StationID  uint `gorm:"not null" json:"stid"`
-	PlatformID uint `gorm:"-" json:"pid"`
+	PlatformID uint `gorm:"-"        json:"pid"`
 }
 
 // Idx returns unique id field.
@@ -32,10 +32,13 @@ func (g *Gate) Idx() uint {
 	return g.ID
 }
 
+// Type returns type of entitiy
+func (g *Gate) Type() ModelType {
+	return GATE
+}
+
 // Init creates map.
 func (g *Gate) Init() {
-	g.Model.Init()
-	g.Owner.Init()
 	g.out = make(map[uint]*Step)
 	g.in = make(map[uint]*Step)
 }
@@ -96,7 +99,7 @@ func (g *Gate) Permits(o *Player) bool {
 
 // String represents status
 func (g *Gate) String() string {
-	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d:%v:%s", Meta.Static[GATE].Short,
+	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d:%v:%s", Meta.Attr[g.Type()].Short,
 		g.ID, g.InStation.ID, g.WithPlatform.ID,
 		len(g.in), len(g.out),
 		g.Pos(), g.InStation.Name)

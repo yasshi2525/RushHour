@@ -21,28 +21,27 @@ const (
 // LineTask is the element of Line.
 // The chain of LineTask represents Line structure.
 type LineTask struct {
-	Model
+	Base
 	Owner
 
-	RailLine *RailLine    `gorm:"-" json:"-"`
-	Type     LineTaskType `gorm:"not null" json:"type"`
-	Next     *LineTask    `gorm:"-" json:"-"`
-
-	Stay   *Platform `gorm:"-" json:"-"`
-	Moving *RailEdge `gorm:"-" json:"-"`
+	RailLine *RailLine    `gorm:"-"        json:"-"`
+	TaskType LineTaskType `gorm:"not null" json:"type"`
+	Next     *LineTask    `gorm:"-"        json:"-"`
+	Stay     *Platform    `gorm:"-"        json:"-"`
+	Moving   *RailEdge    `gorm:"-"        json:"-"`
 
 	Trains map[uint]*Train `gorm:"-" json:"-"`
 
 	RailLineID uint `gorm:"not null" json:"lid"`
-	NextID     uint `json:"next,omitempty"`
-	StayID     uint `json:"pid,omitempty"`
-	MovingID   uint `json:"reid,omitempty"`
+	NextID     uint `                json:"next,omitempty"`
+	StayID     uint `                json:"pid,omitempty"`
+	MovingID   uint `                json:"reid,omitempty"`
 }
 
 // NewLineTask create instance
 func NewLineTask(id uint, l *RailLine) *LineTask {
 	return &LineTask{
-		Model:  NewModel(id),
+		Base:   NewBase(id),
 		Owner:  l.Owner,
 		Trains: make(map[uint]*Train),
 	}
@@ -53,16 +52,19 @@ func (lt *LineTask) Idx() uint {
 	return lt.ID
 }
 
+// Type returns type of entitiy
+func (lt *LineTask) Type() ModelType {
+	return LINETASK
+}
+
 // Init do nothing
 func (lt *LineTask) Init() {
-	lt.Model.Init()
-	lt.Owner.Init()
 	lt.Trains = make(map[uint]*Train)
 }
 
 // Pos returns entities' position
 func (lt *LineTask) Pos() *Point {
-	switch lt.Type {
+	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay.Pos()
 	default:
@@ -72,7 +74,7 @@ func (lt *LineTask) Pos() *Point {
 
 // IsIn returns it should be view or not.
 func (lt *LineTask) IsIn(center *Point, scale float64) bool {
-	switch lt.Type {
+	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay.IsIn(center, scale)
 	default:
@@ -95,7 +97,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.Moving = obj
 		case *Train:
 			lt.Trains[obj.ID] = obj
-			switch lt.Type {
+			switch lt.TaskType {
 			case OnDeparture:
 				lt.Stay.Resolve(obj)
 			default:
@@ -133,7 +135,7 @@ func (lt *LineTask) Permits(o *Player) bool {
 
 // From represents start point
 func (lt *LineTask) From() Locationable {
-	switch lt.Type {
+	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay
 	default:
@@ -143,7 +145,7 @@ func (lt *LineTask) From() Locationable {
 
 // To represents end point
 func (lt *LineTask) To() Locationable {
-	switch lt.Type {
+	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay
 	default:
@@ -153,7 +155,7 @@ func (lt *LineTask) To() Locationable {
 
 // Cost represents distance
 func (lt *LineTask) Cost() float64 {
-	switch lt.Type {
+	switch lt.TaskType {
 	case OnDeparture:
 		return 0
 	default:
@@ -174,8 +176,8 @@ func (lt *LineTask) String() string {
 		moving = fmt.Sprintf(",re=%d", lt.Moving.ID)
 	}
 
-	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s:%v:%s", Meta.Static[LINETASK].Short,
-		lt.ID, lt.Type, lt.RailLine.ID, next, stay, moving, lt.Pos(), lt.RailLine.Name)
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s:%v:%s", Meta.Attr[lt.Type()].Short,
+		lt.ID, lt.TaskType, lt.RailLine.ID, next, stay, moving, lt.Pos(), lt.RailLine.Name)
 }
 
 func (ltt LineTaskType) String() string {

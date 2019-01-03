@@ -12,7 +12,7 @@ import (
 // Operation represents request for model
 type Operation struct {
 	Source string
-	Target entities.StaticRes
+	Target entities.ModelType
 	ID     uint
 	X      float64
 	Y      float64
@@ -22,21 +22,21 @@ type Operation struct {
 
 var modelChannel chan *Operation
 
-var mkFuncs map[entities.StaticRes]interface{}
-var rmFuncs map[entities.StaticRes]interface{}
+var mkFuncs map[entities.ModelType]interface{}
+var rmFuncs map[entities.ModelType]interface{}
 
 // StartModelWatching setup watching model
 func StartModelWatching() {
 
 	modelChannel = make(chan *Operation, Config.Game.Queue)
 
-	mkFuncs = make(map[entities.StaticRes]interface{})
+	mkFuncs = make(map[entities.ModelType]interface{})
 	mkFuncs[entities.PLAYER] = CreatePlayer
 	mkFuncs[entities.RESIDENCE] = CreateResidence
 	mkFuncs[entities.COMPANY] = CreateCompany
 	mkFuncs[entities.RAILNODE] = CreateRailNode
 
-	rmFuncs = make(map[entities.StaticRes]interface{})
+	rmFuncs = make(map[entities.ModelType]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
 	rmFuncs[entities.COMPANY] = RemoveCompany
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
@@ -124,8 +124,8 @@ func processMsg(msg *Operation) {
 }
 
 // randID return random id existing in repository
-func randID(t entities.StaticRes) (uint, bool) {
-	mapdata := Meta.StaticMap[t]
+func randID(t entities.ModelType) (uint, bool) {
+	mapdata := Meta.Map[t]
 	for _, e := range mapdata.MapKeys() {
 		return uint(e.Uint()), true
 	}

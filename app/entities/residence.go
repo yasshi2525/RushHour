@@ -6,26 +6,23 @@ import (
 
 // Residence generate Human in a period
 type Residence struct {
-	Model
+	Base
 	Point
 	out      map[uint]*Step
-	in       map[uint]*Step
-	Targets  map[uint]*Human `gorm:"-" json:"-"`
+	Targets  map[uint]*Human `gorm:"-"        json:"-"`
 	Capacity uint            `gorm:"not null" json:"capacity"`
 	// Wait represents how msec after it generates Human
 	Wait float64 `gorm:"not null" json:"wait"`
-	Name string  `json:"name"`
+	Name string  `                json:"name"`
 }
 
 // NewResidence create new instance without setting parameters
 func NewResidence(id uint, x float64, y float64) *Residence {
 	r := &Residence{
-		Model:   NewModel(id),
-		Point:   NewPoint(x, y),
-		out:     make(map[uint]*Step),
-		in:      make(map[uint]*Step),
-		Targets: make(map[uint]*Human),
+		Base:  NewBase(id),
+		Point: NewPoint(x, y),
 	}
+	r.Init()
 	return r
 }
 
@@ -34,11 +31,14 @@ func (r *Residence) Idx() uint {
 	return r.ID
 }
 
+// Type returns type of entitiy
+func (r *Residence) Type() ModelType {
+	return RESIDENCE
+}
+
 // Init creates map.
 func (r *Residence) Init() {
-	r.Model.Init()
 	r.out = make(map[uint]*Step)
-	r.in = make(map[uint]*Step)
 	r.Targets = make(map[uint]*Human)
 }
 
@@ -59,7 +59,7 @@ func (r *Residence) Out() map[uint]*Step {
 
 // In returns where it comes from
 func (r *Residence) In() map[uint]*Step {
-	return r.in
+	return nil
 }
 
 // Resolve set reference
@@ -80,7 +80,11 @@ func (r *Residence) ResolveRef() {
 	// do-nothing
 }
 
+// UnRef remove reference of related entity
+func (r *Residence) UnRef() {
+}
+
 func (r *Residence) String() string {
-	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Static[RESIDENCE].Short,
+	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Attr[r.Type()].Short,
 		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)
 }

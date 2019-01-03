@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func TestCreateResidence(t *testing.T) {
@@ -16,12 +14,14 @@ func TestCreateResidence(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	var i uint64 = 1
-	Static.NextIDs[entities.RESIDENCE] = &i
+	residence, ok := CreateResidence(1, 1)
+	if !ok {
+		t.Errorf("CreateResidence returns false, wanted true")
+	}
 
-	residence := CreateResidence(1, 1)
-
-	RemoveResidence(residence.ID)
+	if ok := RemoveResidence(residence.ID); !ok {
+		t.Errorf("RemoveResidence returns false, wanted true")
+	}
 }
 
 func TestCreateCompany(t *testing.T) {
@@ -32,10 +32,14 @@ func TestCreateCompany(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	var i uint64 = 1
-	Static.NextIDs[entities.COMPANY] = &i
+	company, ok := CreateCompany(1, 1)
+	if !ok {
+		t.Errorf("CreateCompany returns false, wanted true")
+	}
 
-	RemoveCompany(CreateCompany(1, 1).ID)
+	if ok := RemoveCompany(company.ID); !ok {
+		t.Errorf("RemoveCompany returns false, wanted true")
+	}
 }
 
 func TestCreateStep(t *testing.T) {
@@ -46,13 +50,14 @@ func TestCreateStep(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	var i, j, k uint64 = 1, 1, 1
-	Static.NextIDs[entities.RESIDENCE] = &i
-	Static.NextIDs[entities.COMPANY] = &j
-	Dynamic.NextIDs[entities.STEP] = &k
-
-	r := CreateResidence(1, 1)
-	c := CreateCompany(2, 2)
+	r, ok := CreateResidence(1, 1)
+	if !ok {
+		t.Errorf("CreateResidence returns false, wanted true")
+	}
+	c, ok := CreateCompany(2, 2)
+	if !ok {
+		t.Errorf("CreateCompany returns false, wanted true")
+	}
 
 	if got := len(r.Out()); got != 1 {
 		t.Errorf("Residence should be out 1, but %d", got)
@@ -61,10 +66,14 @@ func TestCreateStep(t *testing.T) {
 		t.Errorf("Company should be in 1, but %d", got)
 	}
 
-	RemoveResidence(r.ID)
-	RemoveCompany(c.ID)
+	if ok := RemoveResidence(r.ID); !ok {
+		t.Errorf("RemoveResidence returns false, wanted true")
+	}
+	if ok := RemoveCompany(c.ID); !ok {
+		t.Errorf("RemoveCompany returns false, wanted true")
+	}
 
-	if got := len(Dynamic.Steps); got != 0 {
+	if got := len(Model.Steps); got != 0 {
 		t.Errorf("Steps size should be 0, but %d", got)
 	}
 }

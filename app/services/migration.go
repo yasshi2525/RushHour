@@ -9,10 +9,14 @@ import (
 
 // MigrateDB migrate database by reference Meta
 func MigrateDB() {
-	foreign := make(map[entities.StaticRes]string)
+	foreign := make(map[entities.ModelType]string)
 
 	// create instance corresponding to each record
-	for _, key := range Meta.StaticList {
+	for _, key := range Meta.List {
+		if !key.IsDB() {
+			continue
+		}
+
 		proto := key.Obj()
 		db.AutoMigrate(proto)
 
@@ -23,7 +27,7 @@ func MigrateDB() {
 			owner := fmt.Sprintf("%s(id)", entities.PLAYER.Table())
 			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
 
-			revel.AppLog.Debugf("added owner foreign key for %s table", owner)
+			//revel.AppLog.Debugf("added owner foreign key for %s table", owner)
 		}
 
 		foreign[key] = fmt.Sprintf("%s(id)", key.Table())

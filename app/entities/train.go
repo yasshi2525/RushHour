@@ -6,7 +6,7 @@ import (
 
 // Train carries Human from Station to Station.
 type Train struct {
-	Model
+	Base
 	Owner
 
 	Capacity uint `gorm:"not null" json:"capacity"`
@@ -15,6 +15,7 @@ type Train struct {
 	Speed    float64 `gorm:"not null" json:"speed"`
 	Name     string  `gorm:"not null" json:"name"`
 	Progress float64 `gorm:"not null" json:"progress"`
+	Occupied uint    `gorm:"-"        json:"occupied"`
 
 	Task       *LineTask       `gorm:"-" json:"-"`
 	Passenger  map[uint]*Human `gorm:"-" json:"-"`
@@ -29,7 +30,7 @@ type Train struct {
 // NewTrain creates instance
 func NewTrain(id uint, o *Player) *Train {
 	return &Train{
-		Model:     NewModel(id),
+		Base:      NewBase(id),
 		Owner:     NewOwner(o),
 		Passenger: make(map[uint]*Human),
 	}
@@ -40,10 +41,13 @@ func (t *Train) Idx() uint {
 	return t.ID
 }
 
+// Type returns type of entitiy
+func (t *Train) Type() ModelType {
+	return TRAIN
+}
+
 // Init makes map
 func (t *Train) Init() {
-	t.Model.Init()
-	t.Owner.Init()
 	t.Passenger = make(map[uint]*Human)
 }
 
@@ -74,6 +78,7 @@ func (t *Train) Resolve(args ...interface{}) {
 			t.OnPlatform = obj
 		case *Human:
 			t.Passenger[obj.ID] = obj
+			t.Occupied++
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -106,6 +111,6 @@ func (t *Train) String() string {
 	if t.Task != nil {
 		ltstr = fmt.Sprintf(",lt=%d", t.Task.ID)
 	}
-	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%v:%s", Meta.Static[TRAIN].Short,
+	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%v:%s", Meta.Attr[t.Type()].Short,
 		t.ID, len(t.Passenger), t.Capacity, ltstr, t.Progress, t.Pos(), t.Name)
 }

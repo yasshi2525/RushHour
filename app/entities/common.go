@@ -6,31 +6,26 @@ import (
 	"github.com/revel/revel"
 )
 
-// Model based on gorm.Model
-type Model struct {
+// Base based on gorm.Model
+type Base struct {
 	ID        uint       `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time  `json:"-"`
-	UpdatedAt time.Time  `json:"-"`
-	DeletedAt *time.Time `gorm:"index" json:"-"`
+	CreatedAt time.Time  `                   json:"-"`
+	UpdatedAt time.Time  `                   json:"-"`
+	DeletedAt *time.Time `gorm:"index"       json:"-"`
 }
 
-// NewModel create new Model
-func NewModel(id uint) Model {
-	return Model{
+// NewBase create new Base
+func NewBase(id uint) Base {
+	return Base{
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 }
 
-// Init do nothing, just implements Initializable
-func (m *Model) Init() {
-	// do-nothing
-}
-
 // Owner means this faciliites in under the control by Player.
 type Owner struct {
-	Own     *Player `gorm:"-" json:"-"`
+	Own     *Player `gorm:"-"        json:"-"`
 	OwnerID uint    `gorm:"not null" json:"oid"`
 }
 
@@ -40,11 +35,6 @@ func NewOwner(o *Player) Owner {
 		Own:     o,
 		OwnerID: o.ID,
 	}
-}
-
-// Init do nothing, just implements Initializable
-func (o *Owner) Init() {
-	// do-nothing
 }
 
 // ResolveRef resolve ownerID from Owner

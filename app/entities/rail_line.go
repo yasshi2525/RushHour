@@ -6,17 +6,17 @@ import (
 
 // RailLine represents how Train should run.
 type RailLine struct {
-	Model
+	Base
 	Owner
 
-	Name  string             `json:"name"`
+	Name  string             `         json:"name"`
 	Tasks map[uint]*LineTask `gorm:"-" json:"-"`
 }
 
 // NewRailLine create instance
 func NewRailLine(id uint, o *Player) *RailLine {
 	return &RailLine{
-		Model: NewModel(id),
+		Base:  NewBase(id),
 		Owner: NewOwner(o),
 		Tasks: make(map[uint]*LineTask),
 	}
@@ -27,10 +27,13 @@ func (l *RailLine) Idx() uint {
 	return l.ID
 }
 
+// Type returns type of entitiy
+func (l *RailLine) Type() ModelType {
+	return LINE
+}
+
 // Init makes map
 func (l *RailLine) Init() {
-	l.Model.Init()
-	l.Owner.Init()
 	l.Tasks = make(map[uint]*LineTask)
 }
 
@@ -85,6 +88,6 @@ func (l *RailLine) Permits(o *Player) bool {
 
 // String represents status
 func (l *RailLine) String() string {
-	return fmt.Sprintf("%s(%d):lt=%d:%v:%s", Meta.Static[LINE],
+	return fmt.Sprintf("%s(%d):lt=%d:%v:%s", Meta.Attr[l.Type()],
 		l.ID, len(l.Tasks), l.Pos(), l.Name)
 }

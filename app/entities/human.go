@@ -19,7 +19,7 @@ const (
 
 // Human commute from Residence to Company by Train
 type Human struct {
-	Model
+	Base
 	Point
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
@@ -48,14 +48,14 @@ type Human struct {
 
 	FromID     uint `gorm:"not null" json:"rid"`
 	ToID       uint `gorm:"not null" json:"cid"`
-	PlatformID uint `json:"pid,omitempty"`
-	TrainID    uint `json:"tid,omitempty"`
+	PlatformID uint `                json:"pid,omitempty"`
+	TrainID    uint `                json:"tid,omitempty"`
 }
 
 // NewHuman create instance
 func NewHuman(id uint, x float64, y float64) *Human {
 	return &Human{
-		Model: NewModel(id),
+		Base:  NewBase(id),
 		Point: NewPoint(x, y),
 		out:   make(map[uint]*Step),
 	}
@@ -66,10 +66,13 @@ func (h *Human) Idx() uint {
 	return h.ID
 }
 
+// Type returns type of entitiy
+func (h *Human) Type() ModelType {
+	return HUMAN
+}
+
 // Init creates map.
 func (h *Human) Init() {
-	h.Model.Init()
-	h.Point.Init()
 	h.out = make(map[uint]*Step)
 }
 
@@ -122,6 +125,20 @@ func (h *Human) Resolve(args ...interface{}) {
 		}
 	}
 	h.ResolveRef()
+}
+
+// UnRef deltes refernce of related entity
+func (h *Human) UnRef() {
+	delete(h.From.Targets, h.ID)
+	delete(h.To.Targets, h.ID)
+	if h.OnPlatform != nil {
+		h.OnPlatform.Occupied--
+		delete(h.OnPlatform.Passenger, h.ID)
+	}
+	if h.OnTrain != nil {
+		h.OnTrain.Occupied--
+		delete(h.OnTrain.Passenger, h.ID)
+	}
 }
 
 // TurnTo make Human turn head to dest.
@@ -204,6 +221,7 @@ func (h *Human) String() string {
 		tstr = fmt.Sprintf(",t=%d", h.OnTrain.ID)
 	}
 
-	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v", Meta.Static[HUMAN].Short,
+	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v",
+		Meta.Attr[h.Type()].Short,
 		h.ID, h.From.ID, h.To.ID, pstr, tstr, h.Available, h.Lifespan, h.Progress, h.Pos())
 }

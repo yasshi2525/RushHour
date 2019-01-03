@@ -4,6 +4,7 @@ package entities
 type Indexable interface {
 	// Idx returns unique id field.
 	Idx() uint
+	Type() ModelType
 }
 
 // Initializable represents that setup is required.
@@ -44,6 +45,13 @@ type Connectable interface {
 type Resolvable interface {
 	// ResolveRef set id from object
 	ResolveRef()
+}
+
+// UnReferable can unrefer for related entity.
+type UnReferable interface {
+	Idx() uint
+	Type() ModelType
+	UnRef()
 }
 
 // Ownable is control of auth level

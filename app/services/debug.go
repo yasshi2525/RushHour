@@ -17,7 +17,7 @@ var (
 	removeInterval = 1 * time.Minute
 )
 
-type opCallback func(source string, target entities.StaticRes)
+type opCallback func(source string, target entities.ModelType)
 
 var simCh chan *time.Ticker
 var simTickers []*time.Ticker
@@ -32,11 +32,11 @@ func StartSimulation() {
 	go watchSim()
 
 	// admin
-	for _, target := range []entities.StaticRes{entities.RESIDENCE, entities.COMPANY} {
-		tickOp("admin", target, updateInterval, func(src string, tar entities.StaticRes) {
+	for _, target := range []entities.ModelType{entities.RESIDENCE, entities.COMPANY} {
+		tickOp("admin", target, updateInterval, func(src string, tar entities.ModelType) {
 			UpdateModel(mkOp(src, tar))
 		})
-		tickOp("admin", target, removeInterval, func(src string, tar entities.StaticRes) {
+		tickOp("admin", target, removeInterval, func(src string, tar entities.ModelType) {
 			UpdateModel(rmOp(src, tar))
 		})
 	}
@@ -46,11 +46,11 @@ func StartSimulation() {
 		source := fmt.Sprintf("user%d", i)
 		UpdateModel(mkOp(source, entities.PLAYER))
 
-		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.StaticRes) {
+		tickOp(source, entities.RAILNODE, updateInterval, func(src string, tar entities.ModelType) {
 			UpdateModel(mkOp(src, tar))
 		})
 
-		tickOp(source, entities.RAILNODE, removeInterval, func(src string, tar entities.StaticRes) {
+		tickOp(source, entities.RAILNODE, removeInterval, func(src string, tar entities.ModelType) {
 			UpdateModel(rmOp(src, tar))
 		})
 	}
@@ -77,7 +77,7 @@ func watchSim() {
 }
 
 // mkOp returns creation operation
-func mkOp(src string, target entities.StaticRes) *Operation {
+func mkOp(src string, target entities.ModelType) *Operation {
 	return &Operation{
 		Source: src,
 		Op:     "create",
@@ -89,7 +89,7 @@ func mkOp(src string, target entities.StaticRes) *Operation {
 }
 
 // rmOp returns deletion operation
-func rmOp(src string, target entities.StaticRes) *Operation {
+func rmOp(src string, target entities.ModelType) *Operation {
 	return &Operation{
 		Source: src,
 		Op:     "remove",
@@ -98,7 +98,7 @@ func rmOp(src string, target entities.StaticRes) *Operation {
 	}
 }
 
-func tickOp(source string, target entities.StaticRes, interval time.Duration, callback opCallback) {
+func tickOp(source string, target entities.ModelType, interval time.Duration, callback opCallback) {
 	simWg.Add(1)
 	go func() {
 		simWg.Done()

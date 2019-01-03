@@ -10,23 +10,20 @@ import (
 // CreateRailNode create RailNode
 func CreateRailNode(owner *entities.Player, x float64, y float64) *entities.RailNode {
 	rn := entities.NewRailNode(GenID(entities.RAILNODE), owner, x, y)
-	Static.RailNodes[rn.ID] = rn
-	logOwnableNode(entities.RAILNODE, rn.ID, "created", rn.Pos(), owner)
+	AddEntity(rn)
 	return rn
 }
 
 // RemoveRailNode remove RailNode
 func RemoveRailNode(owner *entities.Player, id uint) error {
-	if rn, ok := Static.RailNodes[id]; ok {
+	if rn, ok := Model.RailNodes[id]; ok {
 		if in, out := len(rn.InEdge), len(rn.OutEdge); in > 0 || out > 0 {
 			return fmt.Errorf("relations remain RailNode(%d)(in=%d, out=%d)", id, in, out)
 		}
 		if ok, err := IsAuth(owner, rn); !ok {
 			return err
 		}
-		delete(Static.RailNodes, rn.ID)
-		Static.WillRemove[entities.RAILNODE] = append(Static.WillRemove[entities.RAILNODE], id)
-		logOwnableNode(entities.RAILNODE, id, "removed", rn.Pos(), owner)
+		DelEntity(rn)
 		return nil
 	}
 	revel.AppLog.Warnf("RailNode(%d) is already removed.", id)
@@ -39,8 +36,4 @@ func IsAuth(owner *entities.Player, res entities.Ownable) (bool, error) {
 		return true, nil
 	}
 	return false, fmt.Errorf("no permission to operate %T: %+v", res, res)
-}
-
-func logOwnableNode(res entities.StaticRes, id uint, op string, p *entities.Point, owner *entities.Player) {
-	revel.AppLog.Infof("%s(%d) was %s at (%f, %f) by %s(%d)", res, id, op, p.X, p.Y, owner.LoginID, owner.ID)
 }

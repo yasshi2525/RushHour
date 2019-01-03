@@ -9,66 +9,66 @@ import (
 )
 
 // CreateResidence creates Residence and registers it to storage and step
-func CreateResidence(x float64, y float64) *entities.Residence {
+func CreateResidence(x float64, y float64) (*entities.Residence, bool) {
 	r := entities.NewResidence(GenID(entities.RESIDENCE), x, y)
 	r.Wait = Config.Residence.Interval.Duration.Seconds() * rand.Float64()
 	r.Capacity = Config.Residence.Capacity
-	Static.Residences[r.ID] = r
-	logNode(entities.RESIDENCE, r.ID, "created", r.Pos())
-
+	r.Name = "NoName"
+	AddEntity(r)
 	GenStepResidence(r)
-	return r
+	return r, true
 }
 
 // RemoveResidence remove Residence and related Step from storage
-func RemoveResidence(id uint) {
-	if r, ok := Static.Residences[id]; ok {
-		DelSteps(r.Out())
-		delete(Static.Residences, id)
-		Static.WillRemove[entities.RESIDENCE] = append(Static.WillRemove[entities.RESIDENCE], id)
-		logNode(entities.RESIDENCE, id, "removed", r.Pos())
-	} else {
-		revel.AppLog.Warnf("%s(%d) is already removed.", entities.RESIDENCE, id)
-		return
+func RemoveResidence(id uint) bool {
+	if r, ok := Model.Residences[id]; ok {
+		for _, h := range r.Targets {
+			DelEntity(h)
+		}
+		for _, s := range r.Out() {
+			DelEntity(s)
+		}
+		DelEntity(r)
+		return true
 	}
+	revel.AppLog.Warnf("%s(%d) is already removed.", entities.RESIDENCE, id)
+	return false
+
 }
 
 // CreateCompany creates Company and registers it to storage and step
-func CreateCompany(x float64, y float64) *entities.Company {
+func CreateCompany(x float64, y float64) (*entities.Company, bool) {
 	c := entities.NewCompany(GenID(entities.COMPANY), x, y)
 	c.Scale = Config.Company.Scale
-	Static.Companies[c.ID] = c
-	logNode(entities.COMPANY, c.ID, "created", c.Pos())
-
+	AddEntity(c)
 	GenStepCompany(c)
-	return c
+	return c, true
 }
 
 // RemoveCompany remove Company and related Step from storage
-func RemoveCompany(id uint) {
-	if c, ok := Static.Companies[id]; ok {
-		DelSteps(c.In())
-		delete(Static.Companies, id)
-		Static.WillRemove[entities.COMPANY] = append(Static.WillRemove[entities.COMPANY], id)
-		logNode(entities.COMPANY, id, "removed", c.Pos())
-	} else {
-		revel.AppLog.Warnf("%s(%d) is already removed.", entities.COMPANY, id)
-		return
+func RemoveCompany(id uint) bool {
+	if c, ok := Model.Companies[id]; ok {
+		for _, h := range c.Targets {
+			DelEntity(h)
+		}
+		for _, s := range c.In() {
+			DelEntity(s)
+		}
+		DelEntity(c)
+		return true
 	}
-}
-
-func logNode(res entities.StaticRes, id uint, op string, p *entities.Point) {
-	revel.AppLog.Infof("%s(%d) was %s at %s", res, id, op, p)
+	revel.AppLog.Warnf("%s(%d) is already removed.", entities.COMPANY, id)
+	return false
 }
 
 // GenStepResidence generate Steps
 func GenStepResidence(r *entities.Residence) {
 	// R -> C
-	for _, c := range Static.Companies {
+	for _, c := range Model.Companies {
 		GenStep(r, c, Config.Human.Weight)
 	}
 	// R -> G
-	for _, g := range Static.Gates {
+	for _, g := range Model.Gates {
 		GenStep(r, g, Config.Human.Weight)
 	}
 }
@@ -76,11 +76,11 @@ func GenStepResidence(r *entities.Residence) {
 // GenStepCompany generate Steps
 func GenStepCompany(c *entities.Company) {
 	// R -> C
-	for _, r := range Static.Residences {
+	for _, r := range Model.Residences {
 		GenStep(r, c, Config.Human.Weight)
 	}
 	// G -> C
-	for _, g := range Static.Gates {
+	for _, g := range Model.Gates {
 		GenStep(g, c, Config.Human.Weight)
 	}
 }

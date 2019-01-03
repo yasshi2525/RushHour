@@ -19,29 +19,29 @@ func ViewMap(x float64, y float64, scale float64) interface{} {
 	center := &entities.Point{X: x, Y: y}
 	view := newGameView()
 
-	for idx, res := range Meta.StaticList {
-		list := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(res.Type())), 0, 0)
-		mapdata := Meta.StaticMap[res]
-		for _, key := range mapdata.MapKeys() {
-			obj := mapdata.MapIndex(key).Interface()
-			if pos, ok := obj.(entities.Locationable); ok {
-				if pos.IsIn(center, scale) {
+	for idx, res := range Meta.List {
+		// filter agent, step ...
+		if res.IsVisible() {
+			list := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(res.Type())), 0, 0)
+			ForeachModel(res, func(obj interface{}) {
+				// filter out of user view
+				if pos, ok := obj.(entities.Locationable); ok && pos.IsIn(center, scale) {
 					list = reflect.Append(list, reflect.ValueOf(pos))
 				}
-			}
+			})
+			view.Elem().Field(idx).Set(list)
 		}
-		view.Elem().Field(idx).Set(list)
 	}
 	return view.Elem().Interface()
 }
 
 func newGameView() reflect.Value {
 	fields := []reflect.StructField{}
-	for _, res := range Meta.StaticList {
+	for _, res := range Meta.List {
 		fields = append(fields, reflect.StructField{
 			Name: res.String(),
 			Type: reflect.SliceOf(reflect.PtrTo(res.Type())),
-			Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", Meta.Static[res].API)),
+			Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", res.API())),
 		})
 	}
 	return reflect.New(reflect.StructOf(fields))

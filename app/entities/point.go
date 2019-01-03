@@ -16,11 +16,6 @@ func NewPoint(x float64, y float64) Point {
 	return Point{X: x, Y: y}
 }
 
-// Init do nothing, just implements Initializable
-func (p *Point) Init() {
-	// do-nothing
-}
-
 // Pos returns self
 func (p *Point) Pos() *Point {
 	return p

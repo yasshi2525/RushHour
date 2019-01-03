@@ -7,7 +7,7 @@ import (
 // RailEdge connects from RailNode to RailNode.
 // It's directional.
 type RailEdge struct {
-	Model
+	Base
 	Owner
 	from *RailNode
 	to   *RailNode
@@ -21,7 +21,7 @@ type RailEdge struct {
 // NewRailEdge create new instance and relates RailNode
 func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Model:  NewModel(id),
+		Base:   NewBase(id),
 		Owner:  f.Owner,
 		from:   f,
 		to:     t,
@@ -39,10 +39,13 @@ func (re *RailEdge) Idx() uint {
 	return re.ID
 }
 
+// Type returns type of entitiy
+func (re *RailEdge) Type() ModelType {
+	return RAILEDGE
+}
+
 // Init do nothing
 func (re *RailEdge) Init() {
-	re.Model.Init()
-	re.Owner.Init()
 	re.Trains = make(map[uint]*Train)
 }
 
@@ -117,6 +120,6 @@ func (re *RailEdge) Permits(o *Player) bool {
 
 // String represents status
 func (re *RailEdge) String() string {
-	return fmt.Sprintf("%s(%d):f=%d,t=%d:%v", Meta.Static[RAILEDGE],
+	return fmt.Sprintf("%s(%d):f=%d,t=%d:%v", Meta.Attr[re.Type()],
 		re.ID, re.from.ID, re.to.ID, re.Pos())
 }

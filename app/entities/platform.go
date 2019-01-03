@@ -7,7 +7,7 @@ import (
 // Platform is the base Human wait for Train.
 // Platform can enter only through Gate.
 type Platform struct {
-	Model
+	Base
 	Owner
 
 	out map[uint]*Step
@@ -21,7 +21,7 @@ type Platform struct {
 	Trains map[uint]*Train `gorm:"-" json:"-"`
 
 	Capacity uint `gorm:"not null" json:"cap"`
-	Occupied uint `gorm:"not null" json:"used"`
+	Occupied uint `gorm:"-"        json:"used"`
 
 	StationID  uint `gorm:"not null" json:"stid"`
 	GateID     uint `gorm:"-" json:"gid"`
@@ -33,10 +33,13 @@ func (p *Platform) Idx() uint {
 	return p.ID
 }
 
+// Type returns type of entitiy
+func (p *Platform) Type() ModelType {
+	return PLATFORM
+}
+
 // Init creates map.
 func (p *Platform) Init() {
-	p.Model.Init()
-	p.Owner.Init()
 	p.out = make(map[uint]*Step)
 	p.in = make(map[uint]*Step)
 	p.Passenger = make(map[uint]*Human)
@@ -80,6 +83,7 @@ func (p *Platform) Resolve(args ...interface{}) {
 			obj.Resolve(p)
 		case *Human:
 			p.Passenger[obj.ID] = obj
+			p.Occupied++
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -108,7 +112,8 @@ func (p *Platform) Permits(o *Player) bool {
 
 // String represents status
 func (p *Platform) String() string {
-	return fmt.Sprintf("%s(%d):st=%d,g=%d,i=%d,o=%d,h=%d/%d:%v:%s", Meta.Static[PLATFORM].Short,
+	return fmt.Sprintf("%s(%d):st=%d,g=%d,i=%d,o=%d,h=%d/%d:%v:%s",
+		Meta.Attr[p.Type()].Short,
 		p.ID, p.InStation.ID, p.WithGate.ID,
 		len(p.in), len(p.out), len(p.Passenger), p.Capacity,
 		p.Pos(), p.InStation.Name)

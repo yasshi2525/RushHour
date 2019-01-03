@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
 )
@@ -56,36 +58,37 @@ func Backup() {
 }
 
 func updateForeignKey() {
-	// set id from reference
-	for _, lt := range Static.LineTasks {
-		lt.ResolveRef()
-	}
-	for _, t := range Static.Trains {
-		t.ResolveRef()
-	}
-	for _, h := range Static.Humans {
-		h.ResolveRef()
+	// set mutable id from reference
+	for _, res := range []entities.ModelType{
+		entities.LINETASK, entities.TRAIN, entities.HUMAN} {
+		mapdata := Meta.Map[res]
+		for _, key := range mapdata.MapKeys() {
+			obj := mapdata.MapIndex(key).Interface()
+			obj.(entities.Resolvable).ResolveRef()
+		}
 	}
 }
 
 func persistStatic(tx *gorm.DB) {
 	// upsert
-	for _, res := range Meta.StaticList {
-		mapdata := Meta.StaticMap[res]
-		for _, key := range mapdata.MapKeys() {
-			obj := mapdata.MapIndex(key).Interface()
-			tx.Save(obj)
-			//revel.AppLog.Debugf("persist %T(%d): %+v", obj, key.Uint(), obj)
+	for _, res := range Meta.List {
+		if res.IsDB() {
+			ForeachModel(res, func(obj interface{}) {
+				tx.Save(obj)
+			})
 		}
 	}
 
 	// remove old resources
-	for _, key := range Meta.StaticList {
-		for _, id := range Static.WillRemove[key] {
-			sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
-			tx.Exec(sql, time.Now(), time.Now(), id)
-			revel.AppLog.Debugf("delete %s(%d)", key.Table(), id)
+	for i := len(Meta.List) - 1; i >= 0; i-- {
+		key := Meta.List[i]
+		if key.IsDB() {
+			for _, id := range Model.Remove[key] {
+				sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
+				tx.Exec(sql, time.Now(), time.Now(), id)
+				revel.AppLog.Debugf("delete %v(%d)", key, id)
+			}
+			Model.Remove[key] = Model.Remove[key][:0]
 		}
-		Static.WillRemove[key] = Static.WillRemove[key][:0]
 	}
 }

@@ -30,14 +30,17 @@ func Restore() {
 
 // setNextID set max id as NextID from database for Restore()
 func setNextID() {
-	for _, key := range Meta.StaticList {
+	for _, key := range Meta.List {
+		if !key.IsDB() {
+			continue
+		}
 		var maxID struct {
 			V uint64
 		}
 		sql := fmt.Sprintf("SELECT max(id) as v FROM %s", key.Table())
 		if err := db.Raw(sql).Scan(&maxID).Error; err == nil {
-			Static.NextIDs[key] = &maxID.V
-			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Static.NextIDs[key])
+			Model.NextIDs[key] = &maxID.V
+			revel.AppLog.Debugf("set NextID[%s] = %d", key, *Model.NextIDs[key])
 		} else {
 			panic(err)
 		}
@@ -46,17 +49,20 @@ func setNextID() {
 
 // fetchStatic selects records for Restore()
 func fetchStatic() {
-	for _, key := range Meta.StaticList {
+	for _, key := range Meta.List {
+		if !key.IsDB() {
+			continue
+		}
 		// select文組み立て
 		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
 			for rows.Next() {
 				// 対応する Struct を作成
 				base := key.Obj()
 				if err := db.ScanRows(rows, base); err == nil {
-					// Static に登録
+					// Model に登録
 					if obj, ok := base.(entities.Indexable); ok {
-						Meta.StaticMap[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
-						//revel.AppLog.Debugf("set Static[%s][%d] = %+v", key, obj.Idx(), obj)
+						Meta.Map[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						//revel.AppLog.Debugf("set Model[%s][%d] = %v", key, obj.Idx(), obj)
 					} else {
 						panic(fmt.Errorf("invalid type %T: %+v", base, base))
 					}
@@ -73,52 +79,52 @@ func fetchStatic() {
 
 // resolveStatic set pointer from id for Restore()
 func resolveStatic() {
-	for _, rn := range Static.RailNodes {
-		rn.Resolve(Static.Players[rn.OwnerID])
+	for _, rn := range Model.RailNodes {
+		rn.Resolve(Model.Players[rn.OwnerID])
 	}
-	for _, re := range Static.RailEdges {
+	for _, re := range Model.RailEdges {
 		re.Resolve(
-			Static.RailNodes[re.FromID],
-			Static.RailNodes[re.ToID])
+			Model.RailNodes[re.FromID],
+			Model.RailNodes[re.ToID])
 	}
-	for _, st := range Static.Stations {
-		st.Resolve(Static.Players[st.OwnerID])
+	for _, st := range Model.Stations {
+		st.Resolve(Model.Players[st.OwnerID])
 	}
-	for _, g := range Static.Gates {
-		g.Resolve(Static.Stations[g.StationID])
+	for _, g := range Model.Gates {
+		g.Resolve(Model.Stations[g.StationID])
 	}
-	for _, p := range Static.Platforms {
+	for _, p := range Model.Platforms {
 		p.Resolve(
-			Static.RailNodes[p.RailNodeID],
-			Static.Stations[p.StationID])
+			Model.RailNodes[p.RailNodeID],
+			Model.Stations[p.StationID])
 	}
-	for _, l := range Static.RailLines {
-		l.Resolve(Static.Players[l.OwnerID])
+	for _, l := range Model.RailLines {
+		l.Resolve(Model.Players[l.OwnerID])
 	}
-	for _, lt := range Static.LineTasks {
-		lt.Resolve(Static.RailLines[lt.RailLineID])
+	for _, lt := range Model.LineTasks {
+		lt.Resolve(Model.RailLines[lt.RailLineID])
 		// nullable fields
 		if lt.NextID != 0 {
-			lt.Resolve(Static.LineTasks[lt.NextID])
+			lt.Resolve(Model.LineTasks[lt.NextID])
 		}
 		if lt.StayID != 0 {
-			lt.Resolve(Static.Platforms[lt.StayID])
+			lt.Resolve(Model.Platforms[lt.StayID])
 		}
 		if lt.MovingID != 0 {
-			lt.Resolve(Static.RailEdges[lt.MovingID])
+			lt.Resolve(Model.RailEdges[lt.MovingID])
 		}
 	}
-	for _, t := range Static.Trains {
-		t.Resolve(Static.LineTasks[t.TaskID])
+	for _, t := range Model.Trains {
+		t.Resolve(Model.LineTasks[t.TaskID])
 	}
-	for _, h := range Static.Humans {
-		h.Resolve(Static.Residences[h.FromID], Static.Companies[h.ToID])
+	for _, h := range Model.Humans {
+		h.Resolve(Model.Residences[h.FromID], Model.Companies[h.ToID])
 		// nullable fields
 		if h.PlatformID != 0 {
-			h.Resolve(Static.Platforms[h.PlatformID])
+			h.Resolve(Model.Platforms[h.PlatformID])
 		}
 		if h.TrainID != 0 {
-			h.Resolve(Static.Platforms[h.TrainID])
+			h.Resolve(Model.Platforms[h.TrainID])
 		}
 	}
 }
@@ -126,31 +132,31 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	walk, train := Config.Human.Weight, Config.Train.Weight
-	for _, r := range Static.Residences {
+	for _, r := range Model.Residences {
 		// R -> C, G
 		GenStepResidence(r)
 	}
-	for _, c := range Static.Companies {
+	for _, c := range Model.Companies {
 		// G -> C
-		for _, g := range Static.Gates {
+		for _, g := range Model.Gates {
 			GenStep(g, c, walk)
 		}
 	}
-	for _, p := range Static.Platforms {
+	for _, p := range Model.Platforms {
 		// G <-> P
 		g := p.InStation.Gate
 		GenStep(p, g, walk)
 		GenStep(g, p, walk)
 
 		// P <-> P
-		for _, p2 := range Static.Platforms {
+		for _, p2 := range Model.Platforms {
 			if p != p2 {
 				GenStep(p, p2, train)
 			}
 		}
 	}
-	for _, h := range Static.Humans {
+	for _, h := range Model.Humans {
 		GenStepHuman(h)
-		Dynamic.Agents[h.ID] = entities.NewAgent(h)
+		Model.Agents[h.ID] = entities.NewAgent(h)
 	}
 }

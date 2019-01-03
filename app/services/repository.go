@@ -1,6 +1,7 @@
 package services
 
 import (
+	"reflect"
 	"sync"
 	"sync/atomic"
 
@@ -8,11 +9,8 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-// Static is viewable feature including Step infomation.
-var Static *entities.StaticModel
-
-// Dynamic is hidden feature and not be persisted.
-var Dynamic *entities.DynamicModel
+// Model is contained all data for gaming
+var Model *entities.Model
 
 // Meta represents meta information of data structure
 var Meta *entities.MetaModel
@@ -38,47 +36,40 @@ func InitLock() {
 
 // InitRepository initialize storage
 func InitRepository() {
-	Meta, Static, Dynamic = entities.InitGameMap()
+	Meta, Model = entities.InitModel()
 	RouteTemplate = make(map[uint][]*entities.Node)
 }
 
 // GenID generate ID
-func GenID(raw interface{}) uint {
-	switch res := raw.(type) {
-	case entities.StaticRes:
-		return uint(atomic.AddUint64(Static.NextIDs[res], 1))
-	case entities.DynamicRes:
-		return uint(atomic.AddUint64(Dynamic.NextIDs[res], 1))
-	default:
-		revel.AppLog.Errorf("invalid type: %T: %+v", raw, raw)
-		return 0
-	}
+func GenID(t entities.ModelType) uint {
+	return uint(atomic.AddUint64(Model.NextIDs[t], 1))
 }
 
 // GenStep generate Step and resister it
 func GenStep(from entities.Relayable, to entities.Relayable, weight float64) *entities.Step {
 	s := entities.NewStep(GenID(entities.STEP), from, to, weight)
-	Dynamic.Steps[s.ID] = s
-	//logStep("created", s)
+	AddEntity(s)
 	return s
 }
 
-// DelSteps delete Step and unregister it
-func DelSteps(steps map[uint]*entities.Step) {
-	// be careful to change slice in range
-	ids := []uint{}
-	for _, s := range steps {
-		ids = append(ids, s.ID)
-	}
-	for _, id := range ids {
-		s := Dynamic.Steps[id]
-		s.Unrelate()
-		delete(Dynamic.Steps, s.ID)
-		//logStep("removed", s)
-	}
+// AddEntity create entity and register to map
+func AddEntity(obj entities.Indexable) {
+	Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+	revel.AppLog.Debugf("created %v", obj)
 }
 
-func logStep(op string, s *entities.Step) {
-	from, to := s.From().Pos(), s.To().Pos()
-	revel.AppLog.Debugf("Step(%d) was %s {%s => %s}", s.ID, op, from, to)
+// DelEntity unrefer obj and delete it from map
+func DelEntity(obj entities.UnReferable) {
+	obj.UnRef()
+	Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.Value{})
+	Model.Remove[obj.Type()] = append(Model.Remove[obj.Type()], obj.Idx())
+	revel.AppLog.Debugf("removed %v", obj)
+}
+
+// ForeachModel iterates specified map
+func ForeachModel(res entities.ModelType, callback func(interface{})) {
+	mapdata := Meta.Map[res]
+	for _, key := range mapdata.MapKeys() {
+		callback(mapdata.MapIndex(key).Interface())
+	}
 }

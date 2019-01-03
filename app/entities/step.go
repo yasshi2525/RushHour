@@ -29,6 +29,11 @@ func (s *Step) Idx() uint {
 	return s.ID
 }
 
+// Type returns type of entitiy
+func (s *Step) Type() ModelType {
+	return STEP
+}
+
 // Init do nothing
 func (s *Step) Init() {
 }
@@ -58,14 +63,14 @@ func (s *Step) Cost() float64 {
 	return s.from.Pos().Dist(s.to.Pos()) * s.Weight
 }
 
-// Unrelate delete selt from related Junction.
-func (s *Step) Unrelate() {
+// UnRef delete selt from related Locationable.
+func (s *Step) UnRef() {
 	delete(s.from.Out(), s.ID)
 	delete(s.to.In(), s.ID)
 }
 
 // String represents status
 func (s *Step) String() string {
-	return fmt.Sprintf("%s(%v):from=%v,to=%v,w=%.2f:%v", Meta.Dynamic[STEP].Short,
+	return fmt.Sprintf("%s(%v):from=%v,to=%v,w=%.2f:%v", Meta.Attr[s.Type()].Short,
 		s.ID, s.from, s.to, s.Weight, s.Pos())
 }
