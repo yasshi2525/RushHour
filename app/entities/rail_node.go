@@ -88,15 +88,15 @@ func (rn *RailNode) Permits(o *Player) bool {
 	return rn.Owner.Permits(o)
 }
 
-// CanRemove check remaining reference
-func (rn *RailNode) CanRemove() (bool, error) {
+// CheckRemove checks remaining reference
+func (rn *RailNode) CheckRemove() error {
 	if len(rn.InEdge) > 0 {
-		return false, fmt.Errorf("blocked by InEdge of %v", rn.InEdge)
+		return fmt.Errorf("blocked by InEdge of %v", rn.InEdge)
 	}
 	if len(rn.OutEdge) > 0 {
-		return false, fmt.Errorf("blocked by OutEdge of %v", rn.OutEdge)
+		return fmt.Errorf("blocked by OutEdge of %v", rn.OutEdge)
 	}
-	return true, nil
+	return nil
 }
 
 // String represents status

@@ -46,24 +46,28 @@ func GenID(t entities.ModelType) uint {
 }
 
 // GenStep generate Step and resister it
-func GenStep(from entities.Relayable, to entities.Relayable, weight float64) *entities.Step {
+func GenStep(from entities.Relayable, to entities.Relayable, weight float64, reverseOpts ...bool) *entities.Step {
 	s := entities.NewStep(GenID(entities.STEP), from, to, weight)
 	AddEntity(s)
 	return s
 }
 
 // AddEntity create entity and register to map
-func AddEntity(obj entities.Indexable) {
-	Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
-	revel.AppLog.Debugf("created %v", obj)
+func AddEntity(args ...entities.Indexable) {
+	for _, obj := range args {
+		Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+		revel.AppLog.Debugf("created %v", obj)
+	}
 }
 
 // DelEntity unrefer obj and delete it from map
-func DelEntity(obj entities.UnReferable) {
-	obj.UnRef()
-	Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.Value{})
-	Model.Remove[obj.Type()] = append(Model.Remove[obj.Type()], obj.Idx())
-	revel.AppLog.Debugf("removed %v", obj)
+func DelEntity(args ...entities.UnReferable) {
+	for _, obj := range args {
+		obj.UnRef()
+		Meta.Map[obj.Type()].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.Value{})
+		Model.Remove[obj.Type()] = append(Model.Remove[obj.Type()], obj.Idx())
+		revel.AppLog.Debugf("removed %v", obj)
+	}
 }
 
 // ForeachModel iterates specified map

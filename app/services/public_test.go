@@ -14,13 +14,13 @@ func TestCreateResidence(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	residence, ok := CreateResidence(1, 1)
-	if !ok {
-		t.Errorf("CreateResidence returns false, wanted true")
+	residence, err := CreateResidence(1, 1)
+	if err != nil {
+		t.Error(err)
 	}
 
-	if ok := RemoveResidence(residence.ID); !ok {
-		t.Errorf("RemoveResidence returns false, wanted true")
+	if err := RemoveResidence(residence.ID); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -32,13 +32,13 @@ func TestCreateCompany(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	company, ok := CreateCompany(1, 1)
-	if !ok {
-		t.Errorf("CreateCompany returns false, wanted true")
+	company, err := CreateCompany(1, 1)
+	if err != nil {
+		t.Error(err)
 	}
 
-	if ok := RemoveCompany(company.ID); !ok {
-		t.Errorf("RemoveCompany returns false, wanted true")
+	if err := RemoveCompany(company.ID); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -50,13 +50,13 @@ func TestCreateStep(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	r, ok := CreateResidence(1, 1)
-	if !ok {
-		t.Errorf("CreateResidence returns false, wanted true")
+	r, err := CreateResidence(1, 1)
+	if err != nil {
+		t.Error(err)
 	}
-	c, ok := CreateCompany(2, 2)
-	if !ok {
-		t.Errorf("CreateCompany returns false, wanted true")
+	c, err := CreateCompany(2, 2)
+	if err != nil {
+		t.Error(err)
 	}
 
 	if got := len(r.Out()); got != 1 {
@@ -66,10 +66,10 @@ func TestCreateStep(t *testing.T) {
 		t.Errorf("Company should be in 1, but %d", got)
 	}
 
-	if ok := RemoveResidence(r.ID); !ok {
+	if err := RemoveResidence(r.ID); err != nil {
 		t.Errorf("RemoveResidence returns false, wanted true")
 	}
-	if ok := RemoveCompany(c.ID); !ok {
+	if err := RemoveCompany(c.ID); err != nil {
 		t.Errorf("RemoveCompany returns false, wanted true")
 	}
 

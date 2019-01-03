@@ -3,25 +3,24 @@ package services
 import (
 	"math/rand"
 
-	"github.com/revel/revel"
-
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 // CreateResidence creates Residence and registers it to storage and step
-func CreateResidence(x float64, y float64) (*entities.Residence, bool) {
+func CreateResidence(x float64, y float64) (*entities.Residence, error) {
 	r := entities.NewResidence(GenID(entities.RESIDENCE), x, y)
 	r.Wait = Config.Residence.Interval.Duration.Seconds() * rand.Float64()
 	r.Capacity = Config.Residence.Capacity
 	r.Name = "NoName"
 	AddEntity(r)
 	GenStepResidence(r)
-	return r, true
+	return r, nil
 }
 
 // RemoveResidence remove Residence and related Step from storage
-func RemoveResidence(id uint) bool {
-	if r, ok := Model.Residences[id]; ok {
+func RemoveResidence(id uint) error {
+	return TryRemove(nil, entities.RESIDENCE, id, func(obj interface{}) {
+		r := obj.(*entities.Residence)
 		for _, h := range r.Targets {
 			DelEntity(h)
 		}
@@ -29,25 +28,23 @@ func RemoveResidence(id uint) bool {
 			DelEntity(s)
 		}
 		DelEntity(r)
-		return true
-	}
-	revel.AppLog.Warnf("%s(%d) is already removed.", entities.RESIDENCE, id)
-	return false
-
+	})
+	return nil
 }
 
 // CreateCompany creates Company and registers it to storage and step
-func CreateCompany(x float64, y float64) (*entities.Company, bool) {
+func CreateCompany(x float64, y float64) (*entities.Company, error) {
 	c := entities.NewCompany(GenID(entities.COMPANY), x, y)
 	c.Scale = Config.Company.Scale
 	AddEntity(c)
 	GenStepCompany(c)
-	return c, true
+	return c, nil
 }
 
 // RemoveCompany remove Company and related Step from storage
-func RemoveCompany(id uint) bool {
-	if c, ok := Model.Companies[id]; ok {
+func RemoveCompany(id uint) error {
+	return TryRemove(nil, entities.COMPANY, id, func(obj interface{}) {
+		c := obj.(*entities.Company)
 		for _, h := range c.Targets {
 			DelEntity(h)
 		}
@@ -55,10 +52,7 @@ func RemoveCompany(id uint) bool {
 			DelEntity(s)
 		}
 		DelEntity(c)
-		return true
-	}
-	revel.AppLog.Warnf("%s(%d) is already removed.", entities.COMPANY, id)
-	return false
+	})
 }
 
 // GenStepResidence generate Steps

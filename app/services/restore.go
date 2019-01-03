@@ -113,6 +113,9 @@ func resolveStatic() {
 		if lt.MovingID != 0 {
 			lt.Resolve(Model.RailEdges[lt.MovingID])
 		}
+		if lt.DestID != 0 {
+			lt.Resolve(Model.Platforms[lt.DestID])
+		}
 	}
 	for _, t := range Model.Trains {
 		t.Resolve(Model.LineTasks[t.TaskID])
@@ -152,6 +155,7 @@ func genDynamics() {
 		for _, p2 := range Model.Platforms {
 			if p != p2 {
 				GenStep(p, p2, train)
+				GenStep(p2, p, train)
 			}
 		}
 	}

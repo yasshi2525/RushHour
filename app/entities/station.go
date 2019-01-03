@@ -26,7 +26,8 @@ func NewStation(stid uint, gid uint, pid uint, rn *RailNode) (*Station, *Gate, *
 		in:         make(map[uint]*Step),
 		out:        make(map[uint]*Step),
 		Trains:     make(map[uint]*Train),
-		Passenger:  make(map[uint]*Human),
+		Passengers: make(map[uint]*Human),
+		LineTasks:  make(map[uint]*LineTask),
 		OnRailNode: rn,
 	}
 	rn.OverPlatform = p
@@ -106,6 +107,23 @@ func (st *Station) ResolveRef() {
 	if st.Gate != nil {
 		st.GateID = st.Gate.ID
 	}
+}
+
+// CheckRemove checks related reference
+func (st *Station) CheckRemove() error {
+	if err := st.Gate.CheckRemove(); err != nil {
+		return err
+	}
+	if err := st.Platform.CheckRemove(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnRef delete related reference
+func (st *Station) UnRef() {
+	st.Platform.UnRef()
+	st.Gate.UnRef()
 }
 
 // Permits represents Player is permitted to control

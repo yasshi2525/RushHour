@@ -18,7 +18,7 @@ type Train struct {
 	Occupied uint    `gorm:"-"        json:"occupied"`
 
 	Task       *LineTask       `gorm:"-" json:"-"`
-	Passenger  map[uint]*Human `gorm:"-" json:"-"`
+	Passengers map[uint]*Human `gorm:"-" json:"-"`
 	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
 	OnPlatform *Platform       `gorm:"-" json:"-"`
 
@@ -30,9 +30,9 @@ type Train struct {
 // NewTrain creates instance
 func NewTrain(id uint, o *Player) *Train {
 	return &Train{
-		Base:      NewBase(id),
-		Owner:     NewOwner(o),
-		Passenger: make(map[uint]*Human),
+		Base:       NewBase(id),
+		Owner:      NewOwner(o),
+		Passengers: make(map[uint]*Human),
 	}
 }
 
@@ -48,7 +48,7 @@ func (t *Train) Type() ModelType {
 
 // Init makes map
 func (t *Train) Init() {
-	t.Passenger = make(map[uint]*Human)
+	t.Passengers = make(map[uint]*Human)
 }
 
 // Pos returns location
@@ -77,7 +77,7 @@ func (t *Train) Resolve(args ...interface{}) {
 		case *Platform:
 			t.OnPlatform = obj
 		case *Human:
-			t.Passenger[obj.ID] = obj
+			t.Passengers[obj.ID] = obj
 			t.Occupied++
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
@@ -112,5 +112,5 @@ func (t *Train) String() string {
 		ltstr = fmt.Sprintf(",lt=%d", t.Task.ID)
 	}
 	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%v:%s", Meta.Attr[t.Type()].Short,
-		t.ID, len(t.Passenger), t.Capacity, ltstr, t.Progress, t.Pos(), t.Name)
+		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, t.Pos(), t.Name)
 }

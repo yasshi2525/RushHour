@@ -133,11 +133,11 @@ func (h *Human) UnRef() {
 	delete(h.To.Targets, h.ID)
 	if h.OnPlatform != nil {
 		h.OnPlatform.Occupied--
-		delete(h.OnPlatform.Passenger, h.ID)
+		delete(h.OnPlatform.Passengers, h.ID)
 	}
 	if h.OnTrain != nil {
 		h.OnTrain.Occupied--
-		delete(h.OnTrain.Passenger, h.ID)
+		delete(h.OnTrain.Passengers, h.ID)
 	}
 }
 

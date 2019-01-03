@@ -97,6 +97,14 @@ func (g *Gate) Permits(o *Player) bool {
 	return g.Owner.Permits(o)
 }
 
+func (g *Gate) CheckRemove() error {
+	return nil
+}
+
+func (g *Gate) UnRef() {
+
+}
+
 // String represents status
 func (g *Gate) String() string {
 	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d:%v:%s", Meta.Attr[g.Type()].Short,

@@ -29,13 +29,15 @@ type LineTask struct {
 	Next     *LineTask    `gorm:"-"        json:"-"`
 	Stay     *Platform    `gorm:"-"        json:"-"`
 	Moving   *RailEdge    `gorm:"-"        json:"-"`
+	Dest     *Platform    `gorm:"-"        json:"-"`
 
 	Trains map[uint]*Train `gorm:"-" json:"-"`
 
 	RailLineID uint `gorm:"not null" json:"lid"`
 	NextID     uint `                json:"next,omitempty"`
-	StayID     uint `                json:"pid,omitempty"`
+	StayID     uint `                json:"p1id,omitempty"`
 	MovingID   uint `                json:"reid,omitempty"`
+	DestID     uint `                json:"p2id,omitempty"`
 }
 
 // NewLineTask create instance
@@ -92,7 +94,14 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		case *LineTask:
 			lt.Next = obj
 		case *Platform:
-			lt.Stay = obj
+			switch lt.TaskType {
+			case OnDeparture:
+				lt.Stay = obj
+				lt.Stay.Resolve(obj)
+			default:
+				lt.Dest = obj
+				lt.Dest.Resolve(obj)
+			}
 		case *RailEdge:
 			lt.Moving = obj
 		case *Train:
@@ -126,6 +135,13 @@ func (lt *LineTask) ResolveRef() {
 	if lt.Stay != nil {
 		lt.StayID = lt.Stay.ID
 	}
+	if lt.Dest != nil {
+		lt.DestID = lt.Dest.ID
+	}
+}
+
+func (lt *LineTask) UnRef() {
+	// TODO impl
 }
 
 // Permits represents Player is permitted to control

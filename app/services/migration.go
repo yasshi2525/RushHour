@@ -49,6 +49,7 @@ func MigrateDB() {
 	// LineTask is sometimes on rail or platform
 	db.Model(entities.LINETASK.Obj()).AddForeignKey("moving_id", foreign[entities.RAILEDGE], "RESTRICT", "RESTRICT")
 	db.Model(entities.LINETASK.Obj()).AddForeignKey("stay_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("dest_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
 
 	// Train runs on a chain of Line
 	db.Model(entities.TRAIN.Obj()).AddForeignKey("task_id", foreign[entities.LINETASK], "RESTRICT", "RESTRICT")

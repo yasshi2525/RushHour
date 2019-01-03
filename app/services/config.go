@@ -30,6 +30,14 @@ type cfgCompany struct {
 	Scale float64 `validate:"gt=0"`
 }
 
+type cfgGate struct {
+	Num uint `validate:"gt=0"`
+}
+
+type cfgPlatform struct {
+	Capacity uint `validate:"gt=0"`
+}
+
 type cfgTrain struct {
 	Weight float64 `validate:"gt=0"`
 }
@@ -50,6 +58,8 @@ type cfgBackup struct {
 type config struct {
 	Residence cfgResidence
 	Company   cfgCompany
+	Gate      cfgGate
+	Platform  cfgPlatform
 	Train     cfgTrain
 	Human     cfgHuman
 	Game      cfgGame
@@ -66,7 +76,7 @@ func LoadConf() {
 	}
 
 	if err := validator.New().Struct(Config); err != nil {
-		panic(err)
+		panic(fmt.Errorf("%+v, %v", Config, err))
 	}
 	revel.AppLog.Info("config file was successfully loaded.")
 }

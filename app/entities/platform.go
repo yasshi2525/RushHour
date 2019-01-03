@@ -13,10 +13,11 @@ type Platform struct {
 	out map[uint]*Step
 	in  map[uint]*Step
 
-	InStation  *Station        `gorm:"-" json:"-"`
-	WithGate   *Gate           `gorm:"-" json:"-"`
-	OnRailNode *RailNode       `gorm:"-" json:"-"`
-	Passenger  map[uint]*Human `gorm:"-" json:"-"`
+	InStation  *Station           `gorm:"-" json:"-"`
+	WithGate   *Gate              `gorm:"-" json:"-"`
+	OnRailNode *RailNode          `gorm:"-" json:"-"`
+	Passengers map[uint]*Human    `gorm:"-" json:"-"`
+	LineTasks  map[uint]*LineTask `gorm:"-" json:"-"`
 
 	Trains map[uint]*Train `gorm:"-" json:"-"`
 
@@ -42,8 +43,9 @@ func (p *Platform) Type() ModelType {
 func (p *Platform) Init() {
 	p.out = make(map[uint]*Step)
 	p.in = make(map[uint]*Step)
-	p.Passenger = make(map[uint]*Human)
+	p.Passengers = make(map[uint]*Human)
 	p.Trains = make(map[uint]*Train)
+	p.LineTasks = make(map[uint]*LineTask)
 }
 
 // Pos returns location
@@ -82,7 +84,7 @@ func (p *Platform) Resolve(args ...interface{}) {
 			p.Trains[obj.ID] = obj
 			obj.Resolve(p)
 		case *Human:
-			p.Passenger[obj.ID] = obj
+			p.Passengers[obj.ID] = obj
 			p.Occupied++
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
@@ -105,6 +107,27 @@ func (p *Platform) ResolveRef() {
 	}
 }
 
+// CheckRemove checks related reference
+func (p *Platform) CheckRemove() error {
+	return nil
+}
+
+// UnRef delete related reference.
+func (p *Platform) UnRef() {
+	for _, h := range p.Passengers {
+		h.OnPlatform = nil
+		delete(p.Passengers, h.ID)
+	}
+	for _, t := range p.Trains {
+		t.OnPlatform = nil
+		delete(p.Trains, t.ID)
+	}
+	for _, lt := range p.LineTasks {
+		lt.UnRef()
+		delete(p.LineTasks, lt.ID)
+	}
+}
+
 // Permits represents Player is permitted to control
 func (p *Platform) Permits(o *Player) bool {
 	return p.Owner.Permits(o)
@@ -115,6 +138,6 @@ func (p *Platform) String() string {
 	return fmt.Sprintf("%s(%d):st=%d,g=%d,i=%d,o=%d,h=%d/%d:%v:%s",
 		Meta.Attr[p.Type()].Short,
 		p.ID, p.InStation.ID, p.WithGate.ID,
-		len(p.in), len(p.out), len(p.Passenger), p.Capacity,
+		len(p.in), len(p.out), len(p.Passengers), p.Capacity,
 		p.Pos(), p.InStation.Name)
 }
