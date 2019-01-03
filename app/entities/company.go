@@ -83,6 +83,11 @@ func (c *Company) ResolveRef() {
 func (c *Company) UnRef() {
 }
 
+// CanRemove check remaining reference
+func (c *Company) CanRemove() (bool, error) {
+	return true, nil
+}
+
 // String represents status
 func (c *Company) String() string {
 	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", Meta.Attr[c.Type()].Short,

@@ -84,6 +84,11 @@ func (r *Residence) ResolveRef() {
 func (r *Residence) UnRef() {
 }
 
+// CanRemove check remaining reference
+func (r *Residence) CanRemove() (bool, error) {
+	return true, nil
+}
+
 func (r *Residence) String() string {
 	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Attr[r.Type()].Short,
 		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)

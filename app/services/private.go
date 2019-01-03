@@ -17,8 +17,8 @@ func CreateRailNode(owner *entities.Player, x float64, y float64) *entities.Rail
 // RemoveRailNode remove RailNode
 func RemoveRailNode(owner *entities.Player, id uint) error {
 	if rn, ok := Model.RailNodes[id]; ok {
-		if in, out := len(rn.InEdge), len(rn.OutEdge); in > 0 || out > 0 {
-			return fmt.Errorf("relations remain RailNode(%d)(in=%d, out=%d)", id, in, out)
+		if ok, err := rn.CanRemove(); !ok {
+			return err
 		}
 		if ok, err := IsAuth(owner, rn); !ok {
 			return err
