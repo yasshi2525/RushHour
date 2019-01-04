@@ -38,7 +38,7 @@ func StartModelWatching() {
 	mkFuncs[entities.RAILNODE] = CreateRailNode
 	mkFuncs[entities.RAILEDGE] = ExtendRailNode
 	mkFuncs[entities.STATION] = CreateStation
-	mkFuncs[entities.LINE] = CreateRailLine
+	mkFuncs[entities.RAILLINE] = CreateRailLine
 
 	rmFuncs = make(map[entities.ModelType]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
@@ -120,12 +120,12 @@ func processMsg(msg *Operation) {
 					reflect.ValueOf(rn),
 					reflect.ValueOf("NoName")})
 			}
-		case entities.LINE:
+		case entities.RAILLINE:
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
 				reflect.ValueOf("NoName")})
 		case entities.LINETASK:
-			if l, p := randEntity(owner, entities.LINE), randEntity(owner, entities.PLATFORM); l != nil && p != nil {
+			if l, p := randEntity(owner, entities.RAILLINE), randEntity(owner, entities.PLATFORM); l != nil && p != nil {
 				l, p := l.(*entities.RailLine), p.(*entities.Platform)
 				StartRailLine(owner, l, p)
 			}
@@ -133,7 +133,7 @@ func processMsg(msg *Operation) {
 				re := re.(*entities.RailEdge)
 				InsertLineTask(owner, re)
 			}
-			if l := randEntity(owner, entities.LINE); l != nil {
+			if l := randEntity(owner, entities.RAILLINE); l != nil {
 				RingRailLine(owner, l.(*entities.RailLine))
 			}
 		}

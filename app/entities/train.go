@@ -62,8 +62,8 @@ func (t *Train) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (t *Train) IsIn(center *Point, scale float64) bool {
-	return t.Pos().IsIn(center, scale)
+func (t *Train) IsIn(x float64, y float64, scale float64) bool {
+	return t.Pos().IsIn(x, y, scale)
 }
 
 // Resolve set ID from reference
@@ -112,7 +112,7 @@ func (t *Train) Permits(o *Player) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (t *Train) IsChanged(after ...time.Time) bool {
-	return t.Base.IsChanged(after)
+	return t.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

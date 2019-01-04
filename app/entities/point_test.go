@@ -23,7 +23,6 @@ func TestDist(t *testing.T) {
 }
 
 func TestIsIn(t *testing.T) {
-	center := &Point{0, 0}
 	scale := 4.0
 
 	cases := []struct {
@@ -38,21 +37,8 @@ func TestIsIn(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := c.target.IsIn(center, scale); got != c.want {
+		if got := c.target.IsIn(0, 0, scale); got != c.want {
 			t.Errorf("IsIn(%v) == %t, want %t", c.target, got, c.want)
 		}
-	}
-}
-
-func TestCost(t *testing.T) {
-	admin := NewPlayer(1)
-	admin.Level = Admin
-	from := NewResidence(1, admin, 0, 0)
-	to := NewCompany(1, admin, 3, 4)
-
-	step := &Step{1, from, to, 2.0}
-
-	if got := step.Cost(); got != 10.0 {
-		t.Errorf("Cost(%v, %v) == %f, want %f", from, to, got, 10.0)
 	}
 }

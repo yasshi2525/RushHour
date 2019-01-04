@@ -1,15 +1,20 @@
 package entities
 
 import (
-	"fmt"
 	"math"
 	"sort"
 )
 
-// Node is wrapper of Relayable for routing.
+// Digest directs resource of model
+type Digest struct {
+	Type ModelType
+	ID   uint
+}
+
+// Node is digest of Relayable, Traverable for routing.
 // The chain of Node represents one route.
 type Node struct {
-	Base    Relayable
+	Base    *Digest
 	Cost    float64
 	Via     *Node
 	ViaEdge *Edge
@@ -18,76 +23,18 @@ type Node struct {
 }
 
 // NewNode returns instance
-func NewNode(base Relayable) *Node {
+func NewNode(t ModelType, id uint) *Node {
 	return &Node{
-		Base: base,
+		Base: &Digest{t, id},
 		Cost: math.MaxFloat64,
 		Out:  []*Edge{},
 		In:   []*Edge{},
 	}
 }
 
-// Edge is wrapper of Step for routing.
-type Edge struct {
-	Base *Step
-	From *Node
-	To   *Node
-}
-
-// NewEdge creates instance and append slice of Node
-func NewEdge(base *Step, from *Node, to *Node) *Edge {
-	e := &Edge{
-		Base: base,
-		From: from,
-		To:   to,
-	}
-	from.Out = append(from.Out, e)
-	to.In = append(to.In, e)
-	return e
-}
-
-// GenEdges generates Edge list from Nodes and Steps.
-func GenEdges(ns []*Node, steps map[uint]*Step) []*Edge {
-	es := []*Edge{}
-	for _, s := range steps {
-		var from, to *Node
-		for _, n := range ns {
-			if n.Base == s.From() {
-				from = n
-			}
-			if n.Base == s.To() {
-				to = n
-			}
-			if from != nil && to != nil {
-				break
-			}
-		}
-		if from == nil && to == nil {
-			panic(fmt.Errorf("fail to create edge from %v: from=%v, to=%v", s, from, to))
-		}
-		es = append(es, NewEdge(s, from, to))
-	}
-	return es
-}
-
-// Cost is evaluated for minium cost searching.
-func (e *Edge) Cost() float64 {
-	return e.Base.Cost()
-}
-
-// nodeQueue is open list for searching
-type nodeQueue []*Node
-
-func (q nodeQueue) Len() int {
-	return len(q)
-}
-
-func (q nodeQueue) Swap(i, j int) {
-	q[i], q[j] = q[j], q[i]
-}
-
-func (q nodeQueue) Less(i, j int) bool {
-	return q[i].Cost < q[j].Cost
+// SameAs check both directs same resource
+func (n *Node) SameAs(oth Indexable) bool {
+	return n.Base.Type == oth.Type() && n.Base.ID == oth.Idx()
 }
 
 // WalkThrough set distance towrards self to Cost of connected Nodes.
@@ -102,7 +49,7 @@ func (n *Node) WalkThrough() {
 
 		for _, e := range x.In {
 			y := e.From
-			v := x.Cost + e.Cost()
+			v := x.Cost + e.Cost
 			if v < y.Cost {
 				y.Cost = v
 				y.Via = x
@@ -124,4 +71,74 @@ func (n *Node) Fix() {
 	// in order to save memory
 	n.In = nil
 	n.Out = nil
+}
+
+// Edge is wrapper of Step for routing.
+type Edge struct {
+	Base *Digest
+	From *Node
+	To   *Node
+	Cost float64
+}
+
+// NewEdge creates instance and append slice of Node
+func NewEdge(base *Digest, from *Node, to *Node, v float64) *Edge {
+	e := &Edge{
+		Base: base,
+		From: from,
+		To:   to,
+		Cost: v,
+	}
+	from.Out = append(from.Out, e)
+	to.In = append(to.In, e)
+	return e
+}
+
+// GenStepEdges generates Edge list from Nodes and Steps.
+func GenStepEdges(ns []*Node, steps map[uint]*Step) []*Edge {
+	es := []*Edge{}
+	for _, s := range steps {
+		es = append(es, genEdge(ns, s))
+	}
+	return es
+}
+
+// GenTrackEdges generates Edge list from Nodes and Tracks.
+func GenTrackEdges(ns []*Node, tracks map[uint]*Track) []*Edge {
+	es := []*Edge{}
+	for _, tr := range tracks {
+		es = append(es, genEdge(ns, tr))
+	}
+	return es
+}
+
+func genEdge(ns []*Node, base Connectable) *Edge {
+	var from, to *Node
+	for _, n := range ns {
+		if n.SameAs(base.From()) {
+			from = n
+		}
+		if n.SameAs(base.To()) {
+			to = n
+		}
+		if from != nil && to != nil {
+			break
+		}
+	}
+	return NewEdge(&Digest{base.Type(), base.Idx()}, from, to, base.Cost())
+}
+
+// nodeQueue is open list for searching
+type nodeQueue []*Node
+
+func (q nodeQueue) Len() int {
+	return len(q)
+}
+
+func (q nodeQueue) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
+func (q nodeQueue) Less(i, j int) bool {
+	return q[i].Cost < q[j].Cost
 }

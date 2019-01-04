@@ -44,9 +44,17 @@ func GenID(t entities.ModelType) uint {
 	return uint(atomic.AddUint64(Model.NextIDs[t], 1))
 }
 
-// GenStep generate Step and resister it
-func GenStep(from entities.Relayable, to entities.Relayable, weight float64, reverseOpts ...bool) *entities.Step {
-	s := entities.NewStep(GenID(entities.STEP), from, to, weight)
+// GenWalkStep generate Step and resister it
+func GenWalkStep(from entities.Relayable, to entities.Relayable) *entities.Step {
+	cost := from.Pos().Dist(to) * Config.Human.Weight
+	s := entities.NewWalkStep(GenID(entities.STEP), from, to, cost)
+	AddEntity(s)
+	return s
+}
+
+// GenTrainStep generate Step and resister it
+func GenTrainStep(lt *entities.LineTask, dept *entities.Platform, dest *entities.Platform, cost float64) *entities.Step {
+	s := entities.NewTrainStep(GenID(entities.STEP), lt, dept, dest, cost)
 	AddEntity(s)
 	return s
 }

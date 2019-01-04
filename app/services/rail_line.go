@@ -8,7 +8,7 @@ import (
 
 // CreateRailLine create RailLine
 func CreateRailLine(o *entities.Player, name string) (*entities.RailLine, error) {
-	l := entities.NewRailLine(GenID(entities.LINE), o)
+	l := entities.NewRailLine(GenID(entities.RAILLINE), o)
 	l.Name = name
 	AddEntity(l)
 	return l, nil
@@ -24,6 +24,9 @@ func StartRailLine(
 	}
 	if err := CheckAuth(o, p); err != nil {
 		return nil, err
+	}
+	if len(l.Tasks) > 0 {
+		return nil, fmt.Errorf("already registered %v", l.Tasks)
 	}
 	lt := entities.NewLineTaskDept(GenID(entities.LINETASK), l, p)
 	AddEntity(lt)
@@ -63,13 +66,20 @@ func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) err
 			inter = entities.NewLineTaskDept(GenID(entities.LINETASK), inter.RailLine, inter.Dest, inter)
 			AddEntity(inter)
 		}
-
 		inter.Next = next // (a) -> (b) -> (c)
+		inter.Change()
+
+		// recalculate transport cost if RailLine loops
+		if inter.RailLine.IsRing() {
+			delStepRailLine(inter.RailLine)
+			genStepRailLine(inter.RailLine)
+		}
 	}
 	return nil
 }
 
 // AttachLineTask attaches new RailEdge
+// Need to update Step after call
 func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities.RailEdge, pass ...bool) (*entities.LineTask, error) {
 	if err := CheckAuth(o, tail); err != nil {
 		return nil, err
@@ -89,6 +99,7 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 
 	tail = entities.NewLineTask(GenID(entities.LINETASK), tail, newer, pass...)
 	AddEntity(tail)
+
 	return tail, nil
 }
 
@@ -98,36 +109,55 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return false, err
 	}
 	// Check RainLine is not ringing
-	if head, tail, _ := FindRailLineBorder(o, l); head != nil && tail != nil {
+	if head, tail := l.Borders(); head != nil && tail != nil {
 		tail.Next = head
+		genStepRailLine(l)
+		return true, nil
 	}
 	return false, nil
 }
 
-// FindRailLineBorder returns head and tail of LineTask.
-// Head and tail are nil when LineTask loops
-// Tail is undirecting LineTask, that is LineTask.Next is nil
-// Head is undirected  LineTask because head of chain is what any other doesn't target
-func FindRailLineBorder(o *entities.Player, l *entities.RailLine) (*entities.LineTask, *entities.LineTask, error) {
-	if err := CheckAuth(o, l); err != nil {
-		return nil, nil, err
-	}
-	var tail *entities.LineTask
-
-	referred := make(map[uint]bool)
-	for _, lt := range l.Tasks {
-		if lt.Next != nil {
-			referred[lt.Next.ID] = true
-		} else {
-			tail = lt
+// delStepRailLine discards old step
+func delStepRailLine(l *entities.RailLine) {
+	for _, s := range Model.Steps {
+		if s.By != nil && s.By.RailLine == l {
+			DelEntity(s)
 		}
 	}
+}
 
-	for key, v := range referred {
-		if !v {
-			return l.Tasks[key], tail, nil
+// genStepRailLine generate Step P <-> P
+func genStepRailLine(l *entities.RailLine) {
+	for _, dest := range l.Platforms {
+		goal, nodes := genTravelableNodes(dest, l)
+		entities.GenTrackEdges(nodes, Model.Tracks)
+		goal.WalkThrough()
+		for _, src := range nodes {
+			// prevent to P-P (self-loop) relation
+			if src.SameAs(dest) {
+				continue
+			}
+			src.Fix()
+			// filter out unreachable Platform
+			if src.ViaEdge == nil {
+				continue
+			}
+			lt := Model.LineTasks[src.ViaEdge.Base.ID]
+			dept := Model.Platforms[src.Base.ID]
+			GenTrainStep(lt, dept, dest, src.Cost)
 		}
 	}
-	// looped
-	return nil, nil, nil
+}
+
+func genTravelableNodes(goal *entities.Platform, l *entities.RailLine) (*entities.Node, []*entities.Node) {
+	var wrapper *entities.Node
+	ns := []*entities.Node{}
+	for _, p := range l.Platforms {
+		n := entities.NewNode(p.Type(), p.ID)
+		if p == goal {
+			wrapper = n
+		}
+		ns = append(ns, n)
+	}
+	return wrapper, ns
 }

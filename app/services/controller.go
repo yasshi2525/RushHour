@@ -17,7 +17,6 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
 
-	center := &entities.Point{X: x, Y: y}
 	view := newGameView()
 
 	for idx, res := range Meta.List {
@@ -30,7 +29,7 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 					return
 				}
 				// filter out of user view
-				if pos, ok := obj.(entities.Locationable); ok && pos.IsIn(center, scale) {
+				if pos, ok := obj.(entities.Viewable); ok && pos.IsIn(x, y, scale) {
 					list = reflect.Append(list, reflect.ValueOf(pos))
 				}
 			})

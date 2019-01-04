@@ -39,6 +39,4 @@ func processGame() {
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
-
-	time.Sleep(600 * time.Millisecond)
 }

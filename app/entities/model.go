@@ -17,11 +17,12 @@ const (
 	STATION
 	GATE
 	PLATFORM
-	LINE
+	RAILLINE
 	LINETASK
 	TRAIN
 	HUMAN
 	STEP
+	TRACK
 	AGENT
 )
 
@@ -103,6 +104,7 @@ type Model struct {
 	Humans     map[uint]*Human
 
 	Steps  map[uint]*Step
+	Tracks map[uint]*Track
 	Agents map[uint]*Agent
 
 	NextIDs map[ModelType]*uint64
@@ -134,11 +136,12 @@ func initMeta() *MetaModel {
 			STATION,
 			GATE,
 			PLATFORM,
-			LINE,
+			RAILLINE,
 			LINETASK,
 			TRAIN,
 			HUMAN,
 			STEP,
+			TRACK,
 			AGENT,
 		},
 	}
@@ -152,12 +155,13 @@ func initMeta() *MetaModel {
 	meta.Attr[STATION] = &Attribute{"Station", "st", "stations", "stations"}
 	meta.Attr[GATE] = &Attribute{"Gate", "g", "gates", "gates"}
 	meta.Attr[PLATFORM] = &Attribute{"Platform", "p", "platforms", "platforms"}
-	meta.Attr[LINE] = &Attribute{"RailLine", "l", "rail_lines", "rail_lines"}
+	meta.Attr[RAILLINE] = &Attribute{"RailLine", "l", "rail_lines", "rail_lines"}
 	meta.Attr[LINETASK] = &Attribute{"LineTask", "lt", "line_tasks", "line_tasks"}
 	meta.Attr[TRAIN] = &Attribute{"Train", "t", "trains", "trains"}
 	meta.Attr[HUMAN] = &Attribute{"Human", "h", "humen", "humans"}
 
 	meta.Attr[STEP] = &Attribute{"Step", "s", "", ""}
+	meta.Attr[TRACK] = &Attribute{"Track", "tr", "", ""}
 	meta.Attr[AGENT] = &Attribute{"Agent", "a", "", ""}
 
 	return meta

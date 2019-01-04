@@ -20,11 +20,9 @@ type Company struct {
 // NewCompany create new instance without setting parameters
 func NewCompany(id uint, o *Player, x float64, y float64) *Company {
 	c := &Company{
-		Base:    NewBase(id),
-		Owner:   NewOwner(o),
-		Point:   NewPoint(x, y),
-		in:      make(map[uint]*Step),
-		Targets: make(map[uint]*Human),
+		Base:  NewBase(id),
+		Owner: NewOwner(o),
+		Point: NewPoint(x, y),
 	}
 	c.Init()
 	return c
@@ -52,17 +50,17 @@ func (c *Company) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (c *Company) IsIn(center *Point, scale float64) bool {
-	return c.Pos().IsIn(center, scale)
+func (c *Company) IsIn(x float64, y float64, scale float64) bool {
+	return c.Pos().IsIn(x, y, scale)
 }
 
-// Out returns where it can go to.
-func (c *Company) Out() map[uint]*Step {
+// OutStep returns where it can go to.
+func (c *Company) OutStep() map[uint]*Step {
 	return nil
 }
 
-// In returns where it comes from.
-func (c *Company) In() map[uint]*Step {
+// InStep returns where it comes from.
+func (c *Company) InStep() map[uint]*Step {
 	return c.in
 }
 
@@ -100,7 +98,7 @@ func (c *Company) CheckRemove() error {
 
 // IsChanged returns true when it is changed after Backup()
 func (c *Company) IsChanged(after ...time.Time) bool {
-	return c.Base.IsChanged(after)
+	return c.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

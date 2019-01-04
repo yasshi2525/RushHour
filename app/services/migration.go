@@ -43,7 +43,7 @@ func MigrateDB() {
 	db.Model(entities.GATE.Obj()).AddForeignKey("station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
 
 	// Line composes LineTasks
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("rail_line_id", foreign[entities.LINE], "CASCADE", "RESTRICT")
+	db.Model(entities.LINETASK.Obj()).AddForeignKey("rail_line_id", foreign[entities.RAILLINE], "CASCADE", "RESTRICT")
 
 	// Human departs from Residence and destinates to Company
 	db.Model(entities.HUMAN.Obj()).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")

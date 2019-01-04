@@ -9,19 +9,18 @@ import (
 // GenStepHuman Generate Step for Human.
 // It's depend on where Human stay.
 func GenStepHuman(h *entities.Human) {
-	w := Config.Human.Weight
 	switch h.On {
 	case entities.OnGround:
 		// h - C for destination
-		GenStep(h, h.To, w)
+		GenWalkStep(h, h.To)
 		// h -> G
 		for _, g := range Model.Gates {
-			GenStep(h, g, w)
+			GenWalkStep(h, g)
 		}
 	case entities.OnPlatform:
 		// h - G, P on Human
-		GenStep(h, h.OnPlatform, w)
-		GenStep(h, h.OnPlatform.InStation.Gate, w)
+		GenWalkStep(h, h.OnPlatform)
+		GenWalkStep(h, h.OnPlatform.WithGate)
 	case entities.OnTrain:
 		// do-nothing
 	default:

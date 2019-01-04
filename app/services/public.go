@@ -29,7 +29,7 @@ func RemoveResidence(o *entities.Player, id uint) error {
 		for _, h := range r.Targets {
 			DelEntity(h)
 		}
-		for _, s := range r.Out() {
+		for _, s := range r.OutStep() {
 			DelEntity(s)
 		}
 		DelEntity(r)
@@ -56,7 +56,7 @@ func RemoveCompany(o *entities.Player, id uint) error {
 		for _, h := range c.Targets {
 			DelEntity(h)
 		}
-		for _, s := range c.In() {
+		for _, s := range c.InStep() {
 			DelEntity(s)
 		}
 		DelEntity(c)
@@ -67,11 +67,11 @@ func RemoveCompany(o *entities.Player, id uint) error {
 func GenStepResidence(r *entities.Residence) {
 	// R -> C
 	for _, c := range Model.Companies {
-		GenStep(r, c, Config.Human.Weight)
+		GenWalkStep(r, c)
 	}
 	// R -> G
 	for _, g := range Model.Gates {
-		GenStep(r, g, Config.Human.Weight)
+		GenWalkStep(r, g)
 	}
 }
 
@@ -79,10 +79,10 @@ func GenStepResidence(r *entities.Residence) {
 func GenStepCompany(c *entities.Company) {
 	// R -> C
 	for _, r := range Model.Residences {
-		GenStep(r, c, Config.Human.Weight)
+		GenWalkStep(r, c)
 	}
 	// G -> C
 	for _, g := range Model.Gates {
-		GenStep(g, c, Config.Human.Weight)
+		GenWalkStep(g, c)
 	}
 }

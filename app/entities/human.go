@@ -84,17 +84,17 @@ func (h *Human) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (h *Human) IsIn(center *Point, scale float64) bool {
-	return h.Pos().IsIn(center, scale)
+func (h *Human) IsIn(x float64, y float64, scale float64) bool {
+	return h.Pos().IsIn(x, y, scale)
 }
 
-// Out returns where it can go to
-func (h *Human) Out() map[uint]*Step {
+// OutStep returns where it can go to
+func (h *Human) OutStep() map[uint]*Step {
 	return h.out
 }
 
-// In returns where it comes from
-func (h *Human) In() map[uint]*Step {
+// InStep returns where it comes from
+func (h *Human) InStep() map[uint]*Step {
 	return nil
 }
 
@@ -220,7 +220,7 @@ func (h *Human) ShouldGetOff(from *Train) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (h *Human) IsChanged(after ...time.Time) bool {
-	return h.Base.IsChanged(after)
+	return h.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

@@ -10,9 +10,10 @@ type RailLine struct {
 	Base
 	Owner
 
-	Name   string             `         json:"name"`
-	Tasks  map[uint]*LineTask `gorm:"-" json:"-"`
-	Trains map[uint]*Train    `gorm:"-" json:"-"`
+	Name      string             `         json:"name"`
+	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
+	Trains    map[uint]*Train    `gorm:"-" json:"-"`
+	Platforms map[uint]*Platform `gorm:"-" json:"-"`
 }
 
 // NewRailLine create instance
@@ -32,13 +33,14 @@ func (l *RailLine) Idx() uint {
 
 // Type returns type of entitiy
 func (l *RailLine) Type() ModelType {
-	return LINE
+	return RAILLINE
 }
 
 // Init makes map
 func (l *RailLine) Init() {
 	l.Tasks = make(map[uint]*LineTask)
 	l.Trains = make(map[uint]*Train)
+	l.Platforms = make(map[uint]*Platform)
 }
 
 // Pos returns location
@@ -58,9 +60,9 @@ func (l *RailLine) Pos() *Point {
 }
 
 // IsIn return true when any LineTask is in,
-func (l *RailLine) IsIn(center *Point, scale float64) bool {
+func (l *RailLine) IsIn(x float64, y float64, scale float64) bool {
 	for _, lt := range l.Tasks {
-		if lt.IsIn(center, scale) {
+		if lt.IsIn(x, y, scale) {
 			return true
 		}
 	}
@@ -73,6 +75,8 @@ func (l *RailLine) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Player:
 			l.Owner = NewOwner(obj)
+		case *Platform:
+			l.Platforms[obj.ID] = obj
 		case *LineTask:
 			l.Tasks[obj.ID] = obj
 		case *Train:
@@ -100,12 +104,44 @@ func (l *RailLine) Permits(o *Player) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (l *RailLine) IsChanged(after ...time.Time) bool {
-	return l.Base.IsChanged(after)
+	return l.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed
 func (l *RailLine) Reset() {
 	l.Base.Reset()
+}
+
+// Borders returns head and tail of LineTask.
+// Head and tail are nil when LineTask loops
+// Tail is undirecting LineTask, that is LineTask.Next is nil
+// Head is undirected  LineTask because head of chain is what any other doesn't target
+func (l *RailLine) Borders() (*LineTask, *LineTask) {
+	var tail *LineTask
+	referred := make(map[uint]bool)
+	for _, lt := range l.Tasks {
+		if lt.Next != nil {
+			referred[lt.Next.ID] = true
+		} else {
+			tail = lt
+		}
+	}
+	for key, v := range referred {
+		if !v {
+			return l.Tasks[key], tail
+		}
+	}
+	// looped
+	return nil, nil
+}
+
+// IsRing returns whether LineTask is looping or not
+func (l *RailLine) IsRing() bool {
+	if len(l.Tasks) == 0 {
+		return false
+	}
+	h, t := l.Borders()
+	return h == nil && t == nil
 }
 
 // String represents status

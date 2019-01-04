@@ -56,6 +56,7 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 	p.Resolve(lt)
 	if len(tail) > 0 {
 		tail[0].Resolve(lt)
+		tail[0].Change()
 	}
 	return lt
 }
@@ -86,6 +87,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 		re.ToNode.OverPlatform.Resolve(lt)
 	}
 	tail.Resolve(lt)
+	tail.Change()
 	return lt
 }
 
@@ -121,12 +123,12 @@ func (lt *LineTask) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (lt *LineTask) IsIn(center *Point, scale float64) bool {
+func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
 	switch lt.TaskType {
 	case OnDeparture:
-		return lt.Stay.IsIn(center, scale)
+		return lt.Stay.IsIn(x, y, scale)
 	default:
-		return lt.Moving.IsIn(center, scale)
+		return lt.Moving.IsIn(x, y, scale)
 	}
 }
 
@@ -144,6 +146,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			case OnDeparture:
 				lt.Stay = obj
 				obj.Resolve(lt)
+				lt.RailLine.Resolve(obj)
 			default:
 				lt.Dest = obj
 				obj.Resolve(lt)
@@ -234,7 +237,7 @@ func (lt *LineTask) Cost() float64 {
 
 // IsChanged returns true when it is changed after Backup()
 func (lt *LineTask) IsChanged(after ...time.Time) bool {
-	return lt.Base.IsChanged(after)
+	return lt.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

@@ -19,28 +19,37 @@ type Initializable interface {
 type Locationable interface {
 	// Pos returns entities' position.
 	Pos() *Point
-	// IsIn returns it should be view or not.
-	IsIn(*Point, float64) bool
 }
 
 // Relayable represents connectable for Human moving
 type Relayable interface {
+	Idx() uint
+	Type() ModelType
 	// Pos returns entities' position.
 	Pos() *Point
-	// IsIn returns it should be view or not.
-	IsIn(*Point, float64) bool
 	// In represents how other can reach itself.
-	In() map[uint]*Step
+	InStep() map[uint]*Step
 	// Out represents how itselt can reach other.
-	Out() map[uint]*Step
+	OutStep() map[uint]*Step
 }
 
-// Connectable represents logical connection.
+// Travelable represents connectable for Train running
+type Travelable interface {
+	Idx() uint
+	Type() ModelType
+	// Pos returns entities' position.
+	Pos() *Point
+	// In represents how other can reach itself.
+	InTrack() map[uint]*Track
+	// Out represents how itselt can reach other.
+	OutTrack() map[uint]*Track
+}
+
 type Connectable interface {
-	// From represents start point
-	From() Relayable
-	// To represents end point
-	To() Relayable
+	Idx() uint
+	Type() ModelType
+	From() Indexable
+	To() Indexable
 	Cost() float64
 }
 
@@ -68,6 +77,14 @@ type Ownable interface {
 type Persistable interface {
 	IsChanged(after ...time.Time) bool
 	Reset()
+}
+
+// Viewable represents user can view it
+type Viewable interface {
+	// Pos returns entities' position.
+	Pos() *Point
+	// IsIn returns it should be view or not.
+	IsIn(float64, float64, float64) bool
 }
 
 // Removable can check to able to remove

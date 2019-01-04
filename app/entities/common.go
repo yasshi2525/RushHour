@@ -30,7 +30,7 @@ func NewBase(id uint) Base {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (base Base) IsChanged(after []time.Time) bool {
+func (base Base) IsChanged(after ...time.Time) bool {
 	if len(after) > 0 {
 		return base.ChangedAt.Sub(after[0]) > 0
 	}

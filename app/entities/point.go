@@ -24,20 +24,17 @@ func (p *Point) Pos() *Point {
 }
 
 // IsIn returns true when Point is in specified area
-func (p *Point) IsIn(center *Point, scale float64) bool {
+func (p *Point) IsIn(x float64, y float64, scale float64) bool {
 	len := math.Pow(2, scale)
 
-	return p.X > center.X-len/2 &&
-		p.X < center.X+len/2 &&
-		p.Y > center.Y-len/2 &&
-		p.Y < center.Y+len/2
+	return p.X > x-len/2 && p.X < x+len/2 && p.Y > y-len/2 && p.Y < y+len/2
 }
 
 // IsInLine returns true when this or to or center is in.
-func (p *Point) IsInLine(to Locationable, center *Point, scale float64) bool {
-	return p.IsIn(center.Pos(), scale) ||
-		p.Center(to).IsIn(center.Pos(), scale) ||
-		to.IsIn(center.Pos(), scale)
+func (p *Point) IsInLine(to Locationable, x float64, y float64, scale float64) bool {
+	return p.IsIn(x, y, scale) ||
+		p.Center(to).IsIn(x, y, scale) ||
+		to.Pos().IsIn(x, y, scale)
 }
 
 // Dist calculate a distance between two Point

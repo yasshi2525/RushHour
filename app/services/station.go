@@ -35,38 +35,30 @@ func RemoveStation(o *entities.Player, id uint) error {
 
 // GenStepStation generates step related Station.
 func genStepStation(st *entities.Station) {
-	walk, train := Config.Human.Weight, Config.Train.Weight
 	// R -> P
 	for _, r := range Model.Residences {
-		GenStep(r, st.Platform, walk)
+		GenWalkStep(r, st.Platform)
 	}
 	// G <-> P
-	GenStep(st.Gate, st.Platform, walk)
-	GenStep(st.Platform, st.Gate, walk)
-	// P <-> P
-	for _, p2 := range Model.Platforms {
-		if st.Platform != p2 {
-			GenStep(st.Platform, p2, train)
-			GenStep(p2, st.Platform, train)
-		}
-	}
+	GenWalkStep(st.Gate, st.Platform)
+	GenWalkStep(st.Platform, st.Gate)
 	// G -> C
 	for _, c := range Model.Companies {
-		GenStep(st.Gate, c, walk)
+		GenWalkStep(st.Gate, c)
 	}
 }
 
 func delStepStation(st *entities.Station) {
-	for _, s := range st.Platform.In() {
+	for _, s := range st.Platform.InStep() {
 		DelEntity(s)
 	}
-	for _, s := range st.Platform.Out() {
+	for _, s := range st.Platform.OutStep() {
 		DelEntity(s)
 	}
-	for _, s := range st.Gate.In() {
+	for _, s := range st.Gate.InStep() {
 		DelEntity(s)
 	}
-	for _, s := range st.Gate.Out() {
+	for _, s := range st.Gate.OutStep() {
 		DelEntity(s)
 	}
 }

@@ -50,7 +50,7 @@ func (o *Player) Pos() *Point {
 }
 
 // IsIn always returns true in order for user to view other Player
-func (o *Player) IsIn(center *Point, scale float64) bool {
+func (o *Player) IsIn(x float64, y float64, scale float64) bool {
 	return true
 }
 
@@ -82,7 +82,7 @@ func (o *Player) Short() string {
 
 // IsChanged returns true when it is changed after Backup()
 func (o *Player) IsChanged(after ...time.Time) bool {
-	return o.Base.IsChanged(after)
+	return o.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

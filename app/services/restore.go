@@ -139,7 +139,6 @@ func resolveStatic() {
 
 // genDynamics create Dynamic instances
 func genDynamics() {
-	walk, train := Config.Human.Weight, Config.Train.Weight
 	for _, r := range Model.Residences {
 		// R -> C, G
 		GenStepResidence(r)
@@ -147,21 +146,18 @@ func genDynamics() {
 	for _, c := range Model.Companies {
 		// G -> C
 		for _, g := range Model.Gates {
-			GenStep(g, c, walk)
+			GenWalkStep(g, c)
 		}
 	}
 	for _, p := range Model.Platforms {
 		// G <-> P
 		g := p.InStation.Gate
-		GenStep(p, g, walk)
-		GenStep(g, p, walk)
-
-		// P <-> P
-		for _, p2 := range Model.Platforms {
-			if p != p2 {
-				GenStep(p, p2, train)
-				GenStep(p2, p, train)
-			}
+		GenWalkStep(p, g)
+		GenWalkStep(g, p)
+	}
+	for _, l := range Model.RailLines {
+		if l.IsRing() {
+			genStepRailLine(l)
 		}
 	}
 	for _, h := range Model.Humans {

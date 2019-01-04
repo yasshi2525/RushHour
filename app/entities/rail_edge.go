@@ -64,8 +64,8 @@ func (re *RailEdge) Pos() *Point {
 }
 
 // IsIn return true when from, to, center is in,
-func (re *RailEdge) IsIn(center *Point, scale float64) bool {
-	return re.FromNode.Pos().IsInLine(re.ToNode, center, scale)
+func (re *RailEdge) IsIn(x float64, y float64, scale float64) bool {
+	return re.FromNode.Pos().IsInLine(re.ToNode, x, y, scale)
 }
 
 // From represents start point
@@ -150,7 +150,7 @@ func (re *RailEdge) Permits(o *Player) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (re *RailEdge) IsChanged(after ...time.Time) bool {
-	return re.Base.IsChanged(after)
+	return re.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

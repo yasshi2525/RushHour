@@ -52,8 +52,8 @@ func (st *Station) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (st *Station) IsIn(center *Point, scale float64) bool {
-	return st.Pos().IsIn(center, scale)
+func (st *Station) IsIn(x float64, y float64, scale float64) bool {
+	return st.Pos().IsIn(x, y, scale)
 }
 
 // Resolve set reference from id.
@@ -107,7 +107,7 @@ func (st *Station) Permits(o *Player) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (st *Station) IsChanged(after ...time.Time) bool {
-	return st.Base.IsChanged(after)
+	return st.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

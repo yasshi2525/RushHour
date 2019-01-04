@@ -11,8 +11,8 @@ type Platform struct {
 	Base
 	Owner
 
-	out map[uint]*Step
-	in  map[uint]*Step
+	outStep map[uint]*Step
+	inStep  map[uint]*Step
 
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
@@ -59,8 +59,8 @@ func (p *Platform) Type() ModelType {
 
 // Init creates map.
 func (p *Platform) Init() {
-	p.out = make(map[uint]*Step)
-	p.in = make(map[uint]*Step)
+	p.outStep = make(map[uint]*Step)
+	p.inStep = make(map[uint]*Step)
 	p.Passengers = make(map[uint]*Human)
 	p.Trains = make(map[uint]*Train)
 	p.LineTasks = make(map[uint]*LineTask)
@@ -75,18 +75,18 @@ func (p *Platform) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (p *Platform) IsIn(center *Point, scale float64) bool {
-	return p.Pos().IsIn(center, scale)
+func (p *Platform) IsIn(x float64, y float64, scale float64) bool {
+	return p.Pos().IsIn(x, y, scale)
 }
 
-// Out returns where it can go to
-func (p *Platform) Out() map[uint]*Step {
-	return p.out
+// OutStep returns where it can go to
+func (p *Platform) OutStep() map[uint]*Step {
+	return p.outStep
 }
 
-// In returns where it comes from
-func (p *Platform) In() map[uint]*Step {
-	return p.in
+// InStep returns where it comes from
+func (p *Platform) InStep() map[uint]*Step {
+	return p.inStep
 }
 
 // Resolve set reference
@@ -164,7 +164,7 @@ func (p *Platform) Permits(o *Player) bool {
 
 // IsChanged returns true when it is changed after Backup()
 func (p *Platform) IsChanged(after ...time.Time) bool {
-	return p.Base.IsChanged(after)
+	return p.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed
@@ -190,6 +190,6 @@ func (p *Platform) String() string {
 	return fmt.Sprintf("%s(%d):st=%d,g=%d,rn=%d,i=%d,o=%d,h=%d/%d%s%s%s",
 		Meta.Attr[p.Type()].Short,
 		p.ID, p.StationID, p.GateID, p.RailNodeID,
-		len(p.in), len(p.out), len(p.Passengers), p.Capacity,
+		len(p.inStep), len(p.outStep), len(p.Passengers), p.Capacity,
 		posstr, ostr, nmstr)
 }

@@ -151,8 +151,8 @@ func subsearch(ctx context.Context, w *routeWorker, workWg *sync.WaitGroup) {
 			result.Status = result.Processed == result.Total
 			break
 		default:
-			goal, nodes := genNodes(c)
-			entities.GenEdges(nodes, Model.Steps)
+			goal, nodes := genRelayableNodes(c)
+			entities.GenStepEdges(nodes, Model.Steps)
 			goal.WalkThrough()
 			for _, n := range nodes {
 				n.Fix()
@@ -183,8 +183,8 @@ func reduceResult(collectCh chan *routeResult, done chan *routeResult) {
 	done <- result
 }
 
-// genNodes returns it's wrapper Node and all Node
-func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
+// genRelayableNodes returns it's wrapper Node and all Node
+func genRelayableNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
 	var wrapper *entities.Node
 	ns := []*entities.Node{}
 
@@ -195,7 +195,8 @@ func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
 					revel.AppLog.Debugf("skip %s(%d) because dept=%s(%d)", res, h.ID, entities.COMPANY, goal.ID)
 					return
 				}
-				n := entities.NewNode(obj.(entities.Relayable))
+				res := obj.(entities.Indexable)
+				n := entities.NewNode(res.Type(), res.Idx())
 				if obj == goal {
 					wrapper = n
 					//revel.AppLog.Debugf("found wrapper %s(%d) for %s(%d)", res, obj.(entities.Indexable).Idx(), entities.COMPANY, goal.ID)
@@ -223,7 +224,7 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool 
 			return false
 		default:
 			for _, n := range RouteTemplate[h.To.ID] {
-				if n.Base == h {
+				if n.Base.Type == entities.HUMAN {
 					Model.Agents[h.ID].Current = n.ViaEdge
 				}
 			}

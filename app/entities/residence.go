@@ -51,17 +51,17 @@ func (r *Residence) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (r *Residence) IsIn(center *Point, scale float64) bool {
-	return r.Pos().IsIn(center, scale)
+func (r *Residence) IsIn(x float64, y float64, scale float64) bool {
+	return r.Pos().IsIn(x, y, scale)
 }
 
-// Out returns where it can go to
-func (r *Residence) Out() map[uint]*Step {
+// OutStep returns where it can go to
+func (r *Residence) OutStep() map[uint]*Step {
 	return r.out
 }
 
-// In returns where it comes from
-func (r *Residence) In() map[uint]*Step {
+// InStep returns where it comes from
+func (r *Residence) InStep() map[uint]*Step {
 	return nil
 }
 
@@ -99,7 +99,7 @@ func (r *Residence) CheckRemove() error {
 
 // IsChanged returns true when it is changed after Backup()
 func (r *Residence) IsChanged(after ...time.Time) bool {
-	return r.Base.IsChanged(after)
+	return r.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

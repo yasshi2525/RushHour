@@ -66,17 +66,17 @@ func (g *Gate) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (g *Gate) IsIn(center *Point, scale float64) bool {
-	return g.Pos().IsIn(center, scale)
+func (g *Gate) IsIn(x float64, y float64, scale float64) bool {
+	return g.Pos().IsIn(x, y, scale)
 }
 
-// Out returns where it can go to
-func (g *Gate) Out() map[uint]*Step {
+// OutStep returns where it can go to
+func (g *Gate) OutStep() map[uint]*Step {
 	return g.out
 }
 
-// In returns where it comes from
-func (g *Gate) In() map[uint]*Step {
+// InStep returns where it comes from
+func (g *Gate) InStep() map[uint]*Step {
 	return g.in
 }
 
@@ -125,7 +125,7 @@ func (g *Gate) UnRef() {
 
 // IsChanged returns true when it is changed after Backup()
 func (g *Gate) IsChanged(after ...time.Time) bool {
-	return g.Base.IsChanged(after)
+	return g.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed

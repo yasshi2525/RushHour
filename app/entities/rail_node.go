@@ -51,8 +51,8 @@ func (rn *RailNode) Pos() *Point {
 }
 
 // IsIn returns it should be view or not.
-func (rn *RailNode) IsIn(center *Point, scale float64) bool {
-	return rn.Pos().IsIn(center, scale)
+func (rn *RailNode) IsIn(x float64, y float64, scale float64) bool {
+	return rn.Pos().IsIn(x, y, scale)
 }
 
 // Resolve set reference
@@ -103,7 +103,7 @@ func (rn *RailNode) CheckRemove() error {
 
 // IsChanged returns true when it is changed after Backup()
 func (rn *RailNode) IsChanged(after ...time.Time) bool {
-	return rn.Base.IsChanged(after)
+	return rn.Base.IsChanged(after...)
 }
 
 // Reset set status as not changed
