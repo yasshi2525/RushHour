@@ -19,8 +19,8 @@ func GenStepHuman(h *entities.Human) {
 		}
 	case entities.OnPlatform:
 		// h - G, P on Human
-		GenWalkStep(h, h.OnPlatform)
-		GenWalkStep(h, h.OnPlatform.WithGate)
+		GenWalkStep(h, h.OnPlatform())
+		GenWalkStep(h, h.OnPlatform().WithGate)
 	case entities.OnTrain:
 		// do-nothing
 	default:

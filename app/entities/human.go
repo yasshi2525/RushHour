@@ -42,8 +42,8 @@ type Human struct {
 
 	From       *Residence `gorm:"-" json:"-"`
 	To         *Company   `gorm:"-" json:"-"`
-	OnPlatform *Platform  `gorm:"-" json:"-"`
-	OnTrain    *Train     `gorm:"-" json:"-"`
+	onPlatform *Platform  `gorm:"-" json:"-"`
+	onTrain    *Train     `gorm:"-" json:"-"`
 	On         Standing   `gorm:"-" json:"-"`
 	out        map[uint]*Step
 
@@ -102,8 +102,8 @@ func (h *Human) InStep() map[uint]*Step {
 func (h *Human) ResolveRef() {
 	h.FromID = h.From.ID
 	h.ToID = h.To.ID
-	h.PlatformID = h.OnPlatform.ID
-	h.TrainID = h.OnTrain.ID
+	h.PlatformID = h.onPlatform.ID
+	h.TrainID = h.onTrain.ID
 }
 
 // Resolve set reference
@@ -117,10 +117,10 @@ func (h *Human) Resolve(args ...interface{}) {
 			h.To = obj
 			obj.Resolve(h)
 		case *Platform:
-			h.OnPlatform = obj
+			h.onPlatform = obj
 			obj.Resolve(h)
 		case *Train:
-			h.OnTrain = obj
+			h.onTrain = obj
 			obj.Resolve(h)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
@@ -133,13 +133,13 @@ func (h *Human) Resolve(args ...interface{}) {
 func (h *Human) UnRef() {
 	delete(h.From.Targets, h.ID)
 	delete(h.To.Targets, h.ID)
-	if h.OnPlatform != nil {
-		h.OnPlatform.Occupied--
-		delete(h.OnPlatform.Passengers, h.ID)
+	if h.onPlatform != nil {
+		h.onPlatform.Occupied--
+		delete(h.onPlatform.Passengers, h.ID)
 	}
-	if h.OnTrain != nil {
-		h.OnTrain.Occupied--
-		delete(h.OnTrain.Passengers, h.ID)
+	if h.onTrain != nil {
+		h.onTrain.Occupied--
+		delete(h.onTrain.Passengers, h.ID)
 	}
 }
 
@@ -218,6 +218,30 @@ func (h *Human) ShouldGetOff(from *Train) bool {
 	return false
 }
 
+// OnPlatform return next field
+func (h *Human) OnPlatform() *Platform {
+	return h.onPlatform
+}
+
+// SetOnPlatform changes self changed status for backup
+func (h *Human) SetOnPlatform(v *Platform) {
+	h.onPlatform = v
+	v.Resolve(h)
+	h.Change()
+}
+
+// OnTrain return next field
+func (h *Human) OnTrain() *Train {
+	return h.onTrain
+}
+
+// SetOnTrain changes self changed status for backup
+func (h *Human) SetOnTrain(v *Train) {
+	h.onTrain = v
+	v.Resolve(h)
+	h.Change()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (h *Human) IsChanged(after ...time.Time) bool {
 	return h.Base.IsChanged(after...)
@@ -232,11 +256,11 @@ func (h *Human) Reset() {
 func (h *Human) String() string {
 	h.ResolveRef()
 	pstr, tstr := "", ""
-	if h.OnPlatform != nil {
-		pstr = fmt.Sprintf(",p=%d", h.OnPlatform.ID)
+	if h.onPlatform != nil {
+		pstr = fmt.Sprintf(",p=%d", h.onPlatform.ID)
 	}
-	if h.OnTrain != nil {
-		tstr = fmt.Sprintf(",t=%d", h.OnTrain.ID)
+	if h.onTrain != nil {
+		tstr = fmt.Sprintf(",t=%d", h.onTrain.ID)
 	}
 
 	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v",

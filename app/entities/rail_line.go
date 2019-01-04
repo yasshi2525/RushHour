@@ -120,8 +120,8 @@ func (l *RailLine) Borders() (*LineTask, *LineTask) {
 	var tail *LineTask
 	referred := make(map[uint]bool)
 	for _, lt := range l.Tasks {
-		if lt.Next != nil {
-			referred[lt.Next.ID] = true
+		if lt.Next() != nil {
+			referred[lt.Next().ID] = true
 		} else {
 			tail = lt
 		}

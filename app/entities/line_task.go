@@ -27,7 +27,7 @@ type LineTask struct {
 
 	RailLine *RailLine    `gorm:"-"        json:"-"`
 	TaskType LineTaskType `gorm:"not null" json:"type"`
-	Next     *LineTask    `gorm:"-"        json:"-"`
+	next     *LineTask    `gorm:"-"        json:"-"`
 	Stay     *Platform    `gorm:"-"        json:"-"`
 	Moving   *RailEdge    `gorm:"-"        json:"-"`
 	Dest     *Platform    `gorm:"-"        json:"-"`
@@ -56,7 +56,6 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 	p.Resolve(lt)
 	if len(tail) > 0 {
 		tail[0].Resolve(lt)
-		tail[0].Change()
 	}
 	return lt
 }
@@ -87,7 +86,6 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 		re.ToNode.OverPlatform.Resolve(lt)
 	}
 	tail.Resolve(lt)
-	tail.Change()
 	return lt
 }
 
@@ -140,7 +138,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.Owner, lt.RailLine = obj.Owner, obj
 			obj.Resolve(lt)
 		case *LineTask:
-			lt.Next = obj
+			lt.next = obj
 		case *Platform:
 			switch lt.TaskType {
 			case OnDeparture:
@@ -176,8 +174,8 @@ func (lt *LineTask) ResolveRef() {
 	if lt.RailLine != nil {
 		lt.RailLineID = lt.RailLine.ID
 	}
-	if lt.Next != nil {
-		lt.NextID = lt.Next.ID
+	if lt.next != nil {
+		lt.NextID = lt.next.ID
 	}
 	if lt.Moving != nil {
 		lt.MovingID = lt.Moving.ID
@@ -235,6 +233,17 @@ func (lt *LineTask) Cost() float64 {
 	}
 }
 
+// Next return next field
+func (lt *LineTask) Next() *LineTask {
+	return lt.next
+}
+
+// SetNext changes self changed status for backup
+func (lt *LineTask) SetNext(v *LineTask) {
+	lt.next = v
+	lt.Change()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (lt *LineTask) IsChanged(after ...time.Time) bool {
 	return lt.Base.IsChanged(after...)
@@ -253,8 +262,8 @@ func (lt *LineTask) String() string {
 		ostr = fmt.Sprintf(":%s", lt.Own.Short())
 	}
 	next, stay, moving := "", "", ""
-	if lt.Next != nil {
-		next = fmt.Sprintf(",next=%d", lt.Next.ID)
+	if lt.next != nil {
+		next = fmt.Sprintf(",next=%d", lt.next.ID)
 	}
 	if lt.Stay != nil {
 		stay = fmt.Sprintf(",p=%d", lt.Stay.ID)

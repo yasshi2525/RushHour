@@ -18,7 +18,7 @@ type Train struct {
 	Progress float64 `gorm:"not null" json:"progress"`
 	Occupied uint    `gorm:"-"        json:"occupied"`
 
-	Task       *LineTask       `gorm:"-" json:"-"`
+	task       *LineTask       `gorm:"-" json:"-"`
 	Passengers map[uint]*Human `gorm:"-" json:"-"`
 	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
 	OnPlatform *Platform       `gorm:"-" json:"-"`
@@ -55,10 +55,10 @@ func (t *Train) Init() {
 
 // Pos returns location
 func (t *Train) Pos() *Point {
-	if t.Task == nil {
+	if t.task == nil {
 		return nil
 	}
-	return t.Task.From().Pos().Div(t, t.Progress)
+	return t.task.From().Pos().Div(t, t.Progress)
 }
 
 // IsIn returns it should be view or not.
@@ -71,7 +71,7 @@ func (t *Train) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *LineTask:
-			t.Owner, t.Task = obj.Owner, obj
+			t.Owner, t.task = obj.Owner, obj
 			obj.Resolve(t)
 		case *RailEdge:
 			t.OnRailEdge = obj
@@ -89,8 +89,8 @@ func (t *Train) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (t *Train) ResolveRef() {
-	if t.Task != nil {
-		t.TaskID = t.Task.ID
+	if t.task != nil {
+		t.TaskID = t.task.ID
 	}
 	if t.OnRailEdge != nil {
 		t.RailEdgeID = t.OnRailEdge.ID
@@ -108,6 +108,18 @@ func (t *Train) CheckRemove() error {
 // Permits represents Player is permitted to control
 func (t *Train) Permits(o *Player) bool {
 	return t.Owner.Permits(o)
+}
+
+// Task return next field
+func (t *Train) Task() *LineTask {
+	return t.task
+}
+
+// SetTask changes self changed status for backup
+func (t *Train) SetTask(v *LineTask) {
+	t.task = v
+	t.Change()
+	v.Resolve(t)
 }
 
 // IsChanged returns true when it is changed after Backup()
@@ -128,8 +140,8 @@ func (t *Train) String() string {
 		ostr = fmt.Sprintf(":%s", t.Own.Short())
 	}
 	ltstr := ""
-	if t.Task != nil {
-		ltstr = fmt.Sprintf(",lt=%d", t.Task.ID)
+	if t.task != nil {
+		ltstr = fmt.Sprintf(",lt=%d", t.task.ID)
 	}
 	posstr := ""
 	if t.Pos() != nil {

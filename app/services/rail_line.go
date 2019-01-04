@@ -56,7 +56,7 @@ func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) err
 	}
 
 	for _, base := range bases {
-		next := base.Next // = (b) -> (c)
+		next := base.Next() // = (b) -> (c)
 
 		inter, _ := AttachLineTask(o, base, re, pass...)         // = (a) -> (X)
 		inter, _ = AttachLineTask(o, inter, re.Reverse, pass...) // = (X) -> (a)
@@ -66,8 +66,7 @@ func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) err
 			inter = entities.NewLineTaskDept(GenID(entities.LINETASK), inter.RailLine, inter.Dest, inter)
 			AddEntity(inter)
 		}
-		inter.Next = next // (a) -> (b) -> (c)
-		inter.Change()
+		inter.SetNext(next) // (a) -> (b) -> (c)
 
 		// recalculate transport cost if RailLine loops
 		if inter.RailLine.IsRing() {
@@ -110,7 +109,7 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	}
 	// Check RainLine is not ringing
 	if head, tail := l.Borders(); head != nil && tail != nil {
-		tail.Next = head
+		tail.SetNext(head)
 		genStepRailLine(l)
 		return true, nil
 	}

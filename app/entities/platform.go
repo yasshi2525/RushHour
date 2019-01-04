@@ -144,7 +144,7 @@ func (p *Platform) CheckRemove() error {
 // UnRef delete related reference.
 func (p *Platform) UnRef() {
 	for _, h := range p.Passengers {
-		h.OnPlatform = nil
+		h.SetOnPlatform(nil)
 		delete(p.Passengers, h.ID)
 	}
 	for _, t := range p.Trains {
