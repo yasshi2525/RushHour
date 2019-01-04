@@ -18,3 +18,17 @@ func RemoveRailNode(owner *entities.Player, id uint) error {
 		DelEntity(rn)
 	})
 }
+
+// ExtendRailNode extends Rail
+func ExtendRailNode(o *entities.Player, from *entities.RailNode,
+	x float64, y float64) (*entities.RailNode, *entities.RailEdge, *entities.RailEdge, error) {
+	if err := CheckAuth(o, from); err != nil {
+		return nil, nil, nil, err
+	}
+	to := entities.NewRailNode(GenID(entities.RAILNODE), o, x, y)
+	e1 := entities.NewRailEdge(GenID(entities.RAILEDGE), from, to)
+	e2 := entities.NewRailEdge(GenID(entities.RAILEDGE), to, from)
+
+	AddEntity(to, e1, e2)
+	return to, e1, e2, nil
+}

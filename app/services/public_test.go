@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 func TestCreateResidence(t *testing.T) {
@@ -14,12 +16,14 @@ func TestCreateResidence(t *testing.T) {
 	LoadConf()
 	InitRepository()
 
-	residence, err := CreateResidence(1, 1)
+	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
+
+	residence, err := CreateResidence(admin, 1, 1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if err := RemoveResidence(residence.ID); err != nil {
+	if err := RemoveResidence(admin, residence.ID); err != nil {
 		t.Error(err)
 	}
 }
@@ -31,13 +35,14 @@ func TestCreateCompany(t *testing.T) {
 
 	LoadConf()
 	InitRepository()
+	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
 
-	company, err := CreateCompany(1, 1)
+	company, err := CreateCompany(admin, 1, 1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if err := RemoveCompany(company.ID); err != nil {
+	if err := RemoveCompany(admin, company.ID); err != nil {
 		t.Error(err)
 	}
 }
@@ -49,12 +54,13 @@ func TestCreateStep(t *testing.T) {
 
 	LoadConf()
 	InitRepository()
+	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
 
-	r, err := CreateResidence(1, 1)
+	r, err := CreateResidence(admin, 1, 1)
 	if err != nil {
 		t.Error(err)
 	}
-	c, err := CreateCompany(2, 2)
+	c, err := CreateCompany(admin, 2, 2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,10 +72,10 @@ func TestCreateStep(t *testing.T) {
 		t.Errorf("Company should be in 1, but %d", got)
 	}
 
-	if err := RemoveResidence(r.ID); err != nil {
+	if err := RemoveResidence(admin, r.ID); err != nil {
 		t.Errorf("RemoveResidence returns false, wanted true")
 	}
-	if err := RemoveCompany(c.ID); err != nil {
+	if err := RemoveCompany(admin, c.ID); err != nil {
 		t.Errorf("RemoveCompany returns false, wanted true")
 	}
 

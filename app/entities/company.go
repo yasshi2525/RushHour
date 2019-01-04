@@ -7,6 +7,7 @@ import (
 // Company is the destination of Human
 type Company struct {
 	Base
+	Owner
 	Point
 	in      map[uint]*Step
 	Targets map[uint]*Human `gorm:"-" json:"-"`
@@ -16,9 +17,10 @@ type Company struct {
 }
 
 // NewCompany create new instance without setting parameters
-func NewCompany(id uint, x float64, y float64) *Company {
-	c:= &Company{
+func NewCompany(id uint, o *Player, x float64, y float64) *Company {
+	c := &Company{
 		Base:    NewBase(id),
+		Owner:   NewOwner(o),
 		Point:   NewPoint(x, y),
 		in:      make(map[uint]*Step),
 		Targets: make(map[uint]*Human),
@@ -83,6 +85,11 @@ func (c *Company) ResolveRef() {
 
 // UnRef remove reference of related entity
 func (c *Company) UnRef() {
+}
+
+// Permits represents Player is permitted to control
+func (c *Company) Permits(o *Player) bool {
+	return o.Level == Admin
 }
 
 // CheckRemove check remaining reference

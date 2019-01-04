@@ -68,7 +68,7 @@ func StartRouting(msg string) {
 func CancelRouting(msg string) {
 	if routingCancel != nil {
 		routingCancel()
-		revel.AppLog.Infof("Canceleld by %s", msg)
+		//revel.AppLog.Infof("canceleld by %s", msg)
 	}
 }
 
@@ -102,7 +102,7 @@ func search(root context.Context, cancel context.CancelFunc, msg string) bool {
 	IsValidRoute = finalResult.Status
 
 	if finalResult.Status {
-		revel.AppLog.Infof("routing was successfully ended (%d/%d)", finalResult.Processed, finalResult.Total)
+		//revel.AppLog.Debugf("routing was successfully ended (%d/%d)", finalResult.Processed, finalResult.Total)
 	} else {
 		revel.AppLog.Infof("routing was canceled (%d/%d)", finalResult.Processed, finalResult.Total)
 	}
@@ -216,7 +216,7 @@ func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool 
 	for _, h := range Model.Humans {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Model.Humans))
+			//revel.AppLog.Debugf("reflect Canceleld %s in %d / %d", msg, cnt+1, len(Model.Humans))
 			return false
 		default:
 			for _, n := range RouteTemplate[h.To.ID] {

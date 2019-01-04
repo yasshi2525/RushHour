@@ -7,6 +7,7 @@ import (
 // Residence generate Human in a period
 type Residence struct {
 	Base
+	Owner
 	Point
 	out      map[uint]*Step
 	Targets  map[uint]*Human `gorm:"-"        json:"-"`
@@ -17,9 +18,10 @@ type Residence struct {
 }
 
 // NewResidence create new instance without setting parameters
-func NewResidence(id uint, x float64, y float64) *Residence {
+func NewResidence(id uint, o *Player, x float64, y float64) *Residence {
 	r := &Residence{
 		Base:  NewBase(id),
+		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
 	r.Init()
@@ -84,9 +86,14 @@ func (r *Residence) ResolveRef() {
 func (r *Residence) UnRef() {
 }
 
+// Permits represents Player is permitted to control
+func (r *Residence) Permits(o *Player) bool {
+	return o.Level == Admin
+}
+
 // CheckRemove check remaining reference
 func (r *Residence) CheckRemove() error {
-	return  nil
+	return nil
 }
 
 // IsChanged returns true when it is changed after Backup()

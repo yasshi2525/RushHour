@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/revel/revel"
@@ -78,24 +79,33 @@ func processMsg(msg *Operation) {
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
 
+	owner, _ := FetchOwner(msg.OName)
+
 	switch msg.Op {
 	case "create":
 		rv := reflect.ValueOf(mkFuncs[msg.Target])
-		owner, _ := FetchOwner(msg.OName)
 		switch msg.Target {
 		case entities.PLAYER:
-			CreatePlayer(msg.OName, msg.OName, msg.OName, entities.Normal)
+			level := entities.Normal
+			if strings.Compare(msg.OName, "admin") == 0 {
+				level = entities.Admin
+			}
+			CreatePlayer(msg.OName, msg.OName, msg.OName, level)
 		case entities.RESIDENCE:
 			fallthrough
 		case entities.COMPANY:
 			rv.Call([]reflect.Value{
-				reflect.ValueOf(msg.X),
-				reflect.ValueOf(msg.Y)})
-		case entities.RAILNODE:
-			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
 				reflect.ValueOf(msg.X),
 				reflect.ValueOf(msg.Y)})
+		case entities.RAILNODE:
+			result := rv.Call([]reflect.Value{
+				reflect.ValueOf(owner),
+				reflect.ValueOf(msg.X),
+				reflect.ValueOf(msg.Y)})
+			if result[1].IsNil() {
+				ExtendRailNode(owner, result[0].Interface().(*entities.RailNode), msg.X+10, msg.Y+10)
+			}
 		case entities.STATION:
 			if rn := randRailNode(owner); rn != nil {
 				rv.Call([]reflect.Value{
@@ -109,34 +119,25 @@ func processMsg(msg *Operation) {
 		rv := reflect.ValueOf(rmFuncs[msg.Target])
 		if msg.ID == 0 {
 			var ok bool
-			msg.ID, ok = randID(msg.Target)
+			msg.ID, ok = randID(msg.Target, owner)
 			if !ok {
 				revel.AppLog.Warnf("no deleting data %s", msg.Target)
 				break
 			}
 		}
-		switch msg.Target {
-		case entities.RESIDENCE:
-			fallthrough
-		case entities.COMPANY:
-			rv.Call([]reflect.Value{reflect.ValueOf(msg.ID)})
-		default:
-			if owner, err := FetchOwner(msg.OName); err == nil {
-				rv.Call([]reflect.Value{
-					reflect.ValueOf(owner),
-					reflect.ValueOf(msg.ID)})
-			} else {
-				revel.AppLog.Warnf("invalid Player: %s", err)
-			}
-		}
+		rv.Call([]reflect.Value{
+			reflect.ValueOf(owner),
+			reflect.ValueOf(msg.ID)})
 	}
 }
 
 // randID return random id existing in repository
-func randID(t entities.ModelType) (uint, bool) {
+func randID(t entities.ModelType, owner *entities.Player) (uint, bool) {
 	mapdata := Meta.Map[t]
-	for _, e := range mapdata.MapKeys() {
-		return uint(e.Uint()), true
+	for _, key := range mapdata.MapKeys() {
+		if mapdata.MapIndex(key).Interface().(entities.Ownable).Permits(owner) {
+			return uint(key.Uint()), true
+		}
 	}
 	revel.AppLog.Warnf("nodata %s", t)
 	return 0, false

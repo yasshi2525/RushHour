@@ -45,8 +45,10 @@ func TestIsIn(t *testing.T) {
 }
 
 func TestCost(t *testing.T) {
-	from := NewResidence(1, 0, 0)
-	to := NewCompany(1, 3, 4)
+	admin := NewPlayer(1)
+	admin.Level = Admin
+	from := NewResidence(1, admin, 0, 0)
+	to := NewCompany(1, admin, 3, 4)
 
 	step := &Step{1, from, to, 2.0}
 
