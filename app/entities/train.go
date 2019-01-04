@@ -23,7 +23,7 @@ type Train struct {
 	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
 	OnPlatform *Platform       `gorm:"-" json:"-"`
 
-	TaskID     uint `json:"ltid,omitempty"`
+	TaskID     uint `         json:"ltid,omitempty"`
 	RailEdgeID uint `gorm:"-" json:"reid,omitempty"`
 	PlatformID uint `gorm:"-" json:"pid,omitempty"`
 }

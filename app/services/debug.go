@@ -47,7 +47,11 @@ func StartSimulation() {
 		source := fmt.Sprintf("user%d", i)
 		UpdateModel(mkOp(source, entities.PLAYER))
 
-		for _, target := range []entities.ModelType{entities.RAILNODE, entities.STATION} {
+		for _, target := range []entities.ModelType{
+			entities.RAILNODE,
+			entities.STATION,
+			entities.LINE,
+			entities.LINETASK} {
 			tickOp(source, target, updateInterval, func(src string, tar entities.ModelType) {
 				UpdateModel(mkOp(src, tar))
 			})
@@ -118,8 +122,8 @@ func tickOp(source string, target entities.ModelType, interval time.Duration, ca
 // WarnLongExec alerts long time consuming task.
 func WarnLongExec(start time.Time, max time.Duration, title string, verbose ...bool) {
 	if consumed := time.Now().Sub(start); consumed > max {
-		revel.AppLog.Warnf("%s consumed %.2f sec > %.2f", title, consumed.Seconds(), max.Seconds())
+		revel.AppLog.Warnf("%s consumed %.2f sec >%.2f", title, consumed.Seconds(), max.Seconds())
 	} else if len(verbose) > 0 && verbose[0] {
-		revel.AppLog.Debugf("%s consumed %.2f sec < %.2f", title, consumed.Seconds(), max.Seconds())
+		revel.AppLog.Debugf("%s consumed %.2f sec <%.2f", title, consumed.Seconds(), max.Seconds())
 	}
 }

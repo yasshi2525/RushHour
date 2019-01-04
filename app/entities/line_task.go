@@ -143,10 +143,10 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			switch lt.TaskType {
 			case OnDeparture:
 				lt.Stay = obj
-				lt.Stay.Resolve(obj)
+				obj.Resolve(lt)
 			default:
 				lt.Dest = obj
-				lt.Dest.Resolve(obj)
+				obj.Resolve(lt)
 			}
 		case *RailEdge:
 			lt.Moving = obj

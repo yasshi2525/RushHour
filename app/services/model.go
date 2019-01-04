@@ -36,7 +36,9 @@ func StartModelWatching() {
 	mkFuncs[entities.RESIDENCE] = CreateResidence
 	mkFuncs[entities.COMPANY] = CreateCompany
 	mkFuncs[entities.RAILNODE] = CreateRailNode
+	mkFuncs[entities.RAILEDGE] = ExtendRailNode
 	mkFuncs[entities.STATION] = CreateStation
+	mkFuncs[entities.LINE] = CreateRailLine
 
 	rmFuncs = make(map[entities.ModelType]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
@@ -99,29 +101,52 @@ func processMsg(msg *Operation) {
 				reflect.ValueOf(msg.X),
 				reflect.ValueOf(msg.Y)})
 		case entities.RAILNODE:
-			result := rv.Call([]reflect.Value{
+			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
 				reflect.ValueOf(msg.X),
 				reflect.ValueOf(msg.Y)})
-			if result[1].IsNil() {
-				ExtendRailNode(owner, result[0].Interface().(*entities.RailNode), msg.X+10, msg.Y+10)
+		case entities.RAILEDGE:
+			if raw := randEntity(owner, entities.RAILNODE); raw != nil {
+				rv.Call([]reflect.Value{
+					reflect.ValueOf(owner),
+					reflect.ValueOf(raw),
+					reflect.ValueOf(msg.X),
+					reflect.ValueOf(msg.Y)})
 			}
 		case entities.STATION:
-			if rn := randRailNode(owner); rn != nil {
+			if rn := randEntity(owner, entities.RAILNODE); rn != nil {
 				rv.Call([]reflect.Value{
 					reflect.ValueOf(owner),
 					reflect.ValueOf(rn),
 					reflect.ValueOf("NoName")})
 			}
+		case entities.LINE:
+			rv.Call([]reflect.Value{
+				reflect.ValueOf(owner),
+				reflect.ValueOf("NoName")})
+		case entities.LINETASK:
+			if l, p := randEntity(owner, entities.LINE), randEntity(owner, entities.PLATFORM); l != nil && p != nil {
+				l, p := l.(*entities.RailLine), p.(*entities.Platform)
+				StartRailLine(owner, l, p)
+			}
+			if re := randEntity(owner, entities.RAILEDGE); re != nil {
+				re := re.(*entities.RailEdge)
+				InsertLineTask(owner, re)
+			}
+			if l := randEntity(owner, entities.LINE); l != nil {
+				RingRailLine(owner, l.(*entities.RailLine))
+			}
 		}
 
 	case "remove":
 		rv := reflect.ValueOf(rmFuncs[msg.Target])
+		if !rv.IsValid() {
+			break
+		}
 		if msg.ID == 0 {
 			var ok bool
 			msg.ID, ok = randID(msg.Target, owner)
 			if !ok {
-				revel.AppLog.Warnf("no deleting data %s", msg.Target)
 				break
 			}
 		}
@@ -139,7 +164,6 @@ func randID(t entities.ModelType, owner *entities.Player) (uint, bool) {
 			return uint(key.Uint()), true
 		}
 	}
-	revel.AppLog.Warnf("nodata %s", t)
 	return 0, false
 }
 
@@ -153,11 +177,12 @@ func UpdateModel(msg *Operation) {
 	}
 }
 
-func randRailNode(o *entities.Player) *entities.RailNode {
-	for _, rn := range Model.RailNodes {
-		if rn.Permits(o) {
-			return rn
+func randEntity(o *entities.Player, res entities.ModelType) interface{} {
+	var entity interface{}
+	ForeachModel(res, func(obj interface{}) {
+		if obj.(entities.Ownable).Permits(o) {
+			entity = obj
 		}
-	}
-	return nil
+	})
+	return entity
 }

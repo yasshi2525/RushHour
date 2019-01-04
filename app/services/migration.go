@@ -7,6 +7,11 @@ import (
 )
 
 // MigrateDB migrate database by reference Meta
+// POLICY:
+//   1. not allow nullable field because go cann't identify nil or zero value
+//      so, no foreign key restriction for nullable field
+//   2. id must be grater than 0. id: 0 means nil
+//   3. not use sql.NullInst64 for performance
 func MigrateDB() {
 	foreign := make(map[entities.ModelType]string)
 
@@ -39,20 +44,8 @@ func MigrateDB() {
 
 	// Line composes LineTasks
 	db.Model(entities.LINETASK.Obj()).AddForeignKey("rail_line_id", foreign[entities.LINE], "CASCADE", "RESTRICT")
-	// LineTask is chainable
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("next_id", foreign[entities.LINETASK], "SET NULL", "RESTRICT")
-	// LineTask is sometimes on rail or platform
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("moving_id", foreign[entities.RAILEDGE], "RESTRICT", "RESTRICT")
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("stay_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("dest_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
-
-	// Train runs on a chain of Line
-	db.Model(entities.TRAIN.Obj()).AddForeignKey("task_id", foreign[entities.LINETASK], "RESTRICT", "RESTRICT")
 
 	// Human departs from Residence and destinates to Company
 	db.Model(entities.HUMAN.Obj()).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")
 	db.Model(entities.HUMAN.Obj()).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
-	// Human is sometimes on Platform or on Train
-	db.Model(entities.HUMAN.Obj()).AddForeignKey("platform_id", foreign[entities.PLATFORM], "RESTRICT", "RESTRICT")
-	db.Model(entities.HUMAN.Obj()).AddForeignKey("train_id", foreign[entities.TRAIN], "RESTRICT", "RESTRICT")
 }

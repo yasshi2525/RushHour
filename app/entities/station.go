@@ -86,6 +86,12 @@ func (st *Station) ResolveRef() {
 
 // CheckRemove checks related reference
 func (st *Station) CheckRemove() error {
+	if err := st.Platform.CheckRemove(); err != nil {
+		return err
+	}
+	if err := st.Gate.CheckRemove(); err != nil {
+		return err
+	}
 	return nil
 }
 

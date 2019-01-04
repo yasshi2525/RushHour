@@ -9,6 +9,9 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// ZERO means nil
+const ZERO = 0
+
 // Restore get model from database
 func Restore() {
 	revel.AppLog.Info("start restore from database")
@@ -103,29 +106,32 @@ func resolveStatic() {
 	for _, lt := range Model.LineTasks {
 		lt.Resolve(Model.RailLines[lt.RailLineID])
 		// nullable fields
-		if lt.NextID != 0 {
+		if lt.NextID != ZERO {
 			lt.Resolve(Model.LineTasks[lt.NextID])
 		}
-		if lt.StayID != 0 {
+		if lt.StayID != ZERO {
 			lt.Resolve(Model.Platforms[lt.StayID])
 		}
-		if lt.MovingID != 0 {
+		if lt.MovingID != ZERO {
 			lt.Resolve(Model.RailEdges[lt.MovingID])
 		}
-		if lt.DestID != 0 {
+		if lt.DestID != ZERO {
 			lt.Resolve(Model.Platforms[lt.DestID])
 		}
 	}
 	for _, t := range Model.Trains {
-		t.Resolve(Model.LineTasks[t.TaskID])
+		// nullable fields
+		if t.TaskID != ZERO {
+			t.Resolve(Model.LineTasks[t.TaskID])
+		}
 	}
 	for _, h := range Model.Humans {
 		h.Resolve(Model.Residences[h.FromID], Model.Companies[h.ToID])
 		// nullable fields
-		if h.PlatformID != 0 {
+		if h.PlatformID != ZERO {
 			h.Resolve(Model.Platforms[h.PlatformID])
 		}
-		if h.TrainID != 0 {
+		if h.TrainID != ZERO {
 			h.Resolve(Model.Platforms[h.TrainID])
 		}
 	}

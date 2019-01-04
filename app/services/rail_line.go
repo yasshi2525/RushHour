@@ -98,7 +98,7 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return false, err
 	}
 	// Check RainLine is not ringing
-	if head, tail, _ := FindRailLineBorder(o, l); head == nil && tail == nil {
+	if head, tail, _ := FindRailLineBorder(o, l); head != nil && tail != nil {
 		tail.Next = head
 	}
 	return false, nil

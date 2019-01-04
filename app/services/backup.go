@@ -36,8 +36,7 @@ func watchBackup() {
 
 // Backup set model to database
 func Backup() {
-	revel.AppLog.Info("start backup")
-	defer revel.AppLog.Info("end backup")
+	defer revel.AppLog.Info("backup was successfully ended")
 
 	start := time.Now()
 	defer WarnLongExec(start, Config.Perf.Backup.D, "backup")

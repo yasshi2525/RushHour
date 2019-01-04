@@ -132,6 +132,9 @@ func (p *Platform) ResolveRef() {
 
 // CheckRemove checks related reference
 func (p *Platform) CheckRemove() error {
+	if len(p.LineTasks) > 0 {
+		return fmt.Errorf("blocked by LineTask of %v", p.Trains)
+	}
 	if len(p.Trains) > 0 {
 		return fmt.Errorf("blocked by Train of %v", p.Trains)
 	}

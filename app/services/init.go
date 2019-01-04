@@ -20,6 +20,7 @@ func Init() {
 	defer WarnLongExec(start, Config.Perf.Init.D, "initialization", true)
 	InitRepository()
 	db = connectDB()
+	//db.LogMode(true)
 	MigrateDB()
 	Restore()
 	StartRouting("init")
