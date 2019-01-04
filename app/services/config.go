@@ -51,6 +51,10 @@ type cfgGame struct {
 	Queue    uint `validate:"gt=0"`
 }
 
+type cfgRouting struct {
+	Worker int `validate:"gt=0"`
+}
+
 type cfgBackup struct {
 	Interval duration
 }
@@ -73,6 +77,7 @@ type config struct {
 	Train     cfgTrain
 	Human     cfgHuman
 	Game      cfgGame
+	Routing   cfgRouting
 	Backup    cfgBackup
 	Perf      cfgPerf
 }

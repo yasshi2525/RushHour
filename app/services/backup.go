@@ -45,8 +45,8 @@ func Backup() {
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
 
-	MuDynamic.RLock()
-	defer MuDynamic.RUnlock()
+	//MuDynamic.RLock()
+	//defer MuDynamic.RUnlock()
 
 	updateForeignKey()
 

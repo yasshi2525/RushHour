@@ -22,6 +22,7 @@ func Init() {
 	db = connectDB()
 	MigrateDB()
 	Restore()
+	StartRouting("init")
 }
 
 // Terminate finalizes after stopping game
@@ -40,6 +41,7 @@ func Start() {
 
 // Stop stop game
 func Stop() {
+	CancelRouting("shutdown")
 	StopProcedure()
 	StopModelWatching()
 	StopBackupTicker()
