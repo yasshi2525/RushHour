@@ -70,6 +70,7 @@ func (o *Player) CheckRemove() error {
 
 // String represents status
 func (o *Player) String() string {
+	o.ResolveRef()
 	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", Meta.Attr[o.Type()].Short,
 		o.ID, o.LoginID, o.Level, o.DisplayName)
 }

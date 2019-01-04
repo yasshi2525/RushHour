@@ -108,6 +108,7 @@ func (r *Residence) Reset() {
 }
 
 func (r *Residence) String() string {
+	r.ResolveRef()
 	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Attr[r.Type()].Short,
 		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)
 }

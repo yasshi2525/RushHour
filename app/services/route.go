@@ -60,6 +60,8 @@ func StartRouting(msg string) {
 			if reflectTo(reflectCtx, reflectCancel, msg) {
 				WarnLongExec(start, Config.Perf.Routing.D, "routing")
 			}
+		} else {
+			routingCancel()
 		}
 	}()
 }
@@ -208,6 +210,7 @@ func genNodes(goal *entities.Company) (*entities.Node, []*entities.Node) {
 }
 
 func reflectTo(ctx context.Context, cancel context.CancelFunc, msg string) bool {
+	defer routingCancel()
 	defer cancel()
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()

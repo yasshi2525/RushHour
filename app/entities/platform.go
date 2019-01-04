@@ -102,6 +102,8 @@ func (p *Platform) Resolve(args ...interface{}) {
 		case *Gate:
 			p.WithGate = obj
 			obj.Resolve(p)
+		case *LineTask:
+			p.LineTasks[obj.ID] = obj
 		case *Train:
 			p.Trains[obj.ID] = obj
 			obj.Resolve(p)
@@ -169,6 +171,7 @@ func (p *Platform) Reset() {
 
 // String represents status
 func (p *Platform) String() string {
+	p.ResolveRef()
 	ostr := ""
 	if p.Own != nil {
 		ostr = fmt.Sprintf(":%s", p.Own.Short())

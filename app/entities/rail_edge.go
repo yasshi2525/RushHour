@@ -10,23 +10,25 @@ import (
 type RailEdge struct {
 	Base
 	Owner
-	from *RailNode
-	to   *RailNode
+	FromNode *RailNode
+	ToNode   *RailNode
 
+	Reverse   *RailEdge          `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
 
-	FromID uint `gorm:"not null" json:"from"`
-	ToID   uint `gorm:"not null" json:"to"`
+	FromID    uint `gorm:"not null" json:"from"`
+	ToID      uint `gorm:"not null" json:"to"`
+	ReverseID uint `gorm:"-"        json:"eid"`
 }
 
 // NewRailEdge create new instance and relates RailNode
 func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Base:  NewBase(id),
-		Owner: f.Owner,
-		from:  f,
-		to:    t,
+		Base:     NewBase(id),
+		Owner:    f.Owner,
+		FromNode: f,
+		ToNode:   t,
 	}
 	re.Init()
 	re.ResolveRef()
@@ -55,36 +57,36 @@ func (re *RailEdge) Init() {
 
 // Pos returns location
 func (re *RailEdge) Pos() *Point {
-	if re.from == nil || re.to == nil {
+	if re.FromNode == nil || re.ToNode == nil {
 		return nil
 	}
-	return re.from.Pos().Center(re.to.Pos())
+	return re.FromNode.Pos().Center(re.ToNode)
 }
 
 // IsIn return true when from, to, center is in,
 func (re *RailEdge) IsIn(center *Point, scale float64) bool {
-	return re.from.Pos().IsInLine(re.to.Pos(), center, scale)
+	return re.FromNode.Pos().IsInLine(re.ToNode, center, scale)
 }
 
 // From represents start point
 func (re *RailEdge) From() Locationable {
-	return re.from
+	return re.FromNode
 }
 
 // To represents end point
 func (re *RailEdge) To() Locationable {
-	return re.to
+	return re.ToNode
 }
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.from.Pos().Dist(re.to.Pos())
+	return re.FromNode.Pos().Dist(re.ToNode.Pos())
 }
 
 // Unrelate delete relations to RailNode
 func (re *RailEdge) Unrelate() {
-	delete(re.from.OutEdge, re.ID)
-	delete(re.to.InEdge, re.ID)
+	delete(re.FromNode.OutEdge, re.ID)
+	delete(re.ToNode.InEdge, re.ID)
 }
 
 // Resolve set reference
@@ -94,13 +96,15 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *RailNode:
 			if !doneFrom {
-				re.Owner, re.from = obj.Owner, obj
+				re.Owner, re.FromNode = obj.Owner, obj
 				doneFrom = true
 				obj.OutEdge[re.ID] = re
 			} else {
-				re.to = obj
+				re.ToNode = obj
 				obj.InEdge[re.ID] = re
 			}
+		case *RailEdge:
+			re.Reverse = obj
 		case *LineTask:
 			re.LineTasks[obj.ID] = obj
 		case *Train:
@@ -115,11 +119,14 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 
 // ResolveRef set id from reference
 func (re *RailEdge) ResolveRef() {
-	if re.from != nil {
-		re.FromID = re.from.ID
+	if re.FromNode != nil {
+		re.FromID = re.FromNode.ID
 	}
-	if re.to != nil {
-		re.ToID = re.to.ID
+	if re.ToNode != nil {
+		re.ToID = re.ToNode.ID
+	}
+	if re.Reverse != nil {
+		re.ReverseID = re.Reverse.ID
 	}
 }
 
@@ -153,6 +160,7 @@ func (re *RailEdge) Reset() {
 
 // String represents status
 func (re *RailEdge) String() string {
+	re.ResolveRef()
 	ostr := ""
 	if re.Own != nil {
 		ostr = fmt.Sprintf(":%s", re.Own.Short())
@@ -161,6 +169,6 @@ func (re *RailEdge) String() string {
 	if re.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", re.Pos())
 	}
-	return fmt.Sprintf("%s(%d):f=%d,t=%d%s%s", Meta.Attr[re.Type()].Short,
-		re.ID, re.FromID, re.ToID, posstr, ostr)
+	return fmt.Sprintf("%s(%d):f=%d,t=%d,r=%d%s%s", Meta.Attr[re.Type()].Short,
+		re.ID, re.FromID, re.ToID, re.ReverseID, posstr, ostr)
 }

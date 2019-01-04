@@ -58,8 +58,7 @@ func (t *Train) Pos() *Point {
 	if t.Task == nil {
 		return nil
 	}
-	from, to := t.Task.From().Pos(), t.Task.To().Pos()
-	return from.Div(to, t.Progress)
+	return t.Task.From().Pos().Div(t, t.Progress)
 }
 
 // IsIn returns it should be view or not.
@@ -123,6 +122,7 @@ func (t *Train) Reset() {
 
 // String represents status
 func (t *Train) String() string {
+	t.ResolveRef()
 	ostr := ""
 	if t.Own != nil {
 		ostr = fmt.Sprintf(":%s", t.Own.Short())

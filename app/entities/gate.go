@@ -135,6 +135,7 @@ func (g *Gate) Reset() {
 
 // String represents status
 func (g *Gate) String() string {
+	g.ResolveRef()
 	ostr := ""
 	if g.Own != nil {
 		ostr = fmt.Sprintf(":%s", g.Own.Short())

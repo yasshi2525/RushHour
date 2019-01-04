@@ -41,13 +41,51 @@ type LineTask struct {
 	DestID     uint `                json:"p2id,omitempty"`
 }
 
-// NewLineTask create instance
-func NewLineTask(id uint, l *RailLine) *LineTask {
+// NewLineTaskDept create "dept"
+func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
-		Base:  NewBase(id),
-		Owner: l.Owner,
+		Base:     NewBase(id),
+		Owner:    l.Owner,
+		RailLine: l,
+		TaskType: OnDeparture,
+		Stay:     p,
 	}
 	lt.Init()
+	lt.ResolveRef()
+	l.Resolve(lt)
+	p.Resolve(lt)
+	if len(tail) > 0 {
+		tail[0].Resolve(lt)
+	}
+	return lt
+}
+
+// NewLineTask creates "stop" or "pass" or "moving"
+func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask {
+	lt := &LineTask{
+		Base:     NewBase(id),
+		Owner:    tail.Owner,
+		RailLine: tail.RailLine,
+		Moving:   re,
+		Dest:     re.ToNode.OverPlatform,
+	}
+	if re.ToNode.OverPlatform == nil {
+		lt.TaskType = OnMoving
+	} else {
+		if len(pass) > 0 && pass[0] {
+			lt.TaskType = OnPassing
+		} else {
+			lt.TaskType = OnStopping
+		}
+	}
+	lt.Init()
+	lt.ResolveRef()
+	tail.RailLine.Resolve(lt)
+	re.Resolve(lt)
+	if re.ToNode.OverPlatform != nil {
+		re.ToNode.OverPlatform.Resolve(lt)
+	}
+	tail.Resolve(lt)
 	return lt
 }
 
@@ -206,6 +244,7 @@ func (lt *LineTask) Reset() {
 
 // String represents status
 func (lt *LineTask) String() string {
+	lt.ResolveRef()
 	ostr := ""
 	if lt.Own != nil {
 		ostr = fmt.Sprintf(":%s", lt.Own.Short())

@@ -111,6 +111,7 @@ func (st *Station) Reset() {
 
 // String represents status
 func (st *Station) String() string {
+	st.ResolveRef()
 	ostr := ""
 	if st.Own != nil {
 		ostr = fmt.Sprintf(":%s", st.Own.Short())

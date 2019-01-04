@@ -110,6 +110,7 @@ func (c *Company) Reset() {
 
 // String represents status
 func (c *Company) String() string {
+	c.ResolveRef()
 	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", Meta.Attr[c.Type()].Short,
 		c.ID, len(c.in), len(c.Targets), c.Pos(), c.Name)
 }

@@ -230,6 +230,7 @@ func (h *Human) Reset() {
 
 // String represents status
 func (h *Human) String() string {
+	h.ResolveRef()
 	pstr, tstr := "", ""
 	if h.OnPlatform != nil {
 		pstr = fmt.Sprintf(",p=%d", h.OnPlatform.ID)

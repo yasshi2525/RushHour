@@ -25,9 +25,12 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, nil, err
 	}
-	to := entities.NewRailNode(GenID(entities.RAILNODE), o, x, y)
+	to := entities.NewRailNode(GenID(entities.RAILNODE), from.Own, x, y)
 	e1 := entities.NewRailEdge(GenID(entities.RAILEDGE), from, to)
 	e2 := entities.NewRailEdge(GenID(entities.RAILEDGE), to, from)
+
+	e1.Resolve(e2)
+	e2.Resolve(e1)
 
 	AddEntity(to, e1, e2)
 	return to, e1, e2, nil

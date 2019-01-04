@@ -110,6 +110,7 @@ func (l *RailLine) Reset() {
 
 // String represents status
 func (l *RailLine) String() string {
+	l.ResolveRef()
 	ostr := ""
 	if l.Own != nil {
 		ostr = fmt.Sprintf(":%s", l.Own.Short())

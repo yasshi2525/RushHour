@@ -43,12 +43,12 @@ func (s *Step) Init() {
 
 // Pos returns center
 func (s *Step) Pos() *Point {
-	return s.from.Pos().Center(s.to.Pos())
+	return s.from.Pos().Center(s.to)
 }
 
 // IsIn returns it should be view or not.
 func (s *Step) IsIn(center *Point, scale float64) bool {
-	return s.from.Pos().IsInLine(s.to.Pos(), center, scale)
+	return s.from.Pos().IsInLine(s.to, center, scale)
 }
 
 // From returns where Step comes from

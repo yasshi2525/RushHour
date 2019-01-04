@@ -5,10 +5,7 @@ import (
 )
 
 //CreateStation create Station
-func CreateStation(
-	o *entities.Player,
-	rn *entities.RailNode,
-	name string) (*entities.Station, error) {
+func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*entities.Station, error) {
 
 	if err := CheckAuth(o, rn); err != nil {
 		return nil, err

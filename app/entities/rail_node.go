@@ -113,6 +113,7 @@ func (rn *RailNode) Reset() {
 
 // String represents status
 func (rn *RailNode) String() string {
+	rn.ResolveRef()
 	ostr := ""
 	if rn.Own != nil {
 		ostr = fmt.Sprintf(":%s", rn.Own.Short())

@@ -27,6 +27,8 @@ type Locationable interface {
 type Relayable interface {
 	// Pos returns entities' position.
 	Pos() *Point
+	// IsIn returns it should be view or not.
+	IsIn(*Point, float64) bool
 	// In represents how other can reach itself.
 	In() map[uint]*Step
 	// Out represents how itselt can reach other.
