@@ -45,6 +45,7 @@ type Travelable interface {
 	OutTrack() map[uint]*Track
 }
 
+// Connectable represents movability of two resource
 type Connectable interface {
 	Idx() uint
 	Type() ModelType

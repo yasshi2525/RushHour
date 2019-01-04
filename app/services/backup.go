@@ -36,10 +36,7 @@ func watchBackup() {
 
 // Backup set model to database
 func Backup() {
-	defer revel.AppLog.Info("backup was successfully ended")
-
 	start := time.Now()
-	defer WarnLongExec(start, Config.Perf.Backup.D, "backup")
 
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
@@ -47,8 +44,11 @@ func Backup() {
 	updateForeignKey()
 
 	tx := db.Begin()
-	persistStatic(tx)
+	up, del, skip := persistStatic(tx)
 	tx.Commit()
+
+	WarnLongExec(start, Config.Perf.Backup.D, "backup")
+	revel.AppLog.Infof("backup was successfully ended (updated %d, deleted %d, skipped %d)", up, del, skip)
 }
 
 func updateForeignKey() {
@@ -63,7 +63,7 @@ func updateForeignKey() {
 	}
 }
 
-func persistStatic(tx *gorm.DB) {
+func persistStatic(tx *gorm.DB) (int, int, int) {
 	// upsert
 	updateCnt, skipCnt := 0, 0
 	for _, res := range Meta.List {
@@ -94,5 +94,5 @@ func persistStatic(tx *gorm.DB) {
 			Model.Remove[key] = Model.Remove[key][:0]
 		}
 	}
-	revel.AppLog.Infof("persisted records (updated %d, deleted %d, skipped %d)", updateCnt, removeCnt, skipCnt)
+	return updateCnt, removeCnt, skipCnt
 }
