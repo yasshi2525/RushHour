@@ -104,7 +104,7 @@ func search(root context.Context, cancel context.CancelFunc, msg string) bool {
 	if finalResult.Status {
 		//revel.AppLog.Debugf("routing was successfully ended (%d/%d)", finalResult.Processed, finalResult.Total)
 	} else {
-		revel.AppLog.Infof("routing was canceled (%d/%d)", finalResult.Processed, finalResult.Total)
+		revel.AppLog.Debugf("routing was canceled (%d/%d)", finalResult.Processed, finalResult.Total)
 	}
 	IsSearching = false
 	return IsValidRoute

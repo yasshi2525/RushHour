@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/services"
@@ -14,16 +15,33 @@ type APIv1Game struct {
 
 // Index returns gamemap
 func (c APIv1Game) Index() revel.Result {
-	r := struct {
+	return c.RenderJSON(
+		genResponse(
+			true,
+			services.ViewMap(
+				rand.Float64()*100,
+				rand.Float64()*100,
+				rand.Float64()*7)))
+}
+
+// Diff returns only diff
+func (c APIv1Game) Diff() revel.Result {
+	return c.RenderJSON(
+		genResponse(
+			true,
+			services.ViewMap(
+				rand.Float64()*100,
+				rand.Float64()*100,
+				rand.Float64()*7,
+				time.Now().Add(time.Duration(-1)*time.Minute))))
+}
+
+func genResponse(status bool, results interface{}) interface{} {
+	return &struct {
 		Status  bool        `json:"status"`
 		Results interface{} `json:"results"`
 	}{
-		Status: true,
-		Results: services.ViewMap(
-			rand.Float64()*100,
-			rand.Float64()*100,
-			rand.Float64()*7),
+		Status:  true,
+		Results: results,
 	}
-
-	return c.RenderJSON(r)
 }

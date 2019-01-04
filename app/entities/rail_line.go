@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // RailLine represents how Train should run.
@@ -98,8 +99,8 @@ func (l *RailLine) Permits(o *Player) bool {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (l *RailLine) IsChanged() bool {
-	return l.Base.IsChanged()
+func (l *RailLine) IsChanged(after ...time.Time) bool {
+	return l.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

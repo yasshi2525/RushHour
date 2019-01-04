@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // Residence generate Human in a period
@@ -97,8 +98,8 @@ func (r *Residence) CheckRemove() error {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (r *Residence) IsChanged() bool {
-	return r.Base.IsChanged()
+func (r *Residence) IsChanged(after ...time.Time) bool {
+	return r.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

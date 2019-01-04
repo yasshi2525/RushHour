@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // Train carries Human from Station to Station.
@@ -30,8 +31,8 @@ type Train struct {
 // NewTrain creates instance
 func NewTrain(id uint, o *Player) *Train {
 	t := &Train{
-		Base:       NewBase(id),
-		Owner:      NewOwner(o),
+		Base:  NewBase(id),
+		Owner: NewOwner(o),
 	}
 	t.Init()
 	return t
@@ -111,8 +112,8 @@ func (t *Train) Permits(o *Player) bool {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (t *Train) IsChanged() bool {
-	return t.Base.IsChanged()
+func (t *Train) IsChanged(after ...time.Time) bool {
+	return t.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

@@ -10,7 +10,7 @@ import (
 )
 
 // ViewMap immitates user requests view
-func ViewMap(x float64, y float64, scale float64) interface{} {
+func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{} {
 	start := time.Now()
 	defer WarnLongExec(start, Config.Perf.View.D, "view")
 
@@ -21,10 +21,14 @@ func ViewMap(x float64, y float64, scale float64) interface{} {
 	view := newGameView()
 
 	for idx, res := range Meta.List {
-		// filter agent, step ...
+		// filter out agent, step ...
 		if res.IsVisible() {
 			list := reflect.MakeSlice(reflect.SliceOf(res.Type()), 0, 0)
 			ForeachModel(res, func(obj interface{}) {
+				// filter time
+				if len(after) > 0 && !obj.(entities.Persistable).IsChanged(after[0]) {
+					return
+				}
 				// filter out of user view
 				if pos, ok := obj.(entities.Locationable); ok && pos.IsIn(center, scale) {
 					list = reflect.Append(list, reflect.ValueOf(pos))
@@ -39,11 +43,14 @@ func ViewMap(x float64, y float64, scale float64) interface{} {
 func newGameView() reflect.Value {
 	fields := []reflect.StructField{}
 	for _, res := range Meta.List {
-		fields = append(fields, reflect.StructField{
-			Name: res.String(),
-			Type: reflect.SliceOf(res.Type()),
-			Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", res.API())),
-		})
+		// filter out agent, step ...
+		if res.IsVisible() {
+			fields = append(fields, reflect.StructField{
+				Name: res.String(),
+				Type: reflect.SliceOf(res.Type()),
+				Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", res.API())),
+			})
+		}
 	}
 	return reflect.New(reflect.StructOf(fields))
 }

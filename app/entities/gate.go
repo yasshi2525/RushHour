@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // Gate represents ticket gate in Station.
@@ -123,8 +124,8 @@ func (g *Gate) UnRef() {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (g *Gate) IsChanged() bool {
-	return g.Base.IsChanged()
+func (g *Gate) IsChanged(after ...time.Time) bool {
+	return g.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

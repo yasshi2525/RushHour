@@ -1,6 +1,9 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // PlayerType represents authenticate level
 type PlayerType uint
@@ -77,8 +80,8 @@ func (o *Player) Short() string {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (o *Player) IsChanged() bool {
-	return o.Base.IsChanged()
+func (o *Player) IsChanged(after ...time.Time) bool {
+	return o.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

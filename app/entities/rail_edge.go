@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // RailEdge connects from RailNode to RailNode.
@@ -32,6 +33,7 @@ func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 
 	f.OutEdge[re.ID] = re
 	t.InEdge[re.ID] = re
+
 	return re
 }
 
@@ -94,8 +96,10 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 			if !doneFrom {
 				re.Owner, re.from = obj.Owner, obj
 				doneFrom = true
+				obj.OutEdge[re.ID] = re
 			} else {
 				re.to = obj
+				obj.InEdge[re.ID] = re
 			}
 		case *LineTask:
 			re.LineTasks[obj.ID] = obj
@@ -138,8 +142,8 @@ func (re *RailEdge) Permits(o *Player) bool {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (re *RailEdge) IsChanged() bool {
-	return re.Base.IsChanged()
+func (re *RailEdge) IsChanged(after ...time.Time) bool {
+	return re.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

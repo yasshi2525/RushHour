@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // Company is the destination of Human
@@ -98,8 +99,8 @@ func (c *Company) CheckRemove() error {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (c *Company) IsChanged() bool {
-	return c.Base.IsChanged()
+func (c *Company) IsChanged(after ...time.Time) bool {
+	return c.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

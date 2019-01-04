@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // Platform is the base Human wait for Train.
@@ -157,8 +158,8 @@ func (p *Platform) Permits(o *Player) bool {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (p *Platform) IsChanged() bool {
-	return p.Base.IsChanged()
+func (p *Platform) IsChanged(after ...time.Time) bool {
+	return p.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

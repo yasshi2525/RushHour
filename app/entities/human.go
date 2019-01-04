@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 // Standing is for judgement Human placement on same X, Y
@@ -218,8 +219,8 @@ func (h *Human) ShouldGetOff(from *Train) bool {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (h *Human) IsChanged() bool {
-	return h.Base.IsChanged()
+func (h *Human) IsChanged(after ...time.Time) bool {
+	return h.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // LineTaskType represents the state what Train should do now.
@@ -43,8 +44,8 @@ type LineTask struct {
 // NewLineTask create instance
 func NewLineTask(id uint, l *RailLine) *LineTask {
 	lt := &LineTask{
-		Base:   NewBase(id),
-		Owner:  l.Owner,
+		Base:  NewBase(id),
+		Owner: l.Owner,
 	}
 	lt.Init()
 	return lt
@@ -194,8 +195,8 @@ func (lt *LineTask) Cost() float64 {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (lt *LineTask) IsChanged() bool {
-	return lt.Base.IsChanged()
+func (lt *LineTask) IsChanged(after ...time.Time) bool {
+	return lt.Base.IsChanged(after)
 }
 
 // Reset set status as not changed

@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 // Indexable has unique id field.
 type Indexable interface {
 	// Idx returns unique id field.
@@ -62,7 +64,7 @@ type Ownable interface {
 
 // Persistable represents Differencial backup
 type Persistable interface {
-	IsChanged() bool
+	IsChanged(after ...time.Time) bool
 	Reset()
 }
 

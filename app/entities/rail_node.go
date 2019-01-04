@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 )
 
 // RailNode represents rail track as point.
@@ -20,9 +21,9 @@ type RailNode struct {
 // NewRailNode create new instance.
 func NewRailNode(id uint, o *Player, x float64, y float64) *RailNode {
 	re := &RailNode{
-		Base:    NewBase(id),
-		Owner:   NewOwner(o),
-		Point:   NewPoint(x, y),
+		Base:  NewBase(id),
+		Owner: NewOwner(o),
+		Point: NewPoint(x, y),
 	}
 	re.Init()
 	return re
@@ -101,8 +102,8 @@ func (rn *RailNode) CheckRemove() error {
 }
 
 // IsChanged returns true when it is changed after Backup()
-func (rn *RailNode) IsChanged() bool {
-	return rn.Base.IsChanged()
+func (rn *RailNode) IsChanged(after ...time.Time) bool {
+	return rn.Base.IsChanged(after)
 }
 
 // Reset set status as not changed
