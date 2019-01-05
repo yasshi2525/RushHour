@@ -19,7 +19,7 @@ type RailEdge struct {
 
 	FromID    uint `gorm:"not null" json:"from"`
 	ToID      uint `gorm:"not null" json:"to"`
-	ReverseID uint `gorm:"-"        json:"eid"`
+	ReverseID uint `gorm:"not null" json:"eid"`
 }
 
 // NewRailEdge create new instance and relates RailNode
@@ -105,6 +105,7 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 			}
 		case *RailEdge:
 			re.Reverse = obj
+			obj.Reverse = re
 		case *LineTask:
 			re.LineTasks[obj.ID] = obj
 		case *Train:

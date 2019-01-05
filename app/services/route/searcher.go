@@ -9,38 +9,39 @@ import (
 )
 
 type Searcher struct {
-	Name  string
-	Tasks []uint
-	Model *Model
-	Ch    chan *Payload
+	Name   string
+	Target entities.ModelType
+	Tasks  []uint
+	Model  *Model
+	Ch     chan *Payload
 }
 
 func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	payload := &Payload{make(map[uint]*Model), 0, len(s.Tasks)}
-	for _, cid := range s.Tasks {
+	for _, id := range s.Tasks {
 		select {
 		case <-ctx.Done():
 			break
 		default:
-			model, goal := s.Model.ExportWith(entities.COMPANY, cid)
+			model, goal := s.Model.ExportWith(s.Target, id)
 			goal.WalkThrough()
 			for _, n := range model.Nodes {
 				n.Fix()
 			}
-			payload.Route[cid] = model
+			payload.Route[id] = model
 			payload.Processed++
 		}
 	}
 	s.Ch <- payload
 }
 
-func Search(ctx context.Context, parallel int, model *Model) (*Payload, bool) {
+func Search(ctx context.Context, t entities.ModelType, parallel int, model *Model) (*Payload, bool) {
 	reduceCh := make(chan *Payload)
 	defer close(reduceCh)
 
 	// create worker
-	subctxs, searchers, collectCh := genSearchers(ctx, parallel, model)
+	subctxs, searchers, collectCh := genSearchers(ctx, t, parallel, model)
 	wg := &sync.WaitGroup{}
 
 	// fire task
@@ -59,14 +60,14 @@ func Search(ctx context.Context, parallel int, model *Model) (*Payload, bool) {
 	return result, result.IsOK()
 }
 
-func genSearchers(ctx context.Context, parallel int, model *Model) ([]context.Context, []*Searcher, chan *Payload) {
+func genSearchers(ctx context.Context, t entities.ModelType, parallel int, model *Model) ([]context.Context, []*Searcher, chan *Payload) {
 	searchers := make([]*Searcher, parallel)
 	subctxs := make([]context.Context, parallel)
 	ch := make(chan *Payload, parallel)
 
 	for i := 0; i < parallel; i++ {
 		name := fmt.Sprintf("searcher%d", i+1)
-		searchers[i] = &Searcher{name, []uint{}, model.Export(), ch}
+		searchers[i] = &Searcher{name, t, []uint{}, model.Export(), ch}
 		subctxs[i], _ = context.WithCancel(ctx)
 	}
 

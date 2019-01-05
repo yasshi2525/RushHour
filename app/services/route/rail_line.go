@@ -10,7 +10,7 @@ func SearchRailLine(l *entities.RailLine, parallel int) []*entities.Track {
 	results := []*entities.Track{}
 	template := scanRailLine(l)
 
-	payload, _ := Search(context.Background(), parallel, template)
+	payload, _ := Search(context.Background(), entities.PLATFORM, parallel, template)
 
 	for _, dept := range l.Platforms {
 		for destID, model := range payload.Route {

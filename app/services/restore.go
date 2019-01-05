@@ -87,7 +87,8 @@ func resolveStatic() {
 	for _, re := range Model.RailEdges {
 		re.Resolve(
 			Model.RailNodes[re.FromID],
-			Model.RailNodes[re.ToID])
+			Model.RailNodes[re.ToID],
+			Model.RailEdges[re.ReverseID])
 	}
 	for _, st := range Model.Stations {
 		st.Resolve(Model.Players[st.OwnerID])

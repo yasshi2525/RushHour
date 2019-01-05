@@ -269,7 +269,9 @@ func (lt *LineTask) Next() *LineTask {
 // SetNext changes self changed status for backup
 func (lt *LineTask) SetNext(v *LineTask) {
 	lt.next = v
-	v.before = lt
+	if v != nil {
+		v.before = lt
+	}
 	lt.Change()
 }
 

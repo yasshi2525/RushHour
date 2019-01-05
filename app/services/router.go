@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/services/route"
 )
@@ -65,7 +67,7 @@ func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {
 	MuRoute.Lock()
 	defer MuRoute.Unlock()
 
-	return route.Search(ctx, Config.Routing.Worker, template)
+	return route.Search(ctx, entities.COMPANY, Config.Routing.Worker, template)
 }
 
 func reflectModel() {

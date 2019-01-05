@@ -42,9 +42,9 @@ type Human struct {
 
 	From       *Residence `gorm:"-" json:"-"`
 	To         *Company   `gorm:"-" json:"-"`
-	onPlatform *Platform  `gorm:"-" json:"-"`
-	onTrain    *Train     `gorm:"-" json:"-"`
-	On         Standing   `gorm:"-" json:"-"`
+	onPlatform *Platform
+	onTrain    *Train
+	On         Standing `gorm:"-" json:"-"`
 	out        map[uint]*Step
 
 	FromID     uint `gorm:"not null" json:"rid"`
@@ -218,7 +218,7 @@ func (h *Human) ShouldGetOff(from *Train) bool {
 	return false
 }
 
-// OnPlatform return next field
+// OnPlatform return platform human stands
 func (h *Human) OnPlatform() *Platform {
 	return h.onPlatform
 }
