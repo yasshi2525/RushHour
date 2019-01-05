@@ -149,8 +149,8 @@ func (h *Human) CheckRemove() error {
 }
 
 // TurnTo make Human turn head to dest.
-func (h *Human) turnTo(dest *Point) *Human {
-	h.Angle = math.Atan2(dest.Y-h.Y, dest.X-h.X)
+func (h *Human) turnTo(dest Locationable) *Human {
+	h.Angle = math.Atan2(dest.Pos().Y-h.Y, dest.Pos().X-h.X)
 	return h
 }
 
@@ -173,7 +173,7 @@ func (h *Human) move(dist float64) *Human {
 
 // WalkTo make Human walk to dest point.
 // If Human cannot reach it, proceed forward as possible.
-func (h *Human) WalkTo(dest *Point) *Human {
+func (h *Human) WalkTo(dest Locationable) *Human {
 	h.turnTo(dest).move(h.Dist(dest))
 	return h
 }

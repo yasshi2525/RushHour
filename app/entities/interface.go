@@ -17,6 +17,8 @@ type Initializable interface {
 
 // Locationable represents physical space.
 type Locationable interface {
+	Idx() uint
+	Type() ModelType
 	// Pos returns entities' position.
 	Pos() *Point
 }
@@ -31,18 +33,6 @@ type Relayable interface {
 	InStep() map[uint]*Step
 	// Out represents how itselt can reach other.
 	OutStep() map[uint]*Step
-}
-
-// Travelable represents connectable for Train running
-type Travelable interface {
-	Idx() uint
-	Type() ModelType
-	// Pos returns entities' position.
-	Pos() *Point
-	// In represents how other can reach itself.
-	InTrack() map[uint]*Track
-	// Out represents how itselt can reach other.
-	OutTrack() map[uint]*Track
 }
 
 // Connectable represents movability of two resource

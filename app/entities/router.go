@@ -11,7 +11,7 @@ type Digest struct {
 	ID   uint
 }
 
-// Node is digest of Relayable, Traverable for routing.
+// Node is digest of Relayable, Transportable for routing.
 // The chain of Node represents one route.
 type Node struct {
 	Base    *Digest
@@ -103,11 +103,11 @@ func GenStepEdges(ns []*Node, steps map[uint]*Step) []*Edge {
 	return es
 }
 
-// GenTrackEdges generates Edge list from Nodes and Tracks.
-func GenTrackEdges(ns []*Node, tracks map[uint]*Track) []*Edge {
+// GenTrackEdges generates Edge list from Nodes and LineTask.
+func GenLineTaskEdges(ns []*Node, lts map[uint]*LineTask) []*Edge {
 	es := []*Edge{}
-	for _, tr := range tracks {
-		es = append(es, genEdge(ns, tr))
+	for _, lt := range lts {
+		es = append(es, genEdge(ns, lt))
 	}
 	return es
 }

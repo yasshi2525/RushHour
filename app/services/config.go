@@ -39,7 +39,8 @@ type cfgPlatform struct {
 }
 
 type cfgTrain struct {
-	Weight float64 `validate:"gt=0"`
+	Weight   float64 `validate:"gt=0"`
+	Slowness float64 `validate:"gt=0,lte=1"`
 }
 
 type cfgHuman struct {

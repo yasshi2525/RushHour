@@ -80,7 +80,7 @@ func (re *RailEdge) To() Locationable {
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.FromNode.Pos().Dist(re.ToNode.Pos())
+	return re.FromNode.Pos().Dist(re.ToNode)
 }
 
 // Unrelate delete relations to RailNode

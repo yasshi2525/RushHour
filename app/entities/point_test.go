@@ -4,24 +4,6 @@ import (
 	"testing"
 )
 
-func TestDist(t *testing.T) {
-	pivot := &Point{0, 0}
-
-	cases := []struct {
-		in   *Point
-		want float64
-	}{
-		{&Point{0, 0}, 0},
-		{&Point{3, 4}, 5},
-	}
-
-	for _, c := range cases {
-		if got := pivot.Dist(c.in); got != c.want {
-			t.Errorf("Dist(%v) == %f, want %f", c.in, got, c.want)
-		}
-	}
-}
-
 func TestIsIn(t *testing.T) {
 	scale := 4.0
 

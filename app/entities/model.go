@@ -22,7 +22,6 @@ const (
 	TRAIN
 	HUMAN
 	STEP
-	TRACK
 	AGENT
 )
 
@@ -104,7 +103,6 @@ type Model struct {
 	Humans     map[uint]*Human
 
 	Steps  map[uint]*Step
-	Tracks map[uint]*Track
 	Agents map[uint]*Agent
 
 	NextIDs map[ModelType]*uint64
@@ -141,7 +139,6 @@ func initMeta() *MetaModel {
 			TRAIN,
 			HUMAN,
 			STEP,
-			TRACK,
 			AGENT,
 		},
 	}
@@ -161,7 +158,6 @@ func initMeta() *MetaModel {
 	meta.Attr[HUMAN] = &Attribute{"Human", "h", "humen", "humans"}
 
 	meta.Attr[STEP] = &Attribute{"Step", "s", "", ""}
-	meta.Attr[TRACK] = &Attribute{"Track", "tr", "", ""}
 	meta.Attr[AGENT] = &Attribute{"Agent", "a", "", ""}
 
 	return meta

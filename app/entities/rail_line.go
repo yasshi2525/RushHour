@@ -14,13 +14,16 @@ type RailLine struct {
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 	Platforms map[uint]*Platform `gorm:"-" json:"-"`
+
+	slow float64 `gorm:"-" json:"-"`
 }
 
 // NewRailLine create instance
-func NewRailLine(id uint, o *Player) *RailLine {
+func NewRailLine(id uint, o *Player, s float64) *RailLine {
 	l := &RailLine{
 		Base:  NewBase(id),
 		Owner: NewOwner(o),
+		slow:  s,
 	}
 	l.Init()
 	return l
@@ -117,18 +120,16 @@ func (l *RailLine) Reset() {
 // Tail is undirecting LineTask, that is LineTask.Next is nil
 // Head is undirected  LineTask because head of chain is what any other doesn't target
 func (l *RailLine) Borders() (*LineTask, *LineTask) {
-	var tail *LineTask
-	referred := make(map[uint]bool)
+	var head, tail *LineTask
 	for _, lt := range l.Tasks {
-		if lt.Next() != nil {
-			referred[lt.Next().ID] = true
-		} else {
+		if lt.Before() == nil {
+			head = lt
+		}
+		if lt.Next() == nil {
 			tail = lt
 		}
-	}
-	for key, v := range referred {
-		if !v {
-			return l.Tasks[key], tail
+		if head != nil && tail != nil {
+			return head, tail
 		}
 	}
 	// looped

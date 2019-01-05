@@ -27,7 +27,8 @@ type LineTask struct {
 
 	RailLine *RailLine    `gorm:"-"        json:"-"`
 	TaskType LineTaskType `gorm:"not null" json:"type"`
-	next     *LineTask    `gorm:"-"        json:"-"`
+	before   *LineTask    `json:"-"`
+	next     *LineTask    `json:"-"`
 	Stay     *Platform    `gorm:"-"        json:"-"`
 	Moving   *RailEdge    `gorm:"-"        json:"-"`
 	Dest     *Platform    `gorm:"-"        json:"-"`
@@ -39,6 +40,8 @@ type LineTask struct {
 	StayID     uint `                json:"p1id,omitempty"`
 	MovingID   uint `                json:"reid,omitempty"`
 	DestID     uint `                json:"p2id,omitempty"`
+
+	slow float64 `gorm:"-" json:"-"`
 }
 
 // NewLineTaskDept create "dept"
@@ -49,6 +52,7 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 		RailLine: l,
 		TaskType: OnDeparture,
 		Stay:     p,
+		slow:     l.slow,
 	}
 	lt.Init()
 	lt.ResolveRef()
@@ -68,6 +72,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 		RailLine: tail.RailLine,
 		Moving:   re,
 		Dest:     re.ToNode.OverPlatform,
+		slow:     tail.slow,
 	}
 	if re.ToNode.OverPlatform == nil {
 		lt.TaskType = OnMoving
@@ -139,6 +144,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			obj.Resolve(lt)
 		case *LineTask:
 			lt.next = obj
+			obj.before = lt
 		case *Platform:
 			switch lt.TaskType {
 			case OnDeparture:
@@ -204,7 +210,17 @@ func (lt *LineTask) Permits(o *Player) bool {
 }
 
 // From represents start point
-func (lt *LineTask) From() Locationable {
+func (lt *LineTask) From() Indexable {
+	return lt.FromLoc()
+}
+
+// To represents end point
+func (lt *LineTask) To() Indexable {
+	return lt.ToLoc()
+}
+
+// FromLoc represents start point
+func (lt *LineTask) FromLoc() Locationable {
 	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay
@@ -213,8 +229,8 @@ func (lt *LineTask) From() Locationable {
 	}
 }
 
-// To represents end point
-func (lt *LineTask) To() Locationable {
+// ToLoc represents end point
+func (lt *LineTask) ToLoc() Locationable {
 	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay
@@ -229,8 +245,20 @@ func (lt *LineTask) Cost() float64 {
 	case OnDeparture:
 		return 0
 	default:
-		return lt.Moving.Cost()
+		cost := lt.Moving.Cost()
+		if lt.before.TaskType == OnDeparture {
+			cost /= lt.slow
+		}
+		if lt.TaskType == OnStopping {
+			cost /= lt.slow
+		}
+		return cost
 	}
+}
+
+// Before return before field
+func (lt *LineTask) Before() *LineTask {
+	return lt.before
 }
 
 // Next return next field
@@ -241,6 +269,7 @@ func (lt *LineTask) Next() *LineTask {
 // SetNext changes self changed status for backup
 func (lt *LineTask) SetNext(v *LineTask) {
 	lt.next = v
+	v.before = lt
 	lt.Change()
 }
 

@@ -8,7 +8,7 @@ import (
 
 // CreateRailLine create RailLine
 func CreateRailLine(o *entities.Player, name string) (*entities.RailLine, error) {
-	l := entities.NewRailLine(GenID(entities.RAILLINE), o)
+	l := entities.NewRailLine(GenID(entities.RAILLINE), o, Config.Train.Slowness)
 	l.Name = name
 	AddEntity(l)
 	return l, nil
@@ -50,7 +50,7 @@ func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) err
 	// find (a) -> (b)
 	bases := []*entities.LineTask{}
 	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.To().Pos().SameAt(re.FromNode) { // = (a) -> (b)
+		if lt.Own == o && lt.ToLoc().Pos().SameAt(re.FromNode) { // = (a) -> (b)
 			bases = append(bases, lt)
 		}
 	}
@@ -86,8 +86,8 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 	if err := CheckAuth(o, newer); err != nil {
 		return nil, err
 	}
-	if !tail.To().Pos().SameAt(newer.From()) {
-		return nil, fmt.Errorf("unconnected RailEdge. %v != %v", tail.To().Pos(), newer.From().Pos())
+	if !tail.ToLoc().Pos().SameAt(newer.From()) {
+		return nil, fmt.Errorf("unconnected RailEdge. %v != %v", tail.ToLoc().Pos(), newer.From().Pos())
 	}
 
 	// when task is "stop", append task "departure"
@@ -128,8 +128,8 @@ func delStepRailLine(l *entities.RailLine) {
 // genStepRailLine generate Step P <-> P
 func genStepRailLine(l *entities.RailLine) {
 	for _, dest := range l.Platforms {
-		goal, nodes := genTravelableNodes(dest, l)
-		entities.GenTrackEdges(nodes, Model.Tracks)
+		goal, nodes := genTransportableNodes(dest, l)
+		entities.GenLineTaskEdges(nodes, l.Tasks)
 		goal.WalkThrough()
 		for _, src := range nodes {
 			// prevent to P-P (self-loop) relation
@@ -148,7 +148,7 @@ func genStepRailLine(l *entities.RailLine) {
 	}
 }
 
-func genTravelableNodes(goal *entities.Platform, l *entities.RailLine) (*entities.Node, []*entities.Node) {
+func genTransportableNodes(goal *entities.Platform, l *entities.RailLine) (*entities.Node, []*entities.Node) {
 	var wrapper *entities.Node
 	ns := []*entities.Node{}
 	for _, p := range l.Platforms {
