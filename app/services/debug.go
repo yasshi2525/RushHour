@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	numUser        = 2
+	numUser        = 1
 	viewInterval   = 1 * time.Second
-	updateInterval = 1 * time.Minute
+	updateInterval = 10 * time.Second
 	removeInterval = 2 * time.Minute
 )
 

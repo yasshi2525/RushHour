@@ -54,6 +54,7 @@ type cfgGame struct {
 
 type cfgRouting struct {
 	Worker int `validate:"gt=0"`
+	Alert  int `validate:"gte=0"`
 }
 
 type cfgBackup struct {

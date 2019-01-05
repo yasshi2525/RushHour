@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
@@ -12,6 +13,7 @@ import (
 
 var routingContext context.Context
 var routingCancel context.CancelFunc
+var routingBlockConunt int64
 
 var searching bool
 
@@ -27,9 +29,8 @@ func StartRouting() {
 
 // CancelRouting stop current executing searching.
 func CancelRouting() {
-	//if routingCancel != nil {
 	routingCancel()
-	//}
+	atomic.AddInt64(&routingBlockConunt, 1)
 }
 
 func processRouting(ctx context.Context) {
@@ -38,19 +39,27 @@ func processRouting(ctx context.Context) {
 
 	template, ok := scan(ctx)
 	if !ok {
-		revel.AppLog.Debugf("routing was canceled (1/3) in scanning phase")
+		if b := int(routingBlockConunt); b >= Config.Routing.Alert {
+			revel.AppLog.Warnf("routing was canceled (1/3) in scanning phase by %d times", b)
+		}
 		return
 	}
 
 	payload, ok := search(ctx, template)
 	if !ok {
-		revel.AppLog.Debugf("routing was canceled (2/3) in searching phase (%d/%d)",
-			payload.Processed, payload.Total)
+		if b := int(routingBlockConunt); b >= Config.Routing.Alert {
+			revel.AppLog.Warnf("routing was canceled (2/3) in searching phase (%d/%d) by %d times",
+				payload.Processed, payload.Total, b)
+		}
 		return
 	}
 
 	RouteTemplate = payload
 	reflectModel()
+	if b := int(routingBlockConunt); b >= Config.Routing.Alert {
+		revel.AppLog.Infof("routing was successfully ended after %d times blocking", b)
+	}
+	atomic.StoreInt64(&routingBlockConunt, 0)
 }
 
 func scan(ctx context.Context) (*route.Model, bool) {
