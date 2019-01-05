@@ -67,11 +67,11 @@ func RemoveCompany(o *entities.Player, id uint) error {
 func GenStepResidence(r *entities.Residence) {
 	// R -> C
 	for _, c := range Model.Companies {
-		GenWalkStep(r, c)
+		GenStep(r, c)
 	}
 	// R -> G
 	for _, g := range Model.Gates {
-		GenWalkStep(r, g)
+		GenStep(r, g)
 	}
 }
 
@@ -79,10 +79,10 @@ func GenStepResidence(r *entities.Residence) {
 func GenStepCompany(c *entities.Company) {
 	// R -> C
 	for _, r := range Model.Residences {
-		GenWalkStep(r, c)
+		GenStep(r, c)
 	}
 	// G -> C
 	for _, g := range Model.Gates {
-		GenWalkStep(g, c)
+		GenStep(g, c)
 	}
 }

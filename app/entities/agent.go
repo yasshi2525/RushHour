@@ -1,12 +1,14 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Agent is the wrapper of Human.
 // Agent can move concerting minimum cost route.
 type Agent struct {
 	Human   *Human
-	Current *Edge
+	Current *Step
 }
 
 // NewAgent creates instance

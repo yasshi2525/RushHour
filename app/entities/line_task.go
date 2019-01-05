@@ -27,11 +27,11 @@ type LineTask struct {
 
 	RailLine *RailLine    `gorm:"-"        json:"-"`
 	TaskType LineTaskType `gorm:"not null" json:"type"`
-	before   *LineTask    `json:"-"`
-	next     *LineTask    `json:"-"`
-	Stay     *Platform    `gorm:"-"        json:"-"`
-	Moving   *RailEdge    `gorm:"-"        json:"-"`
-	Dest     *Platform    `gorm:"-"        json:"-"`
+	before   *LineTask
+	next     *LineTask
+	Stay     *Platform `gorm:"-"        json:"-"`
+	Moving   *RailEdge `gorm:"-"        json:"-"`
+	Dest     *Platform `gorm:"-"        json:"-"`
 
 	Trains map[uint]*Train `gorm:"-" json:"-"`
 

@@ -10,28 +10,27 @@ type Step struct {
 	ID   uint
 	from Relayable
 	to   Relayable
-	cost float64
-	By   *LineTask
+
+	// only for walk step
+	weight float64
+
+	// only for train step
+	By        *LineTask
+	Transport float64
 }
 
 // NewWalkStep create new instance and relation to Relayable
-func NewWalkStep(id uint, f Relayable, t Relayable, cost float64) *Step {
-	return newStep(id, f, t, cost)
-}
-
-// NewTrainStep create new instance and relation to Platform
-func NewTrainStep(id uint, lt *LineTask, dept *Platform, dest *Platform, c float64) *Step {
-	s := newStep(id, dept, dest, c)
-	s.By = lt
+func NewWalkStep(id uint, f Relayable, t Relayable, w float64) *Step {
+	s := NewStep(id, f, t)
+	s.weight = w
 	return s
 }
 
-func newStep(id uint, f Relayable, t Relayable, c float64) *Step {
+func NewStep(id uint, f Relayable, t Relayable) *Step {
 	step := &Step{
 		ID:   id,
 		from: f,
 		to:   t,
-		cost: c,
 	}
 	step.Init()
 	f.OutStep()[step.ID] = step
@@ -70,7 +69,10 @@ func (s *Step) To() Indexable {
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	return s.cost
+	if s.By != nil {
+		return s.Transport
+	}
+	return s.from.Pos().Dist(s.to) * s.weight
 }
 
 // UnRef delete selt from related Locationable.
@@ -81,6 +83,6 @@ func (s *Step) UnRef() {
 
 // String represents status
 func (s *Step) String() string {
-	return fmt.Sprintf("%s(%v):from=%v,to=%v", Meta.Attr[s.Type()].Short,
-		s.ID, s.from, s.to)
+	return fmt.Sprintf("%s(%v):from=%v,to=%v,c=%.2f", Meta.Attr[s.Type()].Short,
+		s.ID, s.from, s.to, s.Cost())
 }

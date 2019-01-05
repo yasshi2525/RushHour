@@ -23,7 +23,7 @@ func Init() {
 	//db.LogMode(true)
 	MigrateDB()
 	Restore()
-	StartRouting("init")
+	StartRouting()
 }
 
 // Terminate finalizes after stopping game
@@ -42,7 +42,7 @@ func Start() {
 
 // Stop stop game
 func Stop() {
-	CancelRouting("shutdown")
+	CancelRouting()
 	StopProcedure()
 	StopModelWatching()
 	StopBackupTicker()

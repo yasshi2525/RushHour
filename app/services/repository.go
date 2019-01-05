@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services/route"
 )
 
 // Model is contained all data for gaming
@@ -15,7 +16,7 @@ var Model *entities.Model
 var Meta *entities.MetaModel
 
 // RouteTemplate is default route information in order to avoid huge calculation.
-var RouteTemplate map[uint][]*entities.Node
+var RouteTemplate *route.Payload
 
 // MuStatic is mutex lock for Static
 var MuStatic sync.RWMutex
@@ -36,7 +37,6 @@ func InitLock() {
 // InitRepository initialize storage
 func InitRepository() {
 	Meta, Model = entities.InitModel()
-	RouteTemplate = make(map[uint][]*entities.Node)
 }
 
 // GenID generate ID
@@ -44,17 +44,9 @@ func GenID(t entities.ModelType) uint {
 	return uint(atomic.AddUint64(Model.NextIDs[t], 1))
 }
 
-// GenWalkStep generate Step and resister it
-func GenWalkStep(from entities.Relayable, to entities.Relayable) *entities.Step {
-	cost := from.Pos().Dist(to) * Config.Human.Weight
-	s := entities.NewWalkStep(GenID(entities.STEP), from, to, cost)
-	AddEntity(s)
-	return s
-}
-
-// GenTrainStep generate Step and resister it
-func GenTrainStep(lt *entities.LineTask, dept *entities.Platform, dest *entities.Platform, cost float64) *entities.Step {
-	s := entities.NewTrainStep(GenID(entities.STEP), lt, dept, dest, cost)
+// GenStep generate Step and resister it
+func GenStep(from entities.Relayable, to entities.Relayable) *entities.Step {
+	s := entities.NewWalkStep(GenID(entities.STEP), from, to, Config.Human.Weight)
 	AddEntity(s)
 	return s
 }

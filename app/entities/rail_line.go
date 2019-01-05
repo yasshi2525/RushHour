@@ -15,7 +15,7 @@ type RailLine struct {
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 	Platforms map[uint]*Platform `gorm:"-" json:"-"`
 
-	slow float64 `gorm:"-" json:"-"`
+	slow float64
 }
 
 // NewRailLine create instance

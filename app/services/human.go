@@ -12,15 +12,15 @@ func GenStepHuman(h *entities.Human) {
 	switch h.On {
 	case entities.OnGround:
 		// h - C for destination
-		GenWalkStep(h, h.To)
+		GenStep(h, h.To)
 		// h -> G
 		for _, g := range Model.Gates {
-			GenWalkStep(h, g)
+			GenStep(h, g)
 		}
 	case entities.OnPlatform:
 		// h - G, P on Human
-		GenWalkStep(h, h.OnPlatform())
-		GenWalkStep(h, h.OnPlatform().WithGate)
+		GenStep(h, h.OnPlatform())
+		GenStep(h, h.OnPlatform().WithGate)
 	case entities.OnTrain:
 		// do-nothing
 	default:

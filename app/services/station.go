@@ -37,14 +37,14 @@ func RemoveStation(o *entities.Player, id uint) error {
 func genStepStation(st *entities.Station) {
 	// R -> P
 	for _, r := range Model.Residences {
-		GenWalkStep(r, st.Platform)
+		GenStep(r, st.Platform)
 	}
 	// G <-> P
-	GenWalkStep(st.Gate, st.Platform)
-	GenWalkStep(st.Platform, st.Gate)
+	GenStep(st.Gate, st.Platform)
+	GenStep(st.Platform, st.Gate)
 	// G -> C
 	for _, c := range Model.Companies {
-		GenWalkStep(st.Gate, c)
+		GenStep(st.Gate, c)
 	}
 }
 

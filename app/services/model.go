@@ -64,11 +64,11 @@ func watchModel() {
 		skipReroute := msg.Target == entities.PLAYER
 
 		if !skipReroute {
-			CancelRouting(msg.Source)
+			CancelRouting()
 		}
 		processMsg(msg)
 		if !skipReroute {
-			StartRouting(msg.Source)
+			StartRouting()
 		}
 		WarnLongExec(start, Config.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}

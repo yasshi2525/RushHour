@@ -18,7 +18,7 @@ type Train struct {
 	Progress float64 `gorm:"not null" json:"progress"`
 	Occupied uint    `gorm:"-"        json:"occupied"`
 
-	task       *LineTask       `gorm:"-" json:"-"`
+	task       *LineTask
 	Passengers map[uint]*Human `gorm:"-" json:"-"`
 	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
 	OnPlatform *Platform       `gorm:"-" json:"-"`

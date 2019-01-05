@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	numUser        = 5
+	numUser        = 10
 	viewInterval   = 1 * time.Second
-	updateInterval = 1 * time.Minute
+	updateInterval = 30 * time.Second
 	removeInterval = 2 * time.Minute
 )
 
@@ -49,6 +49,7 @@ func StartSimulation() {
 
 		for _, target := range []entities.ModelType{
 			entities.RAILNODE,
+			entities.RAILEDGE,
 			entities.STATION,
 			entities.RAILLINE,
 			entities.LINETASK} {

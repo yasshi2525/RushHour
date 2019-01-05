@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services/route"
 )
 
 // CreateRailLine create RailLine
@@ -127,36 +128,8 @@ func delStepRailLine(l *entities.RailLine) {
 
 // genStepRailLine generate Step P <-> P
 func genStepRailLine(l *entities.RailLine) {
-	for _, dest := range l.Platforms {
-		goal, nodes := genTransportableNodes(dest, l)
-		entities.GenLineTaskEdges(nodes, l.Tasks)
-		goal.WalkThrough()
-		for _, src := range nodes {
-			// prevent to P-P (self-loop) relation
-			if src.SameAs(dest) {
-				continue
-			}
-			src.Fix()
-			// filter out unreachable Platform
-			if src.ViaEdge == nil {
-				continue
-			}
-			lt := Model.LineTasks[src.ViaEdge.Base.ID]
-			dept := Model.Platforms[src.Base.ID]
-			GenTrainStep(lt, dept, dest, src.Cost)
-		}
+	tracks := route.SearchRailLine(l, Config.Routing.Worker)
+	for _, tr := range tracks {
+		AddEntity(tr.ExportStep(GenID(entities.STEP)))
 	}
-}
-
-func genTransportableNodes(goal *entities.Platform, l *entities.RailLine) (*entities.Node, []*entities.Node) {
-	var wrapper *entities.Node
-	ns := []*entities.Node{}
-	for _, p := range l.Platforms {
-		n := entities.NewNode(p.Type(), p.ID)
-		if p == goal {
-			wrapper = n
-		}
-		ns = append(ns, n)
-	}
-	return wrapper, ns
 }

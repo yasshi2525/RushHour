@@ -146,14 +146,14 @@ func genDynamics() {
 	for _, c := range Model.Companies {
 		// G -> C
 		for _, g := range Model.Gates {
-			GenWalkStep(g, c)
+			GenStep(g, c)
 		}
 	}
 	for _, p := range Model.Platforms {
 		// G <-> P
 		g := p.InStation.Gate
-		GenWalkStep(p, g)
-		GenWalkStep(g, p)
+		GenStep(p, g)
+		GenStep(g, p)
 	}
 	for _, l := range Model.RailLines {
 		if l.IsRing() {
