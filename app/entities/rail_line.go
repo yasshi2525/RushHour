@@ -142,7 +142,31 @@ func (l *RailLine) IsRing() bool {
 		return false
 	}
 	h, t := l.Borders()
-	return h == nil && t == nil
+	return h == nil && t == nil && h != t
+}
+
+func (l *RailLine) CanRing() bool {
+	head, tail := l.Borders()
+	// ringed loop can't loop any more
+	if head == nil && tail == nil {
+		return false
+	}
+
+	switch tail.TaskType {
+	case OnDeparture:
+		// allow: dept -> not dept
+		return head.TaskType != OnDeparture && tail.Stay == head.Dept
+	case OnMoving:
+		fallthrough
+	case OnPassing:
+		// allow: move/pass -> not dept
+		return head.TaskType != OnDeparture && tail.Moving.ToNode == head.Moving.FromNode
+	case OnStopping:
+		// allow: stop -> dept
+		return head.TaskType == OnDeparture && tail.Dest == head.Stay
+	default:
+		panic(fmt.Errorf("invalid type = %v", tail.TaskType))
+	}
 }
 
 // String represents status

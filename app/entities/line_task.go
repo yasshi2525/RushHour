@@ -30,6 +30,7 @@ type LineTask struct {
 	before   *LineTask
 	next     *LineTask
 	Stay     *Platform `gorm:"-"        json:"-"`
+	Dept     *Platform `gorm:"-"        json:"-"`
 	Moving   *RailEdge `gorm:"-"        json:"-"`
 	Dest     *Platform `gorm:"-"        json:"-"`
 
@@ -38,6 +39,7 @@ type LineTask struct {
 	RailLineID uint `gorm:"not null" json:"lid"`
 	NextID     uint `                json:"next,omitempty"`
 	StayID     uint `                json:"p1id,omitempty"`
+	DeptID     uint `                json:"p1id,omitempty`
 	MovingID   uint `                json:"reid,omitempty"`
 	DestID     uint `                json:"p2id,omitempty"`
 
@@ -136,6 +138,7 @@ func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
 }
 
 // Resolve set reference
+// Platform must be reosolved by Resolve***
 func (lt *LineTask) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -145,16 +148,6 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		case *LineTask:
 			lt.next = obj
 			obj.before = lt
-		case *Platform:
-			switch lt.TaskType {
-			case OnDeparture:
-				lt.Stay = obj
-				obj.Resolve(lt)
-				lt.RailLine.Resolve(obj)
-			default:
-				lt.Dest = obj
-				obj.Resolve(lt)
-			}
 		case *RailEdge:
 			lt.Moving = obj
 			obj.Resolve(lt)
@@ -175,6 +168,27 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 	lt.ResolveRef()
 }
 
+func (lt *LineTask) ResolveStay(p *Platform) {
+	lt.Stay = p
+	lt.resolvePlatform(p)
+}
+
+func (lt *LineTask) ResolveDept(p *Platform) {
+	lt.Dept = p
+	lt.resolvePlatform(p)
+}
+
+func (lt *LineTask) ResolveDest(p *Platform) {
+	lt.Dest = p
+	lt.resolvePlatform(p)
+}
+
+func (lt *LineTask) resolvePlatform(p *Platform) {
+	p.Resolve(lt)
+	lt.RailLine.Resolve(p)
+	lt.ResolveRef()
+}
+
 // ResolveRef set id from reference
 func (lt *LineTask) ResolveRef() {
 	if lt.RailLine != nil {
@@ -188,6 +202,9 @@ func (lt *LineTask) ResolveRef() {
 	}
 	if lt.Stay != nil {
 		lt.StayID = lt.Stay.ID
+	}
+	if lt.Dept != nil {
+		lt.DeptID = lt.Dept.ID
 	}
 	if lt.Dest != nil {
 		lt.DestID = lt.Dest.ID
@@ -292,15 +309,21 @@ func (lt *LineTask) String() string {
 	if lt.Own != nil {
 		ostr = fmt.Sprintf(":%s", lt.Own.Short())
 	}
-	next, stay, moving := "", "", ""
+	next, stay, dept, moving, dest := "", "", "", "", ""
 	if lt.next != nil {
 		next = fmt.Sprintf(",next=%d", lt.next.ID)
 	}
 	if lt.Stay != nil {
-		stay = fmt.Sprintf(",p=%d", lt.Stay.ID)
+		stay = fmt.Sprintf(",stay=%d", lt.Stay.ID)
+	}
+	if lt.Dept != nil {
+		dept = fmt.Sprintf(",dept=%d", lt.Dept.ID)
 	}
 	if lt.Moving != nil {
 		moving = fmt.Sprintf(",re=%d", lt.Moving.ID)
+	}
+	if lt.Dest != nil {
+		dest = fmt.Sprintf(",dest=%d", lt.Dest.ID)
 	}
 	posstr := ""
 	if lt.Pos() != nil {
@@ -310,8 +333,8 @@ func (lt *LineTask) String() string {
 	if lt.RailLine != nil {
 		nmstr = fmt.Sprintf(":%s", lt.RailLine.Name)
 	}
-	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s", Meta.Attr[lt.Type()].Short,
-		lt.ID, lt.TaskType, lt.RailLineID, next, stay, moving,
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s%s%s", Meta.Attr[lt.Type()].Short,
+		lt.ID, lt.TaskType, lt.RailLineID, next, stay, dept, moving, dest,
 		posstr, ostr, nmstr)
 }
 

@@ -111,13 +111,16 @@ func resolveStatic() {
 			lt.Resolve(Model.LineTasks[lt.NextID])
 		}
 		if lt.StayID != ZERO {
-			lt.Resolve(Model.Platforms[lt.StayID])
+			lt.ResolveStay(Model.Platforms[lt.StayID])
+		}
+		if lt.DeptID != ZERO {
+			lt.ResolveDept(Model.Platforms[lt.DeptID])
 		}
 		if lt.MovingID != ZERO {
 			lt.Resolve(Model.RailEdges[lt.MovingID])
 		}
 		if lt.DestID != ZERO {
-			lt.Resolve(Model.Platforms[lt.DestID])
+			lt.ResolveDest(Model.Platforms[lt.DestID])
 		}
 	}
 	for _, t := range Model.Trains {

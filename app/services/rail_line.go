@@ -93,7 +93,7 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 
 	// when task is "stop", append task "departure"
 	if tail.TaskType == entities.OnStopping {
-		tail = entities.NewLineTaskDept(GenID(entities.LINETASK), tail.RailLine, tail.Stay, tail)
+		tail = entities.NewLineTaskDept(GenID(entities.LINETASK), tail.RailLine, tail.Dest, tail)
 		AddEntity(tail)
 	}
 
@@ -109,7 +109,8 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return false, err
 	}
 	// Check RainLine is not ringing
-	if head, tail := l.Borders(); head != nil && tail != nil {
+	if l.CanRing() {
+		head, tail := l.Borders()
 		tail.SetNext(head)
 		genStepRailLine(l)
 		return true, nil
