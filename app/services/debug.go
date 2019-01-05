@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	numUser        = 1
+	numUser        = 5
 	viewInterval   = 1 * time.Second
 	updateInterval = 10 * time.Second
-	removeInterval = 2 * time.Minute
+	removeInterval = 120 * time.Second
 )
 
 type opCallback func(source string, target entities.ModelType)
@@ -30,9 +30,9 @@ func AfterStart() {
 	l, _ := CreateRailLine(p, "test1")
 	StartRailLine(p, l, st.Platform)
 	rn2, e1, _, _ := ExtendRailNode(p, rn1, 20, 20)
-	InsertLineTask(p, e1)
+	InsertLineTaskRailEdge(p, e1)
 	_, e2, _, _ := ExtendRailNode(p, rn2, 30, 30)
-	InsertLineTask(p, e2)
+	InsertLineTaskRailEdge(p, e2)
 	Backup()
 }
 

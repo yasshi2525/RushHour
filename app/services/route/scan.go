@@ -3,7 +3,6 @@ package route
 import (
 	"context"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -20,11 +19,11 @@ func Scan(ctx context.Context, model *entities.Model, meta *entities.MetaModel) 
 	}
 
 	if ns, ok = genNodes(ctx, model, meta); !ok {
-		revel.AppLog.Debugf("genNodes canceled at %d/%d", len(ns), len(meta.List))
+		//revel.AppLog.Debugf("genNodes canceled at %d/%d", len(ns), len(meta.List))
 		return nil, false
 	}
 	if es, ok = genEdges(ctx, ns, model.Steps); !ok {
-		revel.AppLog.Debugf("genEdges canceled at %d/%d", len(es), len(model.Steps))
+		//revel.AppLog.Debugf("genEdges canceled at %d/%d", len(es), len(model.Steps))
 		return nil, false
 	}
 	return &Model{cids, ns, es}, true
@@ -54,7 +53,7 @@ func genEdges(ctx context.Context, nodes []*Node, steps map[uint]*entities.Step)
 	for _, s := range steps {
 		select {
 		case <-ctx.Done():
-			revel.AppLog.Debugf("genEdges Canceleld in %d/%d", len(es), len(steps))
+			//revel.AppLog.Debugf("genEdges Canceleld in %d/%d", len(es), len(steps))
 			return es, false
 		default:
 			es = append(es, NewEdgeFrom(nodes, s))

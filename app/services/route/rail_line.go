@@ -3,6 +3,8 @@ package route
 import (
 	"context"
 
+	"github.com/revel/revel"
+
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -48,6 +50,15 @@ func scanRailLine(l *entities.RailLine) *Model {
 	es := make([]*Edge, len(l.Tasks))
 	i = 0
 	for _, lt := range l.Tasks {
+		if lt.Before() == nil {
+			revel.AppLog.Errorf("[DEBUG] before is nil: %v", lt)
+			lt1 := lt
+			for lt1 != nil {
+				revel.AppLog.Errorf("[DEBUG]            %v", lt1)
+				lt1 = lt1.Next()
+			}
+		}
+		revel.AppLog.Warnf("[DEBUG] create step lt: %d->%d->%d", lt.Before().ID, lt.ID, lt.Next().ID)
 		n1 := ns.AppendIfNotExists(lt.From())
 		n2 := ns.AppendIfNotExists(lt.To())
 		es[i] = NewEdge(lt, n1, n2)

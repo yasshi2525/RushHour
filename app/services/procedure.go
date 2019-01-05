@@ -33,8 +33,6 @@ func watchGame() {
 func processGame() {
 	start := time.Now()
 	defer WarnLongExec(start, Config.Perf.Game.D, "procedure")
-	MuRoute.Lock()
-	defer MuRoute.Unlock()
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()

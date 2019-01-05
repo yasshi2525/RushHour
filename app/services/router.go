@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"sync/atomic"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
@@ -13,7 +12,7 @@ import (
 
 var routingContext context.Context
 var routingCancel context.CancelFunc
-var routingBlockConunt int64
+var routingBlockConunt int
 
 var searching bool
 
@@ -23,43 +22,52 @@ func IsSearching() bool {
 }
 
 func StartRouting() {
+	if routingCancel != nil {
+		routingCancel()
+	}
 	routingContext, routingCancel = context.WithCancel(context.Background())
 	go processRouting(routingContext)
 }
 
 // CancelRouting stop current executing searching.
 func CancelRouting() {
-	routingCancel()
-	atomic.AddInt64(&routingBlockConunt, 1)
+	if routingCancel != nil {
+		routingCancel()
+	}
 }
 
 func processRouting(ctx context.Context) {
+	MuRoute.Lock()
+	defer MuRoute.Unlock()
+
 	start := time.Now()
 	defer WarnLongExec(start, Config.Perf.Routing.D, "routing")
 
 	template, ok := scan(ctx)
 	if !ok {
-		if b := int(routingBlockConunt); b >= Config.Routing.Alert {
-			revel.AppLog.Warnf("routing was canceled (1/3) in scanning phase by %d times", b)
+		routingBlockConunt++
+		if routingBlockConunt >= Config.Routing.Alert {
+			revel.AppLog.Warnf("routing was canceled (1/3) in scanning phase by %d times", routingBlockConunt)
 		}
 		return
 	}
 
 	payload, ok := search(ctx, template)
 	if !ok {
-		if b := int(routingBlockConunt); b >= Config.Routing.Alert {
+		routingBlockConunt++
+		if routingBlockConunt >= Config.Routing.Alert {
 			revel.AppLog.Warnf("routing was canceled (2/3) in searching phase (%d/%d) by %d times",
-				payload.Processed, payload.Total, b)
+				payload.Processed, payload.Total, routingBlockConunt)
 		}
 		return
 	}
 
 	RouteTemplate = payload
 	reflectModel()
-	if b := int(routingBlockConunt); b >= Config.Routing.Alert {
-		revel.AppLog.Infof("routing was successfully ended after %d times blocking", b)
+	if routingBlockConunt > Config.Routing.Alert {
+		revel.AppLog.Infof("routing was successfully ended after %d times blocking", routingBlockConunt)
 	}
-	atomic.StoreInt64(&routingBlockConunt, 0)
+	routingBlockConunt = 0
 }
 
 func scan(ctx context.Context) (*route.Model, bool) {
@@ -73,9 +81,6 @@ func scan(ctx context.Context) (*route.Model, bool) {
 }
 
 func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {
-	MuRoute.Lock()
-	defer MuRoute.Unlock()
-
 	return route.Search(ctx, entities.COMPANY, Config.Routing.Worker, template)
 }
 

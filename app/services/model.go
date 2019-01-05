@@ -131,7 +131,7 @@ func processMsg(msg *Operation) {
 			}
 			if re := randEntity(owner, entities.RAILEDGE); re != nil {
 				re := re.(*entities.RailEdge)
-				InsertLineTask(owner, re)
+				InsertLineTaskRailEdge(owner, re)
 			}
 			if l := randEntity(owner, entities.RAILLINE); l != nil {
 				RingRailLine(owner, l.(*entities.RailLine))

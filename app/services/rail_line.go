@@ -34,7 +34,7 @@ func StartRailLine(
 	return lt, nil
 }
 
-// InsertLineTask corrects RailLine for new RailEdge
+// InsertLineTaskRailEdge corrects RailLine for new RailEdge
 // RailEdge.From must be original RailNode.
 // RailEdge.To   must be      new RailPoint.
 //
@@ -42,7 +42,7 @@ func StartRailLine(
 // After  (a) -> (X) -> (a) -> (b) -> (c)
 //
 // RailEdge : (a) -> (X)
-func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) error {
+func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass ...bool) error {
 	if err := CheckAuth(o, re); err != nil {
 		return err
 	}
@@ -73,6 +73,49 @@ func InsertLineTask(o *entities.Player, re *entities.RailEdge, pass ...bool) err
 		if inter.RailLine.IsRing() {
 			delStepRailLine(inter.RailLine)
 			genStepRailLine(inter.RailLine)
+		}
+	}
+	return nil
+}
+
+func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...bool) error {
+	if err := CheckAuth(o, st); err != nil {
+		return err
+	}
+
+	// find LineTask such as dept from new station point
+	for _, lt := range Model.LineTasks {
+		if lt.Own == o && lt.FromLoc().Pos().SameAt(st) {
+			// set dest  from edge.from.overPlatform
+			lt.Resolve(lt.Moving)
+		}
+	}
+
+	// find LineTask such as dest to new station point
+	// cache once bacause it will be appended after that
+	bases := []*entities.LineTask{}
+	for _, lt := range Model.LineTasks {
+		if lt.Own == o && lt.ToLoc().Pos().SameAt(st) {
+			bases = append(bases, lt)
+		}
+	}
+
+	for _, lt := range bases {
+		if lt.ToLoc().Pos().SameAt(st) {
+			if len(pass) > 0 && pass[0] {
+				// change move -> pass
+				lt.TaskType = entities.OnPassing
+			} else {
+				// change move -> stop
+				lt.TaskType = entities.OnStopping
+				// insert dest
+				next := lt.Next()
+				inter := entities.NewLineTaskDept(GenID(entities.LINETASK), lt.RailLine, st.Platform, lt)
+				inter.SetNext(next)
+				AddEntity(inter)
+			}
+			// set dest
+			lt.Resolve(lt.Moving) // register dest from edge.to.overPlatform
 		}
 	}
 	return nil
