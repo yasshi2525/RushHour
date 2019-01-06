@@ -25,6 +25,8 @@ func StartRouting() {
 	if routingCancel != nil {
 		routingCancel()
 	}
+	MuRoute.Lock()
+	defer MuRoute.Unlock()
 	routingContext, routingCancel = context.WithCancel(context.Background())
 	go processRouting(routingContext)
 }

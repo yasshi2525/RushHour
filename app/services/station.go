@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -9,6 +11,9 @@ func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*ent
 
 	if err := CheckAuth(o, rn); err != nil {
 		return nil, err
+	}
+	if rn.OverPlatform != nil {
+		return nil, fmt.Errorf("staiton already exists")
 	}
 
 	st := entities.NewStation(GenID(entities.STATION), o)
