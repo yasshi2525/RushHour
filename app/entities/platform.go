@@ -11,16 +11,15 @@ type Platform struct {
 	Base
 	Owner
 
-	outStep map[uint]*Step
-	inStep  map[uint]*Step
-
+	OnRailNode *RailNode          `gorm:"-" json:"-"`
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
-	OnRailNode *RailNode          `gorm:"-" json:"-"`
-	Passengers map[uint]*Human    `gorm:"-" json:"-"`
+	RailLines  map[uint]*RailLine `gorm:"-" json:"-"`
 	LineTasks  map[uint]*LineTask `gorm:"-" json:"-"`
-
-	Trains map[uint]*Train `gorm:"-" json:"-"`
+	Trains     map[uint]*Train    `gorm:"-" json:"-"`
+	Passengers map[uint]*Human    `gorm:"-" json:"-"`
+	outStep    map[uint]*Step
+	inStep     map[uint]*Step
 
 	Capacity uint `gorm:"not null" json:"cap"`
 	Occupied uint `gorm:"-"        json:"used"`
@@ -59,11 +58,12 @@ func (p *Platform) Type() ModelType {
 
 // Init creates map.
 func (p *Platform) Init() {
+	p.RailLines = make(map[uint]*RailLine)
+	p.LineTasks = make(map[uint]*LineTask)
+	p.Trains = make(map[uint]*Train)
+	p.Passengers = make(map[uint]*Human)
 	p.outStep = make(map[uint]*Step)
 	p.inStep = make(map[uint]*Step)
-	p.Passengers = make(map[uint]*Human)
-	p.Trains = make(map[uint]*Train)
-	p.LineTasks = make(map[uint]*LineTask)
 }
 
 // Pos returns location
@@ -102,11 +102,12 @@ func (p *Platform) Resolve(args ...interface{}) {
 		case *Gate:
 			p.WithGate = obj
 			obj.Resolve(p)
+		case *RailLine:
+			p.RailLines[obj.ID] = obj
 		case *LineTask:
 			p.LineTasks[obj.ID] = obj
 		case *Train:
 			p.Trains[obj.ID] = obj
-			obj.Resolve(p)
 		case *Human:
 			p.Passengers[obj.ID] = obj
 			p.Occupied++
@@ -132,8 +133,11 @@ func (p *Platform) ResolveRef() {
 
 // CheckRemove checks related reference
 func (p *Platform) CheckRemove() error {
+	if len(p.RailLines) > 0 {
+		return fmt.Errorf("blocked by RailLine of %v", p.RailLines)
+	}
 	if len(p.LineTasks) > 0 {
-		return fmt.Errorf("blocked by LineTask of %v", p.Trains)
+		return fmt.Errorf("blocked by LineTask of %v", p.LineTasks)
 	}
 	if len(p.Trains) > 0 {
 		return fmt.Errorf("blocked by Train of %v", p.Trains)
@@ -144,17 +148,15 @@ func (p *Platform) CheckRemove() error {
 // UnRef delete related reference.
 func (p *Platform) UnRef() {
 	for _, h := range p.Passengers {
-		h.SetOnPlatform(nil)
+		h.UnResolve(p)
 		delete(p.Passengers, h.ID)
 	}
 	for _, t := range p.Trains {
-		t.OnPlatform = nil
+		t.UnResolve(p)
 		delete(p.Trains, t.ID)
 	}
-	for _, lt := range p.LineTasks {
-		lt.UnRef()
-		delete(p.LineTasks, lt.ID)
-	}
+	p.OnRailNode.UnResolve(p)
+	p.OnRailNode = nil
 }
 
 // Permits represents Player is permitted to control

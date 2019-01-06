@@ -11,11 +11,11 @@ type RailNode struct {
 	Base
 	Owner
 	Point
-	InEdge  map[uint]*RailEdge `gorm:"-" json:"-"`
-	OutEdge map[uint]*RailEdge `gorm:"-" json:"-"`
+	InEdge       map[uint]*RailEdge `gorm:"-" json:"-"`
+	OutEdge      map[uint]*RailEdge `gorm:"-" json:"-"`
+	OverPlatform *Platform          `gorm:"-" json:"-"`
 
-	OverPlatform *Platform `gorm:"-" json:"-"`
-	PlatformID   uint      `gorm:"-" json:"pid,omitempty"`
+	PlatformID uint `gorm:"-" json:"pid,omitempty"`
 }
 
 // NewRailNode create new instance.
@@ -80,6 +80,17 @@ func (rn *RailNode) ResolveRef() {
 // UnRef clear reference
 func (rn *RailNode) UnRef() {
 	// do nothing
+}
+
+func (rn *RailNode) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Platform:
+			rn.OverPlatform = nil
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 }
 
 // Permits represents Player is permitted to control

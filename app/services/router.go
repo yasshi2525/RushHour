@@ -66,7 +66,7 @@ func processRouting(ctx context.Context) {
 
 	RouteTemplate = payload
 	reflectModel()
-	if alertEnabled && routingBlockConunt > Config.Routing.Alert {
+	if alertEnabled && routingBlockConunt >= Config.Routing.Alert {
 		revel.AppLog.Infof("routing was successfully ended after %d times blocking", routingBlockConunt)
 	}
 	routingBlockConunt = 0

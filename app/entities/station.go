@@ -97,7 +97,6 @@ func (st *Station) CheckRemove() error {
 
 // UnRef delete related reference
 func (st *Station) UnRef() {
-
 }
 
 // Permits represents Player is permitted to control

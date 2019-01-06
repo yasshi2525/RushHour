@@ -60,8 +60,8 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 	}
 	lt.Init()
 	lt.ResolveRef()
-	l.Resolve(lt)
-	p.Resolve(lt)
+	l.Resolve(p, lt)
+	p.Resolve(l, lt)
 	if len(tail) > 0 {
 		tail[0].Resolve(lt)
 	}
@@ -156,12 +156,10 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			if p := obj.FromNode.OverPlatform; p != nil {
 				lt.Dept = p
 				p.Resolve(lt)
-				lt.RailLine.Resolve(p)
 			}
 			if p := obj.ToNode.OverPlatform; p != nil {
 				lt.Dest = p
 				p.Resolve(lt)
-				lt.RailLine.Resolve(p)
 			}
 		case *RailLine:
 			lt.Owner, lt.RailLine = obj.Owner, obj
@@ -178,7 +176,6 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			default:
 				lt.Moving.Resolve(obj)
 			}
-			lt.RailLine.Resolve(obj)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

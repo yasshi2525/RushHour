@@ -143,6 +143,19 @@ func (h *Human) UnRef() {
 	}
 }
 
+func (h *Human) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Platform:
+			h.onPlatform = nil
+		case *Train:
+			h.onTrain = nil
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
+}
+
 // CheckRemove check remain relation.
 func (h *Human) CheckRemove() error {
 	return nil

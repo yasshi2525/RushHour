@@ -84,7 +84,7 @@ func (re *RailEdge) Cost() float64 {
 }
 
 // Unrelate delete relations to RailNode
-func (re *RailEdge) Unrelate() {
+func (re *RailEdge) UnRef() {
 	delete(re.FromNode.OutEdge, re.ID)
 	delete(re.ToNode.InEdge, re.ID)
 }

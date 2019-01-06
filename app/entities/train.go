@@ -100,6 +100,17 @@ func (t *Train) ResolveRef() {
 	}
 }
 
+func (t *Train) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Platform:
+			t.OnPlatform = nil
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
+}
+
 // CheckRemove check remain relation.
 func (t *Train) CheckRemove() error {
 	return nil
