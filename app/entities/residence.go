@@ -97,6 +97,10 @@ func (r *Residence) CheckRemove() error {
 	return nil
 }
 
+func (r *Residence) IsNew() bool {
+	return r.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (r *Residence) IsChanged(after ...time.Time) bool {
 	return r.Base.IsChanged(after...)

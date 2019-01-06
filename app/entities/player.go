@@ -80,6 +80,10 @@ func (o *Player) Short() string {
 	return fmt.Sprintf("%s(%d)", o.LoginID, o.ID)
 }
 
+func (o *Player) IsNew() bool {
+	return o.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (o *Player) IsChanged(after ...time.Time) bool {
 	return o.Base.IsChanged(after...)

@@ -165,7 +165,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.Owner, lt.RailLine = obj.Owner, obj
 			obj.Resolve(lt)
 		case *LineTask:
-			lt.next = obj
+			lt.SetNext(obj)
 			obj.before = lt
 			obj.ResolveRef()
 		case *Train:
@@ -298,6 +298,10 @@ func (lt *LineTask) SetNext(v *LineTask) {
 		v.before = lt
 	}
 	lt.Change()
+}
+
+func (lt *LineTask) IsNew() bool {
+	return lt.Base.IsNew()
 }
 
 // IsChanged returns true when it is changed after Backup()

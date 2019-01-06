@@ -105,6 +105,10 @@ func (l *RailLine) Permits(o *Player) bool {
 	return l.Owner.Permits(o)
 }
 
+func (l *RailLine) IsNew() bool {
+	return l.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (l *RailLine) IsChanged(after ...time.Time) bool {
 	return l.Base.IsChanged(after...)

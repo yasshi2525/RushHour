@@ -7,6 +7,7 @@ coverage/
 public/js/bundle.*.js
 docs/_build
 docs/_ext/__pycache__
+logs
 
 # Binaries for programs and plugins
 *.exe

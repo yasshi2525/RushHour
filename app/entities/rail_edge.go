@@ -149,6 +149,10 @@ func (re *RailEdge) Permits(o *Player) bool {
 	return re.Owner.Permits(o)
 }
 
+func (re *RailEdge) IsNew() bool {
+	return re.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (re *RailEdge) IsChanged(after ...time.Time) bool {
 	return re.Base.IsChanged(after...)

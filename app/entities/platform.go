@@ -164,6 +164,10 @@ func (p *Platform) Permits(o *Player) bool {
 	return p.Owner.Permits(o)
 }
 
+func (p *Platform) IsNew() bool {
+	return p.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (p *Platform) IsChanged(after ...time.Time) bool {
 	return p.Base.IsChanged(after...)

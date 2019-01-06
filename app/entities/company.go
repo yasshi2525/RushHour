@@ -96,6 +96,10 @@ func (c *Company) CheckRemove() error {
 	return nil
 }
 
+func (c *Company) IsNew() bool {
+	return c.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (c *Company) IsChanged(after ...time.Time) bool {
 	return c.Base.IsChanged(after...)

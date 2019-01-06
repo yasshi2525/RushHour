@@ -28,6 +28,9 @@ func Restore() {
 	setNextID()
 	fetchStatic()
 	resolveStatic()
+	for _, l := range Model.RailLines {
+		lineValidation(l) // [DEBUG]
+	}
 	genDynamics()
 }
 
@@ -61,6 +64,12 @@ func fetchStatic() {
 				// 対応する Struct を作成
 				base := key.Obj()
 				if err := db.ScanRows(rows, base); err == nil {
+					if obj, ok := base.(entities.Persistable); ok {
+						obj.Reset() // DBNew -> DBMerged
+					} else {
+						panic(fmt.Errorf("invalid type %T: %+v", base, base))
+					}
+
 					// Model に登録
 					if obj, ok := base.(entities.Indexable); ok {
 						Meta.Map[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))

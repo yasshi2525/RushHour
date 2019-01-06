@@ -104,6 +104,10 @@ func (st *Station) Permits(o *Player) bool {
 	return st.Owner.Permits(o)
 }
 
+func (st *Station) IsNew() bool {
+	return st.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (st *Station) IsChanged(after ...time.Time) bool {
 	return st.Base.IsChanged(after...)

@@ -6,6 +6,14 @@ import (
 	"github.com/revel/revel"
 )
 
+type PersistentStatus uint
+
+const (
+	DBNew PersistentStatus = iota
+	DBMerged
+	DBChanged
+)
+
 // Base based on gorm.Model
 type Base struct {
 	ID        uint       `gorm:"primary_key" json:"id"`
@@ -13,7 +21,7 @@ type Base struct {
 	UpdatedAt time.Time  `                   json:"-"`
 	DeletedAt *time.Time `gorm:"index"       json:"-"`
 	// Changed represents it need to update database
-	Changed bool `gorm:"-" json:"-"`
+	DBStatus PersistentStatus `gorm:"-" json:"-"`
 	// ChangedAt represents when model is changed. (UpdateAt is for gorm)
 	ChangedAt time.Time `gorm:"-" json:"-"`
 }
@@ -24,27 +32,33 @@ func NewBase(id uint) Base {
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Changed:   true,
 		ChangedAt: time.Now(),
 	}
 }
 
-// IsChanged returns true when it is changed after Backup()
+func (base *Base) IsNew() bool {
+	return base.DBStatus == DBNew
+}
+
+// IsChanged returns true when it is changed after
 func (base *Base) IsChanged(after ...time.Time) bool {
 	if len(after) > 0 {
 		return base.ChangedAt.Sub(after[0]) > 0
 	}
-	return base.Changed
+	return base.DBStatus != DBMerged
 }
 
 // Reset set status as not changed
 func (base *Base) Reset() {
-	base.Changed = false
+	base.DBStatus = DBMerged
 }
 
 // Change marks changeness.
 func (base *Base) Change() {
-	base.Changed = true
+	// keep DBNew
+	if base.DBStatus != DBNew {
+		base.DBStatus = DBChanged
+	}
 	base.ChangedAt = time.Now()
 }
 

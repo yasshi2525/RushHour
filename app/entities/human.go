@@ -255,6 +255,10 @@ func (h *Human) SetOnTrain(v *Train) {
 	h.Change()
 }
 
+func (h *Human) IsNew() bool {
+	return h.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (h *Human) IsChanged(after ...time.Time) bool {
 	return h.Base.IsChanged(after...)

@@ -112,6 +112,10 @@ func (rn *RailNode) CheckRemove() error {
 	return nil
 }
 
+func (rn *RailNode) IsNew() bool {
+	return rn.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (rn *RailNode) IsChanged(after ...time.Time) bool {
 	return rn.Base.IsChanged(after...)

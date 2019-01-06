@@ -123,6 +123,10 @@ func (g *Gate) UnRef() {
 
 }
 
+func (g *Gate) IsNew() bool {
+	return g.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (g *Gate) IsChanged(after ...time.Time) bool {
 	return g.Base.IsChanged(after...)

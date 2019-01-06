@@ -2,6 +2,9 @@ package services
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/revel/revel"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services/route"
@@ -173,5 +176,62 @@ func genStepRailLine(l *entities.RailLine) {
 	tracks := route.SearchRailLine(l, Config.Routing.Worker)
 	for _, tr := range tracks {
 		AddEntity(tr.ExportStep(GenID(entities.STEP)))
+	}
+}
+
+// [DEBUG]
+func lineValidation(l *entities.RailLine) {
+	var headCnt, tailCnt, loopSize int
+	var deadloop, smallloop bool
+
+	for _, lt := range l.Tasks {
+		if lt.Before() == nil {
+			headCnt++
+		}
+		if lt.Next() == nil {
+			tailCnt++
+		}
+	}
+
+	if headCnt > 1 {
+		revel.AppLog.Errorf("[DEBUG] MULTI HEAD DETECTED!")
+	}
+
+	if tailCnt > 1 {
+		revel.AppLog.Errorf("[DEBUG] MULTI TAIL DETECTED!")
+	}
+
+	var top *entities.LineTask
+	for _, top = range l.Tasks {
+		break
+	}
+
+	if top != nil {
+		lt := top.Next()
+		for lt != nil && lt != top {
+			lt = lt.Next()
+			if loopSize > len(l.Tasks) {
+				revel.AppLog.Errorf("[DEBUG] DEAD LOOP DETECTED: lt(%d)", lt.ID)
+				deadloop = true
+				break
+			}
+			loopSize++
+		}
+		if lt == top && loopSize < len(l.Tasks)-1 {
+			revel.AppLog.Errorf("[DEBUG] SMALL LOOP DETECTED: lt(%d)", lt.ID)
+			smallloop = true
+		}
+	}
+
+	if headCnt > 1 || tailCnt > 1 || deadloop || smallloop {
+		dumpRailLine(l)
+		time.Sleep(2 * time.Second)
+		panic("error detected")
+	}
+}
+
+func dumpRailLine(l *entities.RailLine) {
+	for _, lt := range l.Tasks {
+		revel.AppLog.Errorf("[DEBUG] %v", lt)
 	}
 }

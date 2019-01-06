@@ -66,6 +66,7 @@ type Ownable interface {
 
 // Persistable represents Differencial backup
 type Persistable interface {
+	IsNew() bool
 	IsChanged(after ...time.Time) bool
 	Reset()
 }

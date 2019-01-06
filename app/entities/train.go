@@ -133,6 +133,10 @@ func (t *Train) SetTask(v *LineTask) {
 	v.Resolve(t)
 }
 
+func (t *Train) IsNew() bool {
+	return t.Base.IsNew()
+}
+
 // IsChanged returns true when it is changed after Backup()
 func (t *Train) IsChanged(after ...time.Time) bool {
 	return t.Base.IsChanged(after...)

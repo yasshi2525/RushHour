@@ -44,11 +44,11 @@ func Backup() {
 	updateForeignKey()
 
 	tx := db.Begin()
-	up, del, skip := persistStatic(tx)
+	new, up, del, skip := persistStatic(tx)
 	tx.Commit()
 
 	WarnLongExec(start, Config.Perf.Backup.D, "backup")
-	revel.AppLog.Infof("backup was successfully ended (updated %d, deleted %d, skipped %d)", up, del, skip)
+	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d)", new, up, del, skip)
 }
 
 func updateForeignKey() {
@@ -63,14 +63,18 @@ func updateForeignKey() {
 	}
 }
 
-func persistStatic(tx *gorm.DB) (int, int, int) {
+func persistStatic(tx *gorm.DB) (int, int, int, int) {
 	// upsert
-	updateCnt, skipCnt := 0, 0
+	var createCnt, updateCnt, skipCnt int
 	for _, res := range Meta.List {
 		if res.IsDB() {
 			ForeachModel(res, func(raw interface{}) {
 				obj := raw.(entities.Persistable)
-				if obj.IsChanged() {
+				if obj.IsNew() {
+					db.Create(obj)
+					obj.Reset()
+					createCnt++
+				} else if obj.IsChanged() {
 					tx.Save(obj)
 					obj.Reset()
 					updateCnt++
@@ -94,5 +98,5 @@ func persistStatic(tx *gorm.DB) (int, int, int) {
 			Model.Remove[key] = Model.Remove[key][:0]
 		}
 	}
-	return updateCnt, removeCnt, skipCnt
+	return createCnt, updateCnt, removeCnt, skipCnt
 }
