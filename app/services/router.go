@@ -41,6 +41,7 @@ func processRouting(ctx context.Context) {
 	MuRoute.Lock()
 	defer MuRoute.Unlock()
 
+	initialRouting := RouteTemplate == nil
 	alertEnabled := Config.Routing.Alert > 0
 
 	template, ok := scan(ctx)
@@ -68,7 +69,11 @@ func processRouting(ctx context.Context) {
 		revel.AppLog.Infof("routing was successfully ended after %d times blocking", routingBlockConunt)
 	}
 	routingBlockConunt = 0
-	WarnLongExec(start, Config.Perf.Routing.D, "routing")
+	if initialRouting { // force log when first routing after reboot
+		WarnLongExec(start, Config.Perf.Routing.D, "initial routing", true)
+	} else {
+		WarnLongExec(start, Config.Perf.Routing.D, "routing")
+	}
 }
 
 func scan(ctx context.Context) (*route.Model, bool) {
