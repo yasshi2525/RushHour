@@ -11,8 +11,6 @@ type Point struct {
 	Y float64 `gorm:"index;not null" json:"y"`
 }
 
-const eps = 0.00000001
-
 // NewPoint create Point
 func NewPoint(x float64, y float64) Point {
 	return Point{X: x, Y: y}
@@ -53,11 +51,6 @@ func (p *Point) Div(to Locationable, progress float64) *Point {
 		X: p.X*progress + to.Pos().X*(1-progress),
 		Y: p.Y*progress + to.Pos().Y*(1-progress),
 	}
-}
-
-// SameAt deeply compares point value.
-func (p *Point) SameAt(other Locationable) bool {
-	return p.Dist(other) < eps
 }
 
 func (p *Point) String() string {

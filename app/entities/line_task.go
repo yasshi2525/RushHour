@@ -90,7 +90,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 		}
 	}
 	lt.ResolveRef()
-	tail.RailLine.Resolve(lt)
+	lt.RailLine.Resolve(lt)
 	re.Resolve(lt)
 	if re.FromNode.OverPlatform != nil {
 		re.FromNode.OverPlatform.Resolve(lt)
@@ -144,7 +144,6 @@ func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
 }
 
 // Resolve set reference
-// Platform must be reosolved by Resolve***
 func (lt *LineTask) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -193,6 +192,9 @@ func (lt *LineTask) ResolveRef() {
 	if lt.RailLine != nil {
 		lt.RailLineID = lt.RailLine.ID
 	}
+	if lt.before != nil {
+		lt.BeforeID = lt.before.ID
+	}
 	if lt.next != nil {
 		lt.NextID = lt.next.ID
 	}
@@ -227,31 +229,41 @@ func (lt *LineTask) Permits(o *Player) bool {
 
 // From represents start point
 func (lt *LineTask) From() Indexable {
-	return lt.FromLoc()
+	switch lt.TaskType {
+	case OnDeparture:
+		return lt.Stay
+	default:
+		return lt.Moving.FromNode
+	}
 }
 
 // To represents end point
 func (lt *LineTask) To() Indexable {
-	return lt.ToLoc()
-}
-
-// FromLoc represents start point
-func (lt *LineTask) FromLoc() Locationable {
 	switch lt.TaskType {
 	case OnDeparture:
 		return lt.Stay
 	default:
-		return lt.Moving.From()
+		return lt.Moving.ToNode
 	}
 }
 
-// ToLoc represents end point
-func (lt *LineTask) ToLoc() Locationable {
+// FromNode represents start point
+func (lt *LineTask) FromNode() *RailNode {
 	switch lt.TaskType {
 	case OnDeparture:
-		return lt.Stay
+		return lt.Stay.OnRailNode
 	default:
-		return lt.Moving.To()
+		return lt.Moving.FromNode
+	}
+}
+
+// ToNode represents end point
+func (lt *LineTask) ToNode() *RailNode {
+	switch lt.TaskType {
+	case OnDeparture:
+		return lt.Stay.OnRailNode
+	default:
+		return lt.Moving.ToNode
 	}
 }
 
@@ -310,7 +322,7 @@ func (lt *LineTask) String() string {
 	}
 	before, next, stay, dept, moving, dest := "", "", "", "", "", ""
 	if lt.before != nil {
-		next = fmt.Sprintf(",before=%d", lt.before.ID)
+		before = fmt.Sprintf(",before=%d", lt.before.ID)
 	}
 	if lt.next != nil {
 		next = fmt.Sprintf(",next=%d", lt.next.ID)

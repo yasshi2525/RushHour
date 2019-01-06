@@ -147,6 +147,7 @@ func (l *RailLine) IsRing() bool {
 
 func (l *RailLine) CanRing() bool {
 	head, tail := l.Borders()
+
 	// ringed loop can't loop any more
 	if head == nil && tail == nil {
 		return false

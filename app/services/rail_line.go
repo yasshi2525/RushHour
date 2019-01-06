@@ -51,7 +51,7 @@ func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass ...b
 	// find (a) -> (b)
 	bases := []*entities.LineTask{}
 	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.ToLoc().Pos().SameAt(re.FromNode) { // = (a) -> (b)
+		if lt.Own == o && lt.ToNode() == re.FromNode { // = (a) -> (b)
 			bases = append(bases, lt)
 		}
 	}
@@ -85,7 +85,7 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...boo
 
 	// find LineTask such as dept from new station point
 	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.FromLoc().Pos().SameAt(st) {
+		if lt.Own == o && lt.FromNode() == st.Platform.OnRailNode {
 			// set dest  from edge.from.overPlatform
 			lt.Resolve(lt.Moving)
 		}
@@ -95,28 +95,26 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...boo
 	// cache once bacause it will be appended after that
 	bases := []*entities.LineTask{}
 	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.ToLoc().Pos().SameAt(st) {
+		if lt.Own == o && lt.ToNode() == st.Platform.OnRailNode {
 			bases = append(bases, lt)
 		}
 	}
 
 	for _, lt := range bases {
-		if lt.ToLoc().Pos().SameAt(st) {
-			if len(pass) > 0 && pass[0] {
-				// change move -> pass
-				lt.TaskType = entities.OnPassing
-			} else {
-				// change move -> stop
-				lt.TaskType = entities.OnStopping
-				// insert dest
-				next := lt.Next()
-				inter := entities.NewLineTaskDept(GenID(entities.LINETASK), lt.RailLine, st.Platform, lt)
-				inter.SetNext(next)
-				AddEntity(inter)
-			}
-			// set dest
-			lt.Resolve(lt.Moving) // register dest from edge.to.overPlatform
+		if len(pass) > 0 && pass[0] {
+			// change move -> pass
+			lt.TaskType = entities.OnPassing
+		} else {
+			// change move -> stop
+			lt.TaskType = entities.OnStopping
+			// insert dest
+			next := lt.Next()
+			inter := entities.NewLineTaskDept(GenID(entities.LINETASK), lt.RailLine, st.Platform, lt)
+			inter.SetNext(next)
+			AddEntity(inter)
 		}
+		// set dest
+		lt.Resolve(lt.Moving) // register dest from edge.to.overPlatform
 	}
 	return nil
 }
@@ -130,8 +128,8 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 	if err := CheckAuth(o, newer); err != nil {
 		return nil, err
 	}
-	if !tail.ToLoc().Pos().SameAt(newer.From()) {
-		return nil, fmt.Errorf("unconnected RailEdge. %v != %v", tail.ToLoc().Pos(), newer.From().Pos())
+	if tail.ToNode() != newer.FromNode {
+		return nil, fmt.Errorf("unconnected RailEdge. %v != %v", tail.ToNode(), newer.FromNode)
 	}
 
 	// when task is "stop", append task "departure"
