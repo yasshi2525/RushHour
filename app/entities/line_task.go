@@ -63,7 +63,7 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 	l.Resolve(p, lt)
 	p.Resolve(l, lt)
 	if len(tail) > 0 {
-		tail[0].Resolve(lt)
+		tail[0].SetNext(lt)
 	}
 	return lt
 }
@@ -98,7 +98,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 	if re.ToNode.OverPlatform != nil {
 		re.ToNode.OverPlatform.Resolve(lt)
 	}
-	tail.Resolve(lt)
+	tail.SetNext(lt)
 	return lt
 }
 
@@ -165,9 +165,11 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.Owner, lt.RailLine = obj.Owner, obj
 			obj.Resolve(lt)
 		case *LineTask:
-			lt.SetNext(obj)
-			obj.before = lt
-			obj.ResolveRef()
+			lt.next = obj
+			if obj != nil {
+				obj.before = lt
+				obj.ResolveRef()
+			}
 		case *Train:
 			lt.Trains[obj.ID] = obj
 			switch lt.TaskType {

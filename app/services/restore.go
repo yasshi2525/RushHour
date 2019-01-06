@@ -54,6 +54,7 @@ func setNextID() {
 
 // fetchStatic selects records for Restore()
 func fetchStatic() {
+	var cnt int
 	for _, key := range Meta.List {
 		if !key.IsDB() {
 			continue
@@ -73,6 +74,7 @@ func fetchStatic() {
 					// Model に登録
 					if obj, ok := base.(entities.Indexable); ok {
 						Meta.Map[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						cnt++
 						//revel.AppLog.Debugf("set Model[%s][%d] = %v", key, obj.Idx(), obj)
 					} else {
 						panic(fmt.Errorf("invalid type %T: %+v", base, base))
@@ -84,8 +86,8 @@ func fetchStatic() {
 		} else {
 			panic(err)
 		}
-
 	}
+	revel.AppLog.Infof("restored %d entities", cnt)
 }
 
 // resolveStatic set pointer from id for Restore()
