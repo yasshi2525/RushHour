@@ -98,6 +98,7 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 		case *RailNode:
 			if !doneFrom {
 				re.Owner, re.FromNode = obj.Owner, obj
+				obj.Own.Resolve(re)
 				doneFrom = true
 				obj.OutEdge[re.ID] = re
 			} else {

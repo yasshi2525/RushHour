@@ -115,6 +115,7 @@ func (m *Model) Ids(res ModelType) []uint {
 	var i int
 	for _, key := range Meta.Map[res].MapKeys() {
 		ids[i] = uint(key.Uint())
+		i++
 	}
 	return ids
 }

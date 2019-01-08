@@ -166,7 +166,7 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	if err := CheckAuth(o, l); err != nil {
 		return false, err
 	}
-	if l.IsRing() {
+	if len(l.Tasks) == 0 || l.IsRing() {
 		return false, nil
 	}
 	head, tail := l.Borders()

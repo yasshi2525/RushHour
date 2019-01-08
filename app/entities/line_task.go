@@ -89,8 +89,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass bool) *LineTask {
 		}
 	}
 	lt.ResolveRef()
-	lt.RailLine.Resolve(re)
-	lt.RailLine.Resolve(lt)
+	lt.RailLine.Resolve(re, lt)
 	re.Resolve(lt)
 	if re.FromNode.OverPlatform != nil {
 		re.FromNode.OverPlatform.Resolve(lt)
@@ -149,9 +148,11 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Platform:
 			lt.Stay = obj
+			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
 		case *RailEdge:
 			lt.Moving = obj
+			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
 			if p := obj.FromNode.OverPlatform; p != nil {
 				lt.Dept = p
@@ -172,6 +173,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			}
 		case *Train:
 			lt.Trains[obj.ID] = obj
+			lt.RailLine.Resolve(obj)
 			switch lt.TaskType {
 			case OnDeparture:
 				lt.Stay.Resolve(obj)

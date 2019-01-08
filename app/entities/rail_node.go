@@ -64,6 +64,7 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Player:
 			rn.Owner = NewOwner(obj)
+			obj.Resolve(rn)
 		case *Platform:
 			rn.OverPlatform = obj
 		default:

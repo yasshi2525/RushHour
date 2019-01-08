@@ -83,7 +83,7 @@ func scan(ctx context.Context) (*route.Model, bool) {
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
-	return route.Scan(ctx, Model)
+	return route.Scan(ctx, Model, Meta)
 }
 
 func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {

@@ -29,9 +29,9 @@ func SearchRail(o *entities.Player, parallel int) (map[uint]*Model, []*entities.
 
 func scanRail(o *entities.Player) *Model {
 	model := NewModel()
-
 	for _, rn := range o.RailNodes {
 		model.AddGoalID(rn.ID)
+		model.FindOrCreateNode(rn)
 	}
 
 	for _, re := range o.RailEdges {

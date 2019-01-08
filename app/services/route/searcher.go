@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/revel/revel"
+
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -25,7 +27,12 @@ func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 			break
 		default:
 			model, goal := s.Model.ExportWith(s.Target, goalID)
+			if goal == nil {
+				revel.AppLog.Errorf("[DEBUG] target = %v, goalID = %d but nil", s.Target, goalID)
+				revel.AppLog.Errorf("[DEBUG] model = %v", model)
+			}
 			goal.WalkThrough()
+			model.Fix()
 			payload.Route[goalID] = model
 			payload.Processed++
 		}
@@ -46,7 +53,7 @@ func Search(ctx context.Context, t entities.ModelType, parallel int, model *Mode
 		wg.Add(1)
 		go searcher.Search(subctxs[i], wg)
 	}
-	go reduceSearch(parallel, collectCh, reduceCh)
+	go reduceSearch(len(searchers), collectCh, reduceCh)
 
 	// join
 	wg.Wait()
@@ -58,6 +65,9 @@ func Search(ctx context.Context, t entities.ModelType, parallel int, model *Mode
 }
 
 func genSearchers(ctx context.Context, t entities.ModelType, parallel int, model *Model) ([]context.Context, []*Searcher, chan *Payload) {
+	if len(model.GoalIDs) < parallel {
+		parallel = len(model.GoalIDs)
+	}
 	searchers := make([]*Searcher, parallel)
 	subctxs := make([]context.Context, parallel)
 	ch := make(chan *Payload, parallel)

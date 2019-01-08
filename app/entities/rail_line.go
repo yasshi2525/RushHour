@@ -12,7 +12,7 @@ type RailLine struct {
 
 	Name      string             `         json:"name"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
-	Platforms map[uint]*Platform `gorm:"-" json:"-"`
+	Stops     map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 
@@ -44,7 +44,7 @@ func (l *RailLine) Type() ModelType {
 // Init makes map
 func (l *RailLine) Init() {
 	l.RailEdges = make(map[uint]*RailEdge)
-	l.Platforms = make(map[uint]*Platform)
+	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
 	l.Trains = make(map[uint]*Train)
 
@@ -85,7 +85,7 @@ func (l *RailLine) Resolve(args ...interface{}) {
 		case *RailEdge:
 			l.RailEdges[obj.ID] = obj
 		case *Platform:
-			l.Platforms[obj.ID] = obj
+			l.Stops[obj.ID] = obj
 		case *LineTask:
 			l.Tasks[obj.ID] = obj
 		case *Train:

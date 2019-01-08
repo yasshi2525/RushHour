@@ -1,6 +1,8 @@
 package route
 
 import (
+	"fmt"
+
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -97,6 +99,36 @@ func (m *Model) FindOrCreateEdge(origin entities.Connectable) *Edge {
 	e := NewEdge(origin, from, to)
 	m.Edges[origin.Type()][origin.Idx()] = e
 	return e
+}
+
+func (m *Model) Fix() {
+	for _, ns := range m.Nodes {
+		for _, n := range ns {
+			n.Fix()
+		}
+	}
+}
+
+func (m *Model) String() string {
+	nodes := make(map[entities.ModelType][]uint)
+	for res, ns := range m.Nodes {
+		nodes[res] = make([]uint, len(ns))
+		var i int
+		for id := range ns {
+			nodes[res][i] = id
+			i++
+		}
+	}
+	edges := make(map[entities.ModelType][]uint)
+	for res, es := range m.Edges {
+		edges[res] = make([]uint, len(es))
+		var i int
+		for id := range es {
+			edges[res][i] = id
+			i++
+		}
+	}
+	return fmt.Sprintf("Route:g=%v,n=%v,e=%v", m.GoalIDs, nodes, edges)
 }
 
 type Payload struct {

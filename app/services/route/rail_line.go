@@ -16,8 +16,8 @@ func SearchRailLine(l *entities.RailLine, parallel int) []*entities.Transport {
 		for deptID, dept := range model.Nodes[entities.PLATFORM] {
 			if destID != deptID && dept.ViaEdge != nil {
 				tr := &entities.Transport{
-					l.Platforms[deptID],      // from
-					l.Platforms[destID],      // to
+					l.Stops[deptID],          // from
+					l.Stops[destID],          // to
 					l.Tasks[dept.ViaEdge.ID], // via
 					dept.Value}               // cost
 				results = append(results, tr)
@@ -32,8 +32,9 @@ func scanRailLine(l *entities.RailLine) *Model {
 	model := NewModel()
 
 	// gen goalid
-	for _, p := range l.Platforms {
+	for _, p := range l.Stops {
 		model.AddGoalID(p.ID)
+		model.FindOrCreateNode(p)
 	}
 
 	// gen nodes, edges
