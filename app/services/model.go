@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"strings"
 	"time"
@@ -131,10 +132,12 @@ func processMsg(msg *Operation) {
 			}
 			if re := randEntity(owner, entities.RAILEDGE); re != nil {
 				re := re.(*entities.RailEdge)
-				InsertLineTaskRailEdge(owner, re)
+				InsertLineTaskRailEdge(owner, re, rand.Intn(2) == 0)
 			}
 			if l := randEntity(owner, entities.RAILLINE); l != nil {
-				RingRailLine(owner, l.(*entities.RailLine))
+				if rand.Intn(2) == 0 {
+					CompleteRailLine(owner, l.(*entities.RailLine))
+				}
 			}
 		}
 

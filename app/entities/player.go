@@ -24,8 +24,8 @@ type Player struct {
 	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null"       json:"-"`
 
-	RailNodes map[uint]*RailNode
-	RailEdges map[uint]*RailEdge
+	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
+	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 }
 
 // NewPlayer create instance

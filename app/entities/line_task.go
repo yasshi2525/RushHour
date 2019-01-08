@@ -29,12 +29,11 @@ type LineTask struct {
 	TaskType LineTaskType `gorm:"not null" json:"type"`
 	before   *LineTask
 	next     *LineTask
-	Stay     *Platform `gorm:"-"        json:"-"`
-	Dept     *Platform `gorm:"-"        json:"-"`
-	Moving   *RailEdge `gorm:"-"        json:"-"`
-	Dest     *Platform `gorm:"-"        json:"-"`
-
-	Trains map[uint]*Train `gorm:"-" json:"-"`
+	Stay     *Platform       `gorm:"-"        json:"-"`
+	Dept     *Platform       `gorm:"-"        json:"-"`
+	Moving   *RailEdge       `gorm:"-"        json:"-"`
+	Dest     *Platform       `gorm:"-"        json:"-"`
+	Trains   map[uint]*Train `gorm:"-" json:"-"`
 
 	RailLineID uint `gorm:"not null" json:"lid"`
 	BeforeID   uint `gorm:"-"        json:"before,omitempty"`
@@ -69,7 +68,7 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 }
 
 // NewLineTask creates "stop" or "pass" or "moving"
-func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask {
+func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	lt := &LineTask{
 		Base:     NewBase(id),
 		Owner:    tail.Owner,
@@ -83,13 +82,14 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass ...bool) *LineTask 
 	if re.ToNode.OverPlatform == nil {
 		lt.TaskType = OnMoving
 	} else {
-		if len(pass) > 0 && pass[0] {
+		if pass {
 			lt.TaskType = OnPassing
 		} else {
 			lt.TaskType = OnStopping
 		}
 	}
 	lt.ResolveRef()
+	lt.RailLine.Resolve(re)
 	lt.RailLine.Resolve(lt)
 	re.Resolve(lt)
 	if re.FromNode.OverPlatform != nil {

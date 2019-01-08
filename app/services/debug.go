@@ -30,9 +30,9 @@ func AfterStart() {
 	l, _ := CreateRailLine(p, "test1")
 	StartRailLine(p, l, st.Platform)
 	rn2, e1, _, _ := ExtendRailNode(p, rn1, 20, 20)
-	InsertLineTaskRailEdge(p, e1)
+	InsertLineTaskRailEdge(p, e1, false)
 	_, e2, _, _ := ExtendRailNode(p, rn2, 30, 30)
-	InsertLineTaskRailEdge(p, e2)
+	InsertLineTaskRailEdge(p, e2, false)
 	Backup()
 }
 

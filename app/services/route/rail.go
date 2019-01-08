@@ -6,7 +6,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-func SearchRail(o *entities.Player, parallel int) []*entities.Track {
+func SearchRail(o *entities.Player, parallel int) (map[uint]*Model, []*entities.Track) {
 	results := []*entities.Track{}
 	template := scanRail(o)
 
@@ -24,7 +24,7 @@ func SearchRail(o *entities.Player, parallel int) []*entities.Track {
 			}
 		}
 	}
-	return results
+	return payload.Route, results
 }
 
 func scanRail(o *entities.Player) *Model {

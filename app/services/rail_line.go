@@ -45,7 +45,7 @@ func StartRailLine(
 // After  (a) -> (X) -> (a) -> (b) -> (c)
 //
 // RailEdge : (a) -> (X)
-func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass ...bool) error {
+func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass bool) error {
 	if err := CheckAuth(o, re); err != nil {
 		return err
 	}
@@ -62,8 +62,8 @@ func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass ...b
 	for _, base := range bases {
 		next := base.Next() // = (b) -> (c)
 
-		inter, _ := AttachLineTask(o, base, re, pass...)         // = (a) -> (X)
-		inter, _ = AttachLineTask(o, inter, re.Reverse, pass...) // = (X) -> (a)
+		inter, _ := AttachLineTask(o, base, re, pass)         // = (a) -> (X)
+		inter, _ = AttachLineTask(o, inter, re.Reverse, pass) // = (X) -> (a)
 
 		// when (X) is station and is stopped, append "dept" task after it
 		if inter.TaskType == entities.OnStopping && next != nil && next.TaskType != entities.OnDeparture {
@@ -81,7 +81,7 @@ func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass ...b
 	return nil
 }
 
-func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...bool) error {
+func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass bool) error {
 	if err := CheckAuth(o, st); err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...boo
 	}
 
 	for _, lt := range bases {
-		if len(pass) > 0 && pass[0] {
+		if pass {
 			// change move -> pass
 			lt.TaskType = entities.OnPassing
 		} else {
@@ -124,7 +124,7 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass ...boo
 
 // AttachLineTask attaches new RailEdge
 // Need to update Step after call
-func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities.RailEdge, pass ...bool) (*entities.LineTask, error) {
+func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities.RailEdge, pass bool) (*entities.LineTask, error) {
 	if err := CheckAuth(o, tail); err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 		AddEntity(tail)
 	}
 
-	tail = entities.NewLineTask(GenID(entities.LINETASK), tail, newer, pass...)
+	tail = entities.NewLineTask(GenID(entities.LINETASK), tail, newer, pass)
 	AddEntity(tail)
 
 	return tail, nil
@@ -160,6 +160,29 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
+	if err := CheckAuth(o, l); err != nil {
+		return false, err
+	}
+	if l.IsRing() {
+		return false, nil
+	}
+	head, tail := l.Borders()
+	route, _ := route.SearchRail(l.Own, Config.Routing.Worker)
+	n := route[head.FromNode().ID].Nodes[entities.RAILNODE][tail.ToNode().ID]
+	e := n.ViaEdge
+	for e != nil {
+		if tail.TaskType == entities.OnStopping {
+			tail = entities.NewLineTaskDept(GenID(entities.LINETASK), l, tail.Dest, tail)
+		}
+		tail = entities.NewLineTask(GenID(entities.LINETASK), tail, l.RailEdges[e.ID], false)
+		e = e.ToNode.ViaEdge
+	}
+	// [DEBUG]
+	lineValidation(l)
+	return true, nil
 }
 
 // delStepRailLine discards old step

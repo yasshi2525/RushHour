@@ -11,9 +11,10 @@ type RailLine struct {
 	Owner
 
 	Name      string             `         json:"name"`
+	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
+	Platforms map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
-	Platforms map[uint]*Platform `gorm:"-" json:"-"`
 
 	slow float64
 }
@@ -42,9 +43,11 @@ func (l *RailLine) Type() ModelType {
 
 // Init makes map
 func (l *RailLine) Init() {
+	l.RailEdges = make(map[uint]*RailEdge)
+	l.Platforms = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
 	l.Trains = make(map[uint]*Train)
-	l.Platforms = make(map[uint]*Platform)
+
 }
 
 // Pos returns location
@@ -79,6 +82,8 @@ func (l *RailLine) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Player:
 			l.Owner = NewOwner(obj)
+		case *RailEdge:
+			l.RailEdges[obj.ID] = obj
 		case *Platform:
 			l.Platforms[obj.ID] = obj
 		case *LineTask:

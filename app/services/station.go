@@ -26,7 +26,7 @@ func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*ent
 
 	AddEntity(st, g, p)
 
-	InsertLineTaskStation(o, st)
+	InsertLineTaskStation(o, st, false)
 
 	genStepStation(st)
 	return st, nil
