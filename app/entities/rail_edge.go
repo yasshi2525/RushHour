@@ -33,6 +33,7 @@ func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	re.Init()
 	re.ResolveRef()
 
+	f.Own.Resolve(re)
 	f.OutEdge[re.ID] = re
 	t.InEdge[re.ID] = re
 
@@ -69,12 +70,12 @@ func (re *RailEdge) IsIn(x float64, y float64, scale float64) bool {
 }
 
 // From represents start point
-func (re *RailEdge) From() Locationable {
+func (re *RailEdge) From() Indexable {
 	return re.FromNode
 }
 
 // To represents end point
-func (re *RailEdge) To() Locationable {
+func (re *RailEdge) To() Indexable {
 	return re.ToNode
 }
 

@@ -83,7 +83,7 @@ func scan(ctx context.Context) (*route.Model, bool) {
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
-	return route.Scan(ctx, Model, Meta)
+	return route.Scan(ctx, Model)
 }
 
 func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {
@@ -94,11 +94,9 @@ func reflectModel() {
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
 
-	for _, a := range Model.Agents {
-		for _, n := range RouteTemplate.Route[a.Human.ToID].Nodes {
-			if n.SameAs(a.Human) {
-				a.Current = Model.Steps[n.ViaEdge.ID]
-			}
+	for _, model := range RouteTemplate.Route {
+		for hid, h := range model.Nodes[entities.HUMAN] {
+			Model.Agents[hid].Current = Model.Steps[h.ViaEdge.ID]
 		}
 	}
 }

@@ -25,6 +25,7 @@ func NewCompany(id uint, o *Player, x float64, y float64) *Company {
 		Point: NewPoint(x, y),
 	}
 	c.Init()
+	c.ResolveRef()
 	return c
 }
 

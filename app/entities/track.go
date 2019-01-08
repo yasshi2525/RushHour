@@ -1,19 +1,22 @@
 package entities
 
-type Track struct {
+type Transport struct {
 	FromPlatform *Platform
 	ToPlatform   *Platform
 	Via          *LineTask
 	Value        float64
 }
 
-func NewTrack(from *Platform, to *Platform, via *LineTask, v float64) *Track {
-	return &Track{from, to, via, v}
+func (ts *Transport) ExportStep(id uint) *Step {
+	s := NewStep(id, ts.FromPlatform, ts.ToPlatform)
+	s.By = ts.Via
+	s.Transport = ts.Value
+	return s
 }
 
-func (tr *Track) ExportStep(id uint) *Step {
-	s := NewStep(id, tr.FromPlatform, tr.ToPlatform)
-	s.By = tr.Via
-	s.Transport = tr.Value
-	return s
+type Track struct {
+	FromNode *RailNode
+	ToNode   *RailNode
+	Via      *RailEdge
+	Value    float64
 }

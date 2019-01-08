@@ -35,6 +35,7 @@ func NewTrain(id uint, o *Player) *Train {
 		Owner: NewOwner(o),
 	}
 	t.Init()
+	t.ResolveRef()
 	return t
 }
 

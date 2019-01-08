@@ -110,6 +110,45 @@ type Model struct {
 	Remove map[ModelType][]uint
 }
 
+func (m *Model) Ids(res ModelType) []uint {
+	ids := make([]uint, Meta.Map[res].Len())
+	var i int
+	for _, key := range Meta.Map[res].MapKeys() {
+		ids[i] = uint(key.Uint())
+	}
+	return ids
+}
+
+func (m *Model) NumIndexable() int {
+	var sum int
+	for _, res := range Meta.List {
+		if _, ok := res.Obj().(Indexable); ok {
+			sum += Meta.Map[res].Len()
+		}
+	}
+	return sum
+}
+
+func (m *Model) NumRelayable() int {
+	var sum int
+	for _, res := range Meta.List {
+		if _, ok := res.Obj().(Relayable); ok {
+			sum += Meta.Map[res].Len()
+		}
+	}
+	return sum
+}
+
+func (m *Model) NumPersistable() int {
+	var sum int
+	for _, res := range Meta.List {
+		if _, ok := res.Obj().(Persistable); ok {
+			sum += Meta.Map[res].Len()
+		}
+	}
+	return sum
+}
+
 // Meta is inner meta information for receivers.
 var Meta *MetaModel
 

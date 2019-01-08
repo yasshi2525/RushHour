@@ -26,6 +26,7 @@ func NewRailLine(id uint, o *Player, s float64) *RailLine {
 		slow:  s,
 	}
 	l.Init()
+	l.ResolveRef()
 	return l
 }
 

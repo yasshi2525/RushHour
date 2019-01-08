@@ -23,6 +23,9 @@ type Player struct {
 	DisplayName string     `gorm:"not null"       json:"name"`
 	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null"       json:"-"`
+
+	RailNodes map[uint]*RailNode
+	RailEdges map[uint]*RailEdge
 }
 
 // NewPlayer create instance
@@ -31,6 +34,7 @@ func NewPlayer(id uint) *Player {
 		Base: NewBase(id),
 	}
 	p.Init()
+	p.ResolveRef()
 	return p
 }
 
@@ -56,6 +60,19 @@ func (o *Player) IsIn(x float64, y float64, scale float64) bool {
 
 // Init do nothing
 func (o *Player) Init() {
+	o.RailNodes = make(map[uint]*RailNode)
+	o.RailEdges = make(map[uint]*RailEdge)
+}
+
+func (o *Player) Resolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *RailNode:
+			o.RailNodes[obj.ID] = obj
+		case *RailEdge:
+			o.RailEdges[obj.ID] = obj
+		}
+	}
 }
 
 // ResolveRef do nothing for implementing Resolvable

@@ -26,6 +26,7 @@ func NewResidence(id uint, o *Player, x float64, y float64) *Residence {
 		Point: NewPoint(x, y),
 	}
 	r.Init()
+	r.ResolveRef()
 	return r
 }
 

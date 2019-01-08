@@ -19,17 +19,14 @@ type Searcher struct {
 func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	payload := &Payload{make(map[uint]*Model), 0, len(s.Tasks)}
-	for _, id := range s.Tasks {
+	for _, goalID := range s.Tasks {
 		select {
 		case <-ctx.Done():
 			break
 		default:
-			model, goal := s.Model.ExportWith(s.Target, id)
+			model, goal := s.Model.ExportWith(s.Target, goalID)
 			goal.WalkThrough()
-			for _, n := range model.Nodes {
-				n.Fix()
-			}
-			payload.Route[id] = model
+			payload.Route[goalID] = model
 			payload.Processed++
 		}
 	}

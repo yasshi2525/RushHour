@@ -26,6 +26,7 @@ func NewStation(stid uint, o *Player) *Station {
 		Owner: NewOwner(o),
 	}
 	st.Init()
+	st.ResolveRef()
 	return st
 }
 

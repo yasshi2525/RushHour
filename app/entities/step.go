@@ -27,15 +27,15 @@ func NewWalkStep(id uint, f Relayable, t Relayable, w float64) *Step {
 }
 
 func NewStep(id uint, f Relayable, t Relayable) *Step {
-	step := &Step{
+	s := &Step{
 		ID:   id,
 		from: f,
 		to:   t,
 	}
-	step.Init()
-	f.OutStep()[step.ID] = step
-	t.InStep()[step.ID] = step
-	return step
+	s.Init()
+	f.OutStep()[s.ID] = s
+	t.InStep()[s.ID] = s
+	return s
 }
 
 // Idx returns unique id field.

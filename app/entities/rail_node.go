@@ -20,13 +20,16 @@ type RailNode struct {
 
 // NewRailNode create new instance.
 func NewRailNode(id uint, o *Player, x float64, y float64) *RailNode {
-	re := &RailNode{
+	rn := &RailNode{
 		Base:  NewBase(id),
 		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
-	re.Init()
-	return re
+	rn.Init()
+	rn.ResolveRef()
+
+	o.Resolve(rn)
+	return rn
 }
 
 // Idx returns unique id field.

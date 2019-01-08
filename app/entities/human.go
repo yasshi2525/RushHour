@@ -60,6 +60,7 @@ func NewHuman(id uint, x float64, y float64) *Human {
 		Point: NewPoint(x, y),
 	}
 	h.Init()
+	h.ResolveRef()
 	return h
 }
 

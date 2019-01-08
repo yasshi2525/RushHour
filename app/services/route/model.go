@@ -6,45 +6,97 @@ import (
 
 type Model struct {
 	GoalIDs []uint
-	Nodes   []*Node
-	Edges   []*Edge
+	Nodes   map[entities.ModelType]map[uint]*Node
+	Edges   map[entities.ModelType]map[uint]*Edge
 }
 
-func NewModel(origin *Model) *Model {
-	cids := make([]uint, len(origin.GoalIDs))
-	for i, cid := range origin.GoalIDs {
-		cids[i] = cid
+func NewModel(origin ...*Model) *Model {
+	nodes := make(map[entities.ModelType]map[uint]*Node)
+	edges := make(map[entities.ModelType]map[uint]*Edge)
+
+	if len(origin) > 0 { //copy
+		origin := origin[0]
+		goalIDs := make([]uint, len(origin.GoalIDs))
+		for i, goalID := range origin.GoalIDs {
+			goalIDs[i] = goalID
+		}
+		for key := range origin.Nodes {
+			nodes[key] = make(map[uint]*Node)
+		}
+		for key := range origin.Edges {
+			edges[key] = make(map[uint]*Edge)
+		}
+		return &Model{goalIDs, nodes, edges}
 	}
-	ns := make([]*Node, len(origin.Nodes))
-	es := make([]*Edge, len(origin.Edges))
-	return &Model{cids, ns, es}
+	return &Model{[]uint{}, nodes, edges}
 }
 
 func (m *Model) Export() *Model {
 	copy := NewModel(m)
-	for i, n := range m.Nodes {
-		copy.Nodes[i] = NewNode(n)
+	for res, ns := range m.Nodes {
+		for id, n := range ns {
+			copy.Nodes[res][id] = NewNode(n)
+		}
 	}
-	for i, e := range m.Edges {
-		copy.Edges[i] = e.Export(copy.Nodes)
+	for res, es := range m.Edges {
+		for id, e := range es {
+			oldFrom, oldTo := e.FromNode, e.ToNode
+			newFrom := copy.Nodes[oldFrom.ModelType][oldFrom.ID]
+			newTo := copy.Nodes[oldTo.ModelType][oldTo.ID]
+			copy.Edges[res][id] = NewEdge(e, newFrom, newTo)
+		}
 	}
 	return copy
 }
 
 func (m *Model) ExportWith(t entities.ModelType, id uint) (*Model, *Node) {
-	copy := NewModel(m)
-	var p *Node
-	for i, n := range m.Nodes {
-		newN := NewNode(n)
-		if newN.Type() == t && newN.Idx() == id {
-			p = newN
-		}
-		copy.Nodes[i] = newN
+	copy := m.Export()
+	return copy, copy.Nodes[t][id]
+}
+
+func (m *Model) NumNodes() int {
+	var sum int
+	for _, ns := range m.Nodes {
+		sum += len(ns)
 	}
-	for i, e := range m.Edges {
-		copy.Edges[i] = e.Export(copy.Nodes)
+	return sum
+}
+
+func (m *Model) NumEdges() int {
+	var sum int
+	for _, es := range m.Edges {
+		sum += len(es)
 	}
-	return copy, p
+	return sum
+}
+
+func (m *Model) AddGoalID(id uint) {
+	m.GoalIDs = append(m.GoalIDs, id)
+}
+
+func (m *Model) FindOrCreateNode(origin entities.Indexable) *Node {
+	if _, ok := m.Nodes[origin.Type()]; !ok {
+		m.Nodes[origin.Type()] = make(map[uint]*Node)
+	}
+	if n, ok := m.Nodes[origin.Type()][origin.Idx()]; ok {
+		return n
+	}
+	n := NewNode(origin)
+	m.Nodes[origin.Type()][origin.Idx()] = n
+	return n
+}
+
+func (m *Model) FindOrCreateEdge(origin entities.Connectable) *Edge {
+	if _, ok := m.Edges[origin.Type()]; !ok {
+		m.Edges[origin.Type()] = make(map[uint]*Edge)
+	}
+	if e, ok := m.Edges[origin.Type()][origin.Idx()]; ok {
+		return e
+	}
+	from, to := m.FindOrCreateNode(origin.From()), m.FindOrCreateNode(origin.To())
+	e := NewEdge(origin, from, to)
+	m.Edges[origin.Type()][origin.Idx()] = e
+	return e
 }
 
 type Payload struct {
@@ -58,8 +110,8 @@ func (p *Payload) IsOK() bool {
 }
 
 func (p *Payload) Import(oth *Payload) {
-	for cid, model := range oth.Route {
-		p.Route[cid] = model
+	for goalID, model := range oth.Route {
+		p.Route[goalID] = model
 	}
 	p.Processed++
 }

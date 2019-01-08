@@ -30,19 +30,6 @@ func (q NodeQueue) Less(i, j int) bool {
 	return q[i].Value < q[j].Value
 }
 
-// AppendIfNotExists generates Node and return it if it doesn't exists on queue,
-// else returns existed Node.
-func (q *NodeQueue) AppendIfNotExists(obj entities.Indexable) *Node {
-	for _, n := range *q {
-		if n.SameAs(obj) {
-			return n
-		}
-	}
-	newN := NewNode(obj)
-	*q = append(*q, newN)
-	return newN
-}
-
 // Node is digest of Relayable, Transportable for routing.
 // The chain of Node represents one route.
 type Node struct {
