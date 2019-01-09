@@ -101,6 +101,7 @@ func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 		re.ToNode.OverPlatform.Resolve(lt)
 	}
 	tail.SetNext(lt)
+	m.Add(lt)
 	return lt
 }
 
