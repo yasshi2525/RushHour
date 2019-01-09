@@ -16,7 +16,7 @@ func MigrateDB() {
 	foreign := make(map[entities.ModelType]string)
 
 	// create instance corresponding to each record
-	for _, key := range Meta.List {
+	for _, key := range entities.TypeList {
 		if !key.IsDB() {
 			continue
 		}

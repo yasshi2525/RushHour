@@ -29,13 +29,14 @@ type Train struct {
 }
 
 // NewTrain creates instance
-func NewTrain(id uint, o *Player) *Train {
+func (m *Model) NewTrain(o *Player) *Train {
 	t := &Train{
-		Base:  NewBase(id),
+		Base:  NewBase(m.GenID(TRAIN)),
 		Owner: NewOwner(o),
 	}
 	t.Init()
 	t.ResolveRef()
+	m.Add(t)
 	return t
 }
 
@@ -71,8 +72,11 @@ func (t *Train) IsIn(x float64, y float64, scale float64) bool {
 func (t *Train) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
+		case *Player:
+			t.Owner = NewOwner(obj)
+			obj.Resolve(t)
 		case *LineTask:
-			t.Owner, t.task = obj.Owner, obj
+			t.task = obj
 			obj.Resolve(t)
 		case *RailEdge:
 			t.OnRailEdge = obj
@@ -163,6 +167,6 @@ func (t *Train) String() string {
 	if t.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", t.Pos())
 	}
-	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f%s%s:%s", Meta.Attr[t.Type()].Short,
+	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f%s%s:%s", t.Type().Short(),
 		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, posstr, ostr, t.Name)
 }

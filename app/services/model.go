@@ -161,7 +161,7 @@ func processMsg(msg *Operation) {
 
 // randID return random id existing in repository
 func randID(t entities.ModelType, owner *entities.Player) (uint, bool) {
-	mapdata := Meta.Map[t]
+	mapdata := Model.Values[t]
 	for _, key := range mapdata.MapKeys() {
 		if mapdata.MapIndex(key).Interface().(entities.Ownable).Permits(owner) {
 			return uint(key.Uint()), true
@@ -182,7 +182,7 @@ func UpdateModel(msg *Operation) {
 
 func randEntity(o *entities.Player, res entities.ModelType) interface{} {
 	var entity interface{}
-	ForeachModel(res, func(obj interface{}) {
+	Model.ForEach(res, func(obj entities.Indexable) {
 		if obj.(entities.Ownable).Permits(o) {
 			entity = obj
 		}

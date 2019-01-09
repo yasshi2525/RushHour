@@ -23,9 +23,9 @@ type RailEdge struct {
 }
 
 // NewRailEdge create new instance and relates RailNode
-func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
+func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Base:     NewBase(id),
+		Base:     NewBase(m.GenID(RAILEDGE)),
 		Owner:    f.Owner,
 		FromNode: f,
 		ToNode:   t,
@@ -37,6 +37,7 @@ func NewRailEdge(id uint, f *RailNode, t *RailNode) *RailEdge {
 	f.OutEdge[re.ID] = re
 	t.InEdge[re.ID] = re
 
+	m.Add(re)
 	return re
 }
 
@@ -95,10 +96,12 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 	var doneFrom bool
 	for _, raw := range args {
 		switch obj := raw.(type) {
+		case *Player:
+			re.Owner = NewOwner(obj)
+			obj.Resolve(re)
 		case *RailNode:
 			if !doneFrom {
 				re.Owner, re.FromNode = obj.Owner, obj
-				obj.Own.Resolve(re)
 				doneFrom = true
 				obj.OutEdge[re.ID] = re
 			} else {
@@ -176,6 +179,6 @@ func (re *RailEdge) String() string {
 	if re.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", re.Pos())
 	}
-	return fmt.Sprintf("%s(%d):f=%d,t=%d,r=%d%s%s", Meta.Attr[re.Type()].Short,
+	return fmt.Sprintf("%s(%d):f=%d,t=%d,r=%d%s%s", re.Type().Short(),
 		re.ID, re.FromID, re.ToID, re.ReverseID, posstr, ostr)
 }

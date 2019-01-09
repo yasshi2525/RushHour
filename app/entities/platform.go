@@ -30,9 +30,9 @@ type Platform struct {
 }
 
 // NewPlatform creates instance
-func NewPlatform(pid uint, rn *RailNode, g *Gate, st *Station) *Platform {
+func (m *Model) NewPlatform(rn *RailNode, g *Gate, st *Station) *Platform {
 	p := &Platform{
-		Base:       NewBase(pid),
+		Base:       NewBase(m.GenID(PLATFORM)),
 		Owner:      rn.Owner,
 		OnRailNode: rn,
 		InStation:  st,
@@ -41,8 +41,10 @@ func NewPlatform(pid uint, rn *RailNode, g *Gate, st *Station) *Platform {
 	p.Init()
 	p.ResolveRef()
 	rn.Resolve(p)
+	rn.Own.Resolve(p)
 	g.Resolve(p)
 	st.Resolve(p)
+	m.Add(p)
 	return p
 }
 
@@ -93,8 +95,11 @@ func (p *Platform) InStep() map[uint]*Step {
 func (p *Platform) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
+		case *Player:
+			p.Owner = NewOwner(obj)
+			obj.Resolve(p)
 		case *RailNode:
-			p.Owner, p.OnRailNode = obj.Owner, obj
+			p.OnRailNode = obj
 			obj.Resolve(p)
 		case *Station:
 			p.InStation = obj
@@ -194,7 +199,7 @@ func (p *Platform) String() string {
 		nmstr = fmt.Sprintf(":%s", p.InStation.Name)
 	}
 	return fmt.Sprintf("%s(%d):st=%d,g=%d,rn=%d,i=%d,o=%d,h=%d/%d%s%s%s",
-		Meta.Attr[p.Type()].Short,
+		p.Type().Short(),
 		p.ID, p.StationID, p.GateID, p.RailNodeID,
 		len(p.inStep), len(p.outStep), len(p.Passengers), p.Capacity,
 		posstr, ostr, nmstr)

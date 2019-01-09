@@ -12,9 +12,9 @@ import (
 
 // CreateRailLine create RailLine
 func CreateRailLine(o *entities.Player, name string) (*entities.RailLine, error) {
-	l := entities.NewRailLine(GenID(entities.RAILLINE), o, Config.Train.Slowness)
+	l := Model.NewRailLine(o, Config.Train.Slowness)
 	l.Name = name
-	AddEntity(l)
+
 	return l, nil
 }
 
@@ -32,8 +32,8 @@ func StartRailLine(
 	if len(l.Tasks) > 0 {
 		return nil, fmt.Errorf("already registered %v", l.Tasks)
 	}
-	lt := entities.NewLineTaskDept(GenID(entities.LINETASK), l, p)
-	AddEntity(lt)
+	lt := Model.NewLineTaskDept(l, p)
+
 	return lt, nil
 }
 
@@ -67,8 +67,8 @@ func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass bool
 
 		// when (X) is station and is stopped, append "dept" task after it
 		if inter.TaskType == entities.OnStopping && next != nil && next.TaskType != entities.OnDeparture {
-			inter = entities.NewLineTaskDept(GenID(entities.LINETASK), inter.RailLine, inter.Dest, inter)
-			AddEntity(inter)
+			inter = Model.NewLineTaskDept(inter.RailLine, inter.Dest, inter)
+
 		}
 		inter.SetNext(next) // (a) -> (b) -> (c)
 
@@ -112,9 +112,9 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass bool) 
 			lt.TaskType = entities.OnStopping
 			// insert dest
 			next := lt.Next()
-			inter := entities.NewLineTaskDept(GenID(entities.LINETASK), lt.RailLine, st.Platform, lt)
+			inter := Model.NewLineTaskDept(lt.RailLine, st.Platform, lt)
 			inter.SetNext(next)
-			AddEntity(inter)
+
 		}
 		// set dest
 		lt.Resolve(lt.Moving) // register dest from edge.to.overPlatform
@@ -137,12 +137,10 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 
 	// when task is "stop", append task "departure"
 	if tail.TaskType == entities.OnStopping {
-		tail = entities.NewLineTaskDept(GenID(entities.LINETASK), tail.RailLine, tail.Dest, tail)
-		AddEntity(tail)
+		tail = Model.NewLineTaskDept(tail.RailLine, tail.Dest, tail)
 	}
 
-	tail = entities.NewLineTask(GenID(entities.LINETASK), tail, newer, pass)
-	AddEntity(tail)
+	tail = Model.NewLineTask(tail, newer, pass)
 
 	return tail, nil
 }
@@ -175,9 +173,9 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	e := n.ViaEdge
 	for e != nil {
 		if tail.TaskType == entities.OnStopping {
-			tail = entities.NewLineTaskDept(GenID(entities.LINETASK), l, tail.Dest, tail)
+			tail = Model.NewLineTaskDept(l, tail.Dest, tail)
 		}
-		tail = entities.NewLineTask(GenID(entities.LINETASK), tail, l.RailEdges[e.ID], false)
+		tail = Model.NewLineTask(tail, l.RailEdges[e.ID], false)
 		e = e.ToNode.ViaEdge
 	}
 	// [DEBUG]
@@ -189,7 +187,7 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 func delStepRailLine(l *entities.RailLine) {
 	for _, s := range Model.Steps {
 		if s.By != nil && s.By.RailLine == l {
-			DelEntity(s)
+			Model.Delete(s)
 		}
 	}
 }
@@ -198,7 +196,7 @@ func delStepRailLine(l *entities.RailLine) {
 func genStepRailLine(l *entities.RailLine) {
 	tracks := route.SearchRailLine(l, Config.Routing.Worker)
 	for _, tr := range tracks {
-		AddEntity(tr.ExportStep(GenID(entities.STEP)))
+		tr.ExportStep(Model)
 	}
 }
 

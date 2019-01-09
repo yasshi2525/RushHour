@@ -47,9 +47,9 @@ type LineTask struct {
 }
 
 // NewLineTaskDept create "dept"
-func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *LineTask {
+func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
-		Base:     NewBase(id),
+		Base:     NewBase(m.GenID(LINETASK)),
 		Owner:    l.Owner,
 		RailLine: l,
 		TaskType: OnDeparture,
@@ -61,16 +61,18 @@ func NewLineTaskDept(id uint, l *RailLine, p *Platform, tail ...*LineTask) *Line
 	lt.ResolveRef()
 	l.Resolve(p, lt)
 	p.Resolve(l, lt)
+	l.Own.Resolve(lt)
 	if len(tail) > 0 {
 		tail[0].SetNext(lt)
 	}
+	m.Add(lt)
 	return lt
 }
 
 // NewLineTask creates "stop" or "pass" or "moving"
-func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass bool) *LineTask {
+func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	lt := &LineTask{
-		Base:     NewBase(id),
+		Base:     NewBase(m.GenID(LINETASK)),
 		Owner:    tail.Owner,
 		RailLine: tail.RailLine,
 		Dept:     re.FromNode.OverPlatform,
@@ -90,6 +92,7 @@ func NewLineTask(id uint, tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	}
 	lt.ResolveRef()
 	lt.RailLine.Resolve(re, lt)
+	lt.Own.Resolve(lt)
 	re.Resolve(lt)
 	if re.FromNode.OverPlatform != nil {
 		re.FromNode.OverPlatform.Resolve(lt)
@@ -146,6 +149,9 @@ func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
 func (lt *LineTask) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
+		case *Player:
+			lt.Owner = NewOwner(obj)
+			obj.Resolve(lt)
 		case *Platform:
 			lt.Stay = obj
 			lt.RailLine.Resolve(obj)
@@ -163,7 +169,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 				p.Resolve(lt)
 			}
 		case *RailLine:
-			lt.Owner, lt.RailLine = obj.Owner, obj
+			lt.RailLine = obj
 			obj.Resolve(lt)
 		case *LineTask:
 			lt.next = obj
@@ -352,7 +358,7 @@ func (lt *LineTask) String() string {
 	if lt.RailLine != nil {
 		nmstr = fmt.Sprintf(":%s", lt.RailLine.Name)
 	}
-	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s%s%s%s", Meta.Attr[lt.Type()].Short,
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s%s%s%s", lt.Type().Short(),
 		lt.ID, lt.TaskType, lt.RailLineID, before, next, stay, dept, moving, dest,
 		posstr, ostr, nmstr)
 }

@@ -19,13 +19,11 @@ func CreatePlayer(loginid string, displayname string, password string, level ent
 		}
 	}
 
-	player := entities.NewPlayer(GenID(entities.PLAYER))
+	player := Model.NewPlayer()
 	player.LoginID = loginid
 	player.DisplayName = displayname
 	player.Password = password
 	player.Level = level
-
-	AddEntity(player)
 
 	return player, nil
 }

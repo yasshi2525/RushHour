@@ -26,16 +26,23 @@ type Player struct {
 
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
+	Stations  map[uint]*Station  `gorm:"-" json:"-"`
+	Gates     map[uint]*Gate     `gorm:"-" json:"-"`
+	Platforms map[uint]*Platform `gorm:"-" json:"-"`
+	RailLines map[uint]*RailLine `gorm:"-" json:"-"`
+	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
+	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 }
 
 // NewPlayer create instance
-func NewPlayer(id uint) *Player {
-	p := &Player{
-		Base: NewBase(id),
+func (m *Model) NewPlayer() *Player {
+	o := &Player{
+		Base: NewBase(m.GenID(PLAYER)),
 	}
-	p.Init()
-	p.ResolveRef()
-	return p
+	o.Init()
+	o.ResolveRef()
+	m.Add(o)
+	return o
 }
 
 // Idx returns unique id field.
@@ -62,6 +69,12 @@ func (o *Player) IsIn(x float64, y float64, scale float64) bool {
 func (o *Player) Init() {
 	o.RailNodes = make(map[uint]*RailNode)
 	o.RailEdges = make(map[uint]*RailEdge)
+	o.Stations = make(map[uint]*Station)
+	o.Gates = make(map[uint]*Gate)
+	o.Platforms = make(map[uint]*Platform)
+	o.RailLines = make(map[uint]*RailLine)
+	o.LineTasks = make(map[uint]*LineTask)
+	o.Trains = make(map[uint]*Train)
 }
 
 func (o *Player) Resolve(args ...interface{}) {
@@ -71,6 +84,18 @@ func (o *Player) Resolve(args ...interface{}) {
 			o.RailNodes[obj.ID] = obj
 		case *RailEdge:
 			o.RailEdges[obj.ID] = obj
+		case *Station:
+			o.Stations[obj.ID] = obj
+		case *Gate:
+			o.Gates[obj.ID] = obj
+		case *Platform:
+			o.Platforms[obj.ID] = obj
+		case *RailLine:
+			o.RailLines[obj.ID] = obj
+		case *LineTask:
+			o.LineTasks[obj.ID] = obj
+		case *Train:
+			o.Trains[obj.ID] = obj
 		}
 	}
 }
@@ -88,7 +113,7 @@ func (o *Player) CheckRemove() error {
 // String represents status
 func (o *Player) String() string {
 	o.ResolveRef()
-	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", Meta.Attr[o.Type()].Short,
+	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", o.Type().Short(),
 		o.ID, o.LoginID, o.Level, o.DisplayName)
 }
 

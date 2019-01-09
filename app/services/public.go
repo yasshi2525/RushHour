@@ -13,11 +13,11 @@ func CreateResidence(o *entities.Player, x float64, y float64) (*entities.Reside
 		return nil, fmt.Errorf("no permission")
 	}
 
-	r := entities.NewResidence(GenID(entities.RESIDENCE), o, x, y)
+	r := Model.NewResidence(o, x, y)
 	r.Wait = Config.Residence.Interval.D.Seconds() * rand.Float64()
 	r.Capacity = Config.Residence.Capacity
 	r.Name = "NoName"
-	AddEntity(r)
+
 	GenStepResidence(r)
 	return r, nil
 }
@@ -27,12 +27,12 @@ func RemoveResidence(o *entities.Player, id uint) error {
 	return TryRemove(o, entities.RESIDENCE, id, func(obj interface{}) {
 		r := obj.(*entities.Residence)
 		for _, h := range r.Targets {
-			DelEntity(h)
+			Model.Delete(h)
 		}
 		for _, s := range r.OutStep() {
-			DelEntity(s)
+			Model.Delete(s)
 		}
-		DelEntity(r)
+		Model.Delete(r)
 	})
 }
 
@@ -42,9 +42,9 @@ func CreateCompany(o *entities.Player, x float64, y float64) (*entities.Company,
 		return nil, fmt.Errorf("no permission")
 	}
 
-	c := entities.NewCompany(GenID(entities.COMPANY), o, x, y)
+	c := Model.NewCompany(o, x, y)
 	c.Scale = Config.Company.Scale
-	AddEntity(c)
+
 	GenStepCompany(c)
 	return c, nil
 }
@@ -54,12 +54,12 @@ func RemoveCompany(o *entities.Player, id uint) error {
 	return TryRemove(o, entities.COMPANY, id, func(obj interface{}) {
 		c := obj.(*entities.Company)
 		for _, h := range c.Targets {
-			DelEntity(h)
+			Model.Delete(h)
 		}
 		for _, s := range c.InStep() {
-			DelEntity(s)
+			Model.Delete(s)
 		}
-		DelEntity(c)
+		Model.Delete(c)
 	})
 }
 

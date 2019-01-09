@@ -6,11 +6,11 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-func Scan(ctx context.Context, model *entities.Model, meta *entities.MetaModel) (*Model, bool) {
+func Scan(ctx context.Context, model *entities.Model) (*Model, bool) {
 	result := NewModel()
 	result.GoalIDs = model.Ids(entities.COMPANY)
 
-	if !genNodes(ctx, result, model, meta) {
+	if !genNodes(ctx, result, model) {
 		return result, false
 	}
 
@@ -25,18 +25,16 @@ func Scan(ctx context.Context, model *entities.Model, meta *entities.MetaModel) 
 	return result, true
 }
 
-func genNodes(ctx context.Context, result *Model, model *entities.Model, meta *entities.MetaModel) bool {
-	for _, res := range meta.List {
+func genNodes(ctx context.Context, result *Model, model *entities.Model) bool {
+	for _, res := range entities.TypeList {
 		if _, ok := res.Obj().(entities.Relayable); ok {
 			select {
 			case <-ctx.Done():
 				return false
 			default:
-				mapdata := meta.Map[res]
-				for _, key := range mapdata.MapKeys() {
-					obj := mapdata.MapIndex(key).Interface().(entities.Indexable)
+				model.ForEach(res, func(obj entities.Indexable) {
 					result.FindOrCreateNode(obj)
-				}
+				})
 			}
 		}
 	}

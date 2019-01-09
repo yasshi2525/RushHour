@@ -19,14 +19,15 @@ type Residence struct {
 }
 
 // NewResidence create new instance without setting parameters
-func NewResidence(id uint, o *Player, x float64, y float64) *Residence {
+func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
 	r := &Residence{
-		Base:  NewBase(id),
+		Base:  NewBase(m.GenID(RESIDENCE)),
 		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
 	r.Init()
 	r.ResolveRef()
+	m.Add(r)
 	return r
 }
 
@@ -114,6 +115,6 @@ func (r *Residence) Reset() {
 
 func (r *Residence) String() string {
 	r.ResolveRef()
-	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", Meta.Attr[r.Type()].Short,
+	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", r.Type().Short(),
 		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)
 }

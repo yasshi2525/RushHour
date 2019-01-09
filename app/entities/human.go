@@ -54,13 +54,14 @@ type Human struct {
 }
 
 // NewHuman create instance
-func NewHuman(id uint, x float64, y float64) *Human {
+func (m *Model) NewHuman(x float64, y float64) *Human {
 	h := &Human{
-		Base:  NewBase(id),
+		Base:  NewBase(m.GenID(HUMAN)),
 		Point: NewPoint(x, y),
 	}
 	h.Init()
 	h.ResolveRef()
+	m.Add(h)
 	return h
 }
 
@@ -282,6 +283,6 @@ func (h *Human) String() string {
 	}
 
 	return fmt.Sprintf("%s(%d):r=%d,c=%d%s%s,a=%.1f,l=%.1f,%%=%.2f:%v",
-		Meta.Attr[h.Type()].Short,
+		h.Type().Short(),
 		h.ID, h.FromID, h.ToID, pstr, tstr, h.Available, h.Lifespan, h.Progress, h.Pos())
 }

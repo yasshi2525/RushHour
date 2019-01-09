@@ -36,7 +36,7 @@ func Restore() {
 
 // setNextID set max id as NextID from database for Restore()
 func setNextID() {
-	for _, key := range Meta.List {
+	for _, key := range entities.TypeList {
 		if !key.IsDB() {
 			continue
 		}
@@ -55,7 +55,7 @@ func setNextID() {
 // fetchStatic selects records for Restore()
 func fetchStatic() {
 	var cnt int
-	for _, key := range Meta.List {
+	for _, key := range entities.TypeList {
 		if !key.IsDB() {
 			continue
 		}
@@ -73,7 +73,7 @@ func fetchStatic() {
 
 					// Model に登録
 					if obj, ok := base.(entities.Indexable); ok {
-						Meta.Map[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
+						Model.Values[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
 						cnt++
 						//revel.AppLog.Debugf("set Model[%s][%d] = %v", key, obj.Idx(), obj)
 					} else {
@@ -97,6 +97,7 @@ func resolveStatic() {
 	}
 	for _, re := range Model.RailEdges {
 		re.Resolve(
+			Model.Players[re.OwnerID],
 			Model.RailNodes[re.FromID],
 			Model.RailNodes[re.ToID],
 			Model.RailEdges[re.ReverseID])
@@ -105,10 +106,13 @@ func resolveStatic() {
 		st.Resolve(Model.Players[st.OwnerID])
 	}
 	for _, g := range Model.Gates {
-		g.Resolve(Model.Stations[g.StationID])
+		g.Resolve(
+			Model.Players[g.OwnerID],
+			Model.Stations[g.StationID])
 	}
 	for _, p := range Model.Platforms {
 		p.Resolve(
+			Model.Players[p.OwnerID],
 			Model.RailNodes[p.RailNodeID],
 			Model.Stations[p.StationID])
 	}
@@ -116,7 +120,9 @@ func resolveStatic() {
 		l.Resolve(Model.Players[l.OwnerID])
 	}
 	for _, lt := range Model.LineTasks {
-		lt.Resolve(Model.RailLines[lt.RailLineID])
+		lt.Resolve(
+			Model.Players[lt.OwnerID],
+			Model.RailLines[lt.RailLineID])
 		// nullable fields
 		if lt.NextID != ZERO {
 			lt.Resolve(Model.LineTasks[lt.NextID])
@@ -129,6 +135,7 @@ func resolveStatic() {
 		}
 	}
 	for _, t := range Model.Trains {
+		t.Resolve(Model.Players[t.OwnerID])
 		// nullable fields
 		if t.TaskID != ZERO {
 			t.Resolve(Model.LineTasks[t.TaskID])
@@ -171,6 +178,6 @@ func genDynamics() {
 	}
 	for _, h := range Model.Humans {
 		GenStepHuman(h)
-		Model.Agents[h.ID] = entities.NewAgent(h)
+		Model.Agents[h.ID] = Model.NewAgent(h)
 	}
 }

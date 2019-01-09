@@ -6,8 +6,8 @@ import (
 
 // CreateRailNode create RailNode
 func CreateRailNode(owner *entities.Player, x float64, y float64) (*entities.RailNode, error) {
-	rn := entities.NewRailNode(GenID(entities.RAILNODE), owner, x, y)
-	AddEntity(rn)
+	rn := Model.NewRailNode(owner, x, y)
+
 	return rn, nil
 }
 
@@ -15,7 +15,7 @@ func CreateRailNode(owner *entities.Player, x float64, y float64) (*entities.Rai
 func RemoveRailNode(owner *entities.Player, id uint) error {
 	return TryRemove(owner, entities.RAILNODE, id, func(obj interface{}) {
 		rn := obj.(*entities.RailNode)
-		DelEntity(rn)
+		Model.Delete(rn)
 	})
 }
 
@@ -25,13 +25,12 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, nil, err
 	}
-	to := entities.NewRailNode(GenID(entities.RAILNODE), from.Own, x, y)
-	e1 := entities.NewRailEdge(GenID(entities.RAILEDGE), from, to)
-	e2 := entities.NewRailEdge(GenID(entities.RAILEDGE), to, from)
+	to := Model.NewRailNode(from.Own, x, y)
+	e1 := Model.NewRailEdge(from, to)
+	e2 := Model.NewRailEdge(to, from)
 
 	e1.Resolve(e2)
 	e2.Resolve(e1)
 
-	AddEntity(to, e1, e2)
 	return to, e1, e2, nil
 }

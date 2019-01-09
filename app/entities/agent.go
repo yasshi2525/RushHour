@@ -12,11 +12,12 @@ type Agent struct {
 }
 
 // NewAgent creates instance
-func NewAgent(h *Human) *Agent {
+func (m *Model) NewAgent(h *Human) *Agent {
 	a := &Agent{
 		Human: h,
 	}
 	a.Init()
+	m.Add(a)
 	return a
 }
 
@@ -48,6 +49,6 @@ func (a *Agent) String() string {
 		idstr = fmt.Sprintf("%d", a.Human.ID)
 		posstr = fmt.Sprintf(":%s", a.Human.Pos())
 	}
-	return fmt.Sprintf("%s(%s):%v%s", Meta.Attr[a.Type()].Short,
+	return fmt.Sprintf("%s(%s):%v%s", a.Type().Short(),
 		idstr, a.Current, posstr)
 }

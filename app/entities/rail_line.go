@@ -20,14 +20,16 @@ type RailLine struct {
 }
 
 // NewRailLine create instance
-func NewRailLine(id uint, o *Player, s float64) *RailLine {
+func (m *Model) NewRailLine(o *Player, s float64) *RailLine {
 	l := &RailLine{
-		Base:  NewBase(id),
+		Base:  NewBase(m.GenID(RAILLINE)),
 		Owner: NewOwner(o),
 		slow:  s,
 	}
 	l.Init()
 	l.ResolveRef()
+	o.Resolve(l)
+	m.Add(l)
 	return l
 }
 
@@ -82,6 +84,7 @@ func (l *RailLine) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Player:
 			l.Owner = NewOwner(obj)
+			obj.Resolve(l)
 		case *RailEdge:
 			l.RailEdges[obj.ID] = obj
 		case *Platform:
@@ -191,6 +194,6 @@ func (l *RailLine) String() string {
 	if l.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", l.Pos())
 	}
-	return fmt.Sprintf("%s(%d):lt=%d%s%s:%s", Meta.Attr[l.Type()].Short,
+	return fmt.Sprintf("%s(%d):lt=%d%s%s:%s", l.Type().Short(),
 		l.ID, len(l.Tasks), posstr, ostr, l.Name)
 }

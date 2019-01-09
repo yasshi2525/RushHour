@@ -19,9 +19,9 @@ type RailNode struct {
 }
 
 // NewRailNode create new instance.
-func NewRailNode(id uint, o *Player, x float64, y float64) *RailNode {
+func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 	rn := &RailNode{
-		Base:  NewBase(id),
+		Base:  NewBase(m.GenID(RAILNODE)),
 		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
@@ -29,6 +29,7 @@ func NewRailNode(id uint, o *Player, x float64, y float64) *RailNode {
 	rn.ResolveRef()
 
 	o.Resolve(rn)
+	m.Add(rn)
 	return rn
 }
 
@@ -141,6 +142,6 @@ func (rn *RailNode) String() string {
 	if rn.OverPlatform != nil {
 		pstr = fmt.Sprintf(",p=%d", rn.OverPlatform.ID)
 	}
-	return fmt.Sprintf("%s(%d):i=%d,o=%d%s:%v%s", Meta.Attr[rn.Type()].Short,
+	return fmt.Sprintf("%s(%d):i=%d,o=%d%s:%v%s", rn.Type().Short(),
 		rn.ID, len(rn.InEdge), len(rn.OutEdge), pstr, rn.Pos(), ostr)
 }

@@ -19,11 +19,11 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 
 	view := newGameView()
 
-	for idx, res := range Meta.List {
+	for idx, res := range entities.TypeList {
 		// filter out agent, step ...
 		if res.IsVisible() {
 			list := reflect.MakeSlice(reflect.SliceOf(res.Type()), 0, 0)
-			ForeachModel(res, func(obj interface{}) {
+			Model.ForEach(res, func(obj entities.Indexable) {
 				// filter time
 				if len(after) > 0 && !obj.(entities.Persistable).IsChanged(after[0]) {
 					return
@@ -41,7 +41,7 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 
 func newGameView() reflect.Value {
 	fields := []reflect.StructField{}
-	for _, res := range Meta.List {
+	for _, res := range entities.TypeList {
 		// filter out agent, step ...
 		if res.IsVisible() {
 			fields = append(fields, reflect.StructField{
@@ -69,7 +69,7 @@ func TryRemove(
 	id uint,
 	callback func(interface{})) error {
 
-	v := Meta.Map[res].MapIndex(reflect.ValueOf(id))
+	v := Model.Values[res].MapIndex(reflect.ValueOf(id))
 
 	// no id
 	if !v.IsValid() {

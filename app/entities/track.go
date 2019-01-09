@@ -7,8 +7,8 @@ type Transport struct {
 	Value        float64
 }
 
-func (ts *Transport) ExportStep(id uint) *Step {
-	s := NewStep(id, ts.FromPlatform, ts.ToPlatform)
+func (ts *Transport) ExportStep(m *Model) *Step {
+	s := m.NewStep(ts.FromPlatform, ts.ToPlatform)
 	s.By = ts.Via
 	s.Transport = ts.Value
 	return s

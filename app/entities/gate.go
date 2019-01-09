@@ -29,15 +29,17 @@ type Gate struct {
 }
 
 // NewGate creates instance
-func NewGate(gid uint, st *Station) *Gate {
+func (m *Model) NewGate(st *Station) *Gate {
 	g := &Gate{
-		Base:      NewBase(gid),
+		Base:      NewBase(m.GenID(GATE)),
 		Owner:     st.Owner,
 		InStation: st,
 	}
 	g.Init()
 	g.ResolveRef()
 	st.Resolve(g)
+	st.Own.Resolve(g)
+	m.Add(g)
 	return g
 }
 
@@ -85,7 +87,8 @@ func (g *Gate) Resolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			g.Own = obj
+			g.Owner = NewOwner(obj)
+			obj.Resolve(g)
 		case *Station:
 			g.InStation = obj
 			obj.Resolve(g)
@@ -152,6 +155,6 @@ func (g *Gate) String() string {
 	if g.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", g.Pos())
 	}
-	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d%s%s%s", Meta.Attr[g.Type()].Short,
+	return fmt.Sprintf("%s(%d):st=%d,p=%d,i=%d,o=%d%s%s%s", g.Type().Short(),
 		g.ID, g.StationID, g.PlatformID, len(g.in), len(g.out), posstr, ostr, ststr)
 }

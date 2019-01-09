@@ -20,13 +20,15 @@ type Station struct {
 }
 
 // NewStation create new instance.
-func NewStation(stid uint, o *Player) *Station {
+func (m *Model) NewStation(o *Player) *Station {
 	st := &Station{
-		Base:  NewBase(stid),
+		Base:  NewBase(m.GenID(STATION)),
 		Owner: NewOwner(o),
 	}
 	st.Init()
 	st.ResolveRef()
+	o.Resolve(st)
+	m.Add(st)
 	return st
 }
 
@@ -63,6 +65,7 @@ func (st *Station) Resolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Player:
 			st.Owner = NewOwner(obj)
+			obj.Resolve(st)
 		case *Gate:
 			st.Gate = obj
 		case *Platform:
@@ -130,6 +133,6 @@ func (st *Station) String() string {
 	if st.Pos() != nil {
 		posstr = fmt.Sprintf(":%s", st.Pos())
 	}
-	return fmt.Sprintf("%s(%d):g=%d,p=%d%s%s:%s", Meta.Attr[st.Type()].Short,
+	return fmt.Sprintf("%s(%d):g=%d,p=%d%s%s:%s", st.Type().Short(),
 		st.ID, st.PlatformID, st.GateID, posstr, ostr, st.Name)
 }

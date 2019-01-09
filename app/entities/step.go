@@ -20,21 +20,22 @@ type Step struct {
 }
 
 // NewWalkStep create new instance and relation to Relayable
-func NewWalkStep(id uint, f Relayable, t Relayable, w float64) *Step {
-	s := NewStep(id, f, t)
+func (m *Model) NewWalkStep(f Relayable, t Relayable, w float64) *Step {
+	s := m.NewStep(f, t)
 	s.weight = w
 	return s
 }
 
-func NewStep(id uint, f Relayable, t Relayable) *Step {
+func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	s := &Step{
-		ID:   id,
+		ID:   m.GenID(STEP),
 		from: f,
 		to:   t,
 	}
 	s.Init()
 	f.OutStep()[s.ID] = s
 	t.InStep()[s.ID] = s
+	m.Add(s)
 	return s
 }
 
@@ -83,6 +84,6 @@ func (s *Step) UnRef() {
 
 // String represents status
 func (s *Step) String() string {
-	return fmt.Sprintf("%s(%v):from=%v,to=%v,c=%.2f", Meta.Attr[s.Type()].Short,
+	return fmt.Sprintf("%s(%v):from=%v,to=%v,c=%.2f", s.Type().Short(),
 		s.ID, s.from, s.to, s.Cost())
 }

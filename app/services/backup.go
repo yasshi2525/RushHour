@@ -55,20 +55,18 @@ func updateForeignKey() {
 	// set mutable id from reference
 	for _, res := range []entities.ModelType{
 		entities.LINETASK, entities.TRAIN, entities.HUMAN} {
-		mapdata := Meta.Map[res]
-		for _, key := range mapdata.MapKeys() {
-			obj := mapdata.MapIndex(key).Interface()
+		Model.ForEach(res, func(obj entities.Indexable) {
 			obj.(entities.Resolvable).ResolveRef()
-		}
+		})
 	}
 }
 
 func persistStatic(tx *gorm.DB) (int, int, int, int) {
 	// upsert
 	var createCnt, updateCnt, skipCnt int
-	for _, res := range Meta.List {
+	for _, res := range entities.TypeList {
 		if res.IsDB() {
-			ForeachModel(res, func(raw interface{}) {
+			Model.ForEach(res, func(raw entities.Indexable) {
 				obj := raw.(entities.Persistable)
 				if obj.IsNew() {
 					db.Create(obj)
@@ -87,8 +85,8 @@ func persistStatic(tx *gorm.DB) (int, int, int, int) {
 
 	// remove old resources
 	removeCnt := 0
-	for i := len(Meta.List) - 1; i >= 0; i-- {
-		key := Meta.List[i]
+	for i := len(entities.TypeList) - 1; i >= 0; i-- {
+		key := entities.TypeList[i]
 		if key.IsDB() {
 			for _, id := range Model.Remove[key] {
 				sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
