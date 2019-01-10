@@ -14,7 +14,7 @@ func SearchRailLine(l *entities.RailLine, parallel int) []*entities.Transport {
 
 	for destID, model := range payload.Route {
 		for deptID, dept := range model.Nodes[entities.PLATFORM] {
-			if destID != deptID && dept.ViaEdge != nil {
+			if dept.ViaEdge != nil {
 				tr := &entities.Transport{
 					l.Stops[deptID],          // from
 					l.Stops[destID],          // to

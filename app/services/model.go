@@ -126,15 +126,17 @@ func processMsg(msg *Operation) {
 				reflect.ValueOf(owner),
 				reflect.ValueOf("NoName")})
 		case entities.LINETASK:
-			if l, p := randEntity(owner, entities.RAILLINE), randEntity(owner, entities.PLATFORM); l != nil && p != nil {
-				l, p := l.(*entities.RailLine), p.(*entities.Platform)
-				StartRailLine(owner, l, p)
-			}
-			if re := randEntity(owner, entities.RAILEDGE); re != nil {
-				re := re.(*entities.RailEdge)
-				InsertLineTaskRailEdge(owner, re, rand.Intn(2) == 0)
-			}
-			if l := randEntity(owner, entities.RAILLINE); l != nil {
+			l := randEntity(owner, entities.RAILLINE)
+			if l != nil {
+				if p := randEntity(owner, entities.PLATFORM); p != nil {
+					l, p := l.(*entities.RailLine), p.(*entities.Platform)
+					StartRailLine(owner, l, p)
+				}
+				if re := randEntity(owner, entities.RAILEDGE); re != nil {
+					re := re.(*entities.RailEdge)
+					StartRailLineEdge(owner, l.(*entities.RailLine), re)
+					InsertLineTaskRailEdge(owner, re, rand.Intn(2) == 0)
+				}
 				if rand.Intn(2) == 0 {
 					CompleteRailLine(owner, l.(*entities.RailLine))
 				}

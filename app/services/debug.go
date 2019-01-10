@@ -13,7 +13,7 @@ import (
 var (
 	numUser        = 5
 	viewInterval   = 1 * time.Second
-	updateInterval = 60 * time.Second
+	updateInterval = 30 * time.Second
 	removeInterval = 120 * time.Second
 )
 

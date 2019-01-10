@@ -151,11 +151,11 @@ func (l *RailLine) Borders() (*LineTask, *LineTask) {
 
 // IsRing returns whether LineTask is looping or not
 func (l *RailLine) IsRing() bool {
-	if len(l.Tasks) == 0 {
+	if len(l.Tasks) <= 1 {
 		return false
 	}
 	h, t := l.Borders()
-	return h == nil && t == nil && h != t
+	return h == nil && t == nil
 }
 
 func (l *RailLine) CanRing() bool {

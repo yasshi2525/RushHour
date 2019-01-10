@@ -22,19 +22,48 @@ func CreateRailLine(o *entities.Player, name string) (*entities.RailLine, error)
 func StartRailLine(
 	o *entities.Player,
 	l *entities.RailLine,
-	p *entities.Platform) (*entities.LineTask, error) {
+	p *entities.Platform) error {
 	if err := CheckAuth(o, l); err != nil {
-		return nil, err
+		return err
 	}
 	if err := CheckAuth(o, p); err != nil {
-		return nil, err
+		return err
 	}
 	if len(l.Tasks) > 0 {
-		return nil, fmt.Errorf("already registered %v", l.Tasks)
+		return fmt.Errorf("already registered %v", l.Tasks)
 	}
-	lt := Model.NewLineTaskDept(l, p)
+	if rn := p.OnRailNode; len(rn.OutEdge) > 0 {
+		model, _ := route.SearchRail(o, Config.Routing.Worker)
+		n := model[rn.ID].Nodes[entities.RAILNODE][rn.ID]
+		return StartRailLineEdge(o, l, Model.RailEdges[n.ViaEdge.ID])
+	}
+	Model.NewLineTaskDept(l, p)
+	return nil
+}
 
-	return lt, nil
+func StartRailLineEdge(o *entities.Player,
+	l *entities.RailLine,
+	re *entities.RailEdge) error {
+	if err := CheckAuth(o, l); err != nil {
+		return err
+	}
+	if err := CheckAuth(o, re); err != nil {
+		return err
+	}
+	if len(l.Tasks) > 0 {
+		return fmt.Errorf("already registered %v", l.Tasks)
+	}
+	var lt *entities.LineTask
+	if p := re.FromNode.OverPlatform; p != nil {
+		lt = Model.NewLineTaskDept(l, p)
+	}
+	lt = Model.NewLineTask(lt, re, false)
+	if p := re.ToNode.OverPlatform; p != nil {
+		lt = Model.NewLineTaskDept(l, p, lt)
+	}
+	lt = Model.NewLineTask(lt, re.Reverse, false)
+	RingRailLine(o, l)
+	return nil
 }
 
 // InsertLineTaskRailEdge corrects RailLine for new RailEdge

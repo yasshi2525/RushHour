@@ -62,7 +62,7 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 	l.Resolve(p, lt)
 	p.Resolve(l, lt)
 	l.Own.Resolve(lt)
-	if len(tail) > 0 {
+	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
 	}
 	m.Add(lt)

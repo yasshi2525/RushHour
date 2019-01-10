@@ -65,16 +65,21 @@ func (n *Node) SameAs(oth entities.Indexable) bool {
 // WalkThrough set distance towrards self to Value of connected Nodes.
 // Initial cost of connected Node must be max float64 value.
 func (n *Node) WalkThrough() {
-	var x *Node
-	var q NodeQueue = []*Node{n}
-	n.Value = 0
+	var x, y *Node
+	var q NodeQueue = []*Node{}
+	for _, e := range n.In {
+		e.FromNode.Value = e.Value
+		q = append(q, e.FromNode)
+	}
+	sort.Sort(q)
 
+	var v float64
 	for len(q) > 0 {
 		x, q = q[0], q[1:]
 
 		for _, e := range x.In {
-			y := e.FromNode
-			v := x.Value + e.Cost()
+			y = e.FromNode
+			v = x.Value + e.Cost()
 			if v < y.Value {
 				y.Value = v
 				y.Via = x
