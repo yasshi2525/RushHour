@@ -10,21 +10,21 @@ type RailLine struct {
 	Base
 	Owner
 
-	Name      string             `         json:"name"`
+	Name     string `json:"name"`
+	AutoExt  bool
+	Slowness float64
+
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stops     map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
-
-	slow float64
 }
 
 // NewRailLine create instance
-func (m *Model) NewRailLine(o *Player, s float64) *RailLine {
+func (m *Model) NewRailLine(o *Player) *RailLine {
 	l := &RailLine{
 		Base:  NewBase(m.GenID(RAILLINE)),
 		Owner: NewOwner(o),
-		slow:  s,
 	}
 	l.Init()
 	l.ResolveRef()

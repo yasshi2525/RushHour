@@ -11,9 +11,11 @@ import (
 )
 
 // CreateRailLine create RailLine
-func CreateRailLine(o *entities.Player, name string) (*entities.RailLine, error) {
-	l := Model.NewRailLine(o, Config.Train.Slowness)
+func CreateRailLine(o *entities.Player, name string, ext bool) (*entities.RailLine, error) {
+	l := Model.NewRailLine(o)
 	l.Name = name
+	l.Slowness = Config.Train.Slowness
+	l.AutoExt = ext
 
 	return l, nil
 }
@@ -204,7 +206,7 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		if tail.TaskType == entities.OnStopping {
 			tail = Model.NewLineTaskDept(l, tail.Dest, tail)
 		}
-		tail = Model.NewLineTask(tail, l.RailEdges[e.ID], false)
+		tail = Model.NewLineTask(tail, Model.RailEdges[e.ID], false)
 		e = e.ToNode.ViaEdge
 	}
 	// [DEBUG]

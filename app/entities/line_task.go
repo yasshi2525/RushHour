@@ -29,10 +29,10 @@ type LineTask struct {
 	TaskType LineTaskType `gorm:"not null" json:"type"`
 	before   *LineTask
 	next     *LineTask
-	Stay     *Platform       `gorm:"-"        json:"-"`
-	Dept     *Platform       `gorm:"-"        json:"-"`
-	Moving   *RailEdge       `gorm:"-"        json:"-"`
-	Dest     *Platform       `gorm:"-"        json:"-"`
+	Stay     *Platform       `gorm:"-" json:"-"`
+	Dept     *Platform       `gorm:"-" json:"-"`
+	Moving   *RailEdge       `gorm:"-" json:"-"`
+	Dest     *Platform       `gorm:"-" json:"-"`
 	Trains   map[uint]*Train `gorm:"-" json:"-"`
 
 	RailLineID uint `gorm:"not null" json:"lid"`
@@ -43,7 +43,7 @@ type LineTask struct {
 	MovingID   uint `                json:"reid,omitempty"`
 	DestID     uint `gorm:"-"        json:"p2id,omitempty"`
 
-	slow float64
+	Slowness float64
 }
 
 // NewLineTaskDept create "dept"
@@ -55,12 +55,13 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 		TaskType: OnDeparture,
 		Dept:     p,
 		Stay:     p,
-		slow:     l.slow,
+		Slowness: l.Slowness,
 	}
 	lt.Init()
 	lt.ResolveRef()
 	l.Resolve(p, lt)
 	p.Resolve(l, lt)
+	p.OnRailNode.Resolve(l, lt)
 	l.Own.Resolve(lt)
 	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
@@ -78,7 +79,7 @@ func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 		Dept:     re.FromNode.OverPlatform,
 		Moving:   re,
 		Dest:     re.ToNode.OverPlatform,
-		slow:     tail.slow,
+		Slowness: tail.Slowness,
 	}
 	lt.Init()
 	if re.ToNode.OverPlatform == nil {
@@ -93,7 +94,9 @@ func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	lt.ResolveRef()
 	lt.RailLine.Resolve(re, lt)
 	lt.Own.Resolve(lt)
-	re.Resolve(lt)
+	re.FromNode.Resolve(lt.RailLine, lt)
+	re.ToNode.Resolve(lt.RailLine, lt)
+	re.Resolve(lt.RailLine, lt)
 	if re.FromNode.OverPlatform != nil {
 		re.FromNode.OverPlatform.Resolve(lt)
 	}
@@ -283,10 +286,10 @@ func (lt *LineTask) Cost() float64 {
 	default:
 		cost := lt.Moving.Cost()
 		if lt.before.TaskType == OnDeparture {
-			cost /= lt.slow
+			cost /= lt.Slowness
 		}
 		if lt.TaskType == OnStopping {
-			cost /= lt.slow
+			cost /= lt.Slowness
 		}
 		return cost
 	}

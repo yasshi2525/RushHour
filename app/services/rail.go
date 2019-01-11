@@ -7,7 +7,6 @@ import (
 // CreateRailNode create RailNode
 func CreateRailNode(owner *entities.Player, x float64, y float64) (*entities.RailNode, error) {
 	rn := Model.NewRailNode(owner, x, y)
-
 	return rn, nil
 }
 
@@ -31,6 +30,12 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 
 	e1.Resolve(e2)
 	e2.Resolve(e1)
+
+	for _, l := range from.RailLines {
+		if l.AutoExt {
+			InsertLineTaskRailEdge(o, e1, false)
+		}
+	}
 
 	return to, e1, e2, nil
 }

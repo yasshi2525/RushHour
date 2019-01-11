@@ -10,12 +10,13 @@ import (
 type RailEdge struct {
 	Base
 	Owner
-	FromNode *RailNode
-	ToNode   *RailNode
 
+	FromNode  *RailNode
+	ToNode    *RailNode
 	Reverse   *RailEdge          `gorm:"-" json:"-"`
-	Trains    map[uint]*Train    `gorm:"-" json:"-"`
+	RailLines map[uint]*RailLine `gorm:"-" json:"-"`
 	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
+	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 
 	FromID    uint `gorm:"not null" json:"from"`
 	ToID      uint `gorm:"not null" json:"to"`
@@ -53,8 +54,9 @@ func (re *RailEdge) Type() ModelType {
 
 // Init do nothing
 func (re *RailEdge) Init() {
-	re.Trains = make(map[uint]*Train)
+	re.RailLines = make(map[uint]*RailLine)
 	re.LineTasks = make(map[uint]*LineTask)
+	re.Trains = make(map[uint]*Train)
 }
 
 // Pos returns location
@@ -111,6 +113,8 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 		case *RailEdge:
 			re.Reverse = obj
 			obj.Reverse = re
+		case *RailLine:
+			re.RailLines[obj.ID] = obj
 		case *LineTask:
 			re.LineTasks[obj.ID] = obj
 		case *Train:

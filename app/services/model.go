@@ -124,7 +124,8 @@ func processMsg(msg *Operation) {
 		case entities.RAILLINE:
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
-				reflect.ValueOf("NoName")})
+				reflect.ValueOf("NoName"),
+				reflect.ValueOf(rand.Intn(2) == 0)})
 		case entities.LINETASK:
 			l := randEntity(owner, entities.RAILLINE)
 			if l != nil {
