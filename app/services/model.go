@@ -22,6 +22,10 @@ type Operation struct {
 	OName  string
 }
 
+func (op *Operation) String() string {
+	return fmt.Sprintf("Op(%s:%s) %s %v(%d) at (%.2f, %.2f)", op.Source, op.OName, op.Op, op.Target, op.ID, op.X, op.Y)
+}
+
 var modelChannel chan *Operation
 
 var mkFuncs map[entities.ModelType]interface{}
@@ -136,7 +140,7 @@ func processMsg(msg *Operation) {
 				if re := randEntity(owner, entities.RAILEDGE); re != nil {
 					re := re.(*entities.RailEdge)
 					StartRailLineEdge(owner, l.(*entities.RailLine), re)
-					InsertLineTaskRailEdge(owner, re, rand.Intn(2) == 0)
+					InsertLineTaskRailEdge(owner, l.(*entities.RailLine), re, rand.Intn(2) == 0)
 				}
 				if rand.Intn(2) == 0 {
 					CompleteRailLine(owner, l.(*entities.RailLine))

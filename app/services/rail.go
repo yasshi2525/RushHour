@@ -33,7 +33,7 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 
 	for _, l := range from.RailLines {
 		if l.AutoExt {
-			InsertLineTaskRailEdge(o, e1, false)
+			InsertLineTaskRailEdge(o, l, e1, false)
 		}
 	}
 

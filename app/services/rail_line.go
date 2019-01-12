@@ -76,7 +76,7 @@ func StartRailLineEdge(o *entities.Player,
 // After  (a) -> (X) -> (a) -> (b) -> (c)
 //
 // RailEdge : (a) -> (X)
-func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass bool) error {
+func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entities.RailEdge, pass bool) error {
 	if err := CheckAuth(o, re); err != nil {
 		return err
 	}
@@ -84,8 +84,9 @@ func InsertLineTaskRailEdge(o *entities.Player, re *entities.RailEdge, pass bool
 	// extract tasks which direct origin
 	// find (a) -> (b)
 	bases := []*entities.LineTask{}
-	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.ToNode() == re.FromNode { // = (a) -> (b)
+
+	for _, lt := range re.FromNode.InTasks {
+		if lt.RailLine == l {
 			bases = append(bases, lt)
 		}
 	}
@@ -118,20 +119,16 @@ func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass bool) 
 	}
 
 	// find LineTask such as dept from new station point
-	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.FromNode() == st.Platform.OnRailNode {
-			// set dest  from edge.from.overPlatform
-			lt.Resolve(lt.Moving)
-		}
+	for _, lt := range st.Platform.OnRailNode.OutTasks {
+		// set dest  from edge.from.overPlatform
+		lt.Resolve(lt.Moving)
 	}
 
 	// find LineTask such as dest to new station point
 	// cache once bacause it will be appended after that
 	bases := []*entities.LineTask{}
-	for _, lt := range Model.LineTasks {
-		if lt.Own == o && lt.ToNode() == st.Platform.OnRailNode {
-			bases = append(bases, lt)
-		}
+	for _, lt := range st.Platform.OnRailNode.InTasks {
+		bases = append(bases, lt)
 	}
 
 	for _, lt := range bases {
