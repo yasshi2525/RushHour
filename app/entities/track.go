@@ -11,6 +11,7 @@ func (ts *Transport) ExportStep(m *Model) *Step {
 	s := m.NewStep(ts.FromPlatform, ts.ToPlatform)
 	s.By = ts.Via
 	s.Transport = ts.Value
+	ts.Via.Resolve(s)
 	return s
 }
 

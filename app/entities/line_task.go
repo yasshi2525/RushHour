@@ -25,15 +25,16 @@ type LineTask struct {
 	Base
 	Owner
 
-	RailLine *RailLine    `gorm:"-"        json:"-"`
-	TaskType LineTaskType `gorm:"not null" json:"type"`
-	before   *LineTask
-	next     *LineTask
-	Stay     *Platform       `gorm:"-" json:"-"`
-	Dept     *Platform       `gorm:"-" json:"-"`
-	Moving   *RailEdge       `gorm:"-" json:"-"`
-	Dest     *Platform       `gorm:"-" json:"-"`
-	Trains   map[uint]*Train `gorm:"-" json:"-"`
+	RailLine  *RailLine    `gorm:"-"        json:"-"`
+	TaskType  LineTaskType `gorm:"not null" json:"type"`
+	before    *LineTask
+	next      *LineTask
+	Stay      *Platform       `gorm:"-" json:"-"`
+	Dept      *Platform       `gorm:"-" json:"-"`
+	Moving    *RailEdge       `gorm:"-" json:"-"`
+	Dest      *Platform       `gorm:"-" json:"-"`
+	Trains    map[uint]*Train `gorm:"-" json:"-"`
+	OverSteps map[uint]*Step  `gorm:"-" json:"-"`
 
 	RailLineID uint `gorm:"not null" json:"lid"`
 	BeforeID   uint `gorm:"-"        json:"before,omitempty"`
@@ -99,6 +100,7 @@ func (lt *LineTask) Type() ModelType {
 // Init do nothing
 func (lt *LineTask) Init() {
 	lt.Trains = make(map[uint]*Train)
+	lt.OverSteps = make(map[uint]*Step)
 }
 
 // Pos returns entities' position
@@ -176,6 +178,9 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			default:
 				lt.Moving.Resolve(obj)
 			}
+		case *Step:
+			lt.OverSteps[obj.ID] = obj
+			lt.RailLine.Resolve(obj)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

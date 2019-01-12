@@ -18,6 +18,7 @@ type RailLine struct {
 	Stops     map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
+	Steps     map[uint]*Step     `gorm:"-" json:"-"`
 }
 
 // NewRailLine create instance
@@ -49,7 +50,7 @@ func (l *RailLine) Init() {
 	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
 	l.Trains = make(map[uint]*Train)
-
+	l.Steps = make(map[uint]*Step)
 }
 
 // Pos returns location
@@ -93,6 +94,8 @@ func (l *RailLine) Resolve(args ...interface{}) {
 			l.Tasks[obj.ID] = obj
 		case *Train:
 			l.Trains[obj.ID] = obj
+		case *Step:
+			l.Steps[obj.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

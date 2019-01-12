@@ -213,10 +213,8 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 
 // delStepRailLine discards old step
 func delStepRailLine(l *entities.RailLine) {
-	for _, s := range Model.Steps {
-		if s.By != nil && s.By.RailLine == l {
-			Model.Delete(s)
-		}
+	for _, s := range l.Steps {
+		Model.Delete(s)
 	}
 }
 
