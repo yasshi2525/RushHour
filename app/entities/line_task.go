@@ -43,8 +43,6 @@ type LineTask struct {
 	DeptID     uint `gorm:"-"        json:"p1id,omitempty"`
 	MovingID   uint `                json:"reid,omitempty"`
 	DestID     uint `gorm:"-"        json:"p2id,omitempty"`
-
-	Slowness float64
 }
 
 // NewLineTaskDept create "dept"
@@ -52,7 +50,6 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 	lt := &LineTask{
 		Base:     NewBase(m.GenID(LINETASK)),
 		TaskType: OnDeparture,
-		Slowness: l.Slowness,
 	}
 	lt.Init()
 	lt.Resolve(l.Own, l, p)
@@ -68,7 +65,6 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	lt := &LineTask{
 		Base:     NewBase(m.GenID(LINETASK)),
-		Slowness: tail.Slowness,
 	}
 	lt.Init()
 	if re.ToNode.OverPlatform == nil {
@@ -277,10 +273,10 @@ func (lt *LineTask) Cost() float64 {
 	default:
 		cost := lt.Moving.Cost()
 		if lt.before.TaskType == OnDeparture {
-			cost /= lt.Slowness
+			cost /= Const.Train.Slowness
 		}
 		if lt.TaskType == OnStopping {
-			cost /= lt.Slowness
+			cost /= Const.Train.Slowness
 		}
 		return cost
 	}

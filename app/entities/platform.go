@@ -32,7 +32,8 @@ type Platform struct {
 // NewPlatform creates instance
 func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	p := &Platform{
-		Base: NewBase(m.GenID(PLATFORM)),
+		Base:     NewBase(m.GenID(PLATFORM)),
+		Capacity: Const.Platform.Capacity,
 	}
 	p.Init()
 	p.Resolve(rn.Own, rn, g.InStation, g)

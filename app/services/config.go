@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/revel/revel"
 
 	"github.com/BurntSushi/toml"
@@ -18,33 +20,6 @@ func (d *duration) UnmarshalText(text []byte) error {
 	var err error
 	d.D, err = time.ParseDuration(string(text))
 	return err
-}
-
-type cfgResidence struct {
-	Interval  duration
-	Capacity  uint    `validate:"min=1"`
-	Randomize float64 `validate:"min=0"`
-}
-
-type cfgCompany struct {
-	Scale float64 `validate:"gt=0"`
-}
-
-type cfgGate struct {
-	Num uint `validate:"gt=0"`
-}
-
-type cfgPlatform struct {
-	Capacity uint `validate:"gt=0"`
-}
-
-type cfgTrain struct {
-	Weight   float64 `validate:"gt=0"`
-	Slowness float64 `validate:"gt=0,lte=1"`
-}
-
-type cfgHuman struct {
-	Weight float64 `validate:"gt=0"`
 }
 
 type cfgGame struct {
@@ -71,30 +46,32 @@ type cfgPerf struct {
 	Init      duration
 }
 
+type cfgService struct {
+	Game    cfgGame
+	Routing cfgRouting
+	Backup  cfgBackup
+	Perf    cfgPerf
+}
+
 type config struct {
-	Residence cfgResidence
-	Company   cfgCompany
-	Gate      cfgGate
-	Platform  cfgPlatform
-	Train     cfgTrain
-	Human     cfgHuman
-	Game      cfgGame
-	Routing   cfgRouting
-	Backup    cfgBackup
-	Perf      cfgPerf
+	Entity  entities.Config
+	Service cfgService
 }
 
 // Config defines game feature
 var Config config
+var Const cfgService
 
 // LoadConf load and validate game.conf
 func LoadConf() {
 	if _, err := toml.DecodeFile("conf/game.conf", &Config); err != nil {
 		panic(fmt.Errorf("failed to load conf: %v", err))
 	}
-
 	if err := validator.New().Struct(Config); err != nil {
 		panic(fmt.Errorf("%+v, %v", Config, err))
 	}
-	revel.AppLog.Info("config file was successfully loaded.")
+	Const = Config.Service
+
+	defer revel.AppLog.Info("config file was successfully loaded.")
+	return
 }

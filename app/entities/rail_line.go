@@ -10,9 +10,8 @@ type RailLine struct {
 	Base
 	Owner
 
-	Name     string `json:"name"`
-	AutoExt  bool
-	Slowness float64
+	Name    string `json:"name"`
+	AutoExt bool
 
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stops     map[uint]*Platform `gorm:"-" json:"-"`

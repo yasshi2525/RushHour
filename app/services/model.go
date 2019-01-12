@@ -34,7 +34,7 @@ var rmFuncs map[entities.ModelType]interface{}
 // StartModelWatching setup watching model
 func StartModelWatching() {
 
-	modelChannel = make(chan *Operation, Config.Game.Queue)
+	modelChannel = make(chan *Operation, Const.Game.Queue)
 
 	mkFuncs = make(map[entities.ModelType]interface{})
 	mkFuncs[entities.PLAYER] = CreatePlayer
@@ -75,7 +75,7 @@ func watchModel() {
 		if !skipReroute {
 			StartRouting()
 		}
-		WarnLongExec(start, Config.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
+		WarnLongExec(start, Const.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}
 	revel.AppLog.Info("model watching channel was closed.")
 }

@@ -23,6 +23,7 @@ func (m *Model) NewCompany(o *Player, x float64, y float64) *Company {
 		Base:  NewBase(m.GenID(COMPANY)),
 		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
+		Scale: Const.Company.Scale,
 	}
 	c.Init()
 	c.ResolveRef()

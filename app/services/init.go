@@ -17,7 +17,7 @@ func Init() {
 	start := time.Now()
 	InitLock()
 	LoadConf()
-	defer WarnLongExec(start, Config.Perf.Init.D, "initialization", true)
+	defer WarnLongExec(start, Const.Perf.Init.D, "initialization", true)
 	InitRepository()
 	db = connectDB()
 	//db.LogMode(true)

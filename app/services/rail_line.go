@@ -14,7 +14,6 @@ import (
 func CreateRailLine(o *entities.Player, name string, ext bool) (*entities.RailLine, error) {
 	l := Model.NewRailLine(o)
 	l.Name = name
-	l.Slowness = Config.Train.Slowness
 	l.AutoExt = ext
 
 	return l, nil
@@ -35,7 +34,7 @@ func StartRailLine(
 		return fmt.Errorf("already registered %v", l.Tasks)
 	}
 	if rn := p.OnRailNode; len(rn.OutEdge) > 0 {
-		model, _ := route.SearchRail(o, Config.Routing.Worker)
+		model, _ := route.SearchRail(o, Const.Routing.Worker)
 		n := model[rn.ID].Nodes[entities.RAILNODE][rn.ID]
 		return StartRailLineEdge(o, l, Model.RailEdges[n.ViaEdge.ID])
 	}
@@ -196,7 +195,7 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return false, nil
 	}
 	head, tail := l.Borders()
-	route, _ := route.SearchRail(l.Own, Config.Routing.Worker)
+	route, _ := route.SearchRail(l.Own, Const.Routing.Worker)
 	n := route[head.FromNode().ID].Nodes[entities.RAILNODE][tail.ToNode().ID]
 	e := n.ViaEdge
 	for e != nil {
@@ -220,7 +219,7 @@ func delStepRailLine(l *entities.RailLine) {
 
 // genStepRailLine generate Step P <-> P
 func genStepRailLine(l *entities.RailLine) {
-	tracks := route.SearchRailLine(l, Config.Routing.Worker)
+	tracks := route.SearchRailLine(l, Const.Routing.Worker)
 	for _, tr := range tracks {
 		tr.ExportStep(Model)
 	}

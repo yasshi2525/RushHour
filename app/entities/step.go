@@ -20,9 +20,9 @@ type Step struct {
 }
 
 // NewWalkStep create new instance and relation to Relayable
-func (m *Model) NewWalkStep(f Relayable, t Relayable, w float64) *Step {
+func (m *Model) NewWalkStep(f Relayable, t Relayable) *Step {
 	s := m.NewStep(f, t)
-	s.weight = w
+	s.weight = Const.Human.Weight
 	return s
 }
 

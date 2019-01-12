@@ -42,12 +42,12 @@ func processRouting(ctx context.Context) {
 	defer MuRoute.Unlock()
 
 	initialRouting := RouteTemplate == nil
-	alertEnabled := Config.Routing.Alert > 0
+	alertEnabled := Const.Routing.Alert > 0
 
 	template, ok := scan(ctx)
 	if !ok {
 		routingBlockConunt++
-		if alertEnabled && routingBlockConunt >= Config.Routing.Alert {
+		if alertEnabled && routingBlockConunt >= Const.Routing.Alert {
 			revel.AppLog.Warnf("routing was canceled (1/3) in scanning phase by %d times", routingBlockConunt)
 		}
 		return
@@ -56,7 +56,7 @@ func processRouting(ctx context.Context) {
 	payload, ok := search(ctx, template)
 	if !ok {
 		routingBlockConunt++
-		if alertEnabled && routingBlockConunt >= Config.Routing.Alert {
+		if alertEnabled && routingBlockConunt >= Const.Routing.Alert {
 			revel.AppLog.Warnf("routing was canceled (2/3) in searching phase (%d/%d) by %d times",
 				payload.Processed, payload.Total, routingBlockConunt)
 		}
@@ -65,14 +65,14 @@ func processRouting(ctx context.Context) {
 
 	RouteTemplate = payload
 	reflectModel()
-	if alertEnabled && routingBlockConunt >= Config.Routing.Alert {
+	if alertEnabled && routingBlockConunt >= Const.Routing.Alert {
 		revel.AppLog.Infof("routing was successfully ended after %d times blocking", routingBlockConunt)
 	}
 	routingBlockConunt = 0
 	if initialRouting { // force log when first routing after reboot
-		WarnLongExec(start, Config.Perf.Routing.D, "initial routing", true)
+		WarnLongExec(start, Const.Perf.Routing.D, "initial routing", true)
 	} else {
-		WarnLongExec(start, Config.Perf.Routing.D, "routing")
+		WarnLongExec(start, Const.Perf.Routing.D, "routing")
 	}
 }
 
@@ -87,7 +87,7 @@ func scan(ctx context.Context) (*route.Model, bool) {
 }
 
 func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {
-	return route.Search(ctx, entities.COMPANY, Config.Routing.Worker, template)
+	return route.Search(ctx, entities.COMPANY, Const.Routing.Worker, template)
 }
 
 func reflectModel() {

@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"math/rand"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 )
@@ -14,8 +13,6 @@ func CreateResidence(o *entities.Player, x float64, y float64) (*entities.Reside
 	}
 
 	r := Model.NewResidence(o, x, y)
-	r.Wait = Config.Residence.Interval.D.Seconds() * rand.Float64()
-	r.Capacity = Config.Residence.Capacity
 	r.Name = "NoName"
 
 	GenStepResidence(r)
@@ -43,7 +40,6 @@ func CreateCompany(o *entities.Player, x float64, y float64) (*entities.Company,
 	}
 
 	c := Model.NewCompany(o, x, y)
-	c.Scale = Config.Company.Scale
 
 	GenStepCompany(c)
 	return c, nil

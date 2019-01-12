@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -21,9 +22,11 @@ type Residence struct {
 // NewResidence create new instance without setting parameters
 func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
 	r := &Residence{
-		Base:  NewBase(m.GenID(RESIDENCE)),
-		Owner: NewOwner(o),
-		Point: NewPoint(x, y),
+		Base:     NewBase(m.GenID(RESIDENCE)),
+		Owner:    NewOwner(o),
+		Point:    NewPoint(x, y),
+		Capacity: Const.Residence.Capacity,
+		Wait:     Const.Residence.Interval.D.Seconds() * rand.Float64(),
 	}
 	r.Init()
 	r.ResolveRef()

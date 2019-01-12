@@ -31,13 +31,14 @@ func InitLock() {
 
 // InitRepository initialize storage
 func InitRepository() {
+	entities.Const = Config.Entity
 	entities.InitType()
 	Model = entities.NewModel()
 }
 
 // GenStep generate Step and resister it
 func GenStep(from entities.Relayable, to entities.Relayable) *entities.Step {
-	s := Model.NewWalkStep(from, to, Config.Human.Weight)
+	s := Model.NewWalkStep(from, to)
 
 	return s
 }

@@ -32,6 +32,7 @@ type Gate struct {
 func (m *Model) NewGate(st *Station) *Gate {
 	g := &Gate{
 		Base: NewBase(m.GenID(GATE)),
+		Num:  Const.Gate.Num,
 	}
 	g.Init()
 	g.Resolve(st.Own, st)

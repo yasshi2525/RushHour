@@ -10,7 +10,7 @@ var gamemaster *time.Ticker
 
 // StartProcedure start game.
 func StartProcedure() {
-	gamemaster = time.NewTicker(Config.Game.Interval.D)
+	gamemaster = time.NewTicker(Const.Game.Interval.D)
 
 	go watchGame()
 	revel.AppLog.Info("game procedure was successfully started.")
@@ -32,7 +32,7 @@ func watchGame() {
 
 func processGame() {
 	start := time.Now()
-	defer WarnLongExec(start, Config.Perf.Game.D, "procedure")
+	defer WarnLongExec(start, Const.Perf.Game.D, "procedure")
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()
