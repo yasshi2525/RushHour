@@ -58,11 +58,11 @@ func StartRailLineEdge(o *entities.Player,
 	if p := re.FromNode.OverPlatform; p != nil {
 		lt = Model.NewLineTaskDept(l, p)
 	}
-	lt = Model.NewLineTask(lt, re, false)
+	lt = Model.NewLineTask(l, re, false, lt)
 	if p := re.ToNode.OverPlatform; p != nil {
 		lt = Model.NewLineTaskDept(l, p, lt)
 	}
-	lt = Model.NewLineTask(lt, re.Reverse, false)
+	lt = Model.NewLineTask(l, re.Reverse, false, lt)
 	RingRailLine(o, l)
 	return nil
 }
@@ -167,7 +167,7 @@ func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities
 		tail = Model.NewLineTaskDept(tail.RailLine, tail.Dest, tail)
 	}
 
-	tail = Model.NewLineTask(tail, newer, pass)
+	tail = Model.NewLineTask(tail.RailLine, newer, pass, tail)
 
 	return tail, nil
 }
@@ -202,7 +202,7 @@ func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		if tail.TaskType == entities.OnStopping {
 			tail = Model.NewLineTaskDept(l, tail.Dest, tail)
 		}
-		tail = Model.NewLineTask(tail, Model.RailEdges[e.ID], false)
+		tail = Model.NewLineTask(l, Model.RailEdges[e.ID], false, tail)
 		e = e.ToNode.ViaEdge
 	}
 	// [DEBUG]

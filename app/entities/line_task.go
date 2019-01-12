@@ -62,7 +62,7 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 }
 
 // NewLineTask creates "stop" or "pass" or "moving"
-func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
+func (m *Model) NewLineTask(l *RailLine, re *RailEdge, pass bool, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
 		Base:     NewBase(m.GenID(LINETASK)),
 	}
@@ -76,9 +76,11 @@ func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 			lt.TaskType = OnStopping
 		}
 	}
-	lt.Resolve(tail.Own, tail.RailLine, re)
+	lt.Resolve(l.Own, l, re)
 	lt.ResolveRef()
-	tail.SetNext(lt)
+	if len(tail) > 0 && tail[0] != nil {
+		tail[0].SetNext(lt)
+	}
 	m.Add(lt)
 	return lt
 }
