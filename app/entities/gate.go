@@ -31,14 +31,11 @@ type Gate struct {
 // NewGate creates instance
 func (m *Model) NewGate(st *Station) *Gate {
 	g := &Gate{
-		Base:      NewBase(m.GenID(GATE)),
-		Owner:     st.Owner,
-		InStation: st,
+		Base: NewBase(m.GenID(GATE)),
 	}
 	g.Init()
+	g.Resolve(st.Own, st)
 	g.ResolveRef()
-	st.Resolve(g)
-	st.Own.Resolve(g)
 	m.Add(g)
 	return g
 }

@@ -18,7 +18,7 @@ func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*ent
 
 	st := Model.NewStation(o)
 	g := Model.NewGate(st)
-	p := Model.NewPlatform(rn, g, st)
+	p := Model.NewPlatform(rn, g)
 
 	st.Name = name
 	g.Num = Config.Gate.Num

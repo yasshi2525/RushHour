@@ -22,12 +22,11 @@ type Station struct {
 // NewStation create new instance.
 func (m *Model) NewStation(o *Player) *Station {
 	st := &Station{
-		Base:  NewBase(m.GenID(STATION)),
-		Owner: NewOwner(o),
+		Base: NewBase(m.GenID(STATION)),
 	}
 	st.Init()
+	st.Resolve(o)
 	st.ResolveRef()
-	o.Resolve(st)
 	m.Add(st)
 	return st
 }

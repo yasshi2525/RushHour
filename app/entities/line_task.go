@@ -50,19 +50,12 @@ type LineTask struct {
 func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
 		Base:     NewBase(m.GenID(LINETASK)),
-		Owner:    l.Owner,
-		RailLine: l,
 		TaskType: OnDeparture,
-		Dept:     p,
-		Stay:     p,
 		Slowness: l.Slowness,
 	}
 	lt.Init()
+	lt.Resolve(l.Own, l, p)
 	lt.ResolveRef()
-	l.Resolve(p, lt)
-	p.Resolve(l, lt)
-	p.OnRailNode.Resolve(l, lt)
-	l.Own.Resolve(lt)
 	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
 	}
@@ -74,11 +67,6 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 	lt := &LineTask{
 		Base:     NewBase(m.GenID(LINETASK)),
-		Owner:    tail.Owner,
-		RailLine: tail.RailLine,
-		Dept:     re.FromNode.OverPlatform,
-		Moving:   re,
-		Dest:     re.ToNode.OverPlatform,
 		Slowness: tail.Slowness,
 	}
 	lt.Init()
@@ -91,18 +79,8 @@ func (m *Model) NewLineTask(tail *LineTask, re *RailEdge, pass bool) *LineTask {
 			lt.TaskType = OnStopping
 		}
 	}
+	lt.Resolve(tail.Own, tail.RailLine, re)
 	lt.ResolveRef()
-	lt.RailLine.Resolve(re, lt)
-	lt.Own.Resolve(lt)
-	re.FromNode.Resolve(lt.RailLine, lt)
-	re.ToNode.Resolve(lt.RailLine, lt)
-	re.Resolve(lt.RailLine, lt)
-	if re.FromNode.OverPlatform != nil {
-		re.FromNode.OverPlatform.Resolve(lt)
-	}
-	if re.ToNode.OverPlatform != nil {
-		re.ToNode.OverPlatform.Resolve(lt)
-	}
 	tail.SetNext(lt)
 	m.Add(lt)
 	return lt
@@ -158,8 +136,10 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			obj.Resolve(lt)
 		case *Platform:
 			lt.Stay = obj
+			lt.Dept = obj
 			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
+			obj.OnRailNode.Resolve(lt.RailLine, lt)
 		case *RailEdge:
 			lt.Moving = obj
 			lt.RailLine.Resolve(obj)
@@ -172,6 +152,8 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 				lt.Dest = p
 				p.Resolve(lt)
 			}
+			obj.FromNode.Resolve(lt.RailLine, lt)
+			obj.ToNode.Resolve(lt.RailLine, lt)
 		case *RailLine:
 			lt.RailLine = obj
 			obj.Resolve(lt)

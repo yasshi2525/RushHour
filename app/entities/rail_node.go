@@ -24,13 +24,11 @@ type RailNode struct {
 func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 	rn := &RailNode{
 		Base:  NewBase(m.GenID(RAILNODE)),
-		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
 	rn.Init()
+	rn.Resolve(o)
 	rn.ResolveRef()
-
-	o.Resolve(rn)
 	m.Add(rn)
 	return rn
 }

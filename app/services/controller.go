@@ -22,7 +22,8 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 	for idx, res := range entities.TypeList {
 		// filter out agent, step ...
 		if res.IsVisible() {
-			list := reflect.MakeSlice(reflect.SliceOf(res.Type()), 0, 0)
+			list := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(res.Type())), 0, 0)
+			revel.AppLog.Warnf("[DEBUG] list = %#v", list)
 			Model.ForEach(res, func(obj entities.Indexable) {
 				// filter time
 				if len(after) > 0 && !obj.(entities.Persistable).IsChanged(after[0]) {
@@ -46,7 +47,7 @@ func newGameView() reflect.Value {
 		if res.IsVisible() {
 			fields = append(fields, reflect.StructField{
 				Name: res.String(),
-				Type: reflect.SliceOf(res.Type()),
+				Type: reflect.SliceOf(reflect.PtrTo(res.Type())),
 				Tag:  reflect.StructTag(fmt.Sprintf("json:\"%s\"", res.API())),
 			})
 		}

@@ -26,18 +26,11 @@ type RailEdge struct {
 // NewRailEdge create new instance and relates RailNode
 func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Base:     NewBase(m.GenID(RAILEDGE)),
-		Owner:    f.Owner,
-		FromNode: f,
-		ToNode:   t,
+		Base: NewBase(m.GenID(RAILEDGE)),
 	}
 	re.Init()
+	re.Resolve(f.Own, f, t)
 	re.ResolveRef()
-
-	f.Own.Resolve(re)
-	f.OutEdge[re.ID] = re
-	t.InEdge[re.ID] = re
-
 	m.Add(re)
 	return re
 }

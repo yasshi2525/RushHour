@@ -30,20 +30,13 @@ type Platform struct {
 }
 
 // NewPlatform creates instance
-func (m *Model) NewPlatform(rn *RailNode, g *Gate, st *Station) *Platform {
+func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	p := &Platform{
-		Base:       NewBase(m.GenID(PLATFORM)),
-		Owner:      rn.Owner,
-		OnRailNode: rn,
-		InStation:  st,
-		WithGate:   g,
+		Base: NewBase(m.GenID(PLATFORM)),
 	}
 	p.Init()
+	p.Resolve(rn.Own, rn, g.InStation, g)
 	p.ResolveRef()
-	rn.Resolve(p)
-	rn.Own.Resolve(p)
-	g.Resolve(p)
-	st.Resolve(p)
 	m.Add(p)
 	return p
 }

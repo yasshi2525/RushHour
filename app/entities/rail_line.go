@@ -23,10 +23,10 @@ type RailLine struct {
 // NewRailLine create instance
 func (m *Model) NewRailLine(o *Player) *RailLine {
 	l := &RailLine{
-		Base:  NewBase(m.GenID(RAILLINE)),
-		Owner: NewOwner(o),
+		Base: NewBase(m.GenID(RAILLINE)),
 	}
 	l.Init()
+	l.Resolve(o)
 	l.ResolveRef()
 	o.Resolve(l)
 	m.Add(l)
