@@ -69,6 +69,9 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 		Base: NewBase(m.GenID(LINETASK)),
 	}
 	lt.Init(m)
+	lt.Resolve(l.Own, l, re)
+	lt.ResolveRef()
+
 	if re.ToNode.OverPlatform == nil {
 		lt.TaskType = OnMoving
 	} else {
@@ -78,8 +81,7 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 			lt.TaskType = OnStopping
 		}
 	}
-	lt.Resolve(l.Own, l, re)
-	lt.ResolveRef()
+
 	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
 	}
