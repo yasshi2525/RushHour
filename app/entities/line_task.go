@@ -109,8 +109,8 @@ func (lt *LineTask) DepartIf() *LineTask {
 	return lt
 }
 
-func (lt *LineTask) Stretch(re *RailEdge) *LineTask {
-	if lt.next != nil {
+func (lt *LineTask) Stretch(re *RailEdge, force ...bool) *LineTask {
+	if (len(force) == 0 || !force[0]) && lt.next != nil {
 		panic(fmt.Errorf("Tried to add RailEdge to Connectted LineTask: %v -> %v", re, lt))
 	}
 	if lt.ToNode() != re.FromNode {
@@ -134,9 +134,9 @@ func (lt *LineTask) InsertRailEdge(re *RailEdge) {
 	if lt.ToNode() != re.FromNode {
 		panic(fmt.Errorf("Tried to insert far RailEdge to LineTask: %v -> %v", re, lt))
 	}
-	next := lt.Next()               // = (b) -> (c)
-	tail := lt.Stretch(re)          // = (a) -> (X)
-	tail = tail.Stretch(re.Reverse) // = (X) -> (a)
+	next := lt.Next()                     // = (b) -> (c)
+	tail := lt.Stretch(re, true)          // = (a) -> (X)
+	tail = tail.Stretch(re.Reverse, true) // = (X) -> (a)
 
 	// when (X) is station and is stopped, append "dept" task after it
 	if next != nil && next.TaskType != OnDeparture {
