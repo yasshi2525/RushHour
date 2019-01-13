@@ -98,8 +98,6 @@ func (t *Train) Resolve(args ...interface{}) {
 func (t *Train) ResolveRef() {
 	if t.task != nil {
 		t.TaskID = t.task.ID
-	} else {
-		t.TaskID = ZERO
 	}
 	if t.OnRailEdge != nil {
 		t.RailEdgeID = t.OnRailEdge.ID
@@ -118,6 +116,9 @@ func (t *Train) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Platform:
 			t.OnPlatform = nil
+		case *LineTask:
+			t.task = nil
+			t.TaskID = ZERO
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

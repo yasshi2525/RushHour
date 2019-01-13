@@ -89,8 +89,8 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 	return lt
 }
 
-func (lt *LineTask) Depart() *LineTask {
-	if lt.next != nil {
+func (lt *LineTask) Depart(force ...bool) *LineTask {
+	if !(len(force) > 0 && force[0]) && lt.next != nil {
 		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
 	}
 	if lt.TaskType != OnStopping {
@@ -99,18 +99,18 @@ func (lt *LineTask) Depart() *LineTask {
 	return lt.M.NewLineTaskDept(lt.RailLine, lt.Dest, lt)
 }
 
-func (lt *LineTask) DepartIf() *LineTask {
-	if lt.next != nil {
+func (lt *LineTask) DepartIf(force ...bool) *LineTask {
+	if !(len(force) > 0 && force[0]) && lt.next != nil {
 		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
 	}
 	if lt.TaskType == OnStopping {
-		return lt.Depart()
+		return lt.Depart(force...)
 	}
 	return lt
 }
 
 func (lt *LineTask) Stretch(re *RailEdge, force ...bool) *LineTask {
-	if (len(force) == 0 || !force[0]) && lt.next != nil {
+	if !(len(force) > 0 && force[0]) && lt.next != nil {
 		panic(fmt.Errorf("Tried to add RailEdge to Connectted LineTask: %v -> %v", re, lt))
 	}
 	if lt.ToNode() != re.FromNode {
@@ -118,7 +118,7 @@ func (lt *LineTask) Stretch(re *RailEdge, force ...bool) *LineTask {
 	}
 
 	// when task is "stop", append task "departure"
-	tail := lt.DepartIf()
+	tail := lt.DepartIf(force...)
 	return lt.M.NewLineTask(lt.RailLine, re, tail)
 }
 
@@ -153,7 +153,7 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 	} else {
 		// change move -> stop
 		lt.TaskType = OnStopping
-		lt.Depart().SetNext(lt.next)
+		lt.Depart(true).SetNext(lt.next)
 	}
 	lt.Dest = p
 	lt.RailLine.ReRouting = true
@@ -279,8 +279,6 @@ func (lt *LineTask) ResolveRef() {
 	}
 	if lt.next != nil {
 		lt.NextID = lt.next.ID
-	} else {
-		lt.NextID = ZERO
 	}
 	if lt.Moving != nil {
 		lt.MovingID = lt.Moving.ID
@@ -390,8 +388,11 @@ func (lt *LineTask) SetNext(v *LineTask) {
 	}
 	lt.next = v
 	if v != nil {
+		lt.NextID = v.ID
 		v.before = lt
 		v.ResolveRef()
+	} else {
+		lt.NextID = ZERO
 	}
 	lt.Change()
 	lt.ResolveRef()

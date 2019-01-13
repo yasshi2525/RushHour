@@ -134,13 +134,9 @@ func (h *Human) ResolveRef() {
 	h.ToID = h.To.ID
 	if h.onPlatform != nil {
 		h.PlatformID = h.onPlatform.ID
-	} else {
-		h.PlatformID = ZERO
 	}
 	if h.onTrain != nil {
 		h.TrainID = h.onTrain.ID
-	} else {
-		h.TrainID = ZERO
 	}
 }
 
@@ -186,8 +182,10 @@ func (h *Human) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Platform:
 			h.onPlatform = nil
+			h.PlatformID = ZERO
 		case *Train:
 			h.onTrain = nil
+			h.TrainID = ZERO
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
