@@ -84,7 +84,7 @@ func (l *RailLine) Complement() {
 	tk := tail.ToNode().Tracks[head.FromNode().ID]
 	for tk != nil {
 		tail = tail.Stretch(tk.Via)
-		tk = tk.ToNode.Tracks[head.FromNode().ID]
+		tk = tail.ToNode().Tracks[head.FromNode().ID]
 	}
 }
 
