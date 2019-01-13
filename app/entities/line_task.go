@@ -156,11 +156,13 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 		lt.Depart(true).SetNext(lt.next)
 	}
 	lt.Dest = p
+	lt.ResolveRef()
 	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) InsertDeparture(p *Platform) {
 	lt.Dept = p
+	lt.ResolveRef()
 	lt.RailLine.ReRouting = true
 }
 
