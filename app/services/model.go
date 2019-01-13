@@ -49,6 +49,7 @@ func StartModelWatching() {
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
 	rmFuncs[entities.COMPANY] = RemoveCompany
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
+	rmFuncs[entities.RAILEDGE] = RemoveRailEdge
 	rmFuncs[entities.STATION] = RemoveStation
 
 	go watchModel()
@@ -129,6 +130,7 @@ func processMsg(msg *Operation) {
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
 				reflect.ValueOf("NoName"),
+				reflect.ValueOf(rand.Intn(2) == 0),
 				reflect.ValueOf(rand.Intn(2) == 0)})
 		case entities.LINETASK:
 			l := randEntity(owner, entities.RAILLINE)
@@ -140,10 +142,10 @@ func processMsg(msg *Operation) {
 				if re := randEntity(owner, entities.RAILEDGE); re != nil {
 					re := re.(*entities.RailEdge)
 					StartRailLineEdge(owner, l.(*entities.RailLine), re)
-					InsertLineTaskRailEdge(owner, l.(*entities.RailLine), re, rand.Intn(2) == 0)
+					InsertLineTaskRailEdge(owner, l.(*entities.RailLine), re)
 				}
 				if rand.Intn(2) == 0 {
-					CompleteRailLine(owner, l.(*entities.RailLine))
+					ComplementRailLine(owner, l.(*entities.RailLine))
 				}
 			}
 		}

@@ -11,6 +11,7 @@ type Platform struct {
 	Base
 	Owner
 
+	M          *Model             `gorm:"-" json:"-"`
 	OnRailNode *RailNode          `gorm:"-" json:"-"`
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
@@ -18,8 +19,10 @@ type Platform struct {
 	LineTasks  map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains     map[uint]*Train    `gorm:"-" json:"-"`
 	Passengers map[uint]*Human    `gorm:"-" json:"-"`
-	outStep    map[uint]*Step
-	inStep     map[uint]*Step
+	// key is id of Platform
+	Transports map[uint]*Transport `gorm:"-" json:"-"`
+	outSteps   map[uint]*Step
+	inSteps    map[uint]*Step
 
 	Capacity uint `gorm:"not null" json:"cap"`
 	Occupied uint `gorm:"-"        json:"used"`
@@ -35,11 +38,34 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 		Base:     NewBase(m.GenID(PLATFORM)),
 		Capacity: Const.Platform.Capacity,
 	}
-	p.Init()
+	p.Init(m)
 	p.Resolve(rn.Own, rn, g.InStation, g)
 	p.ResolveRef()
 	m.Add(p)
+
+	// find LineTask such as dest to new platform point
+	for _, lt := range rn.InTasks {
+		lt.InsertDestination(p)
+	}
+
+	// find LineTask such as dept from new platform point
+	for _, lt := range rn.OutTasks {
+		lt.InsertDeparture(p)
+	}
+
+	p.GenOutSteps()
+	p.GenInSteps()
 	return p
+}
+
+func (p *Platform) GenOutSteps() {
+	// P -> G
+	p.M.NewStep(p, p.WithGate)
+}
+
+func (p *Platform) GenInSteps() {
+	// G -> P
+	p.M.NewStep(p.WithGate, p)
 }
 
 // Idx returns unique id field.
@@ -53,13 +79,15 @@ func (p *Platform) Type() ModelType {
 }
 
 // Init creates map.
-func (p *Platform) Init() {
+func (p *Platform) Init(m *Model) {
+	p.M = m
 	p.RailLines = make(map[uint]*RailLine)
 	p.LineTasks = make(map[uint]*LineTask)
 	p.Trains = make(map[uint]*Train)
 	p.Passengers = make(map[uint]*Human)
-	p.outStep = make(map[uint]*Step)
-	p.inStep = make(map[uint]*Step)
+	p.Transports = make(map[uint]*Transport)
+	p.outSteps = make(map[uint]*Step)
+	p.inSteps = make(map[uint]*Step)
 }
 
 // Pos returns location
@@ -75,14 +103,14 @@ func (p *Platform) IsIn(x float64, y float64, scale float64) bool {
 	return p.Pos().IsIn(x, y, scale)
 }
 
-// OutStep returns where it can go to
-func (p *Platform) OutStep() map[uint]*Step {
-	return p.outStep
+// OutSteps returns where it can go to
+func (p *Platform) OutSteps() map[uint]*Step {
+	return p.outSteps
 }
 
-// InStep returns where it comes from
-func (p *Platform) InStep() map[uint]*Step {
-	return p.inStep
+// InSteps returns where it comes from
+func (p *Platform) InSteps() map[uint]*Step {
+	return p.inSteps
 }
 
 // Resolve set reference
@@ -130,8 +158,8 @@ func (p *Platform) ResolveRef() {
 	}
 }
 
-// CheckRemove checks related reference
-func (p *Platform) CheckRemove() error {
+// CheckDelete checks related reference
+func (p *Platform) CheckDelete() error {
 	if len(p.RailLines) > 0 {
 		return fmt.Errorf("blocked by RailLine of %v", p.RailLines)
 	}
@@ -148,14 +176,21 @@ func (p *Platform) CheckRemove() error {
 func (p *Platform) UnRef() {
 	for _, h := range p.Passengers {
 		h.UnResolve(p)
-		delete(p.Passengers, h.ID)
 	}
 	for _, t := range p.Trains {
 		t.UnResolve(p)
-		delete(p.Trains, t.ID)
 	}
 	p.OnRailNode.UnResolve(p)
-	p.OnRailNode = nil
+}
+
+func (p *Platform) Delete() {
+	for _, s := range p.outSteps {
+		p.M.Delete(s)
+	}
+	for _, s := range p.inSteps {
+		p.M.Delete(s)
+	}
+	p.M.Delete(p)
 }
 
 // Permits represents Player is permitted to control
@@ -195,6 +230,6 @@ func (p *Platform) String() string {
 	return fmt.Sprintf("%s(%d):st=%d,g=%d,rn=%d,i=%d,o=%d,h=%d/%d%s%s%s",
 		p.Type().Short(),
 		p.ID, p.StationID, p.GateID, p.RailNodeID,
-		len(p.inStep), len(p.outStep), len(p.Passengers), p.Capacity,
+		len(p.inSteps), len(p.outSteps), len(p.Passengers), p.Capacity,
 		posstr, ostr, nmstr)
 }

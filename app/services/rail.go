@@ -2,20 +2,24 @@ package services
 
 import (
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services/route"
 )
 
 // CreateRailNode create RailNode
-func CreateRailNode(owner *entities.Player, x float64, y float64) (*entities.RailNode, error) {
-	rn := Model.NewRailNode(owner, x, y)
+func CreateRailNode(o *entities.Player, x float64, y float64) (*entities.RailNode, error) {
+	rn := Model.NewRailNode(o, x, y)
+	AddOpLog("CreateRailNode", o, rn)
 	return rn, nil
 }
 
 // RemoveRailNode remove RailNode
-func RemoveRailNode(owner *entities.Player, id uint) error {
-	return TryRemove(owner, entities.RAILNODE, id, func(obj interface{}) {
-		rn := obj.(*entities.RailNode)
-		Model.Delete(rn)
-	})
+func RemoveRailNode(o *entities.Player, id uint) error {
+	if rn, err := Model.DeleteIf(o, entities.RAILNODE, id); err != nil {
+		return err
+	} else {
+		AddOpLog("RemoveRailNode", o, rn)
+		return nil
+	}
 }
 
 // ExtendRailNode extends Rail
@@ -24,18 +28,23 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, nil, err
 	}
-	to := Model.NewRailNode(from.Own, x, y)
-	e1 := Model.NewRailEdge(from, to)
-	e2 := Model.NewRailEdge(to, from)
-
-	e1.Resolve(e2)
-	e2.Resolve(e1)
-
+	to, e1 := from.Extend(x, y)
+	route.RefreshTracks(o, Const.Routing.Worker)
 	for _, l := range from.RailLines {
-		if l.AutoExt {
-			InsertLineTaskRailEdge(o, l, e1, false)
+		if l.ReRouting {
+			route.RefreshTransports(l, Const.Routing.Worker)
 		}
 	}
+	AddOpLog("ExtendRailNode", o, from, to, e1, e1.Reverse)
+	return to, e1, e1.Reverse, nil
+}
 
-	return to, e1, e2, nil
+// RemoveRailEdge remove RailEdge
+func RemoveRailEdge(o *entities.Player, id uint) error {
+	if re, err := Model.DeleteIf(o, entities.RAILEDGE, id); err != nil {
+		return err
+	} else {
+		AddOpLog("RemoveRailEdge", o, re)
+		return nil
+	}
 }

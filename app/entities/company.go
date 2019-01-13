@@ -10,11 +10,14 @@ type Company struct {
 	Base
 	Owner
 	Point
-	in      map[uint]*Step
-	Targets map[uint]*Human `gorm:"-" json:"-"`
+
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale float64 `gorm:"not null" json:"scale"`
 	Name  string  `json:"name"`
+
+	M       *Model          `gorm:"-" json:"-"`
+	Targets map[uint]*Human `gorm:"-" json:"-"`
+	in      map[uint]*Step
 }
 
 // NewCompany create new instance without setting parameters
@@ -25,10 +28,24 @@ func (m *Model) NewCompany(o *Player, x float64, y float64) *Company {
 		Point: NewPoint(x, y),
 		Scale: Const.Company.Scale,
 	}
-	c.Init()
+	c.Init(m)
+	c.Resolve()
 	c.ResolveRef()
 	m.Add(c)
+
+	c.GenInSteps()
 	return c
+}
+
+func (c *Company) GenInSteps() {
+	// R -> C
+	for _, r := range c.M.Residences {
+		c.M.NewStep(r, c)
+	}
+	// G -> C
+	for _, g := range c.M.Gates {
+		c.M.NewStep(g, c)
+	}
 }
 
 // Idx returns unique id field.
@@ -42,7 +59,8 @@ func (c *Company) Type() ModelType {
 }
 
 // Init creates map.
-func (c *Company) Init() {
+func (c *Company) Init(m *Model) {
+	c.M = m
 	c.in = make(map[uint]*Step)
 	c.Targets = make(map[uint]*Human)
 }
@@ -57,13 +75,13 @@ func (c *Company) IsIn(x float64, y float64, scale float64) bool {
 	return c.Pos().IsIn(x, y, scale)
 }
 
-// OutStep returns where it can go to.
-func (c *Company) OutStep() map[uint]*Step {
+// OutSteps returns where it can go to.
+func (c *Company) OutSteps() map[uint]*Step {
 	return nil
 }
 
-// InStep returns where it comes from.
-func (c *Company) InStep() map[uint]*Step {
+// InSteps returns where it comes from.
+func (c *Company) InSteps() map[uint]*Step {
 	return c.in
 }
 
@@ -94,9 +112,19 @@ func (c *Company) Permits(o *Player) bool {
 	return o.Level == Admin
 }
 
-// CheckRemove check remaining reference
-func (c *Company) CheckRemove() error {
+// CheckDelete check remaining reference
+func (c *Company) CheckDelete() error {
 	return nil
+}
+
+func (c *Company) Delete() {
+	for _, h := range c.Targets {
+		c.M.Delete(h)
+	}
+	for _, s := range c.in {
+		c.M.Delete(s)
+	}
+	c.M.Delete(c)
 }
 
 func (c *Company) IsNew() bool {

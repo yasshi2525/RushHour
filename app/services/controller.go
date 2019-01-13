@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -60,36 +59,4 @@ func CheckAuth(owner *entities.Player, res entities.Ownable) error {
 		return nil
 	}
 	return fmt.Errorf("no permission to operate %v", res)
-}
-
-// TryRemove delete entity if it can.
-func TryRemove(
-	o *entities.Player,
-	res entities.ModelType,
-	id uint,
-	callback func(interface{})) error {
-
-	v := Model.Values[res].MapIndex(reflect.ValueOf(id))
-
-	// no id
-	if !v.IsValid() {
-		revel.AppLog.Infof("%v(%d) was already removed.", res, id)
-		return nil
-	}
-
-	obj := v.Interface()
-
-	// no permission
-	if prop, ok := obj.(entities.Ownable); ok && !prop.Permits(o) {
-		revel.AppLog.Infof("%v is not permitted to delete %v", o, prop)
-		return fmt.Errorf("no permission to delete %v", prop)
-	}
-
-	// reference
-	if err := obj.(entities.Removable).CheckRemove(); err != nil {
-		return err
-	}
-
-	callback(obj)
-	return nil
 }

@@ -65,10 +65,10 @@ func TestCreateStep(t *testing.T) {
 		t.Error(err)
 	}
 
-	if got := len(r.OutStep()); got != 1 {
+	if got := len(r.OutSteps()); got != 1 {
 		t.Errorf("Residence should be out 1, but %d", got)
 	}
-	if got := len(c.InStep()); got != 1 {
+	if got := len(c.InSteps()); got != 1 {
 		t.Errorf("Company should be in 1, but %d", got)
 	}
 

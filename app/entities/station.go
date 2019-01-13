@@ -10,6 +10,7 @@ type Station struct {
 	Base
 	Owner
 
+	M        *Model    `gorm:"-" json:"-"`
 	Platform *Platform `gorm:"-" json:"-"`
 	Gate     *Gate     `gorm:"-" json:"-"`
 
@@ -24,7 +25,7 @@ func (m *Model) NewStation(o *Player) *Station {
 	st := &Station{
 		Base: NewBase(m.GenID(STATION)),
 	}
-	st.Init()
+	st.Init(m)
 	st.Resolve(o)
 	st.ResolveRef()
 	m.Add(st)
@@ -42,7 +43,8 @@ func (st *Station) Type() ModelType {
 }
 
 // Init creates map.
-func (st *Station) Init() {
+func (st *Station) Init(m *Model) {
+	st.M = m
 }
 
 // Pos returns location
@@ -87,12 +89,12 @@ func (st *Station) ResolveRef() {
 	}
 }
 
-// CheckRemove checks related reference
-func (st *Station) CheckRemove() error {
-	if err := st.Platform.CheckRemove(); err != nil {
+// CheckDelete checks related reference
+func (st *Station) CheckDelete() error {
+	if err := st.Platform.CheckDelete(); err != nil {
 		return err
 	}
-	if err := st.Gate.CheckRemove(); err != nil {
+	if err := st.Gate.CheckDelete(); err != nil {
 		return err
 	}
 	return nil
@@ -100,6 +102,12 @@ func (st *Station) CheckRemove() error {
 
 // UnRef delete related reference
 func (st *Station) UnRef() {
+}
+
+func (st *Station) Delete() {
+	st.M.Delete(st.Gate)
+	st.M.Delete(st.Platform)
+	st.M.Delete(st)
 }
 
 // Permits represents Player is permitted to control

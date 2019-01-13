@@ -25,14 +25,16 @@ type LineTask struct {
 	Base
 	Owner
 
-	RailLine  *RailLine    `gorm:"-"        json:"-"`
-	TaskType  LineTaskType `gorm:"not null" json:"type"`
+	TaskType LineTaskType `gorm:"not null" json:"type"`
+
+	M         *Model    `gorm:"-" json:"-"`
+	Moving    *RailEdge `gorm:"-" json:"-"`
+	Stay      *Platform `gorm:"-" json:"-"`
+	Dept      *Platform `gorm:"-" json:"-"`
+	Dest      *Platform `gorm:"-" json:"-"`
+	RailLine  *RailLine `gorm:"-"        json:"-"`
 	before    *LineTask
 	next      *LineTask
-	Stay      *Platform       `gorm:"-" json:"-"`
-	Dept      *Platform       `gorm:"-" json:"-"`
-	Moving    *RailEdge       `gorm:"-" json:"-"`
-	Dest      *Platform       `gorm:"-" json:"-"`
 	Trains    map[uint]*Train `gorm:"-" json:"-"`
 	OverSteps map[uint]*Step  `gorm:"-" json:"-"`
 
@@ -51,7 +53,7 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 		Base:     NewBase(m.GenID(LINETASK)),
 		TaskType: OnDeparture,
 	}
-	lt.Init()
+	lt.Init(m)
 	lt.Resolve(l.Own, l, p)
 	lt.ResolveRef()
 	if len(tail) > 0 && tail[0] != nil {
@@ -62,15 +64,15 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 }
 
 // NewLineTask creates "stop" or "pass" or "moving"
-func (m *Model) NewLineTask(l *RailLine, re *RailEdge, pass bool, tail ...*LineTask) *LineTask {
+func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
-		Base:     NewBase(m.GenID(LINETASK)),
+		Base: NewBase(m.GenID(LINETASK)),
 	}
-	lt.Init()
+	lt.Init(m)
 	if re.ToNode.OverPlatform == nil {
 		lt.TaskType = OnMoving
 	} else {
-		if pass {
+		if lt.RailLine.AutoPass {
 			lt.TaskType = OnPassing
 		} else {
 			lt.TaskType = OnStopping
@@ -85,6 +87,81 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, pass bool, tail ...*LineT
 	return lt
 }
 
+func (lt *LineTask) Depart() *LineTask {
+	if lt.next != nil {
+		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
+	}
+	if lt.TaskType != OnStopping {
+		panic(fmt.Errorf("Tried to depart from invald TaskType : %v", lt))
+	}
+	return lt.M.NewLineTaskDept(lt.RailLine, lt.Dest, lt)
+}
+
+func (lt *LineTask) DepartIf() *LineTask {
+	if lt.next != nil {
+		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
+	}
+	if lt.TaskType == OnStopping {
+		return lt.Depart()
+	}
+	return lt
+}
+
+func (lt *LineTask) Stretch(re *RailEdge) *LineTask {
+	if lt.next != nil {
+		panic(fmt.Errorf("Tried to add RailEdge to Connectted LineTask: %v -> %v", re, lt))
+	}
+	if lt.ToNode() != re.FromNode {
+		panic(fmt.Errorf("Tried to add far RailEdge to LineTask: %v -> %v", re, lt))
+	}
+
+	// when task is "stop", append task "departure"
+	tail := lt.DepartIf()
+	return lt.M.NewLineTask(lt.RailLine, re, tail)
+}
+
+// InsertRailEdge corrects RailLine for new RailEdge
+// RailEdge.From must be original RailNode.
+// RailEdge.To   must be      new RailPoint.
+//
+// Before (a) ---------------> (b) -> (c)
+// After  (a) -> (X) -> (a) -> (b) -> (c)
+//
+// RailEdge : (a) -> (X)
+func (lt *LineTask) InsertRailEdge(re *RailEdge) {
+	if lt.ToNode() != re.FromNode {
+		panic(fmt.Errorf("Tried to insert far RailEdge to LineTask: %v -> %v", re, lt))
+	}
+	next := lt.Next()               // = (b) -> (c)
+	tail := lt.Stretch(re)          // = (a) -> (X)
+	tail = tail.Stretch(re.Reverse) // = (X) -> (a)
+
+	// when (X) is station and is stopped, append "dept" task after it
+	if next != nil && next.TaskType != OnDeparture {
+		tail = tail.DepartIf()
+	}
+	tail.SetNext(next) // (a) -> (b) -> (c)
+	lt.RailLine.ReRouting = true
+}
+
+func (lt *LineTask) InsertDestination(p *Platform) {
+	if lt.RailLine.AutoPass {
+		// change move -> pass
+		lt.TaskType = OnPassing
+	} else {
+		// change move -> stop
+		lt.TaskType = OnStopping
+		lt.Depart().SetNext(lt.next)
+	}
+	lt.Dest = p
+	lt.RailLine.ReRouting = true
+}
+
+func (lt *LineTask) InsertDeparture(p *Platform) {
+	lt.Dept = p
+	lt.RailLine.ReRouting = true
+}
+
 // Idx returns unique id field.
 func (lt *LineTask) Idx() uint {
 	return lt.ID
@@ -96,7 +173,8 @@ func (lt *LineTask) Type() ModelType {
 }
 
 // Init do nothing
-func (lt *LineTask) Init() {
+func (lt *LineTask) Init(m *Model) {
+	lt.M = m
 	lt.Trains = make(map[uint]*Train)
 	lt.OverSteps = make(map[uint]*Step)
 }
@@ -194,9 +272,13 @@ func (lt *LineTask) ResolveRef() {
 	}
 	if lt.before != nil {
 		lt.BeforeID = lt.before.ID
+	} else {
+		lt.BeforeID = ZERO
 	}
 	if lt.next != nil {
 		lt.NextID = lt.next.ID
+	} else {
+		lt.NextID = ZERO
 	}
 	if lt.Moving != nil {
 		lt.MovingID = lt.Moving.ID
@@ -206,9 +288,13 @@ func (lt *LineTask) ResolveRef() {
 	}
 	if lt.Dept != nil {
 		lt.DeptID = lt.Dept.ID
+	} else {
+		lt.DeptID = ZERO
 	}
 	if lt.Dest != nil {
 		lt.DestID = lt.Dest.ID
+	} else {
+		lt.DestID = ZERO
 	}
 }
 
@@ -217,8 +303,8 @@ func (lt *LineTask) UnRef() {
 	// TODO impl
 }
 
-// CheckRemove check remain relation.
-func (lt *LineTask) CheckRemove() error {
+// CheckDelete check remain relation.
+func (lt *LineTask) CheckDelete() error {
 	return nil
 }
 
@@ -296,11 +382,17 @@ func (lt *LineTask) Next() *LineTask {
 
 // SetNext changes self changed status for backup
 func (lt *LineTask) SetNext(v *LineTask) {
+	if lt.next != nil {
+		lt.next.before = nil
+		lt.next.ResolveRef()
+	}
 	lt.next = v
 	if v != nil {
 		v.before = lt
+		v.ResolveRef()
 	}
 	lt.Change()
+	lt.ResolveRef()
 }
 
 func (lt *LineTask) IsNew() bool {

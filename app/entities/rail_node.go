@@ -11,12 +11,16 @@ type RailNode struct {
 	Base
 	Owner
 	Point
-	InEdge       map[uint]*RailEdge `gorm:"-" json:"-"`
-	OutEdge      map[uint]*RailEdge `gorm:"-" json:"-"`
+
+	M            *Model             `gorm:"-" json:"-"`
+	InEdges      map[uint]*RailEdge `gorm:"-" json:"-"`
+	OutEdges     map[uint]*RailEdge `gorm:"-" json:"-"`
 	OverPlatform *Platform          `gorm:"-" json:"-"`
 	RailLines    map[uint]*RailLine `gorm:"-" json:"-"`
 	InTasks      map[uint]*LineTask `gorm:"-" json:"-"`
 	OutTasks     map[uint]*LineTask `gorm:"-" json:"-"`
+	// key is id of RailNode
+	Tracks map[uint]*Track `gorm:"-" json:"-"`
 
 	PlatformID uint `gorm:"-" json:"pid,omitempty"`
 }
@@ -27,11 +31,29 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 		Base:  NewBase(m.GenID(RAILNODE)),
 		Point: NewPoint(x, y),
 	}
-	rn.Init()
+	rn.Init(m)
 	rn.Resolve(o)
 	rn.ResolveRef()
 	m.Add(rn)
 	return rn
+}
+
+func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
+	to := rn.M.NewRailNode(rn.Own, x, y)
+	e1 := rn.M.NewRailEdge(rn, to)
+	e2 := rn.M.NewRailEdge(to, rn)
+
+	e1.Resolve(e2)
+	e2.Resolve(e1)
+
+	rn.Own.ReRouting = true
+
+	for _, lt := range rn.InTasks {
+		if lt.RailLine.AutoExt {
+			lt.InsertRailEdge(e1)
+		}
+	}
+	return to, e1
 }
 
 // Idx returns unique id field.
@@ -45,12 +67,14 @@ func (rn *RailNode) Type() ModelType {
 }
 
 // Init makes map
-func (rn *RailNode) Init() {
-	rn.InEdge = make(map[uint]*RailEdge)
-	rn.OutEdge = make(map[uint]*RailEdge)
+func (rn *RailNode) Init(m *Model) {
+	rn.M = m
+	rn.InEdges = make(map[uint]*RailEdge)
+	rn.OutEdges = make(map[uint]*RailEdge)
 	rn.RailLines = make(map[uint]*RailLine)
 	rn.InTasks = make(map[uint]*LineTask)
 	rn.OutTasks = make(map[uint]*LineTask)
+	rn.Tracks = make(map[uint]*Track)
 }
 
 // Pos returns location
@@ -109,18 +133,32 @@ func (rn *RailNode) Permits(o *Player) bool {
 	return rn.Owner.Permits(o)
 }
 
-// CheckRemove checks remaining reference
-func (rn *RailNode) CheckRemove() error {
-	if len(rn.InEdge) > 0 {
-		return fmt.Errorf("blocked by InEdge of %v", rn.InEdge)
+// CheckDelete checks remaining reference
+func (rn *RailNode) CheckDelete() error {
+	for _, re := range rn.OutEdges {
+		if err := re.CheckDelete(); err != nil {
+			return fmt.Errorf("blocked by OutEdges of %v (%v)", re, err)
+		}
 	}
-	if len(rn.OutEdge) > 0 {
-		return fmt.Errorf("blocked by OutEdge of %v", rn.OutEdge)
+	for _, re := range rn.InEdges {
+		if err := re.CheckDelete(); err != nil {
+			return fmt.Errorf("blocked by InEdges of %v (%v)", re, err)
+		}
 	}
 	if rn.OverPlatform != nil {
-		return fmt.Errorf("blocked by Platform of %v", rn.OverPlatform)
+		return fmt.Errorf("blocked by OverPlatform of %v", rn.OverPlatform)
 	}
 	return nil
+}
+
+func (rn *RailNode) Delete() {
+	for _, re := range rn.OutEdges {
+		re.Delete()
+	}
+	for _, re := range rn.InEdges {
+		re.Delete()
+	}
+	rn.M.Delete(rn)
 }
 
 func (rn *RailNode) IsNew() bool {
@@ -149,5 +187,5 @@ func (rn *RailNode) String() string {
 		pstr = fmt.Sprintf(",p=%d", rn.OverPlatform.ID)
 	}
 	return fmt.Sprintf("%s(%d):i=%d,o=%d%s:%v%s", rn.Type().Short(),
-		rn.ID, len(rn.InEdge), len(rn.OutEdge), pstr, rn.Pos(), ostr)
+		rn.ID, len(rn.InEdges), len(rn.OutEdges), pstr, rn.Pos(), ostr)
 }

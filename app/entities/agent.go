@@ -7,6 +7,7 @@ import (
 // Agent is the wrapper of Human.
 // Agent can move concerting minimum cost route.
 type Agent struct {
+	M       *Model
 	Human   *Human
 	Current *Step
 }
@@ -16,14 +17,14 @@ func (m *Model) NewAgent(h *Human) *Agent {
 	a := &Agent{
 		Human: h,
 	}
-	a.Init()
+	a.Init(m)
 	m.Add(a)
 	return a
 }
 
 // Init do nothing
-func (a *Agent) Init() {
-
+func (a *Agent) Init(m *Model) {
+	a.M = m
 }
 
 // Idx returns unique id field.

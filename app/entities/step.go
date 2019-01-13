@@ -7,34 +7,22 @@ import (
 // Step represents two Relayable is logically connected.
 // Step is out of target for persistence because it can derived by other resources.
 type Step struct {
-	ID   uint
-	from Relayable
-	to   Relayable
-
-	// only for walk step
-	weight float64
-
-	// only for train step
-	By        *LineTask
-	Transport float64
+	ID       uint
+	M        *Model
+	FromNode Relayable
+	ToNode   Relayable
 }
 
-// NewWalkStep create new instance and relation to Relayable
-func (m *Model) NewWalkStep(f Relayable, t Relayable) *Step {
-	s := m.NewStep(f, t)
-	s.weight = Const.Human.Weight
-	return s
-}
-
+// NewWalk create new instance and relation to Relayable
 func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	s := &Step{
-		ID:   m.GenID(STEP),
-		from: f,
-		to:   t,
+		ID:       m.GenID(STEP),
+		FromNode: f,
+		ToNode:   t,
 	}
-	s.Init()
-	f.OutStep()[s.ID] = s
-	t.InStep()[s.ID] = s
+	s.Init(m)
+	f.OutSteps()[s.ID] = s
+	t.InSteps()[s.ID] = s
 	m.Add(s)
 	return s
 }
@@ -50,40 +38,47 @@ func (s *Step) Type() ModelType {
 }
 
 // Init do nothing
-func (s *Step) Init() {
+func (s *Step) Init(m *Model) {
+	s.M = m
 }
 
 // Pos returns center
 func (s *Step) Pos() *Point {
-	return s.from.Pos().Center(s.to)
+	return s.FromNode.Pos().Center(s.ToNode)
+}
+
+// IsIn return true when from, to, center is in,
+func (s *Step) IsIn(x float64, y float64, scale float64) bool {
+	return s.FromNode.Pos().IsInLine(s.ToNode, x, y, scale)
 }
 
 // From returns where Step comes from
 func (s *Step) From() Indexable {
-	return s.from
+	return s.FromNode
 }
 
 // To returns where Step goes to
 func (s *Step) To() Indexable {
-	return s.to
+	return s.ToNode
 }
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	if s.By != nil {
-		return s.Transport
-	}
-	return s.from.Pos().Dist(s.to) * s.weight
+	return s.FromNode.Pos().Dist(s.ToNode) * Const.Human.Weight
 }
 
 // UnRef delete selt from related Locationable.
 func (s *Step) UnRef() {
-	delete(s.from.OutStep(), s.ID)
-	delete(s.to.InStep(), s.ID)
+	delete(s.FromNode.OutSteps(), s.ID)
+	delete(s.ToNode.InSteps(), s.ID)
+}
+
+func (s *Step) Delete() {
+	s.M.Delete(s)
 }
 
 // String represents status
 func (s *Step) String() string {
 	return fmt.Sprintf("%s(%v):from=%v,to=%v,c=%.2f", s.Type().Short(),
-		s.ID, s.from, s.to, s.Cost())
+		s.ID, s.FromNode, s.ToNode, s.Cost())
 }

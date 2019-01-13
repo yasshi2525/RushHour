@@ -11,12 +11,15 @@ type Residence struct {
 	Base
 	Owner
 	Point
-	out      map[uint]*Step
-	Targets  map[uint]*Human `gorm:"-"        json:"-"`
-	Capacity uint            `gorm:"not null" json:"capacity"`
+
+	Capacity uint `gorm:"not null" json:"capacity"`
 	// Wait represents how msec after it generates Human
 	Wait float64 `gorm:"not null" json:"wait"`
 	Name string  `                json:"name"`
+
+	M       *Model          `gorm:"-" json:"-"`
+	Targets map[uint]*Human `gorm:"-"        json:"-"`
+	out     map[uint]*Step
 }
 
 // NewResidence create new instance without setting parameters
@@ -28,10 +31,25 @@ func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
 		Capacity: Const.Residence.Capacity,
 		Wait:     Const.Residence.Interval.D.Seconds() * rand.Float64(),
 	}
-	r.Init()
+	r.Init(m)
+	r.Resolve()
 	r.ResolveRef()
 	m.Add(r)
+
+	r.ResolveRef()
+	r.GenOutSteps()
 	return r
+}
+
+func (r *Residence) GenOutSteps() {
+	// R -> C
+	for _, c := range r.M.Companies {
+		r.M.NewStep(r, c)
+	}
+	// R -> G
+	for _, g := range r.M.Gates {
+		r.M.NewStep(r, g)
+	}
 }
 
 // Idx returns unique id field.
@@ -45,7 +63,8 @@ func (r *Residence) Type() ModelType {
 }
 
 // Init creates map.
-func (r *Residence) Init() {
+func (r *Residence) Init(m *Model) {
+	r.M = m
 	r.out = make(map[uint]*Step)
 	r.Targets = make(map[uint]*Human)
 }
@@ -60,13 +79,13 @@ func (r *Residence) IsIn(x float64, y float64, scale float64) bool {
 	return r.Pos().IsIn(x, y, scale)
 }
 
-// OutStep returns where it can go to
-func (r *Residence) OutStep() map[uint]*Step {
+// OutSteps returns where it can go to
+func (r *Residence) OutSteps() map[uint]*Step {
 	return r.out
 }
 
-// InStep returns where it comes from
-func (r *Residence) InStep() map[uint]*Step {
+// InSteps returns where it comes from
+func (r *Residence) InSteps() map[uint]*Step {
 	return nil
 }
 
@@ -97,9 +116,19 @@ func (r *Residence) Permits(o *Player) bool {
 	return o.Level == Admin
 }
 
-// CheckRemove check remaining reference
-func (r *Residence) CheckRemove() error {
+// CheckDelete check remaining reference
+func (r *Residence) CheckDelete() error {
 	return nil
+}
+
+func (r *Residence) Delete() {
+	for _, h := range r.Targets {
+		r.M.Delete(h)
+	}
+	for _, s := range r.out {
+		r.M.Delete(s)
+	}
+	r.M.Delete(r)
 }
 
 func (r *Residence) IsNew() bool {

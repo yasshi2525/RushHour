@@ -18,10 +18,11 @@ type Train struct {
 	Progress float64 `gorm:"not null" json:"progress"`
 	Occupied uint    `gorm:"-"        json:"occupied"`
 
+	M          *Model    `gorm:"-" json:"-"`
+	OnRailEdge *RailEdge `gorm:"-" json:"-"`
+	OnPlatform *Platform `gorm:"-" json:"-"`
 	task       *LineTask
 	Passengers map[uint]*Human `gorm:"-" json:"-"`
-	OnRailEdge *RailEdge       `gorm:"-" json:"-"`
-	OnPlatform *Platform       `gorm:"-" json:"-"`
 
 	TaskID     uint `         json:"ltid,omitempty"`
 	RailEdgeID uint `gorm:"-" json:"reid,omitempty"`
@@ -34,7 +35,7 @@ func (m *Model) NewTrain(o *Player) *Train {
 		Base:  NewBase(m.GenID(TRAIN)),
 		Owner: NewOwner(o),
 	}
-	t.Init()
+	t.Init(m)
 	t.ResolveRef()
 	m.Add(t)
 	return t
@@ -51,7 +52,8 @@ func (t *Train) Type() ModelType {
 }
 
 // Init makes map
-func (t *Train) Init() {
+func (t *Train) Init(m *Model) {
+	t.M = m
 	t.Passengers = make(map[uint]*Human)
 }
 
@@ -96,12 +98,18 @@ func (t *Train) Resolve(args ...interface{}) {
 func (t *Train) ResolveRef() {
 	if t.task != nil {
 		t.TaskID = t.task.ID
+	} else {
+		t.TaskID = ZERO
 	}
 	if t.OnRailEdge != nil {
 		t.RailEdgeID = t.OnRailEdge.ID
+	} else {
+		t.RailEdgeID = ZERO
 	}
 	if t.OnPlatform != nil {
 		t.PlatformID = t.OnPlatform.ID
+	} else {
+		t.PlatformID = ZERO
 	}
 }
 
@@ -114,10 +122,11 @@ func (t *Train) UnResolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
+	t.ResolveRef()
 }
 
-// CheckRemove check remain relation.
-func (t *Train) CheckRemove() error {
+// CheckDelete check remain relation.
+func (t *Train) CheckDelete() error {
 	return nil
 }
 

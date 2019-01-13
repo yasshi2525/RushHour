@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/services/route"
+
 	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
@@ -63,7 +65,7 @@ func fetchStatic() {
 		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
 			for rows.Next() {
 				// 対応する Struct を作成
-				base := key.Obj()
+				base := key.Obj(Model)
 				if err := db.ScanRows(rows, base); err == nil {
 					if obj, ok := base.(entities.Persistable); ok {
 						obj.Reset() // DBNew -> DBMerged
@@ -155,29 +157,23 @@ func resolveStatic() {
 
 // genDynamics create Dynamic instances
 func genDynamics() {
-	for _, r := range Model.Residences {
-		// R -> C, G
-		GenStepResidence(r)
+	for _, o := range Model.Players {
+		route.RefreshTracks(o, Const.Routing.Worker)
 	}
-	for _, c := range Model.Companies {
-		// G -> C
-		for _, g := range Model.Gates {
-			GenStep(g, c)
-		}
+	for _, r := range Model.Residences {
+		r.GenOutSteps()
+	}
+	for _, g := range Model.Gates {
+		g.GenOutSteps()
 	}
 	for _, p := range Model.Platforms {
-		// G <-> P
-		g := p.InStation.Gate
-		GenStep(p, g)
-		GenStep(g, p)
+		p.GenOutSteps()
 	}
 	for _, l := range Model.RailLines {
-		if l.IsRing() {
-			genStepRailLine(l)
-		}
+		route.RefreshTransports(l, Const.Routing.Worker)
 	}
 	for _, h := range Model.Humans {
-		GenStepHuman(h)
+		h.GenOutSteps()
 		Model.Agents[h.ID] = Model.NewAgent(h)
 	}
 }

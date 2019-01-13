@@ -23,7 +23,9 @@ type Player struct {
 	DisplayName string     `gorm:"not null"       json:"name"`
 	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null"       json:"-"`
+	ReRouting   bool
 
+	M         *Model             `gorm:"-" json:"-"`
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stations  map[uint]*Station  `gorm:"-" json:"-"`
@@ -39,10 +41,16 @@ func (m *Model) NewPlayer() *Player {
 	o := &Player{
 		Base: NewBase(m.GenID(PLAYER)),
 	}
-	o.Init()
+	o.Init(m)
 	o.ResolveRef()
 	m.Add(o)
 	return o
+}
+
+func (o *Player) ClearTracks() {
+	for _, rn := range o.RailNodes {
+		rn.Tracks = make(map[uint]*Track)
+	}
 }
 
 // Idx returns unique id field.
@@ -66,7 +74,8 @@ func (o *Player) IsIn(x float64, y float64, scale float64) bool {
 }
 
 // Init do nothing
-func (o *Player) Init() {
+func (o *Player) Init(m *Model) {
+	o.M = m
 	o.RailNodes = make(map[uint]*RailNode)
 	o.RailEdges = make(map[uint]*RailEdge)
 	o.Stations = make(map[uint]*Station)
@@ -105,8 +114,8 @@ func (o *Player) ResolveRef() {
 	// do-nothing
 }
 
-// CheckRemove check remain relation.
-func (o *Player) CheckRemove() error {
+// CheckDelete check remain relation.
+func (o *Player) CheckDelete() error {
 	return nil
 }
 

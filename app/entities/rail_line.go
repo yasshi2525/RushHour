@@ -10,9 +10,12 @@ type RailLine struct {
 	Base
 	Owner
 
-	Name    string `json:"name"`
-	AutoExt bool
+	Name      string `json:"name"`
+	AutoExt   bool
+	AutoPass  bool
+	ReRouting bool
 
+	M         *Model             `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stops     map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
@@ -25,12 +28,80 @@ func (m *Model) NewRailLine(o *Player) *RailLine {
 	l := &RailLine{
 		Base: NewBase(m.GenID(RAILLINE)),
 	}
-	l.Init()
+	l.Init(m)
 	l.Resolve(o)
 	l.ResolveRef()
 	o.Resolve(l)
 	m.Add(l)
 	return l
+}
+
+func (l *RailLine) StartPlatform(p *Platform) *LineTask {
+	if len(l.Tasks) > 0 {
+		panic(fmt.Errorf("try to start from already built RailLine %v", l))
+	}
+	head := l.M.NewLineTaskDept(l, p)
+	tail := head
+
+	if l.AutoExt {
+		rn := p.OnRailNode
+		if tk := rn.Tracks[rn.ID]; tk != nil {
+			// set minimal loop
+			tail = tail.Stretch(tk.Via)
+			tail = tail.Stretch(tk.Via.Reverse)
+			tail.SetNext(head)
+			l.ReRouting = true
+			return nil
+		}
+	}
+	return tail
+}
+
+func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
+	if len(l.Tasks) > 0 {
+		panic(fmt.Errorf("try to start from built RailLine: %v", l))
+	}
+	var head *LineTask
+	if p := re.FromNode.OverPlatform; p != nil {
+		head = l.M.NewLineTaskDept(l, p)
+	}
+	head = l.M.NewLineTask(l, re, head)
+	tail := head
+	if l.AutoExt {
+		tail = tail.Stretch(re.Reverse)
+		tail.SetNext(head)
+		l.ReRouting = true
+		return nil
+	}
+	return tail
+}
+
+func (l *RailLine) Complement() {
+	if len(l.Tasks) == 0 || l.IsRing() {
+		panic(fmt.Errorf("try to complement empty or ring RailLine: %v", l))
+	}
+	head, tail := l.Borders()
+	tk := tail.ToNode().Tracks[head.FromNode().ID]
+	for tk != nil {
+		tail = tail.Stretch(tk.Via)
+		tk = tk.ToNode.Tracks[head.FromNode().ID]
+	}
+}
+
+func (l *RailLine) RingIf() bool {
+	if l.CanRing() {
+		head, tail := l.Borders()
+		tail.SetNext(head)
+		l.ReRouting = true
+		return true
+	}
+	return false
+}
+
+func (l *RailLine) ClearTransports() {
+	for _, p := range l.Stops {
+		p.Transports = make(map[uint]*Transport)
+	}
 }
 
 // Idx returns unique id field.
@@ -44,7 +115,8 @@ func (l *RailLine) Type() ModelType {
 }
 
 // Init makes map
-func (l *RailLine) Init() {
+func (l *RailLine) Init(m *Model) {
+	l.M = m
 	l.RailEdges = make(map[uint]*RailEdge)
 	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
@@ -106,8 +178,19 @@ func (l *RailLine) Resolve(args ...interface{}) {
 func (l *RailLine) ResolveRef() {
 }
 
-// CheckRemove check remain relation.
-func (l *RailLine) CheckRemove() error {
+func (l *RailLine) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *RailEdge:
+			delete(l.RailEdges, obj.ID)
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
+}
+
+// CheckDelete check remain relation.
+func (l *RailLine) CheckDelete() error {
 	return nil
 }
 

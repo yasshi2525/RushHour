@@ -11,8 +11,9 @@ type RailEdge struct {
 	Base
 	Owner
 
-	FromNode  *RailNode
-	ToNode    *RailNode
+	M         *Model             `gorm:"-" json:"-"`
+	FromNode  *RailNode          `gorm:"-" json:"-"`
+	ToNode    *RailNode          `gorm:"-" json:"-"`
 	Reverse   *RailEdge          `gorm:"-" json:"-"`
 	RailLines map[uint]*RailLine `gorm:"-" json:"-"`
 	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
@@ -28,10 +29,11 @@ func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
 		Base: NewBase(m.GenID(RAILEDGE)),
 	}
-	re.Init()
+	re.Init(m)
 	re.Resolve(f.Own, f, t)
 	re.ResolveRef()
 	m.Add(re)
+	re.Own.ReRouting = true
 	return re
 }
 
@@ -46,7 +48,8 @@ func (re *RailEdge) Type() ModelType {
 }
 
 // Init do nothing
-func (re *RailEdge) Init() {
+func (re *RailEdge) Init(m *Model) {
+	re.M = m
 	re.RailLines = make(map[uint]*RailLine)
 	re.LineTasks = make(map[uint]*LineTask)
 	re.Trains = make(map[uint]*Train)
@@ -80,10 +83,32 @@ func (re *RailEdge) Cost() float64 {
 	return re.FromNode.Pos().Dist(re.ToNode)
 }
 
-// Unrelate delete relations to RailNode
+// CheckDelete check remain relation.
+func (re *RailEdge) CheckDelete() error {
+	if len(re.Trains) > 0 {
+		return fmt.Errorf("blocked by Train of %v", re.Trains)
+	}
+	for _, lt := range re.LineTasks {
+		if err := lt.CheckDelete(); err != nil {
+			return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
+		}
+	}
+	return nil
+}
+
+// UnRef delete relations to RailNode
 func (re *RailEdge) UnRef() {
-	delete(re.FromNode.OutEdge, re.ID)
-	delete(re.ToNode.InEdge, re.ID)
+	// [TODO] move Train
+	for _, l := range re.RailLines {
+		l.UnResolve(re)
+	}
+	// [TODO] narrow LineTask
+	delete(re.FromNode.OutEdges, re.ID)
+	delete(re.ToNode.InEdges, re.ID)
+}
+
+func (re *RailEdge) Delete() {
+	re.M.Delete(re)
 }
 
 // Resolve set reference
@@ -98,10 +123,10 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 			if !doneFrom {
 				re.Owner, re.FromNode = obj.Owner, obj
 				doneFrom = true
-				obj.OutEdge[re.ID] = re
+				obj.OutEdges[re.ID] = re
 			} else {
 				re.ToNode = obj
-				obj.InEdge[re.ID] = re
+				obj.InEdges[re.ID] = re
 			}
 		case *RailEdge:
 			re.Reverse = obj
@@ -131,19 +156,6 @@ func (re *RailEdge) ResolveRef() {
 	if re.Reverse != nil {
 		re.ReverseID = re.Reverse.ID
 	}
-}
-
-// CheckRemove check remain relation.
-func (re *RailEdge) CheckRemove() error {
-	for _, lt := range re.LineTasks {
-		if err := lt.CheckRemove(); err != nil {
-			return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
-		}
-	}
-	if len(re.Trains) > 0 {
-		return fmt.Errorf("blocked by Train of %v", re.Trains)
-	}
-	return nil
 }
 
 // Permits represents Player is permitted to control

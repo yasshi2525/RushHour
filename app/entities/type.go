@@ -19,6 +19,8 @@ const (
 	LINETASK
 	TRAIN
 	HUMAN
+	TRACK
+	TRANSPORT
 	STEP
 	AGENT
 )
@@ -65,10 +67,10 @@ func (t ModelType) API() string {
 }
 
 // Obj returns prototype pointer of instance
-func (t ModelType) Obj() Indexable {
+func (t ModelType) Obj(m *Model) Indexable {
 	obj := reflect.New(types[t])
 	ptr := reflect.Indirect(obj).Addr().Interface()
-	ptr.(Initializable).Init()
+	ptr.(Initializable).Init(m)
 	return ptr.(Indexable)
 }
 
@@ -113,6 +115,8 @@ func InitType() {
 		LINETASK,
 		TRAIN,
 		HUMAN,
+		TRACK,
+		TRANSPORT,
 		STEP,
 		AGENT,
 	}
@@ -133,6 +137,8 @@ func InitType() {
 	attr[TRAIN] = &attribute{"Train", "t", "trains", "trains"}
 	attr[HUMAN] = &attribute{"Human", "h", "humen", "humans"}
 
+	attr[TRACK] = &attribute{"Track", "tk", "", ""}
+	attr[TRANSPORT] = &attribute{"Transport", "x", "", ""}
 	attr[STEP] = &attribute{"Step", "s", "", ""}
 	attr[AGENT] = &attribute{"Agent", "a", "", ""}
 

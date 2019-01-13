@@ -88,13 +88,20 @@ func persistStatic(tx *gorm.DB) (int, int, int, int) {
 	for i := len(entities.TypeList) - 1; i >= 0; i-- {
 		key := entities.TypeList[i]
 		if key.IsDB() {
-			for _, id := range Model.Remove[key] {
+			for _, id := range Model.Deletes[key] {
 				sql := fmt.Sprintf("UPDATE %s SET updated_at = ?, deleted_at = ? WHERE id = ?", key.Table())
 				tx.Exec(sql, time.Now(), time.Now(), id)
 				removeCnt++
 			}
-			Model.Remove[key] = Model.Remove[key][:0]
+			Model.Deletes[key] = Model.Deletes[key][:0]
 		}
 	}
 	return createCnt, updateCnt, removeCnt, skipCnt
+}
+
+func logOperation(tx *gorm.DB) {
+	for _, op := range OpCache {
+		tx.Create(op)
+	}
+	OpCache = OpCache[:0]
 }

@@ -40,11 +40,13 @@ type Human struct {
 	// Progress is [0,1] value representing how much Human proceed current task.
 	Progress float64 `gorm:"not null" json:"progress"`
 
+	On Standing `gorm:"-" json:"-"`
+
+	M          *Model     `gorm:"-" json:"-"`
 	From       *Residence `gorm:"-" json:"-"`
 	To         *Company   `gorm:"-" json:"-"`
 	onPlatform *Platform
 	onTrain    *Train
-	On         Standing `gorm:"-" json:"-"`
 	out        map[uint]*Step
 
 	FromID     uint `gorm:"not null" json:"rid"`
@@ -59,10 +61,35 @@ func (m *Model) NewHuman(x float64, y float64) *Human {
 		Base:  NewBase(m.GenID(HUMAN)),
 		Point: NewPoint(x, y),
 	}
-	h.Init()
+	h.Init(m)
+	h.Resolve()
 	h.ResolveRef()
 	m.Add(h)
+
+	h.GenOutSteps()
 	return h
+}
+
+// GenOutSteps Generate Step for Human.
+// It's depend on where Human stay.
+func (h *Human) GenOutSteps() {
+	switch h.On {
+	case OnGround:
+		// h - C for destination
+		h.M.NewStep(h, h.To)
+		// h -> G
+		for _, g := range h.M.Gates {
+			h.M.NewStep(h, g)
+		}
+	case OnPlatform:
+		// h - G, P on Human
+		h.M.NewStep(h, h.onPlatform)
+		h.M.NewStep(h, h.onPlatform.WithGate)
+	case OnTrain:
+		// do-nothing
+	default:
+		panic(fmt.Errorf("invalid type: %T %+v", h.On, h.On))
+	}
 }
 
 // Idx returns unique id field.
@@ -76,7 +103,8 @@ func (h *Human) Type() ModelType {
 }
 
 // Init creates map.
-func (h *Human) Init() {
+func (h *Human) Init(m *Model) {
+	h.M = m
 	h.out = make(map[uint]*Step)
 }
 
@@ -90,13 +118,13 @@ func (h *Human) IsIn(x float64, y float64, scale float64) bool {
 	return h.Pos().IsIn(x, y, scale)
 }
 
-// OutStep returns where it can go to
-func (h *Human) OutStep() map[uint]*Step {
+// OutSteps returns where it can go to
+func (h *Human) OutSteps() map[uint]*Step {
 	return h.out
 }
 
-// InStep returns where it comes from
-func (h *Human) InStep() map[uint]*Step {
+// InSteps returns where it comes from
+func (h *Human) InSteps() map[uint]*Step {
 	return nil
 }
 
@@ -104,8 +132,16 @@ func (h *Human) InStep() map[uint]*Step {
 func (h *Human) ResolveRef() {
 	h.FromID = h.From.ID
 	h.ToID = h.To.ID
-	h.PlatformID = h.onPlatform.ID
-	h.TrainID = h.onTrain.ID
+	if h.onPlatform != nil {
+		h.PlatformID = h.onPlatform.ID
+	} else {
+		h.PlatformID = ZERO
+	}
+	if h.onTrain != nil {
+		h.TrainID = h.onTrain.ID
+	} else {
+		h.TrainID = ZERO
+	}
 }
 
 // Resolve set reference
@@ -156,10 +192,11 @@ func (h *Human) UnResolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
+	h.ResolveRef()
 }
 
-// CheckRemove check remain relation.
-func (h *Human) CheckRemove() error {
+// CheckDelete check remain relation.
+func (h *Human) CheckDelete() error {
 	return nil
 }
 

@@ -6,8 +6,11 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-func SearchRailLine(l *entities.RailLine, parallel int) []*entities.Transport {
-	results := []*entities.Transport{}
+func RefreshTransports(l *entities.RailLine, parallel int) map[uint]*Model {
+	l.ClearTransports()
+	if !l.IsRing() {
+		return nil
+	}
 	template := scanRailLine(l)
 
 	payload, _ := Search(context.Background(), entities.PLATFORM, parallel, template)
@@ -15,17 +18,16 @@ func SearchRailLine(l *entities.RailLine, parallel int) []*entities.Transport {
 	for destID, model := range payload.Route {
 		for deptID, dept := range model.Nodes[entities.PLATFORM] {
 			if dept.ViaEdge != nil {
-				tr := &entities.Transport{
+				l.M.NewTransport(
 					l.Stops[deptID],          // from
 					l.Stops[destID],          // to
 					l.Tasks[dept.ViaEdge.ID], // via
-					dept.Value}               // cost
-				results = append(results, tr)
+					dept.Value)               // cost
 			} // ViaEdge = nil means cannot go to dest from dept by following line
 		}
 	}
-
-	return results
+	l.ReRouting = false
+	return payload.Route
 }
 
 func scanRailLine(l *entities.RailLine) *Model {

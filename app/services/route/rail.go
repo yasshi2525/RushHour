@@ -6,25 +6,25 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
-func SearchRail(o *entities.Player, parallel int) (map[uint]*Model, []*entities.Track) {
-	results := []*entities.Track{}
+func RefreshTracks(o *entities.Player, parallel int) map[uint]*Model {
+	o.ClearTracks()
 	template := scanRail(o)
 
 	payload, _ := Search(context.Background(), entities.RAILNODE, parallel, template)
 
 	for destID, model := range payload.Route {
 		for deptID, dept := range model.Nodes[entities.RAILNODE] {
-			if destID != deptID && dept.ViaEdge != nil {
-				tr := &entities.Track{
+			if dept.ViaEdge != nil {
+				o.M.NewTrack(
 					o.RailNodes[destID],          // from
 					o.RailNodes[deptID],          // to
 					o.RailEdges[dept.ViaEdge.ID], // via
-					dept.Value}                   // cost
-				results = append(results, tr)
+					dept.Value)                   // cost
 			}
 		}
 	}
-	return payload.Route, results
+	o.ReRouting = false
+	return payload.Route
 }
 
 func scanRail(o *entities.Player) *Model {

@@ -11,18 +11,18 @@ type Gate struct {
 	Base
 	Owner
 
-	out map[uint]*Step
-	in  map[uint]*Step
-
-	InStation    *Station  `gorm:"-" json:"-"`
-	WithPlatform *Platform `gorm:"-" json:"-"`
-
 	// Num represents how many Human can pass at the same time
 	Num uint `gorm:"not null" json:"num"`
 	// Mobility represents time one Human pass Gate.
 	Mobility float64 `gorm:"not null" json:"mobility"`
 	// Occupied represents how many Gate are used by Human.
 	Occupied uint `gorm:"not null" json:"occupied"`
+
+	M            *Model    `gorm:"-" json:"-"`
+	InStation    *Station  `gorm:"-" json:"-"`
+	WithPlatform *Platform `gorm:"-" json:"-"`
+	out          map[uint]*Step
+	in           map[uint]*Step
 
 	StationID  uint `gorm:"not null" json:"stid"`
 	PlatformID uint `gorm:"-"        json:"pid"`
@@ -34,11 +34,33 @@ func (m *Model) NewGate(st *Station) *Gate {
 		Base: NewBase(m.GenID(GATE)),
 		Num:  Const.Gate.Num,
 	}
-	g.Init()
+	g.Init(m)
 	g.Resolve(st.Own, st)
 	g.ResolveRef()
 	m.Add(g)
+
+	g.GenOutSteps()
+	g.GenInSteps()
+
 	return g
+}
+
+func (g *Gate) GenOutSteps() {
+	// G -> P
+	g.M.NewStep(g, g.WithPlatform)
+	// G -> C
+	for _, c := range g.M.Companies {
+		g.M.NewStep(g, c)
+	}
+}
+
+func (g *Gate) GenInSteps() {
+	// P -> G
+	g.M.NewStep(g.WithPlatform, g)
+	// R -> G
+	for _, r := range g.M.Residences {
+		g.M.NewStep(r, g)
+	}
 }
 
 // Idx returns unique id field.
@@ -52,7 +74,8 @@ func (g *Gate) Type() ModelType {
 }
 
 // Init creates map.
-func (g *Gate) Init() {
+func (g *Gate) Init(m *Model) {
+	g.M = m
 	g.out = make(map[uint]*Step)
 	g.in = make(map[uint]*Step)
 }
@@ -70,13 +93,13 @@ func (g *Gate) IsIn(x float64, y float64, scale float64) bool {
 	return g.Pos().IsIn(x, y, scale)
 }
 
-// OutStep returns where it can go to
-func (g *Gate) OutStep() map[uint]*Step {
+// OutSteps returns where it can go to
+func (g *Gate) OutSteps() map[uint]*Step {
 	return g.out
 }
 
-// InStep returns where it comes from
-func (g *Gate) InStep() map[uint]*Step {
+// InSteps returns where it comes from
+func (g *Gate) InSteps() map[uint]*Step {
 	return g.in
 }
 
@@ -114,14 +137,24 @@ func (g *Gate) Permits(o *Player) bool {
 	return g.Owner.Permits(o)
 }
 
-// CheckRemove check remain relation.
-func (g *Gate) CheckRemove() error {
+// CheckDelete check remain relation.
+func (g *Gate) CheckDelete() error {
 	return nil
 }
 
 // UnRef deletes related reference
 func (g *Gate) UnRef() {
 
+}
+
+func (g *Gate) Delete() {
+	for _, s := range g.out {
+		g.M.Delete(s)
+	}
+	for _, s := range g.in {
+		g.M.Delete(s)
+	}
+	g.M.Delete(g)
 }
 
 func (g *Gate) IsNew() bool {

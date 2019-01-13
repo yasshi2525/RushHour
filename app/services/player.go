@@ -25,6 +25,7 @@ func CreatePlayer(loginid string, displayname string, password string, level ent
 	player.Password = password
 	player.Level = level
 
+	AddOpLog("CreatePlayer", player)
 	return player, nil
 }
 

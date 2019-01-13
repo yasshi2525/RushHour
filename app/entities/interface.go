@@ -12,7 +12,7 @@ type Indexable interface {
 // Initializable represents that setup is required.
 type Initializable interface {
 	// Init will be called after instanciation.
-	Init()
+	Init(*Model)
 }
 
 // Locationable represents physical space.
@@ -30,9 +30,9 @@ type Relayable interface {
 	// Pos returns entities' position.
 	Pos() *Point
 	// In represents how other can reach itself.
-	InStep() map[uint]*Step
+	InSteps() map[uint]*Step
 	// Out represents how itselt can reach other.
-	OutStep() map[uint]*Step
+	OutSteps() map[uint]*Step
 }
 
 // Connectable represents movability of two resource
@@ -79,7 +79,11 @@ type Viewable interface {
 	IsIn(float64, float64, float64) bool
 }
 
-// Removable can check to able to remove
-type Removable interface {
-	CheckRemove() error
+// Deletable can check to able to remove
+type Deletable interface {
+	Idx() uint
+	Type() ModelType
+	Permits(*Player) bool
+	CheckDelete() error
+	Delete()
 }

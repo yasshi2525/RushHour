@@ -14,20 +14,12 @@ func Scan(ctx context.Context, model *entities.Model) (*Model, bool) {
 		return result, false
 	}
 
-	for _, s := range model.Steps {
-		select {
-		case <-ctx.Done():
-			return result, false
-		default:
-			result.FindOrCreateEdge(s)
-		}
-	}
-	return result, true
+	return result, genEdges(ctx, result, model)
 }
 
 func genNodes(ctx context.Context, result *Model, model *entities.Model) bool {
 	for _, res := range entities.TypeList {
-		if _, ok := res.Obj().(entities.Relayable); ok {
+		if _, ok := res.Obj(model).(entities.Relayable); ok {
 			select {
 			case <-ctx.Done():
 				return false
@@ -36,6 +28,26 @@ func genNodes(ctx context.Context, result *Model, model *entities.Model) bool {
 					result.FindOrCreateNode(obj)
 				})
 			}
+		}
+	}
+	return true
+}
+
+func genEdges(ctx context.Context, result *Model, model *entities.Model) bool {
+	for _, x := range model.Transports {
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+			result.FindOrCreateEdge(x)
+		}
+	}
+	for _, s := range model.Steps {
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+			result.FindOrCreateEdge(s)
 		}
 	}
 	return true

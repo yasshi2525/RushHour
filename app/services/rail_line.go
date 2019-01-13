@@ -11,11 +11,13 @@ import (
 )
 
 // CreateRailLine create RailLine
-func CreateRailLine(o *entities.Player, name string, ext bool) (*entities.RailLine, error) {
+func CreateRailLine(o *entities.Player, name string, ext bool, pass bool) (*entities.RailLine, error) {
 	l := Model.NewRailLine(o)
 	l.Name = name
 	l.AutoExt = ext
+	l.AutoPass = pass
 
+	AddOpLog("CreateRailLine", o, l)
 	return l, nil
 }
 
@@ -31,14 +33,13 @@ func StartRailLine(
 		return err
 	}
 	if len(l.Tasks) > 0 {
-		return fmt.Errorf("already registered %v", l.Tasks)
+		return fmt.Errorf("task is already registered: %v", l)
 	}
-	if rn := p.OnRailNode; len(rn.OutEdge) > 0 {
-		model, _ := route.SearchRail(o, Const.Routing.Worker)
-		n := model[rn.ID].Nodes[entities.RAILNODE][rn.ID]
-		return StartRailLineEdge(o, l, Model.RailEdges[n.ViaEdge.ID])
+	l.StartPlatform(p)
+	if l.ReRouting {
+		route.RefreshTransports(l, Const.Routing.Worker)
 	}
-	Model.NewLineTaskDept(l, p)
+	AddOpLog("StartRailLine", o, l, p)
 	return nil
 }
 
@@ -52,124 +53,41 @@ func StartRailLineEdge(o *entities.Player,
 		return err
 	}
 	if len(l.Tasks) > 0 {
-		return fmt.Errorf("already registered %v", l.Tasks)
+		return fmt.Errorf("task is already registered: %v", l)
 	}
-	var lt *entities.LineTask
-	if p := re.FromNode.OverPlatform; p != nil {
-		lt = Model.NewLineTaskDept(l, p)
+	l.StartEdge(re)
+	if l.ReRouting {
+		route.RefreshTransports(l, Const.Routing.Worker)
 	}
-	lt = Model.NewLineTask(l, re, false, lt)
-	if p := re.ToNode.OverPlatform; p != nil {
-		lt = Model.NewLineTaskDept(l, p, lt)
-	}
-	lt = Model.NewLineTask(l, re.Reverse, false, lt)
-	RingRailLine(o, l)
+	AddOpLog("StartRailLineEdge", o, l, re)
 	return nil
 }
 
-// InsertLineTaskRailEdge corrects RailLine for new RailEdge
-// RailEdge.From must be original RailNode.
-// RailEdge.To   must be      new RailPoint.
-//
-// Before (a) ---------------> (b) -> (c)
-// After  (a) -> (X) -> (a) -> (b) -> (c)
-//
-// RailEdge : (a) -> (X)
-func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entities.RailEdge, pass bool) error {
+func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entities.RailEdge) error {
 	if err := CheckAuth(o, re); err != nil {
 		return err
 	}
-
-	// extract tasks which direct origin
-	// find (a) -> (b)
-	bases := []*entities.LineTask{}
-
 	for _, lt := range re.FromNode.InTasks {
 		if lt.RailLine == l {
-			bases = append(bases, lt)
+			lt.InsertRailEdge(re)
 		}
 	}
-
-	for _, base := range bases {
-		next := base.Next() // = (b) -> (c)
-
-		inter, _ := AttachLineTask(o, base, re, pass)         // = (a) -> (X)
-		inter, _ = AttachLineTask(o, inter, re.Reverse, pass) // = (X) -> (a)
-
-		// when (X) is station and is stopped, append "dept" task after it
-		if inter.TaskType == entities.OnStopping && next != nil && next.TaskType != entities.OnDeparture {
-			inter = Model.NewLineTaskDept(inter.RailLine, inter.Dest, inter)
-
-		}
-		inter.SetNext(next) // (a) -> (b) -> (c)
-
-		// recalculate transport cost if RailLine loops
-		if inter.RailLine.IsRing() {
-			delStepRailLine(inter.RailLine)
-			genStepRailLine(inter.RailLine)
-		}
+	if l.ReRouting {
+		route.RefreshTransports(l, Const.Routing.Worker)
 	}
+	AddOpLog("InsertLineTaskRailEdge", o, l, re)
 	return nil
 }
 
-func InsertLineTaskStation(o *entities.Player, st *entities.Station, pass bool) error {
-	if err := CheckAuth(o, st); err != nil {
-		return err
+func ComplementRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
+	if err := CheckAuth(o, l); err != nil {
+		return false, err
 	}
-
-	// find LineTask such as dept from new station point
-	for _, lt := range st.Platform.OnRailNode.OutTasks {
-		// set dest  from edge.from.overPlatform
-		lt.Resolve(lt.Moving)
+	if len(l.Tasks) == 0 || l.IsRing() {
+		return false, fmt.Errorf("line is already ringed: %v", l)
 	}
-
-	// find LineTask such as dest to new station point
-	// cache once bacause it will be appended after that
-	bases := []*entities.LineTask{}
-	for _, lt := range st.Platform.OnRailNode.InTasks {
-		bases = append(bases, lt)
-	}
-
-	for _, lt := range bases {
-		if pass {
-			// change move -> pass
-			lt.TaskType = entities.OnPassing
-		} else {
-			// change move -> stop
-			lt.TaskType = entities.OnStopping
-			// insert dest
-			next := lt.Next()
-			inter := Model.NewLineTaskDept(lt.RailLine, st.Platform, lt)
-			inter.SetNext(next)
-
-		}
-		// set dest
-		lt.Resolve(lt.Moving) // register dest from edge.to.overPlatform
-	}
-	return nil
-}
-
-// AttachLineTask attaches new RailEdge
-// Need to update Step after call
-func AttachLineTask(o *entities.Player, tail *entities.LineTask, newer *entities.RailEdge, pass bool) (*entities.LineTask, error) {
-	if err := CheckAuth(o, tail); err != nil {
-		return nil, err
-	}
-	if err := CheckAuth(o, newer); err != nil {
-		return nil, err
-	}
-	if tail.ToNode() != newer.FromNode {
-		return nil, fmt.Errorf("unconnected RailEdge. %v != %v", tail.ToNode(), newer.FromNode)
-	}
-
-	// when task is "stop", append task "departure"
-	if tail.TaskType == entities.OnStopping {
-		tail = Model.NewLineTaskDept(tail.RailLine, tail.Dest, tail)
-	}
-
-	tail = Model.NewLineTask(tail.RailLine, newer, pass, tail)
-
-	return tail, nil
+	l.Complement()
+	return true, nil
 }
 
 // RingRailLine connects tail and head
@@ -178,51 +96,12 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 		return false, err
 	}
 	// Check RainLine is not ringing
-	if l.CanRing() {
-		head, tail := l.Borders()
-		tail.SetNext(head)
-		genStepRailLine(l)
-		return true, nil
+	ret := l.RingIf()
+	if ret {
+		route.RefreshTransports(l, Const.Routing.Worker)
+		AddOpLog("RingRailLine", o, l)
 	}
-	return false, nil
-}
-
-func CompleteRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
-	if err := CheckAuth(o, l); err != nil {
-		return false, err
-	}
-	if len(l.Tasks) == 0 || l.IsRing() {
-		return false, nil
-	}
-	head, tail := l.Borders()
-	route, _ := route.SearchRail(l.Own, Const.Routing.Worker)
-	n := route[head.FromNode().ID].Nodes[entities.RAILNODE][tail.ToNode().ID]
-	e := n.ViaEdge
-	for e != nil {
-		if tail.TaskType == entities.OnStopping {
-			tail = Model.NewLineTaskDept(l, tail.Dest, tail)
-		}
-		tail = Model.NewLineTask(l, Model.RailEdges[e.ID], false, tail)
-		e = e.ToNode.ViaEdge
-	}
-	// [DEBUG]
-	lineValidation(l)
-	return true, nil
-}
-
-// delStepRailLine discards old step
-func delStepRailLine(l *entities.RailLine) {
-	for _, s := range l.Steps {
-		Model.Delete(s)
-	}
-}
-
-// genStepRailLine generate Step P <-> P
-func genStepRailLine(l *entities.RailLine) {
-	tracks := route.SearchRailLine(l, Const.Routing.Worker)
-	for _, tr := range tracks {
-		tr.ExportStep(Model)
-	}
+	return ret, nil
 }
 
 // [DEBUG]

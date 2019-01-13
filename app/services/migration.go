@@ -21,7 +21,7 @@ func MigrateDB() {
 			continue
 		}
 
-		proto := key.Obj()
+		proto := key.Obj(Model)
 		db.AutoMigrate(proto)
 
 		// foreign key for owner
@@ -34,18 +34,18 @@ func MigrateDB() {
 	}
 
 	// RailEdge connects RailNode
-	db.Model(entities.RAILEDGE.Obj()).AddForeignKey("from_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
-	db.Model(entities.RAILEDGE.Obj()).AddForeignKey("to_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
+	db.Model(entities.RAILEDGE.Obj(Model)).AddForeignKey("from_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
+	db.Model(entities.RAILEDGE.Obj(Model)).AddForeignKey("to_id", foreign[entities.RAILNODE], "CASCADE", "RESTRICT")
 
 	// Station composes Platforms and Gates
-	db.Model(entities.PLATFORM.Obj()).AddForeignKey("rail_node_id", foreign[entities.RAILNODE], "RESTRICT", "RESTRICT")
-	db.Model(entities.PLATFORM.Obj()).AddForeignKey("station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
-	db.Model(entities.GATE.Obj()).AddForeignKey("station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj(Model)).AddForeignKey("rail_node_id", foreign[entities.RAILNODE], "RESTRICT", "RESTRICT")
+	db.Model(entities.PLATFORM.Obj(Model)).AddForeignKey("station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
+	db.Model(entities.GATE.Obj(Model)).AddForeignKey("station_id", foreign[entities.STATION], "CASCADE", "RESTRICT")
 
 	// Line composes LineTasks
-	db.Model(entities.LINETASK.Obj()).AddForeignKey("rail_line_id", foreign[entities.RAILLINE], "CASCADE", "RESTRICT")
+	db.Model(entities.LINETASK.Obj(Model)).AddForeignKey("rail_line_id", foreign[entities.RAILLINE], "CASCADE", "RESTRICT")
 
 	// Human departs from Residence and destinates to Company
-	db.Model(entities.HUMAN.Obj()).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")
-	db.Model(entities.HUMAN.Obj()).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
+	db.Model(entities.HUMAN.Obj(Model)).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")
+	db.Model(entities.HUMAN.Obj(Model)).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
 }

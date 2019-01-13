@@ -1,8 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"sync"
+	"time"
 
+	"github.com/revel/revel"
+
+	"github.com/jinzhu/gorm"
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services/route"
 )
@@ -22,6 +27,45 @@ var MuDynamic sync.RWMutex
 // MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
 
+type OpLog struct {
+	gorm.Model
+	Op        string
+	OwnerID   uint
+	Obj1      string
+	Obj2      string
+	Obj3      string
+	Obj4      string
+	idx       uint
+	TimeStamp time.Time
+}
+
+func (op *OpLog) Add(obj entities.Indexable) {
+	str := fmt.Sprintf("%s(%d)", obj.Type().Short(), obj.Idx())
+	switch op.idx {
+	case 0:
+		op.Obj1 = str
+	case 1:
+		op.Obj2 = str
+	case 2:
+		op.Obj3 = str
+	case 3:
+		op.Obj4 = str
+	default:
+		revel.AppLog.Errorf("too many args = %d", op.idx+1)
+	}
+	op.idx++
+}
+
+func AddOpLog(op string, o *entities.Player, args ...entities.Indexable) {
+	log := &OpLog{Op: op, OwnerID: o.ID, TimeStamp: time.Now()}
+	for _, obj := range args {
+		log.Add(obj)
+	}
+	OpCache = append(OpCache, log)
+}
+
+var OpCache []*OpLog
+
 // InitLock must prepare first.
 func InitLock() {
 	MuStatic = sync.RWMutex{}
@@ -34,11 +78,5 @@ func InitRepository() {
 	entities.Const = Config.Entity
 	entities.InitType()
 	Model = entities.NewModel()
-}
-
-// GenStep generate Step and resister it
-func GenStep(from entities.Relayable, to entities.Relayable) *entities.Step {
-	s := Model.NewWalkStep(from, to)
-
-	return s
+	OpCache = []*OpLog{}
 }

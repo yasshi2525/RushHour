@@ -1,9 +1,12 @@
 package entities
 
 import (
+	"fmt"
 	"reflect"
 	"sync/atomic"
 )
+
+const ZERO = 0
 
 // Model represents data structure
 type Model struct {
@@ -19,12 +22,14 @@ type Model struct {
 	LineTasks  map[uint]*LineTask
 	Trains     map[uint]*Train
 	Humans     map[uint]*Human
+	Tracks     map[uint]*Track
+	Transports map[uint]*Transport
 	Steps      map[uint]*Step
 	Agents     map[uint]*Agent
 
 	NextIDs map[ModelType]*uint64
-	// Remove represents the list of deleting in next Backup()
-	Remove map[ModelType][]uint
+	// Deletes represents the list of deleting in next Backup()
+	Deletes map[ModelType][]uint
 
 	// Map represents each resource map
 	Values map[ModelType]reflect.Value
@@ -53,13 +58,32 @@ func (m *Model) Add(args ...Indexable) {
 	}
 }
 
+func (m *Model) DeleteIf(o *Player, res ModelType, id uint) (Deletable, error) {
+	raw := m.Values[res].MapIndex(reflect.ValueOf(id))
+	// no id
+	if !raw.IsValid() {
+		return nil, fmt.Errorf("%v(%d) was already removed", res, id)
+	}
+	obj := raw.Interface().(Deletable)
+	// no permission
+	if !obj.Permits(o) {
+		return obj, fmt.Errorf("no permission for %v to delete %v", o, obj)
+	}
+	// reference
+	if err := obj.CheckDelete(); err != nil {
+		return obj, err
+	}
+	obj.Delete()
+	return obj, nil
+}
+
 func (m *Model) Delete(args ...UnReferable) {
 	for _, obj := range args {
 		obj.UnRef()
 		m.Values[obj.Type()].SetMapIndex(
 			reflect.ValueOf(obj.Idx()),
 			reflect.Value{})
-		m.Remove[obj.Type()] = append(m.Remove[obj.Type()], obj.Idx())
+		m.Deletes[obj.Type()] = append(m.Deletes[obj.Type()], obj.Idx())
 	}
 }
 
@@ -84,7 +108,7 @@ func (m *Model) Len() int {
 func (m *Model) NodeLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj().(Relayable); ok {
+		if _, ok := res.Obj(m).(Relayable); ok {
 			sum += m.Values[res].Len()
 		}
 	}
@@ -94,7 +118,7 @@ func (m *Model) NodeLen() int {
 func (m *Model) EdgeLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj().(Connectable); ok {
+		if _, ok := res.Obj(m).(Connectable); ok {
 			sum += m.Values[res].Len()
 		}
 	}
@@ -104,7 +128,7 @@ func (m *Model) EdgeLen() int {
 func (m *Model) DBLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj().(Persistable); ok {
+		if _, ok := res.Obj(m).(Persistable); ok {
 			sum += m.Values[res].Len()
 		}
 	}
@@ -124,7 +148,7 @@ func NewModel() *Model {
 
 	obj := model.Addr().Interface().(*Model)
 	obj.NextIDs = make(map[ModelType]*uint64)
-	obj.Remove = make(map[ModelType][]uint)
+	obj.Deletes = make(map[ModelType][]uint)
 	obj.Values = make(map[ModelType]reflect.Value)
 
 	// set slice to specific fields
@@ -132,9 +156,9 @@ func NewModel() *Model {
 		// NextID
 		var id uint64
 		obj.NextIDs[res] = &id
-		// Remove
+		// Deletes
 		if res.IsDB() {
-			obj.Remove[res] = []uint{}
+			obj.Deletes[res] = []uint{}
 		}
 		obj.Values[res] = model.Field(idx)
 	}
