@@ -46,8 +46,7 @@ func (m *Model) NewGate(st *Station) *Gate {
 }
 
 func (g *Gate) GenOutSteps() {
-	// G -> P
-	g.M.NewStep(g, g.WithPlatform)
+	// skip G -> P
 	// G -> C
 	for _, c := range g.M.Companies {
 		g.M.NewStep(g, c)
@@ -55,8 +54,7 @@ func (g *Gate) GenOutSteps() {
 }
 
 func (g *Gate) GenInSteps() {
-	// P -> G
-	g.M.NewStep(g.WithPlatform, g)
+	// skip P -> G
 	// R -> G
 	for _, r := range g.M.Residences {
 		g.M.NewStep(r, g)

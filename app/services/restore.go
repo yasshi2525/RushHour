@@ -113,10 +113,11 @@ func resolveStatic() {
 			Model.Stations[g.StationID])
 	}
 	for _, p := range Model.Platforms {
+		st := Model.Stations[p.StationID]
 		p.Resolve(
 			Model.Players[p.OwnerID],
 			Model.RailNodes[p.RailNodeID],
-			Model.Stations[p.StationID])
+			st, st.Gate)
 	}
 	for _, l := range Model.RailLines {
 		l.Resolve(Model.Players[l.OwnerID])
