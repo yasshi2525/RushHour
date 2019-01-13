@@ -108,6 +108,7 @@ func (re *RailEdge) UnRef() {
 }
 
 func (re *RailEdge) Delete() {
+	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }
 
