@@ -361,7 +361,7 @@ func (lt *LineTask) BeforeDelete() {
 		lt.Stay.UnResolve(lt)
 	}
 	if lt.Dept != nil {
-		lt.Moving.UnResolve(lt)
+		lt.Dept.UnResolve(lt)
 	}
 	if lt.Moving != nil {
 		lt.Moving.UnResolve(lt)
