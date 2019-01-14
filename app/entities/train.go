@@ -76,7 +76,7 @@ func (t *Train) Pos() *Point {
 	if t.task == nil {
 		return &Point{}
 	}
-	return t.task.FromNode().Pos().Div(t, t.Progress)
+	return t.task.FromNode().Pos().Div(t.task.ToNode(), t.Progress)
 }
 
 // IsIn returns it should be view or not.
