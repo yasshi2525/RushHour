@@ -147,6 +147,9 @@ func (lt *LineTask) InsertRailEdge(re *RailEdge) {
 }
 
 func (lt *LineTask) InsertDestination(p *Platform) {
+	if lt.TaskType == OnDeparture {
+		panic(fmt.Errorf("try to insert destination to dept LineTask: %v -> %v", p, lt))
+	}
 	lt.Dest = p
 	if lt.RailLine.AutoPass {
 		// change move -> pass
@@ -334,22 +337,12 @@ func (lt *LineTask) Permits(o *Player) bool {
 
 // From represents start point
 func (lt *LineTask) From() Indexable {
-	switch lt.TaskType {
-	case OnDeparture:
-		return lt.Stay
-	default:
-		return lt.Moving.FromNode
-	}
+	return lt.FromNode()
 }
 
 // To represents end point
 func (lt *LineTask) To() Indexable {
-	switch lt.TaskType {
-	case OnDeparture:
-		return lt.Stay
-	default:
-		return lt.Moving.ToNode
-	}
+	return lt.ToNode()
 }
 
 // FromNode represents start point
@@ -368,9 +361,6 @@ func (lt *LineTask) ToNode() *RailNode {
 	case OnDeparture:
 		return lt.Stay.OnRailNode
 	default:
-		if lt == nil || lt.Moving == nil {
-			panic(fmt.Errorf("invalid lt = %v", lt))
-		}
 		return lt.Moving.ToNode
 	}
 }

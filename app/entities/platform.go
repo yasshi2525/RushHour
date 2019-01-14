@@ -45,7 +45,9 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 
 	// find LineTask such as dest to new platform point
 	for _, lt := range rn.InTasks {
-		lt.InsertDestination(p)
+		if lt.TaskType != OnDeparture { // skip LineTask which was added in inner loop
+			lt.InsertDestination(p)
+		}
 	}
 
 	// find LineTask such as dept from new platform point
