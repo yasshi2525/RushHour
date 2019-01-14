@@ -147,6 +147,7 @@ func (lt *LineTask) InsertRailEdge(re *RailEdge) {
 }
 
 func (lt *LineTask) InsertDestination(p *Platform) {
+	lt.Dest = p
 	if lt.RailLine.AutoPass {
 		// change move -> pass
 		lt.TaskType = OnPassing
@@ -155,7 +156,6 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 		lt.TaskType = OnStopping
 		lt.Depart(true).SetNext(lt.next)
 	}
-	lt.Dest = p
 	lt.ResolveRef()
 	lt.RailLine.ReRouting = true
 }
