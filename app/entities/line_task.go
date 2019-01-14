@@ -317,8 +317,8 @@ func (lt *LineTask) UnMarshal() {
 	}
 }
 
-// UnRef remove related refernce
-func (lt *LineTask) UnRef() {
+// BeforeDelete remove related refernce
+func (lt *LineTask) BeforeDelete() {
 	// TODO impl
 }
 

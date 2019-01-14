@@ -67,8 +67,17 @@ func (s *Step) Cost() float64 {
 	return s.FromNode.Pos().Dist(s.ToNode) * Const.Human.Weight
 }
 
-// UnRef delete selt from related Locationable.
-func (s *Step) UnRef() {
+// Permits represents Player is permitted to control
+func (s *Step) Permits(o *Player) bool {
+	return true
+}
+
+func (s *Step) CheckDelete() error {
+	return nil
+}
+
+// BeforeDelete delete selt from related Locationable.
+func (s *Step) BeforeDelete() {
 	delete(s.FromNode.OutSteps(), s.ID)
 	delete(s.ToNode.InSteps(), s.ID)
 }

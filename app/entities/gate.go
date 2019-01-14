@@ -146,8 +146,8 @@ func (g *Gate) CheckDelete() error {
 	return nil
 }
 
-// UnRef deletes related reference
-func (g *Gate) UnRef() {
+// BeforeDelete deletes related reference
+func (g *Gate) BeforeDelete() {
 
 }
 

@@ -53,13 +53,6 @@ type Migratable interface {
 	UnMarshal()
 }
 
-// UnReferable can unrefer for related entity.
-type UnReferable interface {
-	Idx() uint
-	Type() ModelType
-	UnRef()
-}
-
 // Ownable is control of auth level
 type Ownable interface {
 	// Permits represents Player is permitted to control
@@ -87,5 +80,6 @@ type Deletable interface {
 	Type() ModelType
 	Permits(*Player) bool
 	CheckDelete() error
+	BeforeDelete()
 	Delete()
 }

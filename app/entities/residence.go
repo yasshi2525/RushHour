@@ -107,11 +107,11 @@ func (r *Residence) Marshal() {
 }
 
 func (r *Residence) UnMarshal() {
-	
+
 }
 
-// UnRef remove reference of related entity
-func (r *Residence) UnRef() {
+// BeforeDelete remove reference of related entity
+func (r *Residence) BeforeDelete() {
 }
 
 // Permits represents Player is permitted to control

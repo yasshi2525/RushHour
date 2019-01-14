@@ -104,8 +104,8 @@ func (st *Station) CheckDelete() error {
 	return nil
 }
 
-// UnRef delete related reference
-func (st *Station) UnRef() {
+// BeforeDelete delete related reference
+func (st *Station) BeforeDelete() {
 }
 
 func (st *Station) Delete() {

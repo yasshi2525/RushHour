@@ -180,8 +180,8 @@ func (p *Platform) CheckDelete() error {
 	return nil
 }
 
-// UnRef delete related reference.
-func (p *Platform) UnRef() {
+// BeforeDelete delete related reference.
+func (p *Platform) BeforeDelete() {
 	for _, h := range p.Passengers {
 		h.UnResolve(p)
 	}

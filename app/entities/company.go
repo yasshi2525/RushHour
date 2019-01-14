@@ -104,11 +104,11 @@ func (c *Company) Marshal() {
 }
 
 func (c *Company) UnMarshal() {
-	
+
 }
 
-// UnRef remove reference of related entity
-func (c *Company) UnRef() {
+// BeforeDelete remove reference of related entity
+func (c *Company) BeforeDelete() {
 }
 
 // Permits represents Player is permitted to control

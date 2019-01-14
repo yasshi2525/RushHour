@@ -80,9 +80,9 @@ func (m *Model) DeleteIf(o *Player, res ModelType, id uint) (Deletable, error) {
 	return obj, nil
 }
 
-func (m *Model) Delete(args ...UnReferable) {
+func (m *Model) Delete(args ...Deletable) {
 	for _, obj := range args {
-		obj.UnRef()
+		obj.BeforeDelete()
 		m.Values[obj.Type()].SetMapIndex(
 			reflect.ValueOf(obj.Idx()),
 			reflect.Value{})

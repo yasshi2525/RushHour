@@ -116,8 +116,8 @@ func (rn *RailNode) UnMarshal() {
 	rn.Resolve(rn.M.Find(PLAYER, rn.OwnerID))
 }
 
-// UnRef clear reference
-func (rn *RailNode) UnRef() {
+// BeforeDelete clear reference
+func (rn *RailNode) BeforeDelete() {
 	// do nothing
 }
 

@@ -22,6 +22,7 @@ const (
 type Human struct {
 	Base
 	Point
+	Owner
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
 	Available float64 `gorm:"not null" json:"available"`
@@ -56,9 +57,10 @@ type Human struct {
 }
 
 // NewHuman create instance
-func (m *Model) NewHuman(x float64, y float64) *Human {
+func (m *Model) NewHuman(o *Player, x float64, y float64) *Human {
 	h := &Human{
 		Base:  NewBase(m.GenID(HUMAN)),
+		Owner: NewOwner(o),
 		Point: NewPoint(x, y),
 	}
 	h.Init(m)
@@ -176,8 +178,8 @@ func (h *Human) Resolve(args ...interface{}) {
 	h.Marshal()
 }
 
-// UnRef deltes refernce of related entity
-func (h *Human) UnRef() {
+// BeforeDelete deltes refernce of related entity
+func (h *Human) BeforeDelete() {
 	delete(h.From.Targets, h.ID)
 	delete(h.To.Targets, h.ID)
 	if h.onPlatform != nil {
@@ -206,9 +208,18 @@ func (h *Human) UnResolve(args ...interface{}) {
 	h.Marshal()
 }
 
+// Permits represents Player is permitted to control
+func (h *Human) Permits(o *Player) bool {
+	return true
+}
+
 // CheckDelete check remain relation.
 func (h *Human) CheckDelete() error {
 	return nil
+}
+
+func (h *Human) Delete() {
+	h.M.Delete(h)
 }
 
 // TurnTo make Human turn head to dest.

@@ -96,8 +96,8 @@ func (re *RailEdge) CheckDelete() error {
 	return nil
 }
 
-// UnRef delete relations to RailNode
-func (re *RailEdge) UnRef() {
+// BeforeDelete delete relations to RailNode
+func (re *RailEdge) BeforeDelete() {
 	// [TODO] move Train
 	for _, l := range re.RailLines {
 		l.UnResolve(re)
