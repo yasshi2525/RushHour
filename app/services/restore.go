@@ -18,14 +18,13 @@ const ZERO = 0
 func Restore() {
 	revel.AppLog.Info("start restore from database")
 	defer revel.AppLog.Info("end restore from database")
-
 	start := time.Now()
-	defer WarnLongExec(start, Const.Perf.Restore.D, "restore", true)
-
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
+	lock := time.Now()
+	defer WarnLongExec(start, lock, Const.Perf.Restore.D, "restore", true)
 
 	setNextID()
 	fetchStatic()

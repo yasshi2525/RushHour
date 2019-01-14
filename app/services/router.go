@@ -44,7 +44,7 @@ func processRouting(ctx context.Context) {
 	initialRouting := RouteTemplate == nil
 	alertEnabled := Const.Routing.Alert > 0
 
-	template, ok := scan(ctx)
+	lock, template, ok := scan(ctx)
 	if !ok {
 		routingBlockConunt++
 		if alertEnabled && routingBlockConunt >= Const.Routing.Alert {
@@ -70,20 +70,22 @@ func processRouting(ctx context.Context) {
 	}
 	routingBlockConunt = 0
 	if initialRouting { // force log when first routing after reboot
-		WarnLongExec(start, Const.Perf.Routing.D, "initial routing", true)
+		WarnLongExec(start, lock, Const.Perf.Routing.D, "initial routing", true)
 	} else {
-		WarnLongExec(start, Const.Perf.Routing.D, "routing")
+		WarnLongExec(start, lock, Const.Perf.Routing.D, "routing")
 	}
 }
 
-func scan(ctx context.Context) (*route.Model, bool) {
+func scan(ctx context.Context) (time.Time, *route.Model, bool) {
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
 
 	MuDynamic.RLock()
 	defer MuDynamic.RUnlock()
 
-	return route.Scan(ctx, Model)
+	lock := time.Now()
+	model, ok := route.Scan(ctx, Model)
+	return lock, model, ok
 }
 
 func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {

@@ -72,20 +72,21 @@ func watchModel() {
 		if !skipReroute {
 			CancelRouting()
 		}
-		processMsg(msg)
+		lock := processMsg(msg)
 		if !skipReroute {
 			StartRouting()
 		}
-		WarnLongExec(start, Const.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
+		WarnLongExec(start, lock, Const.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}
 	revel.AppLog.Info("model watching channel was closed.")
 }
 
-func processMsg(msg *Operation) {
+func processMsg(msg *Operation) time.Time {
 	MuStatic.Lock()
 	defer MuStatic.Unlock()
 	MuDynamic.Lock()
 	defer MuDynamic.Unlock()
+	lock := time.Now()
 
 	owner, _ := FetchOwner(msg.OName)
 
@@ -166,6 +167,7 @@ func processMsg(msg *Operation) {
 			reflect.ValueOf(owner),
 			reflect.ValueOf(msg.ID)})
 	}
+	return lock
 }
 
 // randID return random id existing in repository

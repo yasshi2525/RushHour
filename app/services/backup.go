@@ -37,16 +37,16 @@ func watchBackup() {
 // Backup set model to database
 func Backup() {
 	start := time.Now()
-
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
+	lock := time.Now()
 
 	tx := db.Begin()
 	new, up, del, skip := persistStatic(tx)
 	log := logOperation(tx)
 	tx.Commit()
 
-	WarnLongExec(start, Const.Perf.Backup.D, "backup")
+	WarnLongExec(start, lock, Const.Perf.Backup.D, "backup")
 	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d, log %d)", new, up, del, skip, log)
 }
 
