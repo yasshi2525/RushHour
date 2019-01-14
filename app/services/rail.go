@@ -21,7 +21,7 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 		if o.ReRouting {
 			route.RefreshTracks(o, Const.Routing.Worker)
 		}
-		for _, l := range rn.RailLines {
+		for _, l := range o.RailLines {
 			if l.ReRouting {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}
@@ -39,7 +39,7 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	}
 	to, e1 := from.Extend(x, y)
 	route.RefreshTracks(o, Const.Routing.Worker)
-	for _, l := range from.RailLines {
+	for _, l := range o.RailLines {
 		if l.ReRouting {
 			route.RefreshTransports(l, Const.Routing.Worker)
 		}
@@ -57,7 +57,7 @@ func RemoveRailEdge(o *entities.Player, id uint) error {
 		if o.ReRouting {
 			route.RefreshTracks(o, Const.Routing.Worker)
 		}
-		for _, l := range re.RailLines {
+		for _, l := range o.RailLines {
 			if l.ReRouting {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}

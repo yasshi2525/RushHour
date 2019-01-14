@@ -15,7 +15,6 @@ type Platform struct {
 	OnRailNode *RailNode          `gorm:"-" json:"-"`
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
-	RailLines  map[uint]*RailLine `gorm:"-" json:"-"`
 	InTasks    map[uint]*LineTask `gorm:"-" json:"-"`
 	StayTasks  map[uint]*LineTask `gorm:"-" json:"-"`
 	OutTasks   map[uint]*LineTask `gorm:"-" json:"-"`
@@ -82,7 +81,6 @@ func (p *Platform) Type() ModelType {
 // Init creates map.
 func (p *Platform) Init(m *Model) {
 	p.M = m
-	p.RailLines = make(map[uint]*RailLine)
 	p.InTasks = make(map[uint]*LineTask)
 	p.StayTasks = make(map[uint]*LineTask)
 	p.OutTasks = make(map[uint]*LineTask)
@@ -132,8 +130,6 @@ func (p *Platform) Resolve(args ...interface{}) {
 		case *Gate:
 			p.WithGate = obj
 			obj.Resolve(p)
-		case *RailLine:
-			p.RailLines[obj.ID] = obj
 		case *LineTask:
 			switch obj.TaskType {
 			case OnDeparture:

@@ -16,7 +16,6 @@ type RailNode struct {
 	InEdges      map[uint]*RailEdge `gorm:"-" json:"-"`
 	OutEdges     map[uint]*RailEdge `gorm:"-" json:"-"`
 	OverPlatform *Platform          `gorm:"-" json:"-"`
-	RailLines    map[uint]*RailLine `gorm:"-" json:"-"`
 	InTasks      map[uint]*LineTask `gorm:"-" json:"-"`
 	OutTasks     map[uint]*LineTask `gorm:"-" json:"-"`
 	// key is id of RailNode
@@ -71,7 +70,6 @@ func (rn *RailNode) Init(m *Model) {
 	rn.M = m
 	rn.InEdges = make(map[uint]*RailEdge)
 	rn.OutEdges = make(map[uint]*RailEdge)
-	rn.RailLines = make(map[uint]*RailLine)
 	rn.InTasks = make(map[uint]*LineTask)
 	rn.OutTasks = make(map[uint]*LineTask)
 	rn.Tracks = make(map[uint]*Track)
@@ -96,8 +94,6 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 			obj.Resolve(rn)
 		case *Platform:
 			rn.OverPlatform = obj
-		case *RailLine:
-			rn.RailLines[obj.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

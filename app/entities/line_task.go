@@ -263,7 +263,6 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.Dept = obj
 			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
-			obj.OnRailNode.Resolve(lt.RailLine)
 			obj.OnRailNode.OutTasks[lt.ID] = lt
 			obj.OnRailNode.InTasks[lt.ID] = lt
 		case *RailEdge:
@@ -278,9 +277,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 				lt.Dest = p
 				p.Resolve(lt)
 			}
-			obj.FromNode.Resolve(lt.RailLine)
 			obj.FromNode.OutTasks[lt.ID] = lt
-			obj.ToNode.Resolve(lt.RailLine)
 			obj.ToNode.InTasks[lt.ID] = lt
 		case *RailLine:
 			lt.RailLine = obj

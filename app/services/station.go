@@ -35,7 +35,7 @@ func RemoveStation(o *entities.Player, id uint) error {
 		if o.ReRouting {
 			route.RefreshTracks(o, Const.Routing.Worker)
 		}
-		for _, l := range st.Platform.RailLines {
+		for _, l := range o.RailLines {
 			if l.ReRouting {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}

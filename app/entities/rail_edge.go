@@ -15,7 +15,6 @@ type RailEdge struct {
 	FromNode  *RailNode          `gorm:"-" json:"-"`
 	ToNode    *RailNode          `gorm:"-" json:"-"`
 	Reverse   *RailEdge          `gorm:"-" json:"-"`
-	RailLines map[uint]*RailLine `gorm:"-" json:"-"`
 	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 
@@ -50,7 +49,6 @@ func (re *RailEdge) Type() ModelType {
 // Init do nothing
 func (re *RailEdge) Init(m *Model) {
 	re.M = m
-	re.RailLines = make(map[uint]*RailLine)
 	re.LineTasks = make(map[uint]*LineTask)
 	re.Trains = make(map[uint]*Train)
 }
@@ -101,9 +99,8 @@ func (re *RailEdge) CheckDelete() error {
 
 // BeforeDelete delete relations to RailNode
 func (re *RailEdge) BeforeDelete() {
-	// [TODO] move Train
-	for _, l := range re.RailLines {
-		l.UnResolve(re)
+	for _, t := range re.Trains {
+		t.SetTask(t.task.next)
 	}
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
@@ -141,8 +138,6 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 		case *RailEdge:
 			re.Reverse = obj
 			obj.Reverse = re
-		case *RailLine:
-			re.RailLines[obj.ID] = obj
 		case *LineTask:
 			re.LineTasks[obj.ID] = obj
 		case *Train:
