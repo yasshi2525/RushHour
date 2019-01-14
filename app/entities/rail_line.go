@@ -50,7 +50,6 @@ func (l *RailLine) StartPlatform(p *Platform) *LineTask {
 			tail = tail.Stretch(tk.Via)
 			tail = tail.Stretch(tk.Via.Reverse)
 			tail.SetNext(head)
-			l.ReRouting = true
 			return nil
 		}
 	}
@@ -70,7 +69,6 @@ func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
 	if l.AutoExt {
 		tail = tail.Stretch(re.Reverse)
 		tail.SetNext(head)
-		l.ReRouting = true
 		return nil
 	}
 	return tail
@@ -92,7 +90,6 @@ func (l *RailLine) RingIf() bool {
 	if l.CanRing() {
 		head, tail := l.Borders()
 		tail.SetNext(head)
-		l.ReRouting = true
 		return true
 	}
 	return false

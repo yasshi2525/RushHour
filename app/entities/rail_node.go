@@ -45,8 +45,6 @@ func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 	e1.Resolve(e2)
 	e2.Resolve(e1)
 
-	rn.Own.ReRouting = true
-
 	eachLineTask(rn.InTasks, func(lt *LineTask) {
 		if lt.RailLine.AutoExt {
 			lt.InsertRailEdge(e1)
@@ -135,6 +133,9 @@ func (rn *RailNode) Permits(o *Player) bool {
 
 // CheckDelete checks remaining reference
 func (rn *RailNode) CheckDelete() error {
+	if rn.OverPlatform != nil {
+		return fmt.Errorf("blocked by OverPlatform of %v", rn.OverPlatform)
+	}
 	for _, re := range rn.OutEdges {
 		if err := re.CheckDelete(); err != nil {
 			return fmt.Errorf("blocked by OutEdges of %v (%v)", re, err)
@@ -144,9 +145,6 @@ func (rn *RailNode) CheckDelete() error {
 		if err := re.CheckDelete(); err != nil {
 			return fmt.Errorf("blocked by InEdges of %v (%v)", re, err)
 		}
-	}
-	if rn.OverPlatform != nil {
-		return fmt.Errorf("blocked by OverPlatform of %v", rn.OverPlatform)
 	}
 	return nil
 }

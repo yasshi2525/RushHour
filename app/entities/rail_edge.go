@@ -108,12 +108,13 @@ func (re *RailEdge) BeforeDelete() {
 }
 
 func (re *RailEdge) Delete() {
-	eachLineTask(re.LineTasks, func(lt *LineTask) {
-		lt.Shave(re)
-	})
 	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
 		lt.Shave(re.Reverse)
 	})
+	eachLineTask(re.LineTasks, func(lt *LineTask) {
+		lt.Shave(re)
+	})
+	re.Own.ReRouting = true
 	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }

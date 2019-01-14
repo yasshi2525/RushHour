@@ -60,6 +60,7 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 		tail[0].SetNext(lt)
 	}
 	m.Add(lt)
+	lt.RailLine.ReRouting = true
 	return lt
 }
 
@@ -86,6 +87,7 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 		tail[0].SetNext(lt)
 	}
 	m.Add(lt)
+	lt.RailLine.ReRouting = true
 	return lt
 }
 
@@ -143,7 +145,6 @@ func (lt *LineTask) InsertRailEdge(re *RailEdge) {
 		tail = tail.DepartIf()
 	}
 	tail.SetNext(next) // (a) -> (b) -> (c)
-	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) InsertDestination(p *Platform) {
@@ -155,18 +156,17 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 	if lt.RailLine.AutoPass {
 		// change move -> pass
 		lt.TaskType = OnPassing
+		lt.RailLine.ReRouting = true
 	} else {
 		// change move -> stop
 		lt.TaskType = OnStopping
 		next := lt.next
 		lt.Depart(true).SetNext(next)
 	}
-	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) InsertDeparture(p *Platform) {
 	lt.SetDept(p)
-	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) Shrink(p *Platform) {
@@ -184,7 +184,6 @@ func (lt *LineTask) Shrink(p *Platform) {
 		lt.next = nil
 	}
 	lt.Delete()
-	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) Shave(re *RailEdge) {
@@ -205,7 +204,6 @@ func (lt *LineTask) Shave(re *RailEdge) {
 		lt.next.Delete()
 		lt.Delete()
 	}
-	lt.RailLine.ReRouting = true
 }
 
 // Idx returns unique id field.
@@ -391,6 +389,7 @@ func (lt *LineTask) BeforeDelete() {
 }
 
 func (lt *LineTask) Delete() {
+	lt.RailLine.ReRouting = true
 	lt.M.Delete(lt)
 }
 
