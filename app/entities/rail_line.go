@@ -189,6 +189,8 @@ func (l *RailLine) UnResolve(args ...interface{}) {
 			delete(l.RailEdges, obj.ID)
 		case *LineTask:
 			delete(l.Tasks, obj.ID)
+		case *Train:
+			delete(l.Trains, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -198,6 +200,17 @@ func (l *RailLine) UnResolve(args ...interface{}) {
 // CheckDelete check remain relation.
 func (l *RailLine) CheckDelete() error {
 	return nil
+}
+
+func (l *RailLine) BeforeDelete() {
+	l.Own.UnResolve(l)
+}
+
+func (l *RailLine) Delete() {
+	for _, lt := range l.Tasks {
+		lt.Delete()
+	}
+	l.M.Delete(l)
 }
 
 // Permits represents Player is permitted to control

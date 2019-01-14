@@ -218,9 +218,9 @@ func (p *Platform) BeforeDelete() {
 	for _, t := range p.Trains {
 		t.UnResolve(p)
 	}
-	for _, lt := range p.StayTasks {
+	eachLineTask(p.StayTasks, func(lt *LineTask) {
 		lt.Shrink(p)
-	}
+	})
 	p.OnRailNode.UnResolve(p)
 	p.Own.UnResolve(p)
 }

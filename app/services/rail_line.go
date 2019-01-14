@@ -104,6 +104,15 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	return ret, nil
 }
 
+func RemoveRailLine(o *entities.Player, id uint) error {
+	if l, err := Model.DeleteIf(o, entities.RAILLINE, id); err != nil {
+		return err
+	} else {
+		AddOpLog("RemoveRailLine", o, l)
+		return nil
+	}
+}
+
 // [DEBUG]
 func lineValidation(l *entities.RailLine) {
 	var headCnt, tailCnt, loopSize int

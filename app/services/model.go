@@ -52,6 +52,7 @@ func StartModelWatching() {
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
 	rmFuncs[entities.RAILEDGE] = RemoveRailEdge
 	rmFuncs[entities.STATION] = RemoveStation
+	rmFuncs[entities.RAILLINE] = RemoveRailLine
 	rmFuncs[entities.TRAIN] = RemoveTrain
 
 	go watchModel()

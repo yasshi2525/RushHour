@@ -306,8 +306,25 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-
 	lt.Marshal()
+}
+
+func (lt *LineTask) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *Train:
+			delete(lt.Trains, obj.ID)
+			lt.RailLine.UnResolve(obj)
+			switch lt.TaskType {
+			case OnDeparture:
+				lt.Stay.UnResolve(obj)
+			default:
+				lt.Moving.UnResolve(obj)
+			}
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 }
 
 // Marshal set id from reference
@@ -385,7 +402,7 @@ func (lt *LineTask) Delete() {
 
 // CheckDelete check remain relation.
 func (lt *LineTask) CheckDelete() error {
-	return fmt.Errorf("[TODO] to implements")
+	return nil
 }
 
 // Permits represents Player is permitted to control

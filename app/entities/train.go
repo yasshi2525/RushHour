@@ -91,6 +91,9 @@ func (t *Train) SetTask(lt *LineTask) {
 	if len(t.Passengers) > 0 {
 		panic(fmt.Errorf("try to set task to Train with passengers: %v", t))
 	}
+	if t.task != nil {
+		t.task.UnResolve(t)
+	}
 	t.task = lt
 	if lt != nil {
 		t.TaskID = lt.ID
@@ -168,6 +171,7 @@ func (t *Train) CheckDelete() error {
 
 func (t *Train) BeforeDelete() {
 	t.UnLoad()
+	t.Own.UnResolve(t)
 }
 
 func (t *Train) Delete() {

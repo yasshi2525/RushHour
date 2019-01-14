@@ -111,12 +111,12 @@ func (re *RailEdge) BeforeDelete() {
 }
 
 func (re *RailEdge) Delete() {
-	for _, lt := range re.LineTasks {
+	eachLineTask(re.LineTasks, func(lt *LineTask) {
 		lt.Shave(re)
-	}
-	for _, lt := range re.Reverse.LineTasks {
+	})
+	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
 		lt.Shave(re.Reverse)
-	}
+	})
 	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }
