@@ -16,7 +16,9 @@ type Platform struct {
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
 	RailLines  map[uint]*RailLine `gorm:"-" json:"-"`
-	LineTasks  map[uint]*LineTask `gorm:"-" json:"-"`
+	InTasks    map[uint]*LineTask `gorm:"-" json:"-"`
+	StayTasks  map[uint]*LineTask `gorm:"-" json:"-"`
+	OutTasks   map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains     map[uint]*Train    `gorm:"-" json:"-"`
 	Passengers map[uint]*Human    `gorm:"-" json:"-"`
 	// key is id of Platform
@@ -81,7 +83,9 @@ func (p *Platform) Type() ModelType {
 func (p *Platform) Init(m *Model) {
 	p.M = m
 	p.RailLines = make(map[uint]*RailLine)
-	p.LineTasks = make(map[uint]*LineTask)
+	p.InTasks = make(map[uint]*LineTask)
+	p.StayTasks = make(map[uint]*LineTask)
+	p.OutTasks = make(map[uint]*LineTask)
 	p.Trains = make(map[uint]*Train)
 	p.Passengers = make(map[uint]*Human)
 	p.Transports = make(map[uint]*Transport)
@@ -131,7 +135,18 @@ func (p *Platform) Resolve(args ...interface{}) {
 		case *RailLine:
 			p.RailLines[obj.ID] = obj
 		case *LineTask:
-			p.LineTasks[obj.ID] = obj
+			switch obj.TaskType {
+			case OnDeparture:
+				p.StayTasks[obj.ID] = obj
+			default:
+				if obj.Dept == p {
+					p.OutTasks[obj.ID] = obj
+				} else if obj.Dest == p {
+					p.InTasks[obj.ID] = obj
+				} else {
+					panic(fmt.Errorf("unrelated LineTask %v -> %v", obj, p))
+				}
+			}
 		case *Train:
 			p.Trains[obj.ID] = obj
 		case *Human:
@@ -142,6 +157,28 @@ func (p *Platform) Resolve(args ...interface{}) {
 		}
 	}
 	p.Marshal()
+}
+
+func (p *Platform) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *LineTask:
+			switch obj.TaskType {
+			case OnDeparture:
+				delete(p.StayTasks, obj.ID)
+			default:
+				if obj.Dept == p {
+					delete(p.OutTasks, obj.ID)
+				} else if obj.Dest == p {
+					delete(p.InTasks, obj.ID)
+				} else {
+					panic(fmt.Errorf("unrelated LineTask %v -> %v", obj, p))
+				}
+			}
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 }
 
 // Marshal set id from reference
@@ -167,12 +204,6 @@ func (p *Platform) UnMarshal() {
 
 // CheckDelete checks related reference
 func (p *Platform) CheckDelete() error {
-	if len(p.RailLines) > 0 {
-		return fmt.Errorf("blocked by RailLine of %v", p.RailLines)
-	}
-	if len(p.LineTasks) > 0 {
-		return fmt.Errorf("blocked by LineTask of %v", p.LineTasks)
-	}
 	if len(p.Trains) > 0 {
 		return fmt.Errorf("blocked by Train of %v", p.Trains)
 	}
@@ -186,6 +217,9 @@ func (p *Platform) BeforeDelete() {
 	}
 	for _, t := range p.Trains {
 		t.UnResolve(p)
+	}
+	for _, lt := range p.StayTasks {
+		lt.Shrink(p)
 	}
 	p.OnRailNode.UnResolve(p)
 	p.Own.UnResolve(p)

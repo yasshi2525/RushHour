@@ -169,22 +169,43 @@ func (lt *LineTask) InsertDeparture(p *Platform) {
 	lt.RailLine.ReRouting = true
 }
 
-func (lt *LineTask) Narrow(re *RailEdge) {
+func (lt *LineTask) Shrink(p *Platform) {
+	if lt.Stay != p {
+		panic(fmt.Errorf("try to shrink far platform: %v -> %v", p, lt))
+	}
+	if lt.before != nil {
+		lt.before.SetDest(nil)
+		lt.before.TaskType = OnMoving
+		lt.before.SetNext(lt.next)
+		lt.before = nil
+	}
+	if lt.next != nil {
+		lt.next.SetDept(nil)
+		lt.next = nil
+	}
+	lt.Delete()
+	lt.RailLine.ReRouting = true
+}
+
+func (lt *LineTask) Shave(re *RailEdge) {
 	if lt.Moving != re {
-		panic(fmt.Errorf("try to narrow far edge: %v -> %v", re, lt))
+		panic(fmt.Errorf("try to shave far edge: %v -> %v", re, lt))
 	}
 	if lt.next == nil {
 		lt.Delete()
 	} else {
 		if lt.next.Moving != re.Reverse {
-			panic(fmt.Errorf("try to narrow linear RailLine: %v -> %v", re.Reverse, lt.next))
+			panic(fmt.Errorf("try to shave linear RailLine: %v -> %v", re.Reverse, lt.next))
 		}
 		if lt.before != nil {
 			lt.before.SetNext(lt.next.next)
+			lt.before = nil
 		}
+		lt.next.next = nil
 		lt.next.Delete()
 		lt.Delete()
 	}
+	lt.RailLine.ReRouting = true
 }
 
 // Idx returns unique id field.
@@ -336,8 +357,23 @@ func (lt *LineTask) UnMarshal() {
 
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
+	if lt.Stay != nil {
+		lt.Stay.UnResolve(lt)
+	}
+	if lt.Dept != nil {
+		lt.Moving.UnResolve(lt)
+	}
+	if lt.Moving != nil {
+		lt.Moving.UnResolve(lt)
+	}
+	if lt.Dest != nil {
+		lt.Dest.UnResolve(lt)
+	}
 	if lt.before != nil {
 		lt.before.SetNext(nil)
+	}
+	if lt.next != nil {
+		lt.next.SetBefore(nil)
 	}
 	lt.RailLine.UnResolve(lt)
 	lt.Own.UnResolve(lt)
@@ -433,21 +469,21 @@ func (lt *LineTask) SetNext(v *LineTask) {
 	lt.Change()
 }
 
-func (lt *LineTask) SetDest(p *Platform) {
-	lt.Dest = p
-	if p != nil {
-		lt.DestID = p.ID
-	} else {
-		lt.DestID = ZERO
-	}
-}
-
 func (lt *LineTask) SetDept(p *Platform) {
 	lt.Dept = p
 	if p != nil {
 		lt.DeptID = p.ID
 	} else {
 		lt.DeptID = ZERO
+	}
+}
+
+func (lt *LineTask) SetDest(p *Platform) {
+	lt.Dest = p
+	if p != nil {
+		lt.DestID = p.ID
+	} else {
+		lt.DestID = ZERO
 	}
 }
 

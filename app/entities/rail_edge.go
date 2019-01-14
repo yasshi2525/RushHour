@@ -105,21 +105,18 @@ func (re *RailEdge) BeforeDelete() {
 	for _, l := range re.RailLines {
 		l.UnResolve(re)
 	}
-	eachLineTask(re.LineTasks, func(lt *LineTask) {
-
-	})
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
 	re.Own.UnResolve(re)
 }
 
 func (re *RailEdge) Delete() {
-	eachLineTask(re.LineTasks, func(lt *LineTask) {
-		lt.Narrow(re)
-	})
-	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
-		lt.Narrow(re.Reverse)
-	})
+	for _, lt := range re.LineTasks {
+		lt.Shave(re)
+	}
+	for _, lt := range re.Reverse.LineTasks {
+		lt.Shave(re.Reverse)
+	}
 	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }
@@ -156,6 +153,17 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 		}
 	}
 	re.Marshal()
+}
+
+func (re *RailEdge) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *LineTask:
+			delete(re.LineTasks, obj.ID)
+		default:
+			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
+		}
+	}
 }
 
 // Marshal set id from reference
