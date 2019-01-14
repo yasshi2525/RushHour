@@ -154,7 +154,8 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 	} else {
 		// change move -> stop
 		lt.TaskType = OnStopping
-		lt.Depart(true).SetNext(lt.next)
+		next := lt.next
+		lt.Depart(true).SetNext(next)
 	}
 	lt.ResolveRef()
 	lt.RailLine.ReRouting = true
@@ -384,6 +385,9 @@ func (lt *LineTask) Next() *LineTask {
 
 // SetNext changes self changed status for backup
 func (lt *LineTask) SetNext(v *LineTask) {
+	if lt == v {
+		panic(fmt.Errorf("try to self loop: %v", lt))
+	}
 	if lt.next != nil {
 		lt.next.before = nil
 		lt.next.ResolveRef()
