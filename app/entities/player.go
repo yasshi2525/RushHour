@@ -42,7 +42,7 @@ func (m *Model) NewPlayer() *Player {
 		Base: NewBase(m.GenID(PLAYER)),
 	}
 	o.Init(m)
-	o.ResolveRef()
+	o.Marshal()
 	m.Add(o)
 	return o
 }
@@ -109,9 +109,13 @@ func (o *Player) Resolve(args ...interface{}) {
 	}
 }
 
-// ResolveRef do nothing for implementing Resolvable
-func (o *Player) ResolveRef() {
+// Marshal do nothing for implementing Resolvable
+func (o *Player) Marshal() {
 	// do-nothing
+}
+
+func (o *Player) UnMarshal() {
+	
 }
 
 // CheckDelete check remain relation.
@@ -121,7 +125,7 @@ func (o *Player) CheckDelete() error {
 
 // String represents status
 func (o *Player) String() string {
-	o.ResolveRef()
+	o.Marshal()
 	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", o.Type().Short(),
 		o.ID, o.LoginID, o.Level, o.DisplayName)
 }

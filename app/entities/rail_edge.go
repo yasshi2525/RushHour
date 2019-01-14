@@ -31,7 +31,7 @@ func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	}
 	re.Init(m)
 	re.Resolve(f.Own, f, t)
-	re.ResolveRef()
+	re.Marshal()
 	m.Add(re)
 	re.Own.ReRouting = true
 	return re
@@ -143,11 +143,11 @@ func (re *RailEdge) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	re.ResolveRef()
+	re.Marshal()
 }
 
-// ResolveRef set id from reference
-func (re *RailEdge) ResolveRef() {
+// Marshal set id from reference
+func (re *RailEdge) Marshal() {
 	if re.FromNode != nil {
 		re.FromID = re.FromNode.ID
 	}
@@ -157,6 +157,14 @@ func (re *RailEdge) ResolveRef() {
 	if re.Reverse != nil {
 		re.ReverseID = re.Reverse.ID
 	}
+}
+
+func (re *RailEdge) UnMarshal() {
+	re.Resolve(
+		re.M.Find(PLAYER, re.OwnerID),
+		re.M.Find(RAILNODE, re.FromID),
+		re.M.Find(RAILNODE, re.ToID),
+		re.M.Find(RAILEDGE, re.ReverseID))
 }
 
 // Permits represents Player is permitted to control
@@ -180,7 +188,7 @@ func (re *RailEdge) Reset() {
 
 // String represents status
 func (re *RailEdge) String() string {
-	re.ResolveRef()
+	re.Marshal()
 	ostr := ""
 	if re.Own != nil {
 		ostr = fmt.Sprintf(":%s", re.Own.Short())

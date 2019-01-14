@@ -44,11 +44,13 @@ type Connectable interface {
 	Cost() float64
 }
 
-// Resolvable set some_id fields from reference.
-// Resolvable is for database migration
-type Resolvable interface {
-	// ResolveRef set id from object
-	ResolveRef()
+// Migratable set some_id fields from reference.
+// Migratable is for database migration
+type Migratable interface {
+	// Marshal set id from object
+	Marshal()
+	// Unmarshal set object from id
+	UnMarshal()
 }
 
 // UnReferable can unrefer for related entity.

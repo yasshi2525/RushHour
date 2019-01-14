@@ -33,10 +33,9 @@ func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
 	}
 	r.Init(m)
 	r.Resolve()
-	r.ResolveRef()
+	r.Marshal()
 	m.Add(r)
 
-	r.ResolveRef()
 	r.GenOutSteps()
 	return r
 }
@@ -99,12 +98,16 @@ func (r *Residence) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	r.ResolveRef()
+	r.Marshal()
 }
 
-// ResolveRef do nothing (for implements Resolvable)
-func (r *Residence) ResolveRef() {
+// Marshal do nothing (for implements Resolvable)
+func (r *Residence) Marshal() {
 	// do-nothing
+}
+
+func (r *Residence) UnMarshal() {
+	
 }
 
 // UnRef remove reference of related entity
@@ -146,7 +149,7 @@ func (r *Residence) Reset() {
 }
 
 func (r *Residence) String() string {
-	r.ResolveRef()
+	r.Marshal()
 	return fmt.Sprintf("%s(%d):i=0,o=%d,h=%d:%v:%s", r.Type().Short(),
 		r.ID, len(r.out), len(r.Targets), r.Pos(), r.Name)
 }

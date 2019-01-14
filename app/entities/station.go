@@ -27,7 +27,7 @@ func (m *Model) NewStation(o *Player) *Station {
 	}
 	st.Init(m)
 	st.Resolve(o)
-	st.ResolveRef()
+	st.Marshal()
 	m.Add(st)
 	return st
 }
@@ -76,17 +76,21 @@ func (st *Station) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	st.ResolveRef()
+	st.Marshal()
 }
 
-// ResolveRef resolve Owner reference
-func (st *Station) ResolveRef() {
+// Marshal resolve Owner reference
+func (st *Station) Marshal() {
 	if st.Platform != nil {
 		st.PlatformID = st.Platform.ID
 	}
 	if st.Gate != nil {
 		st.GateID = st.Gate.ID
 	}
+}
+
+func (st *Station) UnMarshal() {
+	st.Resolve(st.M.Find(PLAYER, st.OwnerID))
 }
 
 // CheckDelete checks related reference
@@ -131,7 +135,7 @@ func (st *Station) Reset() {
 
 // String represents status
 func (st *Station) String() string {
-	st.ResolveRef()
+	st.Marshal()
 	ostr := ""
 	if st.Own != nil {
 		ostr = fmt.Sprintf(":%s", st.Own.Short())

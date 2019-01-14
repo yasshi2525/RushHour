@@ -36,7 +36,7 @@ func (m *Model) NewGate(st *Station) *Gate {
 	}
 	g.Init(m)
 	g.Resolve(st.Own, st)
-	g.ResolveRef()
+	g.Marshal()
 	m.Add(g)
 
 	g.GenOutSteps()
@@ -117,17 +117,23 @@ func (g *Gate) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	g.ResolveRef()
+	g.Marshal()
 }
 
-// ResolveRef set id from reference
-func (g *Gate) ResolveRef() {
+// Marshal set id from reference
+func (g *Gate) Marshal() {
 	if g.InStation != nil {
 		g.StationID = g.InStation.ID
 	}
 	if g.WithPlatform != nil {
 		g.PlatformID = g.WithPlatform.ID
 	}
+}
+
+func (g *Gate) UnMarshal() {
+	g.Resolve(
+		g.M.Find(PLAYER, g.OwnerID), 
+		g.M.Find(STATION, g.StationID))
 }
 
 // Permits represents Player is permitted to control
@@ -171,7 +177,7 @@ func (g *Gate) Reset() {
 
 // String represents status
 func (g *Gate) String() string {
-	g.ResolveRef()
+	g.Marshal()
 	ostr := ""
 	if g.Own != nil {
 		ostr = fmt.Sprintf(":%s", g.Own.Short())

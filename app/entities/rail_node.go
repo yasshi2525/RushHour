@@ -33,7 +33,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 	}
 	rn.Init(m)
 	rn.Resolve(o)
-	rn.ResolveRef()
+	rn.Marshal()
 	m.Add(rn)
 	return rn
 }
@@ -102,14 +102,18 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	rn.ResolveRef()
+	rn.Marshal()
 }
 
-// ResolveRef set id from reference
-func (rn *RailNode) ResolveRef() {
+// Marshal set id from reference
+func (rn *RailNode) Marshal() {
 	if rn.OverPlatform != nil {
 		rn.PlatformID = rn.OverPlatform.ID
 	}
+}
+
+func (rn *RailNode) UnMarshal() {
+	rn.Resolve(rn.M.Find(PLAYER, rn.OwnerID))
 }
 
 // UnRef clear reference
@@ -177,7 +181,7 @@ func (rn *RailNode) Reset() {
 
 // String represents status
 func (rn *RailNode) String() string {
-	rn.ResolveRef()
+	rn.Marshal()
 	ostr := ""
 	if rn.Own != nil {
 		ostr = fmt.Sprintf(":%s", rn.Own.Short())

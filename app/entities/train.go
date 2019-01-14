@@ -36,7 +36,7 @@ func (m *Model) NewTrain(o *Player) *Train {
 		Owner: NewOwner(o),
 	}
 	t.Init(m)
-	t.ResolveRef()
+	t.Marshal()
 	m.Add(t)
 	return t
 }
@@ -70,6 +70,17 @@ func (t *Train) IsIn(x float64, y float64, scale float64) bool {
 	return t.Pos().IsIn(x, y, scale)
 }
 
+func (t *Train) SetTask(lt *LineTask) {
+	t.task = lt
+	if lt != nil {
+		t.TaskID = lt.ID
+	} else {
+		t.TaskID = ZERO
+	}
+	t.Change()
+	t.Marshal()
+}
+
 // Resolve set ID from reference
 func (t *Train) Resolve(args ...interface{}) {
 	for _, raw := range args {
@@ -91,11 +102,11 @@ func (t *Train) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	t.ResolveRef()
+	t.Marshal()
 }
 
-// ResolveRef set id from reference
-func (t *Train) ResolveRef() {
+// Marshal set id from reference
+func (t *Train) Marshal() {
 	if t.task != nil {
 		t.TaskID = t.task.ID
 	}
@@ -111,6 +122,14 @@ func (t *Train) ResolveRef() {
 	}
 }
 
+func (t *Train) UnMarshal() {
+	t.Resolve(t.M.Find(PLAYER, t.OwnerID))
+	// nullable fields
+	if t.TaskID != ZERO {
+		t.Resolve(t.M.Find(LINETASK, t.TaskID))
+	}
+}
+
 func (t *Train) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -123,7 +142,7 @@ func (t *Train) UnResolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	t.ResolveRef()
+	t.Marshal()
 }
 
 // CheckDelete check remain relation.
@@ -139,13 +158,6 @@ func (t *Train) Permits(o *Player) bool {
 // Task return next field
 func (t *Train) Task() *LineTask {
 	return t.task
-}
-
-// SetTask changes self changed status for backup
-func (t *Train) SetTask(v *LineTask) {
-	t.task = v
-	t.Change()
-	v.Resolve(t)
 }
 
 func (t *Train) IsNew() bool {
@@ -164,7 +176,7 @@ func (t *Train) Reset() {
 
 // String represents status
 func (t *Train) String() string {
-	t.ResolveRef()
+	t.Marshal()
 	ostr := ""
 	if t.Own != nil {
 		ostr = fmt.Sprintf(":%s", t.Own.Short())

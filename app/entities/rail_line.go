@@ -30,7 +30,7 @@ func (m *Model) NewRailLine(o *Player) *RailLine {
 	}
 	l.Init(m)
 	l.Resolve(o)
-	l.ResolveRef()
+	l.Marshal()
 	o.Resolve(l)
 	m.Add(l)
 	return l
@@ -171,11 +171,15 @@ func (l *RailLine) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	l.ResolveRef()
+	l.Marshal()
 }
 
-// ResolveRef set if from reference
-func (l *RailLine) ResolveRef() {
+// Marshal set if from reference
+func (l *RailLine) Marshal() {
+}
+
+func (l *RailLine) UnMarshal() {
+	l.Resolve(l.M.Find(PLAYER, l.OwnerID))
 }
 
 func (l *RailLine) UnResolve(args ...interface{}) {
@@ -270,7 +274,7 @@ func (l *RailLine) CanRing() bool {
 
 // String represents status
 func (l *RailLine) String() string {
-	l.ResolveRef()
+	l.Marshal()
 	ostr := ""
 	if l.Own != nil {
 		ostr = fmt.Sprintf(":%s", l.Own.Short())

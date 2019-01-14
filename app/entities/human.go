@@ -63,7 +63,7 @@ func (m *Model) NewHuman(x float64, y float64) *Human {
 	}
 	h.Init(m)
 	h.Resolve()
-	h.ResolveRef()
+	h.Marshal()
 	m.Add(h)
 
 	h.GenOutSteps()
@@ -128,8 +128,8 @@ func (h *Human) InSteps() map[uint]*Step {
 	return nil
 }
 
-// ResolveRef set id from reference
-func (h *Human) ResolveRef() {
+// Marshal set id from reference
+func (h *Human) Marshal() {
 	h.FromID = h.From.ID
 	h.ToID = h.To.ID
 	if h.onPlatform != nil {
@@ -137,6 +137,19 @@ func (h *Human) ResolveRef() {
 	}
 	if h.onTrain != nil {
 		h.TrainID = h.onTrain.ID
+	}
+}
+
+func (h *Human) UnMarshal() {
+	h.Resolve(
+		h.M.Find(RESIDENCE, h.FromID),
+		h.M.Find(COMPANY, h.ToID))
+	// nullable fields
+	if h.PlatformID != ZERO {
+		h.Resolve(h.M.Find(PLATFORM, h.PlatformID))
+	}
+	if h.TrainID != ZERO {
+		h.Resolve(h.M.Find(TRAIN, h.TrainID))
 	}
 }
 
@@ -160,7 +173,7 @@ func (h *Human) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	h.ResolveRef()
+	h.Marshal()
 }
 
 // UnRef deltes refernce of related entity
@@ -190,7 +203,7 @@ func (h *Human) UnResolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	h.ResolveRef()
+	h.Marshal()
 }
 
 // CheckDelete check remain relation.
@@ -308,7 +321,7 @@ func (h *Human) Reset() {
 
 // String represents status
 func (h *Human) String() string {
-	h.ResolveRef()
+	h.Marshal()
 	pstr, tstr := "", ""
 	if h.onPlatform != nil {
 		pstr = fmt.Sprintf(",p=%d", h.onPlatform.ID)

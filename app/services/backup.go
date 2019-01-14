@@ -41,24 +41,12 @@ func Backup() {
 	MuStatic.RLock()
 	defer MuStatic.RUnlock()
 
-	updateForeignKey()
-
 	tx := db.Begin()
 	new, up, del, skip := persistStatic(tx)
 	tx.Commit()
 
 	WarnLongExec(start, Const.Perf.Backup.D, "backup")
 	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d)", new, up, del, skip)
-}
-
-func updateForeignKey() {
-	// set mutable id from reference
-	for _, res := range []entities.ModelType{
-		entities.LINETASK, entities.TRAIN, entities.HUMAN} {
-		Model.ForEach(res, func(obj entities.Indexable) {
-			obj.(entities.Resolvable).ResolveRef()
-		})
-	}
 }
 
 func persistStatic(tx *gorm.DB) (int, int, int, int) {

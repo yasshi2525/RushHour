@@ -40,7 +40,7 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	}
 	p.Init(m)
 	p.Resolve(rn.Own, rn, g.InStation, g)
-	p.ResolveRef()
+	p.Marshal()
 	m.Add(p)
 
 	// find LineTask such as dest to new platform point
@@ -142,11 +142,11 @@ func (p *Platform) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	p.ResolveRef()
+	p.Marshal()
 }
 
-// ResolveRef set id from reference
-func (p *Platform) ResolveRef() {
+// Marshal set id from reference
+func (p *Platform) Marshal() {
 	if p.OnRailNode != nil {
 		p.RailNodeID = p.OnRailNode.ID
 	}
@@ -156,6 +156,14 @@ func (p *Platform) ResolveRef() {
 	if p.InStation != nil {
 		p.StationID = p.InStation.ID
 	}
+}
+
+func (p *Platform) UnMarshal() {
+	st := p.M.Find(STATION, p.StationID).(*Station)
+	p.Resolve(
+		p.M.Find(PLAYER, p.OwnerID),
+		p.M.Find(RAILNODE, p.RailNodeID),
+		st, st.Gate)
 }
 
 // CheckDelete checks related reference
@@ -214,7 +222,7 @@ func (p *Platform) Reset() {
 
 // String represents status
 func (p *Platform) String() string {
-	p.ResolveRef()
+	p.Marshal()
 	ostr := ""
 	if p.Own != nil {
 		ostr = fmt.Sprintf(":%s", p.Own.Short())

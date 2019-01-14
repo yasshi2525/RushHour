@@ -94,65 +94,13 @@ func fetchStatic() {
 
 // resolveStatic set pointer from id for Restore()
 func resolveStatic() {
-	for _, rn := range Model.RailNodes {
-		rn.Resolve(Model.Players[rn.OwnerID])
-	}
-	for _, re := range Model.RailEdges {
-		re.Resolve(
-			Model.Players[re.OwnerID],
-			Model.RailNodes[re.FromID],
-			Model.RailNodes[re.ToID],
-			Model.RailEdges[re.ReverseID])
-	}
-	for _, st := range Model.Stations {
-		st.Resolve(Model.Players[st.OwnerID])
-	}
-	for _, g := range Model.Gates {
-		g.Resolve(
-			Model.Players[g.OwnerID],
-			Model.Stations[g.StationID])
-	}
-	for _, p := range Model.Platforms {
-		st := Model.Stations[p.StationID]
-		p.Resolve(
-			Model.Players[p.OwnerID],
-			Model.RailNodes[p.RailNodeID],
-			st, st.Gate)
-	}
-	for _, l := range Model.RailLines {
-		l.Resolve(Model.Players[l.OwnerID])
-	}
-	for _, lt := range Model.LineTasks {
-		lt.Resolve(
-			Model.Players[lt.OwnerID],
-			Model.RailLines[lt.RailLineID])
-		// nullable fields
-		if lt.NextID != ZERO {
-			lt.Resolve(Model.LineTasks[lt.NextID])
+	for _, key := range entities.TypeList {
+		if !key.IsDB() {
+			continue
 		}
-		if lt.StayID != ZERO {
-			lt.Resolve(Model.Platforms[lt.StayID])
-		}
-		if lt.MovingID != ZERO {
-			lt.Resolve(Model.RailEdges[lt.MovingID])
-		}
-	}
-	for _, t := range Model.Trains {
-		t.Resolve(Model.Players[t.OwnerID])
-		// nullable fields
-		if t.TaskID != ZERO {
-			t.Resolve(Model.LineTasks[t.TaskID])
-		}
-	}
-	for _, h := range Model.Humans {
-		h.Resolve(Model.Residences[h.FromID], Model.Companies[h.ToID])
-		// nullable fields
-		if h.PlatformID != ZERO {
-			h.Resolve(Model.Platforms[h.PlatformID])
-		}
-		if h.TrainID != ZERO {
-			h.Resolve(Model.Platforms[h.TrainID])
-		}
+		Model.ForEach(key, func(obj entities.Indexable) {
+			obj.(entities.Migratable).UnMarshal()
+		})
 	}
 }
 

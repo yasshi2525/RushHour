@@ -55,7 +55,7 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 	}
 	lt.Init(m)
 	lt.Resolve(l.Own, l, p)
-	lt.ResolveRef()
+	lt.Marshal()
 	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
 	}
@@ -70,7 +70,7 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 	}
 	lt.Init(m)
 	lt.Resolve(l.Own, l, re)
-	lt.ResolveRef()
+	lt.Marshal()
 
 	if re.ToNode.OverPlatform == nil {
 		lt.TaskType = OnMoving
@@ -157,13 +157,13 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 		next := lt.next
 		lt.Depart(true).SetNext(next)
 	}
-	lt.ResolveRef()
+	lt.Marshal()
 	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) InsertDeparture(p *Platform) {
 	lt.Dept = p
-	lt.ResolveRef()
+	lt.Marshal()
 	lt.RailLine.ReRouting = true
 }
 
@@ -248,7 +248,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			lt.next = obj
 			if obj != nil {
 				obj.before = lt
-				obj.ResolveRef()
+				obj.Marshal()
 			}
 		case *Train:
 			lt.Trains[obj.ID] = obj
@@ -267,11 +267,11 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		}
 	}
 
-	lt.ResolveRef()
+	lt.Marshal()
 }
 
-// ResolveRef set id from reference
-func (lt *LineTask) ResolveRef() {
+// Marshal set id from reference
+func (lt *LineTask) Marshal() {
 	if lt.RailLine != nil {
 		lt.RailLineID = lt.RailLine.ID
 	}
@@ -298,6 +298,22 @@ func (lt *LineTask) ResolveRef() {
 		lt.DestID = lt.Dest.ID
 	} else {
 		lt.DestID = ZERO
+	}
+}
+
+func (lt *LineTask) UnMarshal() {
+	lt.Resolve(
+		lt.M.Find(PLAYER, lt.OwnerID),
+		lt.M.Find(RAILLINE, lt.RailLineID))
+	// nullable fields
+	if lt.NextID != ZERO {
+		lt.Resolve(lt.M.Find(LINETASK, lt.NextID))
+	}
+	if lt.StayID != ZERO {
+		lt.Resolve(lt.M.Find(PLATFORM, lt.StayID))
+	}
+	if lt.MovingID != ZERO {
+		lt.Resolve(lt.M.Find(RAILEDGE, lt.MovingID))
 	}
 }
 
@@ -352,6 +368,9 @@ func (lt *LineTask) ToNode() *RailNode {
 	case OnDeparture:
 		return lt.Stay.OnRailNode
 	default:
+		if lt == nil || lt.Moving == nil {
+			panic(fmt.Errorf("invalid lt = %v", lt))
+		}
 		return lt.Moving.ToNode
 	}
 }
@@ -390,18 +409,18 @@ func (lt *LineTask) SetNext(v *LineTask) {
 	}
 	if lt.next != nil {
 		lt.next.before = nil
-		lt.next.ResolveRef()
+		lt.next.Marshal()
 	}
 	lt.next = v
 	if v != nil {
 		lt.NextID = v.ID
 		v.before = lt
-		v.ResolveRef()
+		v.Marshal()
 	} else {
 		lt.NextID = ZERO
 	}
 	lt.Change()
-	lt.ResolveRef()
+	lt.Marshal()
 }
 
 func (lt *LineTask) IsNew() bool {
@@ -420,7 +439,7 @@ func (lt *LineTask) Reset() {
 
 // String represents status
 func (lt *LineTask) String() string {
-	lt.ResolveRef()
+	lt.Marshal()
 	ostr := ""
 	if lt.Own != nil {
 		ostr = fmt.Sprintf(":%s", lt.Own.Short())

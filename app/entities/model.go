@@ -36,7 +36,10 @@ type Model struct {
 }
 
 func (m *Model) Find(res ModelType, idx uint) Indexable {
-	return m.Values[res].MapIndex(reflect.ValueOf(idx)).Interface().(Indexable)
+	if obj := m.Values[res].MapIndex(reflect.ValueOf(idx)); obj.IsValid() {
+		return obj.Interface().(Indexable)
+	}
+	panic(fmt.Errorf("no corresponding object %v(%d)", res.Short(), idx))
 }
 
 func (m *Model) ForEach(res ModelType, callback func(Indexable)) {

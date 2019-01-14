@@ -30,7 +30,7 @@ func (m *Model) NewCompany(o *Player, x float64, y float64) *Company {
 	}
 	c.Init(m)
 	c.Resolve()
-	c.ResolveRef()
+	c.Marshal()
 	m.Add(c)
 
 	c.GenInSteps()
@@ -95,12 +95,16 @@ func (c *Company) Resolve(args ...interface{}) {
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	c.ResolveRef()
+	c.Marshal()
 }
 
-// ResolveRef do nothing (for implements Resolvable)
-func (c *Company) ResolveRef() {
+// Marshal do nothing (for implements Resolvable)
+func (c *Company) Marshal() {
 	// do-nothing
+}
+
+func (c *Company) UnMarshal() {
+	
 }
 
 // UnRef remove reference of related entity
@@ -143,7 +147,7 @@ func (c *Company) Reset() {
 
 // String represents status
 func (c *Company) String() string {
-	c.ResolveRef()
+	c.Marshal()
 	return fmt.Sprintf("%s(%d):i=%d,o=0,h=%d:%v:%s", c.Type().Short(),
 		c.ID, len(c.in), len(c.Targets), c.Pos(), c.Name)
 }
