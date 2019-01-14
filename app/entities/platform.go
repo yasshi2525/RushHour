@@ -26,8 +26,8 @@ type Platform struct {
 	outSteps   map[uint]*Step
 	inSteps    map[uint]*Step
 
-	Capacity uint `gorm:"not null" json:"cap"`
-	Occupied uint `gorm:"-"        json:"used"`
+	Capacity int `gorm:"not null" json:"cap"`
+	Occupied int `gorm:"-"        json:"used"`
 
 	StationID  uint `gorm:"not null" json:"stid"`
 	GateID     uint `gorm:"-"        json:"gid"`

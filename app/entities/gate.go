@@ -12,11 +12,11 @@ type Gate struct {
 	Owner
 
 	// Num represents how many Human can pass at the same time
-	Num uint `gorm:"not null" json:"num"`
+	Num int `gorm:"not null" json:"num"`
 	// Mobility represents time one Human pass Gate.
 	Mobility float64 `gorm:"not null" json:"mobility"`
 	// Occupied represents how many Gate are used by Human.
-	Occupied uint `gorm:"not null" json:"occupied"`
+	Occupied int `gorm:"not null" json:"occupied"`
 
 	M            *Model    `gorm:"-" json:"-"`
 	InStation    *Station  `gorm:"-" json:"-"`

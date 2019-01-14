@@ -65,7 +65,8 @@ func StartSimulation() {
 			entities.RAILEDGE,
 			entities.STATION,
 			entities.RAILLINE,
-			entities.LINETASK} {
+			entities.LINETASK,
+			entities.TRACK} {
 			tickOp(source, target, updateInterval, func(src string, tar entities.ModelType) {
 				UpdateModel(mkOp(src, tar))
 			})

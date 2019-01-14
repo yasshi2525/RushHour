@@ -14,8 +14,8 @@ func (d *duration) UnmarshalText(text []byte) error {
 
 type cfgResidence struct {
 	Interval  duration
-	Capacity  uint    `validate:"min=1"`
-	Randomize float64 `validate:"min=0"`
+	Capacity  int     `validate:"gt=0"`
+	Randomize float64 `validate:"gte=0"`
 }
 
 type cfgCompany struct {
@@ -23,19 +23,25 @@ type cfgCompany struct {
 }
 
 type cfgGate struct {
-	Num uint `validate:"gt=0"`
+	Num int `validate:"gt=0"`
 }
 
 type cfgPlatform struct {
-	Capacity uint `validate:"gt=0"`
+	Capacity  int     `validate:"gt=0"`
+	Randomize float64 `validate:"gte=0"`
 }
 
 type cfgTrain struct {
-	Weight   float64 `validate:"gt=0"`
-	Slowness float64 `validate:"gt=0,lte=1"`
+	Speed     float64 `validate:"gt=0"`
+	Capacity  int     `validate:"gt=0"`
+	Mobility  int     `validate:"gt=0"`
+	Weight    float64 `validate:"gt=0"`
+	Slowness  float64 `validate:"gt=0,lte=1"`
+	Randomize float64 `validate:"gte=0"`
 }
 
 type cfgHuman struct {
+	Speed  float64 `validate:"gt=0"`
 	Weight float64 `validate:"gt=0"`
 }
 

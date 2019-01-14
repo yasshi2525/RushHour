@@ -8,15 +8,16 @@ import (
 // Train carries Human from Station to Station.
 type Train struct {
 	Base
+	Point
 	Owner
 
-	Capacity uint `gorm:"not null" json:"capacity"`
+	Capacity int `gorm:"not null" json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
-	Mobility uint    `gorm:"not null" json:"mobility"`
+	Mobility int     `gorm:"not null" json:"mobility"`
 	Speed    float64 `gorm:"not null" json:"speed"`
 	Name     string  `gorm:"not null" json:"name"`
 	Progress float64 `gorm:"not null" json:"progress"`
-	Occupied uint    `gorm:"-"        json:"occupied"`
+	Occupied int     `gorm:"-"        json:"occupied"`
 
 	M          *Model    `gorm:"-" json:"-"`
 	OnRailEdge *RailEdge `gorm:"-" json:"-"`
@@ -30,15 +31,28 @@ type Train struct {
 }
 
 // NewTrain creates instance
-func (m *Model) NewTrain(o *Player) *Train {
+func (m *Model) NewTrain(o *Player, name string) *Train {
 	t := &Train{
-		Base:  NewBase(m.GenID(TRAIN)),
-		Owner: NewOwner(o),
+		Base:     NewBase(m.GenID(TRAIN)),
+		Owner:    NewOwner(o),
+		Capacity: Const.Train.Capacity,
+		Mobility: Const.Train.Mobility,
+		Speed:    Const.Train.Speed,
+		Name:     name,
 	}
 	t.Init(m)
 	t.Marshal()
 	m.Add(t)
 	return t
+}
+
+func (t *Train) UnLoad() {
+	for _, h := range t.Passengers {
+		h.Point = *t.Pos().Rand(Const.Train.Randomize)
+		h.onTrain = nil
+		h.TrainID = ZERO
+		t.Occupied--
+	}
 }
 
 // Idx returns unique id field.
@@ -60,23 +74,31 @@ func (t *Train) Init(m *Model) {
 // Pos returns location
 func (t *Train) Pos() *Point {
 	if t.task == nil {
-		return nil
+		return &Point{}
 	}
 	return t.task.FromNode().Pos().Div(t, t.Progress)
 }
 
 // IsIn returns it should be view or not.
 func (t *Train) IsIn(x float64, y float64, scale float64) bool {
+	if t.task == nil {
+		return false
+	}
 	return t.Pos().IsIn(x, y, scale)
 }
 
 func (t *Train) SetTask(lt *LineTask) {
+	if len(t.Passengers) > 0 {
+		panic(fmt.Errorf("try to set task to Train with passengers: %v", t))
+	}
 	t.task = lt
 	if lt != nil {
 		t.TaskID = lt.ID
 	} else {
 		t.TaskID = ZERO
 	}
+	pos := t.Pos()
+	t.X, t.Y = pos.X, pos.Y
 	t.Change()
 	t.Marshal()
 }
@@ -133,21 +155,23 @@ func (t *Train) UnMarshal() {
 func (t *Train) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
-		case *Platform:
-			t.OnPlatform = nil
-		case *LineTask:
-			t.task = nil
-			t.TaskID = ZERO
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-	t.Marshal()
 }
 
 // CheckDelete check remain relation.
 func (t *Train) CheckDelete() error {
 	return nil
+}
+
+func (t *Train) BeforeDelete() {
+	t.UnLoad()
+}
+
+func (t *Train) Delete() {
+	t.M.Delete(t)
 }
 
 // Permits represents Player is permitted to control

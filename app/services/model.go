@@ -44,6 +44,7 @@ func StartModelWatching() {
 	mkFuncs[entities.RAILEDGE] = ExtendRailNode
 	mkFuncs[entities.STATION] = CreateStation
 	mkFuncs[entities.RAILLINE] = CreateRailLine
+	mkFuncs[entities.TRAIN] = CreateTrain
 
 	rmFuncs = make(map[entities.ModelType]interface{})
 	rmFuncs[entities.RESIDENCE] = RemoveResidence
@@ -51,6 +52,7 @@ func StartModelWatching() {
 	rmFuncs[entities.RAILNODE] = RemoveRailNode
 	rmFuncs[entities.RAILEDGE] = RemoveRailEdge
 	rmFuncs[entities.STATION] = RemoveStation
+	rmFuncs[entities.TRAIN] = RemoveTrain
 
 	go watchModel()
 	revel.AppLog.Info("model watching was successfully started.")
@@ -103,10 +105,7 @@ func processMsg(msg *Operation) time.Time {
 		case entities.RESIDENCE:
 			fallthrough
 		case entities.COMPANY:
-			rv.Call([]reflect.Value{
-				reflect.ValueOf(owner),
-				reflect.ValueOf(msg.X),
-				reflect.ValueOf(msg.Y)})
+			fallthrough
 		case entities.RAILNODE:
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
@@ -149,8 +148,13 @@ func processMsg(msg *Operation) time.Time {
 					ComplementRailLine(owner, l.(*entities.RailLine))
 				}
 			}
+		case entities.TRAIN:
+			t, _ := CreateTrain(owner, "NoName")
+			l := randEntity(owner, entities.RAILLINE)
+			if l != nil {
+				DeployTrain(owner, t, l.(*entities.RailLine))
+			}
 		}
-
 	case "remove":
 		rv := reflect.ValueOf(rmFuncs[msg.Target])
 		if !rv.IsValid() {

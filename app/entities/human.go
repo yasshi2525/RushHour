@@ -195,12 +195,6 @@ func (h *Human) BeforeDelete() {
 func (h *Human) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
-		case *Platform:
-			h.onPlatform = nil
-			h.PlatformID = ZERO
-		case *Train:
-			h.onTrain = nil
-			h.TrainID = ZERO
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

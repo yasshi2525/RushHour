@@ -12,7 +12,7 @@ type Residence struct {
 	Owner
 	Point
 
-	Capacity uint `gorm:"not null" json:"capacity"`
+	Capacity int `gorm:"not null" json:"capacity"`
 	// Wait represents how msec after it generates Human
 	Wait float64 `gorm:"not null" json:"wait"`
 	Name string  `                json:"name"`

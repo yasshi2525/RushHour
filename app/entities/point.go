@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 // Point represents geographical location on game map
@@ -50,6 +51,15 @@ func (p *Point) Div(to Locationable, progress float64) *Point {
 	return &Point{
 		X: p.X*progress + to.Pos().X*(1-progress),
 		Y: p.Y*progress + to.Pos().Y*(1-progress),
+	}
+}
+
+func (p *Point) Rand(max float64) *Point {
+	dist := rand.Float64() * max
+	rad := rand.Float64() * math.Pi * 2
+	return &Point{
+		X: p.X + dist*math.Cos(rad),
+		Y: p.Y + dist*math.Sin(rad),
 	}
 }
 
