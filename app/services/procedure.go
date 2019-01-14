@@ -7,6 +7,7 @@ import (
 )
 
 var gamemaster *time.Ticker
+var beforeProcedure time.Time
 
 // StartProcedure start game.
 func StartProcedure() {
@@ -38,4 +39,14 @@ func processGame() {
 	defer MuDynamic.Unlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.Game.D, "procedure")
+	defer func() { beforeProcedure = time.Now() }()
+
+	if beforeProcedure.IsZero() {
+		return
+	}
+	interval := time.Now().Sub(beforeProcedure).Seconds()
+
+	for _, t := range Model.Trains {
+		t.Step(interval)
+	}
 }

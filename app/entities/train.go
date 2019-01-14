@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const EPS float64 = 0.00001
+
 // Train carries Human from Station to Station.
 type Train struct {
 	Base
@@ -55,6 +57,31 @@ func (t *Train) UnLoad() {
 	}
 }
 
+func (t *Train) Step(sec float64) {
+	if t.task == nil {
+		return
+	}
+	for sec > EPS {
+		switch t.task.TaskType {
+		case OnDeparture:
+			// [TODO] make human get off
+			t.SetTask(t.task.next)
+		default:
+			canDist := sec * t.Speed
+			remainDist := (1.0 - t.Progress) * t.task.Cost()
+			if remainDist < canDist {
+				sec -= remainDist / t.Speed
+				t.SetTask(t.task.next)
+			} else {
+				t.Progress += sec * t.Speed / t.task.Cost()
+				sec = 0
+			}
+		}
+	}
+	pos := t.Pos()
+	t.X, t.Y = pos.X, pos.Y
+}
+
 // Idx returns unique id field.
 func (t *Train) Idx() uint {
 	return t.ID
@@ -88,16 +115,18 @@ func (t *Train) IsIn(x float64, y float64, scale float64) bool {
 }
 
 func (t *Train) SetTask(lt *LineTask) {
-	if len(t.Passengers) > 0 {
-		panic(fmt.Errorf("try to set task to Train with passengers: %v", t))
-	}
 	if t.task != nil {
 		t.task.UnResolve(t)
 	}
 	t.task = lt
+	t.Progress = 0
 	if lt != nil {
 		t.TaskID = lt.ID
+		lt.Resolve(t)
 	} else {
+		if len(t.Passengers) > 0 {
+			panic(fmt.Errorf("try to set task to Train with passengers: %v", t))
+		}
 		t.TaskID = ZERO
 	}
 	pos := t.Pos()
