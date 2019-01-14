@@ -90,8 +90,9 @@ func (re *RailEdge) CheckDelete() error {
 			return fmt.Errorf("blocked by Train of %v", re.Trains)
 		}
 		for _, lt := range obj.LineTasks {
-			if err := lt.CheckDelete(); err != nil {
-				return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
+			// if RailLine is not sharp, forbit remove
+			if lt.next != nil && lt.next.Moving != re.Reverse {
+				return fmt.Errorf("blocked by LineTask of %v", lt)
 			}
 		}
 	}
@@ -104,13 +105,21 @@ func (re *RailEdge) BeforeDelete() {
 	for _, l := range re.RailLines {
 		l.UnResolve(re)
 	}
-	// [TODO] narrow LineTask
+	eachLineTask(re.LineTasks, func(lt *LineTask) {
+
+	})
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
 	re.Own.UnResolve(re)
 }
 
 func (re *RailEdge) Delete() {
+	eachLineTask(re.LineTasks, func(lt *LineTask) {
+		lt.Narrow(re)
+	})
+	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
+		lt.Narrow(re.Reverse)
+	})
 	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }

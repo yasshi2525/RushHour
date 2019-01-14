@@ -151,6 +151,7 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 		panic(fmt.Errorf("try to insert destination to dept LineTask: %v -> %v", p, lt))
 	}
 	lt.Dest = p
+	lt.DestID = p.ID
 	if lt.RailLine.AutoPass {
 		// change move -> pass
 		lt.TaskType = OnPassing
@@ -160,14 +161,30 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 		next := lt.next
 		lt.Depart(true).SetNext(next)
 	}
-	lt.Marshal()
 	lt.RailLine.ReRouting = true
 }
 
 func (lt *LineTask) InsertDeparture(p *Platform) {
-	lt.Dept = p
-	lt.Marshal()
+	lt.SetDept(p)
 	lt.RailLine.ReRouting = true
+}
+
+func (lt *LineTask) Narrow(re *RailEdge) {
+	if lt.Moving != re {
+		panic(fmt.Errorf("try to narrow far edge: %v -> %v", re, lt))
+	}
+	if lt.next == nil {
+		lt.Delete()
+	} else {
+		if lt.next.Moving != re.Reverse {
+			panic(fmt.Errorf("try to narrow linear RailLine: %v -> %v", re.Reverse, lt.next))
+		}
+		if lt.before != nil {
+			lt.before.SetNext(lt.next.next)
+		}
+		lt.next.Delete()
+		lt.Delete()
+	}
 }
 
 // Idx returns unique id field.
@@ -250,8 +267,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		case *LineTask:
 			lt.next = obj
 			if obj != nil {
-				obj.before = lt
-				obj.Marshal()
+				obj.SetBefore(lt)
 			}
 		case *Train:
 			lt.Trains[obj.ID] = obj
@@ -280,8 +296,6 @@ func (lt *LineTask) Marshal() {
 	}
 	if lt.before != nil {
 		lt.BeforeID = lt.before.ID
-	} else {
-		lt.BeforeID = ZERO
 	}
 	if lt.next != nil {
 		lt.NextID = lt.next.ID
@@ -322,7 +336,15 @@ func (lt *LineTask) UnMarshal() {
 
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
+	if lt.before != nil {
+		lt.before.SetNext(nil)
+	}
+	lt.RailLine.UnResolve(lt)
 	lt.Own.UnResolve(lt)
+}
+
+func (lt *LineTask) Delete() {
+	lt.M.Delete(lt)
 }
 
 // CheckDelete check remain relation.
@@ -398,19 +420,44 @@ func (lt *LineTask) SetNext(v *LineTask) {
 		panic(fmt.Errorf("try to self loop: %v", lt))
 	}
 	if lt.next != nil {
-		lt.next.before = nil
-		lt.next.Marshal()
+		lt.next.SetBefore(nil)
 	}
 	lt.next = v
 	if v != nil {
 		lt.NextID = v.ID
-		v.before = lt
-		v.Marshal()
+		v.SetBefore(lt)
 	} else {
 		lt.NextID = ZERO
 	}
+	lt.RailLine.ReRouting = true
 	lt.Change()
-	lt.Marshal()
+}
+
+func (lt *LineTask) SetDest(p *Platform) {
+	lt.Dest = p
+	if p != nil {
+		lt.DestID = p.ID
+	} else {
+		lt.DestID = ZERO
+	}
+}
+
+func (lt *LineTask) SetDept(p *Platform) {
+	lt.Dept = p
+	if p != nil {
+		lt.DeptID = p.ID
+	} else {
+		lt.DeptID = ZERO
+	}
+}
+
+func (lt *LineTask) SetBefore(v *LineTask) {
+	lt.before = v
+	if v != nil {
+		lt.BeforeID = v.ID
+	} else {
+		lt.BeforeID = ZERO
+	}
 }
 
 func (lt *LineTask) IsNew() bool {

@@ -187,6 +187,8 @@ func (l *RailLine) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *RailEdge:
 			delete(l.RailEdges, obj.ID)
+		case *LineTask:
+			delete(l.Tasks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
