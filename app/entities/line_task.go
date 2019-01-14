@@ -315,12 +315,6 @@ func (lt *LineTask) UnResolve(args ...interface{}) {
 		case *Train:
 			delete(lt.Trains, obj.ID)
 			lt.RailLine.UnResolve(obj)
-			switch lt.TaskType {
-			case OnDeparture:
-				lt.Stay.UnResolve(obj)
-			default:
-				lt.Moving.UnResolve(obj)
-			}
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -374,6 +368,9 @@ func (lt *LineTask) UnMarshal() {
 
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
+	for _, t := range lt.Trains {
+		t.SetTask(lt.next)
+	}
 	if lt.Stay != nil {
 		lt.Stay.UnResolve(lt)
 	}

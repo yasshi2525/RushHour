@@ -166,6 +166,8 @@ func (p *Platform) UnResolve(args ...interface{}) {
 			switch obj.TaskType {
 			case OnDeparture:
 				delete(p.StayTasks, obj.ID)
+				delete(p.OnRailNode.InTasks, obj.ID)
+				delete(p.OnRailNode.OutTasks, obj.ID)
 			default:
 				if obj.Dept == p {
 					delete(p.OutTasks, obj.ID)

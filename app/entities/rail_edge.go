@@ -160,6 +160,8 @@ func (re *RailEdge) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *LineTask:
 			delete(re.LineTasks, obj.ID)
+			delete(re.FromNode.OutTasks, obj.ID)
+			delete(re.ToNode.InTasks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
