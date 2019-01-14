@@ -15,6 +15,8 @@ import (
 func MigrateDB() {
 	foreign := make(map[entities.ModelType]string)
 
+	db.AutoMigrate(&OpLog{})
+
 	// create instance corresponding to each record
 	for _, key := range entities.TypeList {
 		if !key.IsDB() {

@@ -43,10 +43,11 @@ func Backup() {
 
 	tx := db.Begin()
 	new, up, del, skip := persistStatic(tx)
+	log := logOperation(tx)
 	tx.Commit()
 
 	WarnLongExec(start, Const.Perf.Backup.D, "backup")
-	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d)", new, up, del, skip)
+	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d, log %d)", new, up, del, skip, log)
 }
 
 func persistStatic(tx *gorm.DB) (int, int, int, int) {
@@ -87,9 +88,12 @@ func persistStatic(tx *gorm.DB) (int, int, int, int) {
 	return createCnt, updateCnt, removeCnt, skipCnt
 }
 
-func logOperation(tx *gorm.DB) {
+func logOperation(tx *gorm.DB) int {
+	logCnt := 0
 	for _, op := range OpCache {
 		tx.Create(op)
+		logCnt++
 	}
 	OpCache = OpCache[:0]
+	return logCnt
 }

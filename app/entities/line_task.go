@@ -324,7 +324,7 @@ func (lt *LineTask) BeforeDelete() {
 
 // CheckDelete check remain relation.
 func (lt *LineTask) CheckDelete() error {
-	return nil
+	return fmt.Errorf("[TODO] to implements")
 }
 
 // Permits represents Player is permitted to control

@@ -85,12 +85,14 @@ func (re *RailEdge) Cost() float64 {
 
 // CheckDelete check remain relation.
 func (re *RailEdge) CheckDelete() error {
-	if len(re.Trains) > 0 {
-		return fmt.Errorf("blocked by Train of %v", re.Trains)
-	}
-	for _, lt := range re.LineTasks {
-		if err := lt.CheckDelete(); err != nil {
-			return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
+	for _, obj := range []*RailEdge{re, re.Reverse} {
+		if len(obj.Trains) > 0 {
+			return fmt.Errorf("blocked by Train of %v", re.Trains)
+		}
+		for _, lt := range obj.LineTasks {
+			if err := lt.CheckDelete(); err != nil {
+				return fmt.Errorf("blocked by LineTask of %v; %v", lt, err)
+			}
 		}
 	}
 	return nil
