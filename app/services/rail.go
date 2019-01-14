@@ -17,6 +17,15 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 	if rn, err := Model.DeleteIf(o, entities.RAILNODE, id); err != nil {
 		return err
 	} else {
+		rn := rn.(*entities.RailNode)
+		if o.ReRouting {
+			route.RefreshTracks(o, Const.Routing.Worker)
+		}
+		for _, l := range rn.RailLines {
+			if l.ReRouting {
+				route.RefreshTransports(l, Const.Routing.Worker)
+			}
+		}
 		AddOpLog("RemoveRailNode", o, rn)
 		return nil
 	}
@@ -44,6 +53,15 @@ func RemoveRailEdge(o *entities.Player, id uint) error {
 	if re, err := Model.DeleteIf(o, entities.RAILEDGE, id); err != nil {
 		return err
 	} else {
+		re := re.(*entities.RailEdge)
+		if o.ReRouting {
+			route.RefreshTracks(o, Const.Routing.Worker)
+		}
+		for _, l := range re.RailLines {
+			if l.ReRouting {
+				route.RefreshTransports(l, Const.Routing.Worker)
+			}
+		}
 		AddOpLog("RemoveRailEdge", o, re)
 		return nil
 	}
