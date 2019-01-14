@@ -48,11 +48,11 @@ func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 
 	rn.Own.ReRouting = true
 
-	for _, lt := range rn.InTasks {
+	eachLineTask(rn.InTasks, func(lt *LineTask) {
 		if lt.RailLine.AutoExt {
 			lt.InsertRailEdge(e1)
 		}
-	}
+	})
 	return to, e1
 }
 
@@ -118,7 +118,7 @@ func (rn *RailNode) UnMarshal() {
 
 // BeforeDelete clear reference
 func (rn *RailNode) BeforeDelete() {
-	// do nothing
+	rn.Own.UnResolve(rn)
 }
 
 func (rn *RailNode) UnResolve(args ...interface{}) {

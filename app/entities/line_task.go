@@ -322,7 +322,7 @@ func (lt *LineTask) UnMarshal() {
 
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
-	// TODO impl
+	lt.Own.UnResolve(lt)
 }
 
 // CheckDelete check remain relation.

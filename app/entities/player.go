@@ -105,6 +105,33 @@ func (o *Player) Resolve(args ...interface{}) {
 			o.LineTasks[obj.ID] = obj
 		case *Train:
 			o.Trains[obj.ID] = obj
+		default:
+			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
+		}
+	}
+}
+
+func (o *Player) UnResolve(args ...interface{}) {
+	for _, raw := range args {
+		switch obj := raw.(type) {
+		case *RailNode:
+			delete(o.RailNodes, obj.ID)
+		case *RailEdge:
+			delete(o.RailEdges, obj.ID)
+		case *Station:
+			delete(o.Stations, obj.ID)
+		case *Gate:
+			delete(o.Gates, obj.ID)
+		case *Platform:
+			delete(o.Platforms, obj.ID)
+		case *RailLine:
+			delete(o.RailLines, obj.ID)
+		case *LineTask:
+			delete(o.LineTasks, obj.ID)
+		case *Train:
+			delete(o.Trains, obj.ID)
+		default:
+			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
 	}
 }
@@ -115,7 +142,7 @@ func (o *Player) Marshal() {
 }
 
 func (o *Player) UnMarshal() {
-	
+
 }
 
 // CheckDelete check remain relation.

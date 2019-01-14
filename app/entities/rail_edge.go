@@ -107,6 +107,7 @@ func (re *RailEdge) BeforeDelete() {
 	// [TODO] narrow LineTask
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
+	re.Own.UnResolve(re)
 }
 
 func (re *RailEdge) Delete() {

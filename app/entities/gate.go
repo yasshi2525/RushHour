@@ -132,7 +132,7 @@ func (g *Gate) Marshal() {
 
 func (g *Gate) UnMarshal() {
 	g.Resolve(
-		g.M.Find(PLAYER, g.OwnerID), 
+		g.M.Find(PLAYER, g.OwnerID),
 		g.M.Find(STATION, g.StationID))
 }
 
@@ -148,7 +148,7 @@ func (g *Gate) CheckDelete() error {
 
 // BeforeDelete deletes related reference
 func (g *Gate) BeforeDelete() {
-
+	g.Own.UnResolve(g)
 }
 
 func (g *Gate) Delete() {

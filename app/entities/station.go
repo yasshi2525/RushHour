@@ -106,6 +106,7 @@ func (st *Station) CheckDelete() error {
 
 // BeforeDelete delete related reference
 func (st *Station) BeforeDelete() {
+	st.Own.UnResolve(st)
 }
 
 func (st *Station) Delete() {

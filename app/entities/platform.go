@@ -44,16 +44,13 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	m.Add(p)
 
 	// find LineTask such as dest to new platform point
-	for _, lt := range rn.InTasks {
-		if lt.TaskType != OnDeparture { // skip LineTask which was added in inner loop
-			lt.InsertDestination(p)
-		}
-	}
-
+	eachLineTask(rn.InTasks, func(lt *LineTask) {
+		lt.InsertDestination(p)
+	})
 	// find LineTask such as dept from new platform point
-	for _, lt := range rn.OutTasks {
+	eachLineTask(rn.OutTasks, func(lt *LineTask) {
 		lt.InsertDeparture(p)
-	}
+	})
 
 	p.GenOutSteps()
 	p.GenInSteps()
@@ -191,6 +188,7 @@ func (p *Platform) BeforeDelete() {
 		t.UnResolve(p)
 	}
 	p.OnRailNode.UnResolve(p)
+	p.Own.UnResolve(p)
 }
 
 func (p *Platform) Delete() {
