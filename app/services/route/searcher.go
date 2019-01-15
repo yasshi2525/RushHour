@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/revel/revel"
-
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -27,10 +25,6 @@ func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 			break
 		default:
 			model, goal := s.Model.ExportWith(s.Target, goalID)
-			if goal == nil {
-				revel.AppLog.Errorf("[DEBUG] target = %v, goalID = %d but nil", s.Target, goalID)
-				revel.AppLog.Errorf("[DEBUG] model = %v", model)
-			}
 			goal.WalkThrough()
 			model.Fix()
 			payload.Route[goalID] = model

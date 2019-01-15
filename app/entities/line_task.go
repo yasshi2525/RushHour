@@ -190,20 +190,22 @@ func (lt *LineTask) Shave(re *RailEdge) {
 	if lt.Moving != re {
 		panic(fmt.Errorf("try to shave far edge: %v -> %v", re, lt))
 	}
-	if lt.next == nil {
-		lt.Delete()
-	} else {
+	if lt.next != nil {
 		if lt.next.Moving != re.Reverse {
 			panic(fmt.Errorf("try to shave linear RailLine: %v -> %v", re.Reverse, lt.next))
 		}
 		if lt.before != nil {
-			lt.before.SetNext(lt.next.next)
-			lt.before = nil
+			// skip redundant Departure
+			if lt.before.TaskType == OnDeparture && lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
+				lt.before.SetNext(lt.next.next.next)
+				lt.next.next.Delete()
+			} else {
+				lt.before.SetNext(lt.next.next)
+			}
 		}
-		lt.next.next = nil
 		lt.next.Delete()
-		lt.Delete()
 	}
+	lt.Delete()
 }
 
 // Idx returns unique id field.
@@ -363,9 +365,6 @@ func (lt *LineTask) UnMarshal() {
 
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
-	for _, t := range lt.Trains {
-		t.SetTask(lt.next)
-	}
 	if lt.Stay != nil {
 		lt.Stay.UnResolve(lt)
 	}
@@ -378,10 +377,10 @@ func (lt *LineTask) BeforeDelete() {
 	if lt.Dest != nil {
 		lt.Dest.UnResolve(lt)
 	}
-	if lt.before != nil {
+	if lt.before != nil && lt.before.next == lt {
 		lt.before.SetNext(nil)
 	}
-	if lt.next != nil {
+	if lt.next != nil && lt.next.before == lt {
 		lt.next.SetBefore(nil)
 	}
 	lt.RailLine.UnResolve(lt)
@@ -389,6 +388,9 @@ func (lt *LineTask) BeforeDelete() {
 }
 
 func (lt *LineTask) Delete() {
+	for _, t := range lt.Trains {
+		t.SetTask(lt.next)
+	}
 	lt.RailLine.ReRouting = true
 	lt.M.Delete(lt)
 }
