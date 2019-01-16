@@ -10,10 +10,11 @@ const EPS float64 = 0.00001
 // Train carries Human from Station to Station.
 type Train struct {
 	Base
-	Point
 	Owner
 
-	Capacity int `gorm:"not null" json:"capacity"`
+	X        float64 `gorm:"-"    json:"x"`
+	Y        float64 `gorm:"-"    json:"x"`
+	Capacity int     `gorm:"not null" json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
 	Mobility int     `gorm:"not null" json:"mobility"`
 	Speed    float64 `gorm:"not null" json:"speed"`
@@ -61,25 +62,16 @@ func (t *Train) Step(sec float64) {
 	if t.task == nil {
 		return
 	}
-	for sec > EPS {
+	for sec > 0 {
 		switch t.task.TaskType {
 		case OnDeparture:
 			// [TODO] make human get off
 			t.SetTask(t.task.next)
 		default:
-			canDist := sec * t.Speed
-			remainDist := (1.0 - t.Progress) * t.task.Cost()
-			if remainDist < canDist {
-				sec -= remainDist / t.Speed
-				t.SetTask(t.task.next)
-			} else {
-				t.Progress += sec * t.Speed / t.task.Cost()
-				sec = 0
-			}
+			t.task.Step(&t.Progress, &sec)
 		}
 	}
-	pos := t.Pos()
-	t.X, t.Y = pos.X, pos.Y
+	t.X, t.Y = t.task.Loc(t.Progress).Flat()
 }
 
 // Idx returns unique id field.
@@ -124,9 +116,7 @@ func (t *Train) SetTask(lt *LineTask) {
 		t.TaskID = lt.ID
 		lt.Resolve(t)
 	} else {
-		if len(t.Passengers) > 0 {
-			panic(fmt.Errorf("try to set task to Train with passengers: %v", t))
-		}
+		t.UnLoad()
 		t.TaskID = ZERO
 	}
 	pos := t.Pos()

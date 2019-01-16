@@ -63,6 +63,10 @@ func (p *Point) Rand(max float64) *Point {
 	}
 }
 
+func (p *Point) Flat() (float64, float64) {
+	return p.X, p.Y
+}
+
 func (p *Point) String() string {
 	return fmt.Sprintf("(%.2f,%.2f)", p.X, p.Y)
 }

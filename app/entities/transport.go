@@ -51,7 +51,7 @@ func (x *Transport) To() Indexable {
 }
 
 func (x *Transport) Cost() float64 {
-	return x.Value * Const.Train.Weight
+	return x.Value
 }
 
 // Pos returns center

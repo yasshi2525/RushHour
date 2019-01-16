@@ -64,7 +64,7 @@ func (s *Step) To() Indexable {
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	return s.FromNode.Pos().Dist(s.ToNode) * Const.Human.Weight
+	return s.FromNode.Pos().Dist(s.ToNode) / Const.Human.Speed
 }
 
 // Permits represents Player is permitted to control

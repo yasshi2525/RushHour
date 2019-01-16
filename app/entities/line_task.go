@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -251,6 +252,27 @@ func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
 	}
 }
 
+func (lt *LineTask) Step(prog *float64, sec *float64) {
+	canDist := *sec * Const.Train.Speed
+	remainDist := (1.0 - *prog) * lt.Cost()
+	if remainDist < canDist {
+		*sec += remainDist / Const.Train.Speed
+		*prog = 1.0
+	} else {
+		*prog += *sec * Const.Train.Speed / lt.Cost()
+		*sec = 0
+	}
+}
+
+func (lt *LineTask) Loc(prog float64) *Point {
+	if prog < 0.5 && lt.before.TaskType == OnDeparture {
+		return lt.Moving.Div(2 * prog * prog)
+	} else if prog > 0.5 && lt.TaskType == OnDeparture {
+		return lt.Moving.Div(-2*prog*prog + 4*prog - 1)
+	}
+	return lt.Moving.Div(prog)
+}
+
 // Resolve set reference
 func (lt *LineTask) Resolve(args ...interface{}) {
 	for _, raw := range args {
@@ -443,10 +465,14 @@ func (lt *LineTask) Cost() float64 {
 	default:
 		cost := lt.Moving.Cost()
 		if lt.before.TaskType == OnDeparture {
-			cost /= Const.Train.Slowness
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
+		} else {
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.Angle(lt.Moving) / math.Pi
 		}
 		if lt.TaskType == OnStopping {
-			cost /= Const.Train.Slowness
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
+		} else {
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.Angle(lt.next.Moving) / math.Pi
 		}
 		return cost
 	}

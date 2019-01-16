@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -78,7 +79,20 @@ func (re *RailEdge) To() Indexable {
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.FromNode.Pos().Dist(re.ToNode)
+	return re.FromNode.Pos().Dist(re.ToNode) / Const.Train.Speed
+}
+
+func (re *RailEdge) Angle(to *RailEdge) float64 {
+	v := &Point{re.ToNode.X - re.FromNode.X, re.ToNode.Y - re.FromNode.Y}
+	lenV := math.Sqrt(v.X*v.X + v.Y*v.Y)
+	u := &Point{to.ToNode.X - to.FromNode.X, to.ToNode.Y - to.FromNode.Y}
+	lenU := math.Sqrt(u.X*u.X + u.Y*u.Y)
+
+	return math.Acos((v.X*u.X + v.Y*u.Y) / (lenV * lenU))
+}
+
+func (re *RailEdge) Div(prog float64) *Point {
+	return re.FromNode.Pos().Div(re.ToNode, prog)
 }
 
 // CheckDelete check remain relation.

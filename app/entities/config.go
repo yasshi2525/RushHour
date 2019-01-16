@@ -35,14 +35,12 @@ type cfgTrain struct {
 	Speed     float64 `validate:"gt=0"`
 	Capacity  int     `validate:"gt=0"`
 	Mobility  int     `validate:"gt=0"`
-	Weight    float64 `validate:"gt=0"`
 	Slowness  float64 `validate:"gt=0,lte=1"`
 	Randomize float64 `validate:"gte=0"`
 }
 
 type cfgHuman struct {
 	Speed  float64 `validate:"gt=0"`
-	Weight float64 `validate:"gt=0"`
 }
 
 type Config struct {

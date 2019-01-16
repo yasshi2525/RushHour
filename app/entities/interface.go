@@ -83,3 +83,8 @@ type Deletable interface {
 	BeforeDelete()
 	Delete()
 }
+
+type Steppable interface {
+	Step(*float64, *float64)
+	Loc(float64) *Point
+}
