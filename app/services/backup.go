@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
