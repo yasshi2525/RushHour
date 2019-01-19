@@ -13,7 +13,7 @@ type Train struct {
 	Owner
 
 	X        float64 `gorm:"-"    json:"x"`
-	Y        float64 `gorm:"-"    json:"x"`
+	Y        float64 `gorm:"-"    json:"y"`
 	Capacity int     `gorm:"not null" json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
 	Mobility int     `gorm:"not null" json:"mobility"`
@@ -62,14 +62,18 @@ func (t *Train) Step(sec float64) {
 	if t.task == nil {
 		return
 	}
-	for sec > 0 {
+	for sec > EPS {
 		switch t.task.TaskType {
 		case OnDeparture:
 			// [TODO] make human get off
 			t.SetTask(t.task.next)
 		default:
 			t.task.Step(&t.Progress, &sec)
+			if t.Progress > 1-EPS {
+				t.SetTask(t.task.next)
+			}
 		}
+		//revel.AppLog.Debugf("t(%d) sec = %f prod = %f: %v", t.ID, sec, t.Progress, t)
 	}
 	t.X, t.Y = t.task.Loc(t.Progress).Flat()
 }

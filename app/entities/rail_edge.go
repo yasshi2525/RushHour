@@ -87,8 +87,12 @@ func (re *RailEdge) Angle(to *RailEdge) float64 {
 	lenV := math.Sqrt(v.X*v.X + v.Y*v.Y)
 	u := &Point{to.ToNode.X - to.FromNode.X, to.ToNode.Y - to.FromNode.Y}
 	lenU := math.Sqrt(u.X*u.X + u.Y*u.Y)
-
-	return math.Acos((v.X*u.X + v.Y*u.Y) / (lenV * lenU))
+	inner := (v.X*u.X + v.Y*u.Y) / (lenV * lenU)
+	theta := math.Acos(inner)
+	if math.IsNaN(theta) {
+		return math.Pi
+	}
+	return theta
 }
 
 func (re *RailEdge) Div(prog float64) *Point {
@@ -170,8 +174,6 @@ func (re *RailEdge) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *LineTask:
 			delete(re.LineTasks, obj.ID)
-			delete(re.FromNode.OutTasks, obj.ID)
-			delete(re.ToNode.InTasks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

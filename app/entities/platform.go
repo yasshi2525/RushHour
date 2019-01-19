@@ -3,6 +3,8 @@ package entities
 import (
 	"fmt"
 	"time"
+
+	"github.com/revel/revel"
 )
 
 // Platform is the base Human wait for Train.
@@ -161,9 +163,8 @@ func (p *Platform) UnResolve(args ...interface{}) {
 		case *LineTask:
 			switch obj.TaskType {
 			case OnDeparture:
+				revel.AppLog.Debugf("unresolv p(%d) lt(%d)", p.ID, obj.ID)
 				delete(p.StayTasks, obj.ID)
-				delete(p.OnRailNode.InTasks, obj.ID)
-				delete(p.OnRailNode.OutTasks, obj.ID)
 			default:
 				if obj.Dept == p {
 					delete(p.OutTasks, obj.ID)
@@ -217,6 +218,7 @@ func (p *Platform) BeforeDelete() {
 		t.UnResolve(p)
 	}
 	eachLineTask(p.StayTasks, func(lt *LineTask) {
+		revel.AppLog.Debugf("p(%d) lt(%d)", p.ID, lt.ID)
 		lt.Shrink(p)
 	})
 	p.OnRailNode.UnResolve(p)

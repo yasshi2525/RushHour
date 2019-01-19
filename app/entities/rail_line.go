@@ -40,35 +40,32 @@ func (l *RailLine) StartPlatform(p *Platform) *LineTask {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from already built RailLine %v", l))
 	}
-	head := l.M.NewLineTaskDept(l, p)
-	tail := head
-
 	if l.AutoExt {
 		rn := p.OnRailNode
-		if tk := rn.Tracks[rn.ID]; tk != nil {
-			// set minimal loop
-			tail = tail.Stretch(tk.Via)
-			tail = tail.Stretch(tk.Via.Reverse)
-			tail.SetNext(head)
+		if tk := rn.Tracks[rn.ID]; l.AutoExt && tk != nil {
+			return l.StartEdge(tk.Via)
+		}
+		if l.AutoPass {
 			return nil
 		}
 	}
-	return tail
+	return l.M.NewLineTaskDept(l, p)
 }
 
 func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from built RailLine: %v", l))
 	}
-	var head *LineTask
-	if p := re.FromNode.OverPlatform; p != nil {
+	var head, tail *LineTask
+	if p := re.FromNode.OverPlatform; !l.AutoPass && p != nil {
 		head = l.M.NewLineTaskDept(l, p)
+		tail = l.M.NewLineTask(l, re, head)
+	} else {
+		head = l.M.NewLineTask(l, re)
+		tail = head
 	}
-	head = l.M.NewLineTask(l, re, head)
-	tail := head
 	if l.AutoExt {
-		tail = tail.Stretch(re.Reverse)
-		tail.SetNext(head)
+		tail.Stretch(re.Reverse).SetNext(head)
 		return nil
 	}
 	return tail

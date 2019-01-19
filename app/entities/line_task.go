@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/revel/revel"
 )
 
 // LineTaskType represents the state what Train should do now.
@@ -107,6 +109,9 @@ func (lt *LineTask) DepartIf(force ...bool) *LineTask {
 		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
 	}
 	if lt.TaskType == OnStopping {
+		if lt.Dest == nil {
+			revel.AppLog.Errorf("dest is nil %v", lt)
+		}
 		return lt.Depart(force...)
 	}
 	return lt
@@ -142,7 +147,7 @@ func (lt *LineTask) InsertRailEdge(re *RailEdge) {
 	tail = tail.Stretch(re.Reverse, true) // = (X) -> (a)
 
 	// when (X) is station and is stopped, append "dept" task after it
-	if next != nil && next.TaskType != OnDeparture {
+	if tail.TaskType == OnStopping && next != nil && next.TaskType != OnDeparture {
 		tail = tail.DepartIf()
 	}
 	tail.SetNext(next) // (a) -> (b) -> (c)
@@ -174,15 +179,15 @@ func (lt *LineTask) Shrink(p *Platform) {
 	if lt.Stay != p {
 		panic(fmt.Errorf("try to shrink far platform: %v -> %v", p, lt))
 	}
+	next := lt.next
+	if next != nil {
+		next.SetDept(nil)
+	}
+	lt.SetNext(nil)
 	if lt.before != nil {
 		lt.before.SetDest(nil)
 		lt.before.TaskType = OnMoving
-		lt.before.SetNext(lt.next)
-		lt.before = nil
-	}
-	if lt.next != nil {
-		lt.next.SetDept(nil)
-		lt.next = nil
+		lt.before.SetNext(next)
 	}
 	lt.Delete()
 }
@@ -196,13 +201,20 @@ func (lt *LineTask) Shave(re *RailEdge) {
 			panic(fmt.Errorf("try to shave linear RailLine: %v -> %v", re.Reverse, lt.next))
 		}
 		if lt.before != nil {
-			// skip redundant Departure
-			if lt.before.TaskType == OnDeparture && lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
-				lt.before.SetNext(lt.next.next.next)
-				lt.next.next.Delete()
-			} else {
-				lt.before.SetNext(lt.next.next)
+			if lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
+				// skip redundant Departure
+				if lt.before.TaskType == OnDeparture {
+					lt.before.SetNext(lt.next.next.next)
+					lt.next.next.Delete()
+				} else {
+					lt.before.SetNext(lt.next.next)
+				}
+				if lt.before.TaskType == OnPassing {
+					lt.before.TaskType = OnStopping
+					lt.before.SetDest(lt.next.Stay)
+				}
 			}
+
 		}
 		lt.next.Delete()
 	}
@@ -256,7 +268,7 @@ func (lt *LineTask) Step(prog *float64, sec *float64) {
 	canDist := *sec * Const.Train.Speed
 	remainDist := (1.0 - *prog) * lt.Cost()
 	if remainDist < canDist {
-		*sec += remainDist / Const.Train.Speed
+		*sec -= remainDist / Const.Train.Speed
 		*prog = 1.0
 	} else {
 		*prog += *sec * Const.Train.Speed / lt.Cost()
@@ -283,6 +295,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 		case *Platform:
 			lt.Stay = obj
 			lt.Dept = obj
+			lt.Dest = obj
 			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
 			obj.OnRailNode.OutTasks[lt.ID] = lt
@@ -388,16 +401,14 @@ func (lt *LineTask) UnMarshal() {
 // BeforeDelete remove related refernce
 func (lt *LineTask) BeforeDelete() {
 	if lt.Stay != nil {
+		delete(lt.Stay.OnRailNode.OutTasks, lt.ID)
+		delete(lt.Stay.OnRailNode.InTasks, lt.ID)
 		lt.Stay.UnResolve(lt)
 	}
-	if lt.Dept != nil {
-		lt.Dept.UnResolve(lt)
-	}
 	if lt.Moving != nil {
+		delete(lt.Moving.FromNode.OutTasks, lt.ID)
+		delete(lt.Moving.ToNode.InTasks, lt.ID)
 		lt.Moving.UnResolve(lt)
-	}
-	if lt.Dest != nil {
-		lt.Dest.UnResolve(lt)
 	}
 	if lt.before != nil && lt.before.next == lt {
 		lt.before.SetNext(nil)
@@ -414,6 +425,7 @@ func (lt *LineTask) Delete() {
 		t.SetTask(lt.next)
 	}
 	lt.RailLine.ReRouting = true
+	revel.AppLog.Debugf("delete lt(%d)", lt.ID)
 	lt.M.Delete(lt)
 }
 
@@ -495,9 +507,17 @@ func (lt *LineTask) SetNext(v *LineTask) {
 	}
 	if lt.next != nil {
 		lt.next.SetBefore(nil)
+		lt.next = nil
+		lt.NextID = ZERO
 	}
 	lt.next = v
 	if v != nil {
+		if lt.TaskType == OnPassing && v.TaskType == OnDeparture {
+			panic(fmt.Errorf("try to set Dept to Pass : %v -> %v", v, lt))
+		}
+		if lt.ToNode() != v.FromNode() {
+			panic(fmt.Errorf("try to set far task : %v -> %v", v, lt))
+		}
 		lt.NextID = v.ID
 		v.SetBefore(lt)
 	} else {
