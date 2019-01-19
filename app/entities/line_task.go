@@ -425,7 +425,6 @@ func (lt *LineTask) Delete() {
 		t.SetTask(lt.next)
 	}
 	lt.RailLine.ReRouting = true
-	revel.AppLog.Debugf("delete lt(%d)", lt.ID)
 	lt.M.Delete(lt)
 }
 

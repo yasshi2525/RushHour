@@ -58,9 +58,6 @@ func persistStatic(tx *gorm.DB) (int, int, int, int) {
 		if res.IsDB() {
 			Model.ForEach(res, func(raw entities.Indexable) {
 				obj := raw.(entities.Persistable)
-				if t, ok := obj.(*entities.Train); ok && math.IsNaN(t.Progress) {
-					revel.AppLog.Debugf("t.progress = %f", t.Progress)
-				}
 				if obj.IsNew() {
 					db.Create(obj)
 					obj.Reset()
