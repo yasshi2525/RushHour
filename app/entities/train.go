@@ -112,6 +112,9 @@ func (t *Train) IsIn(x float64, y float64, scale float64) bool {
 
 func (t *Train) SetTask(lt *LineTask) {
 	if t.task != nil {
+		if lt == nil {
+			t.task.RailLine.UnResolve(t)
+		}
 		t.task.UnResolve(t)
 	}
 	t.task = lt

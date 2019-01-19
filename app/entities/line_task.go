@@ -346,7 +346,6 @@ func (lt *LineTask) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Train:
 			delete(lt.Trains, obj.ID)
-			lt.RailLine.UnResolve(obj)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -472,7 +471,16 @@ func (lt *LineTask) ToNode() *RailNode {
 func (lt *LineTask) Cost() float64 {
 	switch lt.TaskType {
 	case OnDeparture:
-		return 0
+		var sum float64
+		for _, oth := range lt.RailLine.Tasks {
+			if oth.TaskType != OnDeparture {
+				sum += oth.Cost()
+			}
+		}
+		if length := len(lt.RailLine.Trains); length != 0 {
+			return sum / Const.Train.Speed / float64(length)
+		}
+		return math.MaxFloat64
 	default:
 		cost := lt.Moving.Cost()
 		if lt.before.TaskType == OnDeparture {

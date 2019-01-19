@@ -8,7 +8,7 @@ import (
 
 func RefreshTransports(l *entities.RailLine, parallel int) map[uint]*Model {
 	l.ClearTransports()
-	if !l.IsRing() {
+	if !l.IsRing() || len(l.Trains) == 0 {
 		return nil
 	}
 	template := scanRailLine(l)
