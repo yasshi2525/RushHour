@@ -40,11 +40,6 @@ func RemoveStation(o *entities.Player, id uint) error {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}
 		}
-		for _, lt := range Model.LineTasks {
-			if lt.Stay == st.Platform {
-				panic(fmt.Errorf("lt remains %v", lt))
-			}
-		}
 		AddOpLog("RemoveStation", o, st)
 		return nil
 	}
