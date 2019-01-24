@@ -2,28 +2,28 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // Station composes on Platform and Gate
 type Station struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
-	M        *Model    `gorm:"-" json:"-"`
+	Name string `gorm:"not null" json:"name"`
+
 	Platform *Platform `gorm:"-" json:"-"`
 	Gate     *Gate     `gorm:"-" json:"-"`
 
 	PlatformID uint `gorm:"-" json:"pid"`
 	GateID     uint `gorm:"-" json:"gid"`
-
-	Name string `json:"name"`
 }
 
 // NewStation create new instance.
 func (m *Model) NewStation(o *Player) *Station {
 	st := &Station{
-		Base: NewBase(m.GenID(STATION)),
+		Base:        m.NewBase(STATION, o),
+		Persistence: NewPersistence(),
 	}
 	st.Init(m)
 	st.Resolve(o)
@@ -32,45 +32,38 @@ func (m *Model) NewStation(o *Player) *Station {
 	return st
 }
 
-// Idx returns unique id field.
-func (st *Station) Idx() uint {
-	return st.ID
+// B returns base information of this elements.
+func (st *Station) B() *Base {
+	return &st.Base
 }
 
-// Type returns type of entitiy
-func (st *Station) Type() ModelType {
-	return STATION
+// P returns time information for database.
+func (st *Station) P() *Persistence {
+	return &st.Persistence
+}
+
+// S returns entities' position.
+func (st *Station) S() *Shape {
+	return &st.Shape
 }
 
 // Init creates map.
 func (st *Station) Init(m *Model) {
-	st.M = m
-}
-
-// Pos returns location
-func (st *Station) Pos() *Point {
-	if st.Platform == nil {
-		return nil
-	}
-	return st.Platform.Pos()
-}
-
-// IsIn returns it should be view or not.
-func (st *Station) IsIn(x float64, y float64, scale float64) bool {
-	return st.Pos().IsIn(x, y, scale)
+	st.Base.Init(STATION, m)
 }
 
 // Resolve set reference from id.
-func (st *Station) Resolve(args ...interface{}) {
+func (st *Station) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			st.Owner = NewOwner(obj)
+			st.O = obj
 			obj.Resolve(st)
 		case *Gate:
 			st.Gate = obj
 		case *Platform:
 			st.Platform = obj
+			st.Shape = obj.Shape
 			obj.Resolve(st.Gate)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
@@ -81,6 +74,9 @@ func (st *Station) Resolve(args ...interface{}) {
 
 // Marshal resolve Owner reference
 func (st *Station) Marshal() {
+	if st.O != nil {
+		st.OwnerID = st.O.ID
+	}
 	if st.Platform != nil {
 		st.PlatformID = st.Platform.ID
 	}
@@ -106,40 +102,21 @@ func (st *Station) CheckDelete() error {
 
 // BeforeDelete delete related reference
 func (st *Station) BeforeDelete() {
-	st.Own.UnResolve(st)
+	st.O.UnResolve(st)
 }
 
-func (st *Station) Delete() {
+func (st *Station) Delete(force bool) {
 	st.M.Delete(st.Gate)
 	st.M.Delete(st.Platform)
 	st.M.Delete(st)
-}
-
-// Permits represents Player is permitted to control
-func (st *Station) Permits(o *Player) bool {
-	return st.Owner.Permits(o)
-}
-
-func (st *Station) IsNew() bool {
-	return st.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (st *Station) IsChanged(after ...time.Time) bool {
-	return st.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (st *Station) Reset() {
-	st.Base.Reset()
 }
 
 // String represents status
 func (st *Station) String() string {
 	st.Marshal()
 	ostr := ""
-	if st.Own != nil {
-		ostr = fmt.Sprintf(":%s", st.Own.Short())
+	if st.O != nil {
+		ostr = fmt.Sprintf(":%s", st.O.Short())
 	}
 	posstr := ""
 	if st.Pos() != nil {

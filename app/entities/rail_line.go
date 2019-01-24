@@ -2,20 +2,19 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // RailLine represents how Train should run.
 type RailLine struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
 	Name      string `json:"name"`
-	AutoExt   bool
-	AutoPass  bool
-	ReRouting bool
+	AutoExt   bool   `json:"auto_ext"`
+	AutoPass  bool   `json:"auto_pass"`
+	ReRouting bool   `gorm:"-" json:"-"`
 
-	M         *Model             `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stops     map[uint]*Platform `gorm:"-" json:"-"`
 	Tasks     map[uint]*LineTask `gorm:"-" json:"-"`
@@ -26,7 +25,9 @@ type RailLine struct {
 // NewRailLine create instance
 func (m *Model) NewRailLine(o *Player) *RailLine {
 	l := &RailLine{
-		Base: NewBase(m.GenID(RAILLINE)),
+		Base:        m.NewBase(RAILLINE, o),
+		Persistence: NewPersistence(),
+		Shape:       NewShapeGroup(),
 	}
 	l.Init(m)
 	l.Resolve(o)
@@ -34,6 +35,21 @@ func (m *Model) NewRailLine(o *Player) *RailLine {
 	o.Resolve(l)
 	m.Add(l)
 	return l
+}
+
+// B returns base information of this elements.
+func (l *RailLine) B() *Base {
+	return &l.Base
+}
+
+// P returns time information for database.
+func (l *RailLine) P() *Persistence {
+	return &l.Persistence
+}
+
+// S returns entities' position.
+func (l *RailLine) S() *Shape {
+	return &l.Shape
 }
 
 func (l *RailLine) StartPlatform(p *Platform) *LineTask {
@@ -98,19 +114,9 @@ func (l *RailLine) ClearTransports() {
 	}
 }
 
-// Idx returns unique id field.
-func (l *RailLine) Idx() uint {
-	return l.ID
-}
-
-// Type returns type of entitiy
-func (l *RailLine) Type() ModelType {
-	return RAILLINE
-}
-
 // Init makes map
 func (l *RailLine) Init(m *Model) {
-	l.M = m
+	l.Base.Init(RAILLINE, m)
 	l.RailEdges = make(map[uint]*RailEdge)
 	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
@@ -118,38 +124,12 @@ func (l *RailLine) Init(m *Model) {
 	l.Steps = make(map[uint]*Step)
 }
 
-// Pos returns location
-func (l *RailLine) Pos() *Point {
-	sumX, sumY, cnt := 0.0, 0.0, 0.0
-	for _, lt := range l.Tasks {
-		if pos := lt.Pos(); pos != nil {
-			sumX += pos.X
-			sumY += pos.Y
-			cnt++
-		}
-	}
-	if cnt > 0 {
-		return &Point{sumX / cnt, sumY / cnt}
-	}
-	return nil
-}
-
-// IsIn return true when any LineTask is in,
-func (l *RailLine) IsIn(x float64, y float64, scale float64) bool {
-	for _, lt := range l.Tasks {
-		if lt.IsIn(x, y, scale) {
-			return true
-		}
-	}
-	return false
-}
-
 // Resolve set reference
-func (l *RailLine) Resolve(args ...interface{}) {
+func (l *RailLine) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			l.Owner = NewOwner(obj)
+			l.O = obj
 			obj.Resolve(l)
 		case *RailEdge:
 			l.RailEdges[obj.ID] = obj
@@ -157,6 +137,7 @@ func (l *RailLine) Resolve(args ...interface{}) {
 			l.Stops[obj.ID] = obj
 		case *LineTask:
 			l.Tasks[obj.ID] = obj
+			l.Shape.Append(obj.S())
 		case *Train:
 			l.Trains[obj.ID] = obj
 		case *Step:
@@ -176,13 +157,14 @@ func (l *RailLine) UnMarshal() {
 	l.Resolve(l.M.Find(PLAYER, l.OwnerID))
 }
 
-func (l *RailLine) UnResolve(args ...interface{}) {
+func (l *RailLine) UnResolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *RailEdge:
 			delete(l.RailEdges, obj.ID)
 		case *LineTask:
 			delete(l.Tasks, obj.ID)
+			l.Shape.Delete(obj.S())
 		case *Train:
 			delete(l.Trains, obj.ID)
 		default:
@@ -197,33 +179,17 @@ func (l *RailLine) CheckDelete() error {
 }
 
 func (l *RailLine) BeforeDelete() {
-	l.Own.UnResolve(l)
+	l.O.UnResolve(l)
 }
 
-func (l *RailLine) Delete() {
+func (l *RailLine) Delete(force bool) {
+	for _, t := range l.Trains {
+		t.SetTask(nil)
+	}
 	for _, lt := range l.Tasks {
-		lt.Delete()
+		lt.Delete(false)
 	}
 	l.M.Delete(l)
-}
-
-// Permits represents Player is permitted to control
-func (l *RailLine) Permits(o *Player) bool {
-	return l.Owner.Permits(o)
-}
-
-func (l *RailLine) IsNew() bool {
-	return l.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (l *RailLine) IsChanged(after ...time.Time) bool {
-	return l.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (l *RailLine) Reset() {
-	l.Base.Reset()
 }
 
 // Borders returns head and tail of LineTask.
@@ -285,8 +251,8 @@ func (l *RailLine) CanRing() bool {
 func (l *RailLine) String() string {
 	l.Marshal()
 	ostr := ""
-	if l.Own != nil {
-		ostr = fmt.Sprintf(":%s", l.Own.Short())
+	if l.O != nil {
+		ostr = fmt.Sprintf(":%s", l.O.Short())
 	}
 	posstr := ""
 	if l.Pos() != nil {

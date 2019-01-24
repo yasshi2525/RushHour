@@ -41,25 +41,17 @@ type Node struct {
 }
 
 // NewNode returns instance
-func NewNode(obj entities.Indexable) *Node {
+func NewNode(obj entities.Entity) *Node {
 	return &Node{
-		Digest: Digest{obj.Type(), obj.Idx(), math.MaxFloat64},
+		Digest: Digest{obj.B().Type(), obj.B().Idx(), math.MaxFloat64},
 		Out:    []*Edge{},
 		In:     []*Edge{},
 	}
 }
 
-func (n *Node) Idx() uint {
-	return n.ID
-}
-
-func (n *Node) Type() entities.ModelType {
-	return n.ModelType
-}
-
 // SameAs check both directs same resource
-func (n *Node) SameAs(oth entities.Indexable) bool {
-	return n.ModelType == oth.Type() && n.ID == oth.Idx()
+func (n *Node) SameAs(oth entities.Entity) bool {
+	return n.ModelType == oth.B().Type() && n.ID == oth.B().Idx()
 }
 
 // WalkThrough set distance towrards self to Value of connected Nodes.
@@ -103,10 +95,18 @@ func (n *Node) Fix() {
 	n.Out = nil
 }
 
+func (n *Node) Export() *Node {
+	return &Node{
+		Digest: n.Digest,
+		Out:    []*Edge{},
+		In:     []*Edge{},
+	}
+}
+
 func (n *Node) String() string {
 	viastr := ""
 	if n.ViaEdge != nil {
-		viastr = fmt.Sprintf(",via=%d(->%d)", n.ViaEdge.Idx(), n.ViaEdge.To().Idx())
+		viastr = fmt.Sprintf(",via=%d(->%d)", n.ViaEdge.ID, n.ViaEdge.ToNode.ID)
 	}
 	valstr := ""
 	if n.Value == math.MaxFloat64 {
@@ -115,5 +115,5 @@ func (n *Node) String() string {
 		valstr = fmt.Sprintf("%.2f", n.Value)
 	}
 	return fmt.Sprintf("Node(%v,%d):i=%d,o=%d,v=%s%s",
-		n.Type(), n.Idx(), len(n.In), len(n.Out), valstr, viastr)
+		n.ModelType, n.ID, len(n.In), len(n.Out), valstr, viastr)
 }

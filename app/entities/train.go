@@ -2,7 +2,6 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 const EPS float64 = 0.00001
@@ -10,19 +9,18 @@ const EPS float64 = 0.00001
 // Train carries Human from Station to Station.
 type Train struct {
 	Base
-	Owner
+	Persistence
+	Point
+	Shape
 
-	X        float64 `gorm:"-"    json:"x"`
-	Y        float64 `gorm:"-"    json:"y"`
-	Capacity int     `gorm:"not null" json:"capacity"`
+	Capacity int `json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
-	Mobility int     `gorm:"not null" json:"mobility"`
-	Speed    float64 `gorm:"not null" json:"speed"`
+	Mobility int     `json:"mobility"`
+	Speed    float64 `json:"speed"`
+	Progress float64 `json:"progress"`
 	Name     string  `gorm:"not null" json:"name"`
-	Progress float64 `gorm:"not null" json:"progress"`
 	Occupied int     `gorm:"-"        json:"occupied"`
 
-	M          *Model    `gorm:"-" json:"-"`
 	OnRailEdge *RailEdge `gorm:"-" json:"-"`
 	OnPlatform *Platform `gorm:"-" json:"-"`
 	task       *LineTask
@@ -35,18 +33,36 @@ type Train struct {
 
 // NewTrain creates instance
 func (m *Model) NewTrain(o *Player, name string) *Train {
+	pos := Point{}
 	t := &Train{
-		Base:     NewBase(m.GenID(TRAIN)),
-		Owner:    NewOwner(o),
-		Capacity: Const.Train.Capacity,
-		Mobility: Const.Train.Mobility,
-		Speed:    Const.Train.Speed,
-		Name:     name,
+		Base:        m.NewBase(TRAIN, o),
+		Persistence: NewPersistence(),
+		Point:       pos,
+		Shape:       NewShapeNode(&pos),
+		Capacity:    Const.Train.Capacity,
+		Mobility:    Const.Train.Mobility,
+		Speed:       Const.Train.Speed,
+		Name:        name,
 	}
 	t.Init(m)
 	t.Marshal()
 	m.Add(t)
 	return t
+}
+
+// B returns base information of this elements.
+func (t *Train) B() *Base {
+	return &t.Base
+}
+
+// P returns time information for database.
+func (t *Train) P() *Persistence {
+	return &t.Persistence
+}
+
+// S returns entities' position.
+func (t *Train) S() *Shape {
+	return &t.Shape
 }
 
 func (t *Train) UnLoad() {
@@ -90,24 +106,8 @@ func (t *Train) Type() ModelType {
 
 // Init makes map
 func (t *Train) Init(m *Model) {
-	t.M = m
+	t.Base.Init(TRAIN, m)
 	t.Passengers = make(map[uint]*Human)
-}
-
-// Pos returns location
-func (t *Train) Pos() *Point {
-	if t.task == nil {
-		return &Point{}
-	}
-	return t.task.FromNode().Pos().Div(t.task.ToNode(), t.Progress)
-}
-
-// IsIn returns it should be view or not.
-func (t *Train) IsIn(x float64, y float64, scale float64) bool {
-	if t.task == nil {
-		return false
-	}
-	return t.Pos().IsIn(x, y, scale)
 }
 
 func (t *Train) SetTask(lt *LineTask) {
@@ -122,22 +122,24 @@ func (t *Train) SetTask(lt *LineTask) {
 	if lt != nil {
 		t.TaskID = lt.ID
 		lt.Resolve(t)
+		t.Shape = lt.Shape
 	} else {
 		t.UnLoad()
 		t.TaskID = ZERO
+		t.Shape = Shape{}
 	}
-	pos := t.Pos()
-	t.X, t.Y = pos.X, pos.Y
+
+	t.Point = *t.Shape.Div(t.Progress)
 	t.Change()
 	t.Marshal()
 }
 
 // Resolve set ID from reference
-func (t *Train) Resolve(args ...interface{}) {
+func (t *Train) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			t.Owner = NewOwner(obj)
+			t.O = obj
 			obj.Resolve(t)
 		case *LineTask:
 			t.task = obj
@@ -158,6 +160,9 @@ func (t *Train) Resolve(args ...interface{}) {
 
 // Marshal set id from reference
 func (t *Train) Marshal() {
+	if t.O != nil {
+		t.OwnerID = t.O.ID
+	}
 	if t.task != nil {
 		t.TaskID = t.task.ID
 	}
@@ -197,43 +202,24 @@ func (t *Train) CheckDelete() error {
 
 func (t *Train) BeforeDelete() {
 	t.UnLoad()
-	t.Own.UnResolve(t)
+	t.O.UnResolve(t)
 }
 
-func (t *Train) Delete() {
+func (t *Train) Delete(force bool) {
 	t.M.Delete(t)
 }
 
-// Permits represents Player is permitted to control
-func (t *Train) Permits(o *Player) bool {
-	return t.Owner.Permits(o)
-}
-
-// Task return next field
+// Task return task field
 func (t *Train) Task() *LineTask {
 	return t.task
-}
-
-func (t *Train) IsNew() bool {
-	return t.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (t *Train) IsChanged(after ...time.Time) bool {
-	return t.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (t *Train) Reset() {
-	t.Base.Reset()
 }
 
 // String represents status
 func (t *Train) String() string {
 	t.Marshal()
 	ostr := ""
-	if t.Own != nil {
-		ostr = fmt.Sprintf(":%s", t.Own.Short())
+	if t.O != nil {
+		ostr = fmt.Sprintf(":%s", t.O.Short())
 	}
 	ltstr := ""
 	if t.task != nil {

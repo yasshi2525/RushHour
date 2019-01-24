@@ -55,15 +55,15 @@ func persistStatic(tx *gorm.DB) (int, int, int, int) {
 	var createCnt, updateCnt, skipCnt int
 	for _, res := range entities.TypeList {
 		if res.IsDB() {
-			Model.ForEach(res, func(raw entities.Indexable) {
+			Model.ForEach(res, func(raw entities.Entity) {
 				obj := raw.(entities.Persistable)
-				if obj.IsNew() {
+				if obj.P().IsNew() {
 					db.Create(obj)
-					obj.Reset()
+					obj.P().Reset()
 					createCnt++
-				} else if obj.IsChanged() {
+				} else if obj.P().IsChanged() {
 					tx.Save(obj)
-					obj.Reset()
+					obj.P().Reset()
 					updateCnt++
 				} else {
 					skipCnt++

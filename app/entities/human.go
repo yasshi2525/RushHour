@@ -3,7 +3,6 @@ package entities
 import (
 	"fmt"
 	"math"
-	"time"
 )
 
 // Standing is for judgement Human placement on same X, Y
@@ -21,8 +20,9 @@ const (
 // Human commute from Residence to Company by Train
 type Human struct {
 	Base
+	Persistence
+	Shape
 	Point
-	Owner
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
 	Available float64 `gorm:"not null" json:"available"`
@@ -43,7 +43,8 @@ type Human struct {
 
 	On Standing `gorm:"-" json:"-"`
 
-	M          *Model     `gorm:"-" json:"-"`
+	Current *Step `gorm:"-" json:"-"`
+
 	From       *Residence `gorm:"-" json:"-"`
 	To         *Company   `gorm:"-" json:"-"`
 	onPlatform *Platform
@@ -58,10 +59,12 @@ type Human struct {
 
 // NewHuman create instance
 func (m *Model) NewHuman(o *Player, x float64, y float64) *Human {
+	pos := NewPoint(x, y)
 	h := &Human{
-		Base:  NewBase(m.GenID(HUMAN)),
-		Owner: NewOwner(o),
-		Point: NewPoint(x, y),
+		Base:        m.NewBase(HUMAN, o),
+		Persistence: NewPersistence(),
+		Shape:       NewShapeNode(&pos),
+		Point:       pos,
 	}
 	h.Init(m)
 	h.Resolve()
@@ -94,30 +97,26 @@ func (h *Human) GenOutSteps() {
 	}
 }
 
-// Idx returns unique id field.
-func (h *Human) Idx() uint {
-	return h.ID
+// B returns base information of this elements.
+func (h *Human) B() *Base {
+	return &h.Base
 }
 
-// Type returns type of entitiy
-func (h *Human) Type() ModelType {
-	return HUMAN
+// P returns time information for database.
+func (h *Human) P() *Persistence {
+	return &h.Persistence
+}
+
+// S returns entities' position.
+func (h *Human) S() *Shape {
+	return &h.Shape
 }
 
 // Init creates map.
 func (h *Human) Init(m *Model) {
+	h.Base.Init(HUMAN, m)
 	h.M = m
 	h.out = make(map[uint]*Step)
-}
-
-// Pos returns entities' position
-func (h *Human) Pos() *Point {
-	return &h.Point
-}
-
-// IsIn returns it should be view or not.
-func (h *Human) IsIn(x float64, y float64, scale float64) bool {
-	return h.Pos().IsIn(x, y, scale)
 }
 
 // OutSteps returns where it can go to
@@ -156,7 +155,7 @@ func (h *Human) UnMarshal() {
 }
 
 // Resolve set reference
-func (h *Human) Resolve(args ...interface{}) {
+func (h *Human) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Residence:
@@ -202,23 +201,18 @@ func (h *Human) UnResolve(args ...interface{}) {
 	h.Marshal()
 }
 
-// Permits represents Player is permitted to control
-func (h *Human) Permits(o *Player) bool {
-	return true
-}
-
 // CheckDelete check remain relation.
 func (h *Human) CheckDelete() error {
 	return nil
 }
 
-func (h *Human) Delete() {
+func (h *Human) Delete(force bool) {
 	h.M.Delete(h)
 }
 
 // TurnTo make Human turn head to dest.
-func (h *Human) turnTo(dest Locationable) *Human {
-	h.Angle = math.Atan2(dest.Pos().Y-h.Y, dest.Pos().X-h.X)
+func (h *Human) turnTo(dest Entity) *Human {
+	h.Angle = math.Atan2(dest.S().Pos().Y-h.Y, dest.S().Pos().X-h.X)
 	return h
 }
 
@@ -241,8 +235,8 @@ func (h *Human) move(dist float64) *Human {
 
 // WalkTo make Human walk to dest point.
 // If Human cannot reach it, proceed forward as possible.
-func (h *Human) WalkTo(dest Locationable) *Human {
-	h.turnTo(dest).move(h.Dist(dest))
+func (h *Human) WalkTo(dest Entity) *Human {
+	h.turnTo(dest).move(h.S().Pos().Dist(dest.S().Pos()))
 	return h
 }
 
@@ -308,20 +302,6 @@ func (h *Human) SetOnTrain(v *Train) {
 	h.onTrain = v
 	v.Resolve(h)
 	h.Change()
-}
-
-func (h *Human) IsNew() bool {
-	return h.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (h *Human) IsChanged(after ...time.Time) bool {
-	return h.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (h *Human) Reset() {
-	h.Base.Reset()
 }
 
 // String represents status

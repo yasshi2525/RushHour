@@ -7,8 +7,8 @@ import (
 // Step represents two Relayable is logically connected.
 // Step is out of target for persistence because it can derived by other resources.
 type Step struct {
-	ID       uint
-	M        *Model
+	Base
+	Shape
 	FromNode Relayable
 	ToNode   Relayable
 }
@@ -16,7 +16,8 @@ type Step struct {
 // NewWalk create new instance and relation to Relayable
 func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	s := &Step{
-		ID:       m.GenID(STEP),
+		Base:     m.NewBase(STEP),
+		Shape:    NewShapeEdge(f.S().Pos(), t.S().Pos()),
 		FromNode: f,
 		ToNode:   t,
 	}
@@ -27,49 +28,38 @@ func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	return s
 }
 
-// Idx returns unique id field.
-func (s *Step) Idx() uint {
-	return s.ID
+// B returns base information of this elements.
+func (s *Step) B() *Base {
+	return &s.Base
 }
 
-// Type returns type of entitiy
-func (s *Step) Type() ModelType {
-	return STEP
+// S returns entities' position.
+func (s *Step) S() *Shape {
+	return &s.Shape
 }
 
 // Init do nothing
 func (s *Step) Init(m *Model) {
-	s.M = m
-}
-
-// Pos returns center
-func (s *Step) Pos() *Point {
-	return s.FromNode.Pos().Center(s.ToNode)
-}
-
-// IsIn return true when from, to, center is in,
-func (s *Step) IsIn(x float64, y float64, scale float64) bool {
-	return s.FromNode.Pos().IsInLine(s.ToNode, x, y, scale)
+	s.Base.Init(STEP, m)
 }
 
 // From returns where Step comes from
-func (s *Step) From() Indexable {
+func (s *Step) From() Entity {
 	return s.FromNode
 }
 
 // To returns where Step goes to
-func (s *Step) To() Indexable {
+func (s *Step) To() Entity {
 	return s.ToNode
 }
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	return s.FromNode.Pos().Dist(s.ToNode) / Const.Human.Speed
+	return s.Shape.Dist() / Const.Human.Speed
 }
 
-// Permits represents Player is permitted to control
-func (s *Step) Permits(o *Player) bool {
-	return true
+// Resolve set reference from id.
+func (s *Step) Resolve(args ...Entity) {
 }
 
 func (s *Step) CheckDelete() error {
@@ -82,7 +72,7 @@ func (s *Step) BeforeDelete() {
 	delete(s.ToNode.InSteps(), s.ID)
 }
 
-func (s *Step) Delete() {
+func (s *Step) Delete(force bool) {
 	s.M.Delete(s)
 }
 

@@ -8,18 +8,13 @@ import (
 
 // Point represents geographical location on game map
 type Point struct {
-	X float64 `gorm:"index;not null" json:"x"`
-	Y float64 `gorm:"index;not null" json:"y"`
+	X float64 `gorm:"index" json:"x"`
+	Y float64 `gorm:"index" json:"y"`
 }
 
 // NewPoint create Point
 func NewPoint(x float64, y float64) Point {
 	return Point{X: x, Y: y}
-}
-
-// Pos returns self
-func (p *Point) Pos() *Point {
-	return p
 }
 
 // IsIn returns true when Point is in specified area
@@ -30,27 +25,27 @@ func (p *Point) IsIn(x float64, y float64, scale float64) bool {
 }
 
 // IsInLine returns true when this or to or center is in.
-func (p *Point) IsInLine(to Locationable, x float64, y float64, scale float64) bool {
+func (p *Point) IsInLine(to *Point, x float64, y float64, scale float64) bool {
 	return p.IsIn(x, y, scale) ||
 		p.Center(to).IsIn(x, y, scale) ||
-		to.Pos().IsIn(x, y, scale)
+		to.IsIn(x, y, scale)
 }
 
 // Dist calculate a distance between two Point
-func (p *Point) Dist(oth Locationable) float64 {
-	return math.Sqrt((oth.Pos().X-p.X)*(oth.Pos().X-p.X) + (oth.Pos().Y-p.Y)*(oth.Pos().Y-p.Y))
+func (p *Point) Dist(oth *Point) float64 {
+	return math.Sqrt((oth.X-p.X)*(oth.X-p.X) + (oth.Y-p.Y)*(oth.Y-p.Y))
 }
 
 // Center returns devided point.
-func (p *Point) Center(to Locationable) *Point {
+func (p *Point) Center(to *Point) *Point {
 	return p.Div(to, 0.5)
 }
 
 // Div returns dividing point to certain ratio.
-func (p *Point) Div(to Locationable, progress float64) *Point {
+func (p *Point) Div(to *Point, progress float64) *Point {
 	return &Point{
-		X: p.X*progress + to.Pos().X*(1-progress),
-		Y: p.Y*progress + to.Pos().Y*(1-progress),
+		X: p.X*progress + to.X*(1-progress),
+		Y: p.Y*progress + to.Y*(1-progress),
 	}
 }
 
@@ -65,6 +60,19 @@ func (p *Point) Rand(max float64) *Point {
 
 func (p *Point) Flat() (float64, float64) {
 	return p.X, p.Y
+}
+
+func (p *Point) Sub(to *Point) *Point {
+	return &Point{p.X - to.X, p.Y - to.Y}
+}
+
+func (p *Point) Unit() *Point {
+	length := p.Dist(&Point{})
+	return &Point{p.X / length, p.Y / length}
+}
+
+func (p *Point) InnerProduct(to *Point) float64 {
+	return p.X*to.X + p.Y*to.Y
 }
 
 func (p *Point) String() string {

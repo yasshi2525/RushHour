@@ -39,8 +39,8 @@ type OpLog struct {
 	TimeStamp time.Time
 }
 
-func (op *OpLog) Add(obj entities.Indexable) {
-	str := fmt.Sprintf("%s(%d)", obj.Type().Short(), obj.Idx())
+func (op *OpLog) Add(obj entities.Entity) {
+	str := fmt.Sprintf("%s(%d)", obj.B().Type().Short(), obj.B().Idx())
 	switch op.idx {
 	case 0:
 		op.Obj1 = str
@@ -56,7 +56,7 @@ func (op *OpLog) Add(obj entities.Indexable) {
 	op.idx++
 }
 
-func AddOpLog(op string, o *entities.Player, args ...entities.Indexable) {
+func AddOpLog(op string, o *entities.Player, args ...entities.Entity) {
 	log := &OpLog{Op: op, OwnerID: o.ID, TimeStamp: time.Now()}
 	for _, obj := range args {
 		log.Add(obj)

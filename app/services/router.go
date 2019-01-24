@@ -97,8 +97,8 @@ func reflectModel() {
 	defer MuDynamic.Unlock()
 
 	for _, model := range RouteTemplate.Route {
-		for hid, h := range model.Nodes[entities.HUMAN] {
-			Model.Agents[hid].Current = Model.Steps[h.ViaEdge.ID]
+		for _, n := range model.Nodes[entities.HUMAN] {
+			Model.Humans[n.ID].Current = Model.Steps[n.ViaEdge.ID]
 		}
 	}
 }

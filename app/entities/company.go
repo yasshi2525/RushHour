@@ -2,31 +2,32 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // Company is the destination of Human
 type Company struct {
 	Base
-	Owner
+	Persistence
 	Point
+	Shape
 
 	// Scale : if Scale is bigger, more Human destinate Company
 	Scale float64 `gorm:"not null" json:"scale"`
 	Name  string  `json:"name"`
 
-	M       *Model          `gorm:"-" json:"-"`
 	Targets map[uint]*Human `gorm:"-" json:"-"`
 	in      map[uint]*Step
 }
 
 // NewCompany create new instance without setting parameters
-func (m *Model) NewCompany(o *Player, x float64, y float64) *Company {
+func (m *Model) NewCompany(x float64, y float64) *Company {
+	pos := NewPoint(x, y)
 	c := &Company{
-		Base:  NewBase(m.GenID(COMPANY)),
-		Owner: NewOwner(o),
-		Point: NewPoint(x, y),
-		Scale: Const.Company.Scale,
+		Base:        m.NewBase(COMPANY),
+		Persistence: NewPersistence(),
+		Point:       pos,
+		Shape:       NewShapeNode(&pos),
+		Scale:       Const.Company.Scale,
 	}
 	c.Init(m)
 	c.Resolve()
@@ -35,6 +36,21 @@ func (m *Model) NewCompany(o *Player, x float64, y float64) *Company {
 
 	c.GenInSteps()
 	return c
+}
+
+// B returns base information of this elements.
+func (c *Company) B() *Base {
+	return &c.Base
+}
+
+// P returns time information for database.
+func (c *Company) P() *Persistence {
+	return &c.Persistence
+}
+
+// S returns entities' position.
+func (c *Company) S() *Shape {
+	return &c.Shape
 }
 
 func (c *Company) GenInSteps() {
@@ -48,31 +64,11 @@ func (c *Company) GenInSteps() {
 	}
 }
 
-// Idx returns unique id field.
-func (c *Company) Idx() uint {
-	return c.ID
-}
-
-// Type returns type of entitiy
-func (c *Company) Type() ModelType {
-	return COMPANY
-}
-
 // Init creates map.
 func (c *Company) Init(m *Model) {
-	c.M = m
+	c.Base.Init(COMPANY, m)
 	c.in = make(map[uint]*Step)
 	c.Targets = make(map[uint]*Human)
-}
-
-// Pos returns location.
-func (c *Company) Pos() *Point {
-	return &c.Point
-}
-
-// IsIn returns it should be view or not.
-func (c *Company) IsIn(x float64, y float64, scale float64) bool {
-	return c.Pos().IsIn(x, y, scale)
 }
 
 // OutSteps returns where it can go to.
@@ -86,7 +82,7 @@ func (c *Company) InSteps() map[uint]*Step {
 }
 
 // Resolve set reference
-func (c *Company) Resolve(args ...interface{}) {
+func (c *Company) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Human:
@@ -111,17 +107,12 @@ func (c *Company) UnMarshal() {
 func (c *Company) BeforeDelete() {
 }
 
-// Permits represents Player is permitted to control
-func (c *Company) Permits(o *Player) bool {
-	return o.Level == Admin
-}
-
 // CheckDelete check remaining reference
 func (c *Company) CheckDelete() error {
 	return nil
 }
 
-func (c *Company) Delete() {
+func (c *Company) Delete(force bool) {
 	for _, h := range c.Targets {
 		c.M.Delete(h)
 	}
@@ -129,20 +120,6 @@ func (c *Company) Delete() {
 		c.M.Delete(s)
 	}
 	c.M.Delete(c)
-}
-
-func (c *Company) IsNew() bool {
-	return c.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (c *Company) IsChanged(after ...time.Time) bool {
-	return c.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (c *Company) Reset() {
-	c.Base.Reset()
 }
 
 // String represents status

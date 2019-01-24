@@ -2,16 +2,18 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // Platform is the base Human wait for Train.
 // Platform can enter only through Gate.
 type Platform struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
-	M          *Model             `gorm:"-" json:"-"`
+	Capacity int `gorm:"not null" json:"cap"`
+	Occupied int `gorm:"-"        json:"used"`
+
 	OnRailNode *RailNode          `gorm:"-" json:"-"`
 	InStation  *Station           `gorm:"-" json:"-"`
 	WithGate   *Gate              `gorm:"-" json:"-"`
@@ -25,22 +27,21 @@ type Platform struct {
 	outSteps   map[uint]*Step
 	inSteps    map[uint]*Step
 
-	Capacity int `gorm:"not null" json:"cap"`
-	Occupied int `gorm:"-"        json:"used"`
-
-	StationID  uint `gorm:"not null" json:"stid"`
-	GateID     uint `gorm:"-"        json:"gid"`
-	RailNodeID uint `gorm:"not null" json:"rnid"`
+	StationID  uint `json:"stid"`
+	RailNodeID uint `json:"rnid"`
+	GateID     uint `gorm:"-" json:"gid"`
 }
 
 // NewPlatform creates instance
 func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	p := &Platform{
-		Base:     NewBase(m.GenID(PLATFORM)),
-		Capacity: Const.Platform.Capacity,
+		Base:        m.NewBase(PLATFORM, rn.O),
+		Persistence: NewPersistence(),
+		Shape:       rn.Shape,
+		Capacity:    Const.Platform.Capacity,
 	}
 	p.Init(m)
-	p.Resolve(rn.Own, rn, g.InStation, g)
+	p.Resolve(rn.O, rn, g.InStation, g)
 	p.Marshal()
 	m.Add(p)
 
@@ -58,6 +59,21 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	return p
 }
 
+// B returns base information of this elements.
+func (p *Platform) B() *Base {
+	return &p.Base
+}
+
+// P returns time information for database.
+func (p *Platform) P() *Persistence {
+	return &p.Persistence
+}
+
+// S returns entities' position.
+func (p *Platform) S() *Shape {
+	return &p.Shape
+}
+
 func (p *Platform) GenOutSteps() {
 	// P -> G
 	p.M.NewStep(p, p.WithGate)
@@ -68,19 +84,9 @@ func (p *Platform) GenInSteps() {
 	p.M.NewStep(p.WithGate, p)
 }
 
-// Idx returns unique id field.
-func (p *Platform) Idx() uint {
-	return p.ID
-}
-
-// Type returns type of entitiy
-func (p *Platform) Type() ModelType {
-	return PLATFORM
-}
-
 // Init creates map.
 func (p *Platform) Init(m *Model) {
-	p.M = m
+	p.Base.Init(PLATFORM, m)
 	p.InTasks = make(map[uint]*LineTask)
 	p.StayTasks = make(map[uint]*LineTask)
 	p.OutTasks = make(map[uint]*LineTask)
@@ -89,19 +95,6 @@ func (p *Platform) Init(m *Model) {
 	p.Transports = make(map[uint]*Transport)
 	p.outSteps = make(map[uint]*Step)
 	p.inSteps = make(map[uint]*Step)
-}
-
-// Pos returns location
-func (p *Platform) Pos() *Point {
-	if p.OnRailNode == nil {
-		return nil
-	}
-	return p.OnRailNode.Pos()
-}
-
-// IsIn returns it should be view or not.
-func (p *Platform) IsIn(x float64, y float64, scale float64) bool {
-	return p.Pos().IsIn(x, y, scale)
 }
 
 // OutSteps returns where it can go to
@@ -115,11 +108,11 @@ func (p *Platform) InSteps() map[uint]*Step {
 }
 
 // Resolve set reference
-func (p *Platform) Resolve(args ...interface{}) {
+func (p *Platform) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			p.Owner = NewOwner(obj)
+			p.O = obj
 			obj.Resolve(p)
 		case *RailNode:
 			p.OnRailNode = obj
@@ -179,6 +172,9 @@ func (p *Platform) UnResolve(args ...interface{}) {
 
 // Marshal set id from reference
 func (p *Platform) Marshal() {
+	if p.O != nil {
+		p.OwnerID = p.O.ID
+	}
 	if p.OnRailNode != nil {
 		p.RailNodeID = p.OnRailNode.ID
 	}
@@ -224,10 +220,10 @@ func (p *Platform) BeforeDelete() {
 		}
 	})
 	p.OnRailNode.UnResolve(p)
-	p.Own.UnResolve(p)
+	p.O.UnResolve(p)
 }
 
-func (p *Platform) Delete() {
+func (p *Platform) Delete(force bool) {
 	for _, s := range p.outSteps {
 		p.M.Delete(s)
 	}
@@ -237,31 +233,12 @@ func (p *Platform) Delete() {
 	p.M.Delete(p)
 }
 
-// Permits represents Player is permitted to control
-func (p *Platform) Permits(o *Player) bool {
-	return p.Owner.Permits(o)
-}
-
-func (p *Platform) IsNew() bool {
-	return p.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (p *Platform) IsChanged(after ...time.Time) bool {
-	return p.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (p *Platform) Reset() {
-	p.Base.Reset()
-}
-
 // String represents status
 func (p *Platform) String() string {
 	p.Marshal()
 	ostr := ""
-	if p.Own != nil {
-		ostr = fmt.Sprintf(":%s", p.Own.Short())
+	if p.O != nil {
+		ostr = fmt.Sprintf(":%s", p.O.Short())
 	}
 	posstr := ""
 	if p.Pos() != nil {

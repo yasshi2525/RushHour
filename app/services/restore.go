@@ -64,22 +64,13 @@ func fetchStatic() {
 		if rows, err := db.Table(key.Table()).Where("deleted_at is null").Rows(); err == nil {
 			for rows.Next() {
 				// 対応する Struct を作成
-				base := key.Obj(Model)
-				if err := db.ScanRows(rows, base); err == nil {
-					if obj, ok := base.(entities.Persistable); ok {
-						obj.Reset() // DBNew -> DBMerged
-					} else {
-						panic(fmt.Errorf("invalid type %T: %+v", base, base))
-					}
+				obj := key.Obj(Model).(entities.Persistable)
+				if err := db.ScanRows(rows, obj); err == nil {
+					obj.P().Reset()
 
 					// Model に登録
-					if obj, ok := base.(entities.Indexable); ok {
-						Model.Values[key].SetMapIndex(reflect.ValueOf(obj.Idx()), reflect.ValueOf(obj))
-						cnt++
-						//revel.AppLog.Debugf("set Model[%s][%d] = %v", key, obj.Idx(), obj)
-					} else {
-						panic(fmt.Errorf("invalid type %T: %+v", base, base))
-					}
+					Model.Values[key].SetMapIndex(reflect.ValueOf(obj.B().Idx()), reflect.ValueOf(obj))
+					cnt++
 				} else {
 					panic(err)
 				}
@@ -97,7 +88,7 @@ func resolveStatic() {
 		if !key.IsDB() {
 			continue
 		}
-		Model.ForEach(key, func(obj entities.Indexable) {
+		Model.ForEach(key, func(obj entities.Entity) {
 			obj.(entities.Migratable).UnMarshal()
 		})
 	}
@@ -122,6 +113,5 @@ func genDynamics() {
 	}
 	for _, h := range Model.Humans {
 		h.GenOutSteps()
-		Model.Agents[h.ID] = Model.NewAgent(h)
 	}
 }

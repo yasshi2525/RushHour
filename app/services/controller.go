@@ -22,14 +22,14 @@ func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{
 		// filter out agent, step ...
 		if res.IsVisible() {
 			list := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(res.Type())), 0, 0)
-			Model.ForEach(res, func(obj entities.Indexable) {
+			Model.ForEach(res, func(obj entities.Entity) {
 				// filter time
-				if len(after) > 0 && !obj.(entities.Persistable).IsChanged(after[0]) {
+				if len(after) > 0 && !obj.B().IsChanged(after[0]) {
 					return
 				}
 				// filter out of user view
-				if pos, ok := obj.(entities.Viewable); ok && pos.IsIn(x, y, scale) {
-					list = reflect.Append(list, reflect.ValueOf(pos))
+				if obj.S().IsIn(x, y, scale) {
+					list = reflect.Append(list, reflect.ValueOf(obj))
 				}
 			})
 			view.Elem().Field(idx).Set(list)
@@ -54,8 +54,8 @@ func newGameView() reflect.Value {
 }
 
 // CheckAuth throws error when there is no permission
-func CheckAuth(owner *entities.Player, res entities.Ownable) error {
-	if res.Permits(owner) {
+func CheckAuth(owner *entities.Player, res entities.Entity) error {
+	if res.B().Permits(owner) {
 		return nil
 	}
 	return fmt.Errorf("no permission to operate %v", res)

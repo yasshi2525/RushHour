@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 )
 
-const ZERO = 0
+const ZERO uint = 0
 
 // Model represents data structure
 type Model struct {
@@ -25,7 +25,6 @@ type Model struct {
 	Tracks     map[uint]*Track
 	Transports map[uint]*Transport
 	Steps      map[uint]*Step
-	Agents     map[uint]*Agent
 
 	NextIDs map[ModelType]*uint64
 	// Deletes represents the list of deleting in next Backup()
@@ -35,17 +34,17 @@ type Model struct {
 	Values map[ModelType]reflect.Value
 }
 
-func (m *Model) Find(res ModelType, idx uint) Indexable {
+func (m *Model) Find(res ModelType, idx uint) Entity {
 	if obj := m.Values[res].MapIndex(reflect.ValueOf(idx)); obj.IsValid() {
-		return obj.Interface().(Indexable)
+		return obj.Interface().(Entity)
 	}
 	panic(fmt.Errorf("no corresponding object %v(%d)", res.Short(), idx))
 }
 
-func (m *Model) ForEach(res ModelType, callback func(Indexable)) {
+func (m *Model) ForEach(res ModelType, callback func(Entity)) {
 	mapdata := m.Values[res]
 	for _, key := range mapdata.MapKeys() {
-		callback(mapdata.MapIndex(key).Interface().(Indexable))
+		callback(mapdata.MapIndex(key).Interface().(Entity))
 	}
 }
 
@@ -53,40 +52,44 @@ func (m *Model) GenID(res ModelType) uint {
 	return uint(atomic.AddUint64(m.NextIDs[res], 1))
 }
 
-func (m *Model) Add(args ...Indexable) {
+func (m *Model) Add(args ...Entity) {
 	for _, obj := range args {
-		m.Values[obj.Type()].SetMapIndex(
-			reflect.ValueOf(obj.Idx()),
+		m.Values[obj.B().Type()].SetMapIndex(
+			reflect.ValueOf(obj.B().Idx()),
 			reflect.ValueOf(obj))
 	}
 }
 
-func (m *Model) DeleteIf(o *Player, res ModelType, id uint) (Deletable, error) {
+func (m *Model) DeleteIf(o *Player, res ModelType, id uint, force ...bool) (Entity, error) {
 	raw := m.Values[res].MapIndex(reflect.ValueOf(id))
 	// no id
 	if !raw.IsValid() {
 		return nil, fmt.Errorf("%v(%d) was already removed", res, id)
 	}
-	obj := raw.Interface().(Deletable)
+	obj := raw.Interface().(Entity)
 	// no permission
-	if !obj.Permits(o) {
+	if !obj.B().Permits(o) {
 		return obj, fmt.Errorf("no permission for %v to delete %v", o, obj)
 	}
-	// reference
-	if err := obj.CheckDelete(); err != nil {
-		return obj, err
+	if len(force) > 0 && force[0] {
+		obj.Delete(true)
+	} else {
+		// reference
+		if err := obj.CheckDelete(); err != nil {
+			return obj, err
+		}
+		obj.Delete(false)
 	}
-	obj.Delete()
 	return obj, nil
 }
 
-func (m *Model) Delete(args ...Deletable) {
+func (m *Model) Delete(args ...Entity) {
 	for _, obj := range args {
 		obj.BeforeDelete()
-		m.Values[obj.Type()].SetMapIndex(
-			reflect.ValueOf(obj.Idx()),
+		m.Values[obj.B().Type()].SetMapIndex(
+			reflect.ValueOf(obj.B().Idx()),
 			reflect.Value{})
-		m.Deletes[obj.Type()] = append(m.Deletes[obj.Type()], obj.Idx())
+		m.Deletes[obj.B().Type()] = append(m.Deletes[obj.B().Type()], obj.B().Idx())
 	}
 }
 

@@ -22,7 +22,6 @@ const (
 	TRACK
 	TRANSPORT
 	STEP
-	AGENT
 )
 
 // TypeList is list of ModelType
@@ -43,7 +42,6 @@ type attribute struct {
 // attr represents attribute of each resource
 var attr map[ModelType]*attribute
 var types map[ModelType]reflect.Type
-var indices map[ModelType]bool
 var nodes map[ModelType]bool
 var edges map[ModelType]bool
 
@@ -67,11 +65,11 @@ func (t ModelType) API() string {
 }
 
 // Obj returns prototype pointer of instance
-func (t ModelType) Obj(m *Model) Indexable {
+func (t ModelType) Obj(m *Model) Entity {
 	obj := reflect.New(types[t])
 	ptr := reflect.Indirect(obj).Addr().Interface()
 	ptr.(Initializable).Init(m)
-	return ptr.(Indexable)
+	return ptr.(Entity)
 }
 
 // Type returns type of field
@@ -87,10 +85,6 @@ func (t ModelType) IsVisible() bool {
 // IsDB returns whether entity is persisted or not
 func (t ModelType) IsDB() bool {
 	return attr[t].Table != ""
-}
-
-func (t ModelType) IsIndexable() bool {
-	return indices[t]
 }
 
 func (t ModelType) IsRelayable() bool {
@@ -118,7 +112,6 @@ func InitType() {
 		TRACK,
 		TRANSPORT,
 		STEP,
-		AGENT,
 	}
 
 	attr = make(map[ModelType]*attribute)
@@ -140,10 +133,8 @@ func InitType() {
 	attr[TRACK] = &attribute{"Track", "tk", "", ""}
 	attr[TRANSPORT] = &attribute{"Transport", "x", "", ""}
 	attr[STEP] = &attribute{"Step", "s", "", ""}
-	attr[AGENT] = &attribute{"Agent", "a", "", ""}
 
 	types = make(map[ModelType]reflect.Type)
-	indices = make(map[ModelType]bool)
 	nodes = make(map[ModelType]bool)
 	edges = make(map[ModelType]bool)
 
@@ -151,11 +142,9 @@ func InitType() {
 	for idx, res := range TypeList {
 		types[res] = modelType.Field(idx).Type.Elem().Elem()
 
-		i := reflect.TypeOf((*Indexable)(nil)).Elem()
 		n := reflect.TypeOf((*Relayable)(nil)).Elem()
 		e := reflect.TypeOf((*Connectable)(nil)).Elem()
 
-		indices[res] = types[res].Implements(i)
 		nodes[res] = types[res].Implements(n)
 		edges[res] = types[res].Implements(e)
 	}

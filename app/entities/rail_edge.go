@@ -2,17 +2,15 @@ package entities
 
 import (
 	"fmt"
-	"math"
-	"time"
 )
 
 // RailEdge connects from RailNode to RailNode.
 // It's directional.
 type RailEdge struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
-	M         *Model             `gorm:"-" json:"-"`
 	FromNode  *RailNode          `gorm:"-" json:"-"`
 	ToNode    *RailNode          `gorm:"-" json:"-"`
 	Reverse   *RailEdge          `gorm:"-" json:"-"`
@@ -27,76 +25,53 @@ type RailEdge struct {
 // NewRailEdge create new instance and relates RailNode
 func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
-		Base: NewBase(m.GenID(RAILEDGE)),
+		Base:        m.NewBase(RAILEDGE, f.O),
+		Persistence: NewPersistence(),
+		Shape:       NewShapeEdge(&f.Point, &t.Point),
 	}
 	re.Init(m)
-	re.Resolve(f.Own, f, t)
+	re.Resolve(f.O, f, t)
 	re.Marshal()
 	m.Add(re)
-	re.Own.ReRouting = true
+	re.O.ReRouting = true
 	return re
 }
 
-// Idx returns unique id field.
-func (re *RailEdge) Idx() uint {
-	return re.ID
+// B returns base information of this elements.
+func (re *RailEdge) B() *Base {
+	return &re.Base
 }
 
-// Type returns type of entitiy
-func (re *RailEdge) Type() ModelType {
-	return RAILEDGE
+// P returns time information for database.
+func (re *RailEdge) P() *Persistence {
+	return &re.Persistence
+}
+
+// S returns entities' position.
+func (re *RailEdge) S() *Shape {
+	return &re.Shape
 }
 
 // Init do nothing
 func (re *RailEdge) Init(m *Model) {
-	re.M = m
+	re.Base.Init(RAILEDGE, m)
 	re.LineTasks = make(map[uint]*LineTask)
 	re.Trains = make(map[uint]*Train)
 }
 
-// Pos returns location
-func (re *RailEdge) Pos() *Point {
-	if re.FromNode == nil || re.ToNode == nil {
-		return nil
-	}
-	return re.FromNode.Pos().Center(re.ToNode)
-}
-
-// IsIn return true when from, to, center is in,
-func (re *RailEdge) IsIn(x float64, y float64, scale float64) bool {
-	return re.FromNode.Pos().IsInLine(re.ToNode, x, y, scale)
-}
-
 // From represents start point
-func (re *RailEdge) From() Indexable {
+func (re *RailEdge) From() Entity {
 	return re.FromNode
 }
 
 // To represents end point
-func (re *RailEdge) To() Indexable {
+func (re *RailEdge) To() Entity {
 	return re.ToNode
 }
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.FromNode.Pos().Dist(re.ToNode) / Const.Train.Speed
-}
-
-func (re *RailEdge) Angle(to *RailEdge) float64 {
-	v := &Point{re.ToNode.X - re.FromNode.X, re.ToNode.Y - re.FromNode.Y}
-	lenV := math.Sqrt(v.X*v.X + v.Y*v.Y)
-	u := &Point{to.ToNode.X - to.FromNode.X, to.ToNode.Y - to.FromNode.Y}
-	lenU := math.Sqrt(u.X*u.X + u.Y*u.Y)
-	inner := (v.X*u.X + v.Y*u.Y) / (lenV * lenU)
-	theta := math.Acos(inner)
-	if math.IsNaN(theta) {
-		return math.Pi
-	}
-	return theta
-}
-
-func (re *RailEdge) Div(prog float64) *Point {
-	return re.FromNode.Pos().Div(re.ToNode, prog)
+	return re.Shape.Dist() / Const.Train.Speed
 }
 
 // CheckDelete check remain relation.
@@ -122,32 +97,32 @@ func (re *RailEdge) BeforeDelete() {
 	}
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
-	re.Own.UnResolve(re)
+	re.O.UnResolve(re)
 }
 
-func (re *RailEdge) Delete() {
+func (re *RailEdge) Delete(force bool) {
 	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
 		lt.Shave(re.Reverse)
 	})
 	eachLineTask(re.LineTasks, func(lt *LineTask) {
 		lt.Shave(re)
 	})
-	re.Own.ReRouting = true
+	re.O.ReRouting = true
 	re.M.Delete(re.Reverse)
 	re.M.Delete(re)
 }
 
 // Resolve set reference
-func (re *RailEdge) Resolve(args ...interface{}) {
+func (re *RailEdge) Resolve(args ...Entity) {
 	var doneFrom bool
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			re.Owner = NewOwner(obj)
+			re.O = obj
 			obj.Resolve(re)
 		case *RailNode:
 			if !doneFrom {
-				re.Owner, re.FromNode = obj.Owner, obj
+				re.O, re.FromNode = obj.O, obj
 				doneFrom = true
 				obj.OutEdges[re.ID] = re
 			} else {
@@ -182,6 +157,9 @@ func (re *RailEdge) UnResolve(args ...interface{}) {
 
 // Marshal set id from reference
 func (re *RailEdge) Marshal() {
+	if re.O != nil {
+		re.OwnerID = re.O.ID
+	}
 	if re.FromNode != nil {
 		re.FromID = re.FromNode.ID
 	}
@@ -201,31 +179,12 @@ func (re *RailEdge) UnMarshal() {
 		re.M.Find(RAILEDGE, re.ReverseID))
 }
 
-// Permits represents Player is permitted to control
-func (re *RailEdge) Permits(o *Player) bool {
-	return re.Owner.Permits(o)
-}
-
-func (re *RailEdge) IsNew() bool {
-	return re.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (re *RailEdge) IsChanged(after ...time.Time) bool {
-	return re.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (re *RailEdge) Reset() {
-	re.Base.Reset()
-}
-
 // String represents status
 func (re *RailEdge) String() string {
 	re.Marshal()
 	ostr := ""
-	if re.Own != nil {
-		ostr = fmt.Sprintf(":%s", re.Own.Short())
+	if re.O != nil {
+		ostr = fmt.Sprintf(":%s", re.O.Short())
 	}
 	posstr := ""
 	if re.Pos() != nil {

@@ -27,7 +27,7 @@ func MigrateDB() {
 		db.AutoMigrate(proto)
 
 		// foreign key for owner
-		if _, ok := proto.(entities.Ownable); ok {
+		if proto.B().O != nil {
 			owner := fmt.Sprintf("%s(id)", entities.PLAYER.Table())
 			db.Model(proto).AddForeignKey("owner_id", owner, "RESTRICT", "RESTRICT")
 		}

@@ -3,8 +3,8 @@ package entities
 import "fmt"
 
 type Transport struct {
-	ID           uint
-	M            *Model
+	Base
+	Shape
 	FromPlatform *Platform
 	ToPlatform   *Platform
 	Via          *LineTask
@@ -13,7 +13,8 @@ type Transport struct {
 
 func (m *Model) NewTransport(f *Platform, t *Platform, via *LineTask, v float64) *Transport {
 	x := &Transport{
-		ID:           m.GenID(TRANSPORT),
+		Base:         m.NewBase(TRANSPORT),
+		Shape:        NewShapeEdge(&f.OnRailNode.Point, &t.OnRailNode.Point),
 		FromPlatform: f,
 		ToPlatform:   t,
 		Via:          via,
@@ -25,28 +26,28 @@ func (m *Model) NewTransport(f *Platform, t *Platform, via *LineTask, v float64)
 	return x
 }
 
-// Idx returns unique id field.
-func (x *Transport) Idx() uint {
-	return x.ID
+// B returns base information of this elements.
+func (x *Transport) B() *Base {
+	return &x.Base
 }
 
-// Type returns type of entitiy
-func (x *Transport) Type() ModelType {
-	return TRANSPORT
+// S returns entities' position.
+func (x *Transport) S() *Shape {
+	return &x.Shape
 }
 
 // Init do nothing
 func (x *Transport) Init(m *Model) {
-	x.M = m
+	x.Base.Init(TRANSPORT, m)
 }
 
 // From returns where Track comes from
-func (x *Transport) From() Indexable {
+func (x *Transport) From() Entity {
 	return x.FromPlatform
 }
 
 // To returns where Track goes to
-func (x *Transport) To() Indexable {
+func (x *Transport) To() Entity {
 	return x.ToPlatform
 }
 
@@ -54,13 +55,21 @@ func (x *Transport) Cost() float64 {
 	return x.Value
 }
 
-// Pos returns center
-func (x *Transport) Pos() *Point {
-	return x.Via.Pos()
+// Resolve set reference from id.
+func (x *Transport) Resolve(args ...Entity) {
 }
 
-func (x *Transport) IsIn(xv float64, yv float64, scale float64) bool {
-	return x.Via.IsIn(xv, yv, scale)
+func (x *Transport) CheckDelete() error {
+	return nil
+}
+
+// BeforeDelete delete selt from related Locationable.
+func (x *Transport) BeforeDelete() {
+	delete(x.FromPlatform.Transports, x.ToPlatform.ID)
+}
+
+func (x *Transport) Delete(force bool) {
+	x.M.Delete(x)
 }
 
 // String represents status

@@ -1,12 +1,12 @@
 package entities
 
-import "time"
-
-// Indexable has unique id field.
-type Indexable interface {
-	// Idx returns unique id field.
-	Idx() uint
-	Type() ModelType
+type Entity interface {
+	B() *Base
+	S() *Shape
+	CheckDelete() error
+	BeforeDelete()
+	Delete(bool)
+	Resolve(...Entity)
 }
 
 // Initializable represents that setup is required.
@@ -15,32 +15,26 @@ type Initializable interface {
 	Init(*Model)
 }
 
-// Locationable represents physical space.
-type Locationable interface {
-	Idx() uint
-	Type() ModelType
-	// Pos returns entities' position.
-	Pos() *Point
-}
-
 // Relayable represents connectable for Human moving
 type Relayable interface {
-	Idx() uint
-	Type() ModelType
-	// Pos returns entities' position.
-	Pos() *Point
 	// In represents how other can reach itself.
 	InSteps() map[uint]*Step
 	// Out represents how itselt can reach other.
 	OutSteps() map[uint]*Step
+
+	B() *Base
+	S() *Shape
+	CheckDelete() error
+	BeforeDelete()
+	Delete(bool)
+	Resolve(...Entity)
 }
 
 // Connectable represents movability of two resource
 type Connectable interface {
-	Idx() uint
-	Type() ModelType
-	From() Indexable
-	To() Indexable
+	B() *Base
+	From() Entity
+	To() Entity
 	Cost() float64
 }
 
@@ -53,37 +47,13 @@ type Migratable interface {
 	UnMarshal()
 }
 
-// Ownable is control of auth level
-type Ownable interface {
-	// Permits represents Player is permitted to control
-	Permits(*Player) bool
-}
-
 // Persistable represents Differencial backup
 type Persistable interface {
-	IsNew() bool
-	IsChanged(after ...time.Time) bool
-	Reset()
+	B() *Base
+	P() *Persistence
 }
 
-// Viewable represents user can view it
-type Viewable interface {
-	// Pos returns entities' position.
-	Pos() *Point
-	// IsIn returns it should be view or not.
-	IsIn(float64, float64, float64) bool
-}
-
-// Deletable can check to able to remove
-type Deletable interface {
-	Idx() uint
-	Type() ModelType
-	Permits(*Player) bool
-	CheckDelete() error
-	BeforeDelete()
-	Delete()
-}
-
+// Steppable represents human over it can step forward at certain rate.
 type Steppable interface {
 	Step(*float64, *float64)
 	Loc(float64) *Point

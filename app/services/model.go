@@ -179,7 +179,7 @@ func processMsg(msg *Operation) time.Time {
 func randID(t entities.ModelType, owner *entities.Player) (uint, bool) {
 	mapdata := Model.Values[t]
 	for _, key := range mapdata.MapKeys() {
-		if mapdata.MapIndex(key).Interface().(entities.Ownable).Permits(owner) {
+		if mapdata.MapIndex(key).Interface().(entities.Entity).B().Permits(owner) {
 			return uint(key.Uint()), true
 		}
 	}
@@ -198,8 +198,8 @@ func UpdateModel(msg *Operation) {
 
 func randEntity(o *entities.Player, res entities.ModelType) interface{} {
 	var entity interface{}
-	Model.ForEach(res, func(obj entities.Indexable) {
-		if obj.(entities.Ownable).Permits(o) {
+	Model.ForEach(res, func(obj entities.Entity) {
+		if obj.B().Permits(o) {
 			entity = obj
 		}
 	})

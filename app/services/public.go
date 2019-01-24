@@ -34,7 +34,7 @@ func CreateCompany(o *entities.Player, x float64, y float64) (*entities.Company,
 	if o.Level != entities.Admin {
 		return nil, fmt.Errorf("no permission")
 	}
-	c := Model.NewCompany(o, x, y)
+	c := Model.NewCompany(x, y)
 	AddOpLog("CreateCompany", o, c)
 	return c, nil
 }

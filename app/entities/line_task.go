@@ -3,7 +3,6 @@ package entities
 import (
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/revel/revel"
 )
@@ -26,11 +25,11 @@ const (
 // The chain of LineTask represents Line structure.
 type LineTask struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
 	TaskType LineTaskType `gorm:"not null" json:"type"`
 
-	M         *Model    `gorm:"-" json:"-"`
 	Moving    *RailEdge `gorm:"-" json:"-"`
 	Stay      *Platform `gorm:"-" json:"-"`
 	Dept      *Platform `gorm:"-" json:"-"`
@@ -53,11 +52,13 @@ type LineTask struct {
 // NewLineTaskDept create "dept"
 func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
-		Base:     NewBase(m.GenID(LINETASK)),
-		TaskType: OnDeparture,
+		Base:        m.NewBase(LINETASK, l.O),
+		Persistence: NewPersistence(),
+		Shape:       p.Shape,
+		TaskType:    OnDeparture,
 	}
 	lt.Init(m)
-	lt.Resolve(l.Own, l, p)
+	lt.Resolve(l.O, l, p)
 	lt.Marshal()
 	if len(tail) > 0 && tail[0] != nil {
 		tail[0].SetNext(lt)
@@ -70,10 +71,12 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 // NewLineTask creates "stop" or "pass" or "moving"
 func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineTask {
 	lt := &LineTask{
-		Base: NewBase(m.GenID(LINETASK)),
+		Base:        m.NewBase(LINETASK, l.O),
+		Persistence: NewPersistence(),
+		Shape:       re.Shape,
 	}
 	lt.Init(m)
-	lt.Resolve(l.Own, l, re)
+	lt.Resolve(l.O, l, re)
 	lt.Marshal()
 
 	if re.ToNode.OverPlatform == nil {
@@ -92,6 +95,21 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 	m.Add(lt)
 	lt.RailLine.ReRouting = true
 	return lt
+}
+
+// B returns base information of this elements.
+func (lt *LineTask) B() *Base {
+	return &lt.Base
+}
+
+// P returns time information for database.
+func (lt *LineTask) P() *Persistence {
+	return &lt.Persistence
+}
+
+// S returns entities' position.
+func (lt *LineTask) S() *Shape {
+	return &lt.Shape
 }
 
 func (lt *LineTask) Depart(force ...bool) *LineTask {
@@ -189,7 +207,7 @@ func (lt *LineTask) Shrink(p *Platform) {
 		lt.before.TaskType = OnMoving
 		lt.before.SetNext(next)
 	}
-	lt.Delete()
+	lt.Delete(false)
 }
 
 func (lt *LineTask) Shave(re *RailEdge) {
@@ -205,7 +223,7 @@ func (lt *LineTask) Shave(re *RailEdge) {
 				// skip redundant Departure
 				if lt.before.TaskType == OnDeparture {
 					lt.before.SetNext(lt.next.next.next)
-					lt.next.next.Delete()
+					lt.next.next.Delete(false)
 				} else {
 					lt.before.SetNext(lt.next.next)
 				}
@@ -216,52 +234,16 @@ func (lt *LineTask) Shave(re *RailEdge) {
 			}
 
 		}
-		lt.next.Delete()
+		lt.next.Delete(false)
 	}
-	lt.Delete()
+	lt.Delete(false)
 }
 
-// Idx returns unique id field.
-func (lt *LineTask) Idx() uint {
-	return lt.ID
-}
-
-// Type returns type of entitiy
-func (lt *LineTask) Type() ModelType {
-	return LINETASK
-}
-
-// Init do nothing
+// Init initializes map
 func (lt *LineTask) Init(m *Model) {
-	lt.M = m
+	lt.Base.Init(LINETASK, m)
 	lt.Trains = make(map[uint]*Train)
 	lt.OverSteps = make(map[uint]*Step)
-}
-
-// Pos returns entities' position
-func (lt *LineTask) Pos() *Point {
-	switch lt.TaskType {
-	case OnDeparture:
-		if lt.Stay == nil {
-			return nil
-		}
-		return lt.Stay.Pos()
-	default:
-		if lt.Moving == nil {
-			return nil
-		}
-		return lt.Moving.Pos()
-	}
-}
-
-// IsIn returns it should be view or not.
-func (lt *LineTask) IsIn(x float64, y float64, scale float64) bool {
-	switch lt.TaskType {
-	case OnDeparture:
-		return lt.Stay.IsIn(x, y, scale)
-	default:
-		return lt.Moving.IsIn(x, y, scale)
-	}
 }
 
 func (lt *LineTask) Step(prog *float64, sec *float64) {
@@ -286,14 +268,15 @@ func (lt *LineTask) Loc(prog float64) *Point {
 }
 
 // Resolve set reference
-func (lt *LineTask) Resolve(args ...interface{}) {
+func (lt *LineTask) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			lt.Owner = NewOwner(obj)
+			lt.O = obj
 			obj.Resolve(lt)
 		case *Platform:
 			lt.Stay = obj
+			lt.Shape = obj.Shape
 			lt.Dept = obj
 			lt.Dest = obj
 			lt.RailLine.Resolve(obj)
@@ -302,6 +285,7 @@ func (lt *LineTask) Resolve(args ...interface{}) {
 			obj.OnRailNode.InTasks[lt.ID] = lt
 		case *RailEdge:
 			lt.Moving = obj
+			lt.Shape = obj.Shape
 			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
 			if p := obj.FromNode.OverPlatform; p != nil {
@@ -416,10 +400,10 @@ func (lt *LineTask) BeforeDelete() {
 		lt.next.SetBefore(nil)
 	}
 	lt.RailLine.UnResolve(lt)
-	lt.Own.UnResolve(lt)
+	lt.O.UnResolve(lt)
 }
 
-func (lt *LineTask) Delete() {
+func (lt *LineTask) Delete(force bool) {
 	for _, t := range lt.Trains {
 		t.SetTask(lt.next)
 	}
@@ -432,18 +416,13 @@ func (lt *LineTask) CheckDelete() error {
 	return nil
 }
 
-// Permits represents Player is permitted to control
-func (lt *LineTask) Permits(o *Player) bool {
-	return lt.Owner.Permits(o)
-}
-
 // From represents start point
-func (lt *LineTask) From() Indexable {
+func (lt *LineTask) From() Entity {
 	return lt.FromNode()
 }
 
 // To represents end point
-func (lt *LineTask) To() Indexable {
+func (lt *LineTask) To() Entity {
 	return lt.ToNode()
 }
 
@@ -486,12 +465,12 @@ func (lt *LineTask) Cost() float64 {
 		if lt.before.TaskType == OnDeparture {
 			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.Angle(lt.Moving) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.S().Angle(lt.Moving.S()) / math.Pi
 		}
 		if lt.TaskType == OnStopping {
 			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.Angle(lt.next.Moving) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.S().Angle(lt.next.Moving.S()) / math.Pi
 		}
 		return cost
 	}
@@ -561,26 +540,12 @@ func (lt *LineTask) SetBefore(v *LineTask) {
 	}
 }
 
-func (lt *LineTask) IsNew() bool {
-	return lt.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (lt *LineTask) IsChanged(after ...time.Time) bool {
-	return lt.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (lt *LineTask) Reset() {
-	lt.Base.Reset()
-}
-
 // String represents status
 func (lt *LineTask) String() string {
 	lt.Marshal()
 	ostr := ""
-	if lt.Own != nil {
-		ostr = fmt.Sprintf(":%s", lt.Own.Short())
+	if lt.O != nil {
+		ostr = fmt.Sprintf(":%s", lt.O.Short())
 	}
 	before, next, stay, dept, moving, dest := "", "", "", "", "", ""
 	if lt.before != nil {

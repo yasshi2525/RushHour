@@ -2,7 +2,6 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // PlayerType represents authenticate level
@@ -18,14 +17,15 @@ const (
 // Player represents user information
 type Player struct {
 	Base
+	Persistence
+	Shape
 
 	Level       PlayerType `gorm:"not null"       json:"lv"`
 	DisplayName string     `gorm:"not null"       json:"name"`
 	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null"       json:"-"`
-	ReRouting   bool
+	ReRouting   bool       `gorm:"-"              json:"-"`
 
-	M         *Model             `gorm:"-" json:"-"`
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
 	Stations  map[uint]*Station  `gorm:"-" json:"-"`
@@ -39,7 +39,9 @@ type Player struct {
 // NewPlayer create instance
 func (m *Model) NewPlayer() *Player {
 	o := &Player{
-		Base: NewBase(m.GenID(PLAYER)),
+		Base:        m.NewBase(PLAYER),
+		Persistence: NewPersistence(),
+		Shape:       NewShapeGroup(),
 	}
 	o.Init(m)
 	o.Marshal()
@@ -47,30 +49,25 @@ func (m *Model) NewPlayer() *Player {
 	return o
 }
 
+// B returns base information of this elements.
+func (o *Player) B() *Base {
+	return &o.Base
+}
+
+// P returns time information for database.
+func (o *Player) P() *Persistence {
+	return &o.Persistence
+}
+
+// S returns entities' position.
+func (o *Player) S() *Shape {
+	return &o.Shape
+}
+
 func (o *Player) ClearTracks() {
 	for _, rn := range o.RailNodes {
 		rn.Tracks = make(map[uint]*Track)
 	}
-}
-
-// Idx returns unique id field.
-func (o *Player) Idx() uint {
-	return o.ID
-}
-
-// Type returns type of entitiy
-func (o *Player) Type() ModelType {
-	return PLAYER
-}
-
-// Pos returns nil
-func (o *Player) Pos() *Point {
-	return nil
-}
-
-// IsIn always returns true in order for user to view other Player
-func (o *Player) IsIn(x float64, y float64, scale float64) bool {
-	return true
 }
 
 // Init do nothing
@@ -86,7 +83,7 @@ func (o *Player) Init(m *Model) {
 	o.Trains = make(map[uint]*Train)
 }
 
-func (o *Player) Resolve(args ...interface{}) {
+func (o *Player) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *RailNode:
@@ -108,10 +105,11 @@ func (o *Player) Resolve(args ...interface{}) {
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
+		o.Shape.Append(raw.S())
 	}
 }
 
-func (o *Player) UnResolve(args ...interface{}) {
+func (o *Player) UnResolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *RailNode:
@@ -133,6 +131,7 @@ func (o *Player) UnResolve(args ...interface{}) {
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
+		o.Shape.Delete(raw.S())
 	}
 }
 
@@ -150,6 +149,14 @@ func (o *Player) CheckDelete() error {
 	return nil
 }
 
+// BeforeDelete deletes related reference
+func (o *Player) BeforeDelete() {
+}
+
+func (o *Player) Delete(force bool) {
+	o.M.Delete(o)
+}
+
 // String represents status
 func (o *Player) String() string {
 	o.Marshal()
@@ -160,20 +167,6 @@ func (o *Player) String() string {
 // Short returns short description
 func (o *Player) Short() string {
 	return fmt.Sprintf("%s(%d)", o.LoginID, o.ID)
-}
-
-func (o *Player) IsNew() bool {
-	return o.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (o *Player) IsChanged(after ...time.Time) bool {
-	return o.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (o *Player) Reset() {
-	o.Base.Reset()
 }
 
 func (pt PlayerType) String() string {

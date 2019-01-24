@@ -14,26 +14,17 @@ type Edge struct {
 }
 
 func NewEdge(base entities.Connectable, from *Node, to *Node) *Edge {
-	e := &Edge{Digest{base.Type(), base.Idx(), base.Cost()}, from, to}
+	e := &Edge{Digest{base.B().Type(), base.B().Idx(), base.Cost()}, from, to}
 	from.Out = append(from.Out, e)
 	to.In = append(to.In, e)
 	return e
 }
 
-func (e *Edge) Idx() uint {
-	return e.ID
-}
-
-func (e *Edge) Type() entities.ModelType {
-	return e.ModelType
-}
-
-func (e *Edge) From() entities.Indexable {
-	return e.FromNode
-}
-
-func (e *Edge) To() entities.Indexable {
-	return e.ToNode
+func (e *Edge) Export(from *Node, to *Node) *Edge {
+	newE := &Edge{e.Digest, from, to}
+	from.Out = append(from.Out, e)
+	to.In = append(to.In, e)
+	return newE
 }
 
 func (e *Edge) Cost() float64 {
@@ -42,5 +33,5 @@ func (e *Edge) Cost() float64 {
 
 func (e *Edge) String() string {
 	return fmt.Sprintf("Edge(%v,%d):f=%d,t=%d,v=%.2f",
-		e.Type(), e.Idx(), e.From().Idx(), e.To().Idx(), e.Cost())
+		e.ModelType, e.ID, e.FromNode.ID, e.ToNode.ID, e.Cost())
 }

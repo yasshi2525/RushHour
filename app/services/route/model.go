@@ -37,7 +37,7 @@ func (m *Model) Export() *Model {
 	copy := NewModel(m)
 	for res, ns := range m.Nodes {
 		for id, n := range ns {
-			copy.Nodes[res][id] = NewNode(n)
+			copy.Nodes[res][id] = n.Export()
 		}
 	}
 	for res, es := range m.Edges {
@@ -45,7 +45,7 @@ func (m *Model) Export() *Model {
 			oldFrom, oldTo := e.FromNode, e.ToNode
 			newFrom := copy.Nodes[oldFrom.ModelType][oldFrom.ID]
 			newTo := copy.Nodes[oldTo.ModelType][oldTo.ID]
-			copy.Edges[res][id] = NewEdge(e, newFrom, newTo)
+			copy.Edges[res][id] = e.Export(newFrom, newTo)
 		}
 	}
 	return copy
@@ -76,28 +76,28 @@ func (m *Model) AddGoalID(id uint) {
 	m.GoalIDs = append(m.GoalIDs, id)
 }
 
-func (m *Model) FindOrCreateNode(origin entities.Indexable) *Node {
-	if _, ok := m.Nodes[origin.Type()]; !ok {
-		m.Nodes[origin.Type()] = make(map[uint]*Node)
+func (m *Model) FindOrCreateNode(origin entities.Entity) *Node {
+	if _, ok := m.Nodes[origin.B().Type()]; !ok {
+		m.Nodes[origin.B().Type()] = make(map[uint]*Node)
 	}
-	if n, ok := m.Nodes[origin.Type()][origin.Idx()]; ok {
+	if n, ok := m.Nodes[origin.B().Type()][origin.B().Idx()]; ok {
 		return n
 	}
 	n := NewNode(origin)
-	m.Nodes[origin.Type()][origin.Idx()] = n
+	m.Nodes[origin.B().Type()][origin.B().Idx()] = n
 	return n
 }
 
 func (m *Model) FindOrCreateEdge(origin entities.Connectable) *Edge {
-	if _, ok := m.Edges[origin.Type()]; !ok {
-		m.Edges[origin.Type()] = make(map[uint]*Edge)
+	if _, ok := m.Edges[origin.B().Type()]; !ok {
+		m.Edges[origin.B().Type()] = make(map[uint]*Edge)
 	}
-	if e, ok := m.Edges[origin.Type()][origin.Idx()]; ok {
+	if e, ok := m.Edges[origin.B().Type()][origin.B().Idx()]; ok {
 		return e
 	}
 	from, to := m.FindOrCreateNode(origin.From()), m.FindOrCreateNode(origin.To())
 	e := NewEdge(origin, from, to)
-	m.Edges[origin.Type()][origin.Idx()] = e
+	m.Edges[origin.B().Type()][origin.B().Idx()] = e
 	return e
 }
 

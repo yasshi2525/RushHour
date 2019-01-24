@@ -3,33 +3,34 @@ package entities
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 // Residence generate Human in a period
 type Residence struct {
 	Base
-	Owner
+	Persistence
+	Shape
 	Point
 
-	Capacity int `gorm:"not null" json:"capacity"`
+	Capacity int `json:"capacity"`
 	// Wait represents how msec after it generates Human
-	Wait float64 `gorm:"not null" json:"wait"`
-	Name string  `                json:"name"`
+	Wait float64 `json:"wait"`
+	Name string  `json:"name"`
 
-	M       *Model          `gorm:"-" json:"-"`
-	Targets map[uint]*Human `gorm:"-"        json:"-"`
+	Targets map[uint]*Human `gorm:"-" json:"-"`
 	out     map[uint]*Step
 }
 
 // NewResidence create new instance without setting parameters
 func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
+	pos := NewPoint(x, y)
 	r := &Residence{
-		Base:     NewBase(m.GenID(RESIDENCE)),
-		Owner:    NewOwner(o),
-		Point:    NewPoint(x, y),
-		Capacity: Const.Residence.Capacity,
-		Wait:     Const.Residence.Interval.D.Seconds() * rand.Float64(),
+		Base:        m.NewBase(RESIDENCE),
+		Persistence: NewPersistence(),
+		Point:       pos,
+		Shape:       NewShapeNode(&pos),
+		Capacity:    Const.Residence.Capacity,
+		Wait:        Const.Residence.Interval.D.Seconds() * rand.Float64(),
 	}
 	r.Init(m)
 	r.Resolve()
@@ -38,6 +39,21 @@ func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
 
 	r.GenOutSteps()
 	return r
+}
+
+// B returns base information of this elements.
+func (r *Residence) B() *Base {
+	return &r.Base
+}
+
+// P returns time information for database.
+func (r *Residence) P() *Persistence {
+	return &r.Persistence
+}
+
+// S returns entities' position.
+func (r *Residence) S() *Shape {
+	return &r.Shape
 }
 
 func (r *Residence) GenOutSteps() {
@@ -51,31 +67,11 @@ func (r *Residence) GenOutSteps() {
 	}
 }
 
-// Idx returns unique id field.
-func (r *Residence) Idx() uint {
-	return r.ID
-}
-
-// Type returns type of entitiy
-func (r *Residence) Type() ModelType {
-	return RESIDENCE
-}
-
 // Init creates map.
 func (r *Residence) Init(m *Model) {
-	r.M = m
+	r.Base.Init(RESIDENCE, m)
 	r.out = make(map[uint]*Step)
 	r.Targets = make(map[uint]*Human)
-}
-
-// Pos returns location
-func (r *Residence) Pos() *Point {
-	return &r.Point
-}
-
-// IsIn returns it should be view or not.
-func (r *Residence) IsIn(x float64, y float64, scale float64) bool {
-	return r.Pos().IsIn(x, y, scale)
 }
 
 // OutSteps returns where it can go to
@@ -89,7 +85,7 @@ func (r *Residence) InSteps() map[uint]*Step {
 }
 
 // Resolve set reference
-func (r *Residence) Resolve(args ...interface{}) {
+func (r *Residence) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Human:
@@ -114,17 +110,12 @@ func (r *Residence) UnMarshal() {
 func (r *Residence) BeforeDelete() {
 }
 
-// Permits represents Player is permitted to control
-func (r *Residence) Permits(o *Player) bool {
-	return o.Level == Admin
-}
-
 // CheckDelete check remaining reference
 func (r *Residence) CheckDelete() error {
 	return nil
 }
 
-func (r *Residence) Delete() {
+func (r *Residence) Delete(force bool) {
 	for _, h := range r.Targets {
 		r.M.Delete(h)
 	}
@@ -132,20 +123,6 @@ func (r *Residence) Delete() {
 		r.M.Delete(s)
 	}
 	r.M.Delete(r)
-}
-
-func (r *Residence) IsNew() bool {
-	return r.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (r *Residence) IsChanged(after ...time.Time) bool {
-	return r.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (r *Residence) Reset() {
-	r.Base.Reset()
 }
 
 func (r *Residence) String() string {

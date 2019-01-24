@@ -24,7 +24,7 @@ func genNodes(ctx context.Context, result *Model, model *entities.Model) bool {
 			case <-ctx.Done():
 				return false
 			default:
-				model.ForEach(res, func(obj entities.Indexable) {
+				model.ForEach(res, func(obj entities.Entity) {
 					result.FindOrCreateNode(obj)
 				})
 			}

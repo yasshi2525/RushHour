@@ -2,14 +2,14 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // Gate represents ticket gate in Station.
 // Human must pass Gate to enter/leave Platform.
 type Gate struct {
 	Base
-	Owner
+	Persistence
+	Shape
 
 	// Num represents how many Human can pass at the same time
 	Num int `gorm:"not null" json:"num"`
@@ -18,7 +18,6 @@ type Gate struct {
 	// Occupied represents how many Gate are used by Human.
 	Occupied int `gorm:"not null" json:"occupied"`
 
-	M            *Model    `gorm:"-" json:"-"`
 	InStation    *Station  `gorm:"-" json:"-"`
 	WithPlatform *Platform `gorm:"-" json:"-"`
 	out          map[uint]*Step
@@ -31,11 +30,12 @@ type Gate struct {
 // NewGate creates instance
 func (m *Model) NewGate(st *Station) *Gate {
 	g := &Gate{
-		Base: NewBase(m.GenID(GATE)),
-		Num:  Const.Gate.Num,
+		Base:        m.NewBase(GATE, st.O),
+		Persistence: NewPersistence(),
+		Num:         Const.Gate.Num,
 	}
 	g.Init(m)
-	g.Resolve(st.Own, st)
+	g.Resolve(st.O, st)
 	g.Marshal()
 	m.Add(g)
 
@@ -43,6 +43,21 @@ func (m *Model) NewGate(st *Station) *Gate {
 	g.GenInSteps()
 
 	return g
+}
+
+// B returns base information of this elements.
+func (g *Gate) B() *Base {
+	return &g.Base
+}
+
+// P returns time information for database.
+func (g *Gate) P() *Persistence {
+	return &g.Persistence
+}
+
+// S returns entities' position.
+func (g *Gate) S() *Shape {
+	return &g.Shape
 }
 
 func (g *Gate) GenOutSteps() {
@@ -61,19 +76,9 @@ func (g *Gate) GenInSteps() {
 	}
 }
 
-// Idx returns unique id field.
-func (g *Gate) Idx() uint {
-	return g.ID
-}
-
-// Type returns type of entitiy
-func (g *Gate) Type() ModelType {
-	return GATE
-}
-
 // Init creates map.
 func (g *Gate) Init(m *Model) {
-	g.M = m
+	g.Base.Init(GATE, m)
 	g.out = make(map[uint]*Step)
 	g.in = make(map[uint]*Step)
 }
@@ -102,17 +107,18 @@ func (g *Gate) InSteps() map[uint]*Step {
 }
 
 // Resolve set reference
-func (g *Gate) Resolve(args ...interface{}) {
+func (g *Gate) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			g.Owner = NewOwner(obj)
+			g.O = obj
 			obj.Resolve(g)
 		case *Station:
 			g.InStation = obj
 			obj.Resolve(g)
 		case *Platform:
 			g.WithPlatform = obj
+			g.Shape = obj.Shape
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -136,11 +142,6 @@ func (g *Gate) UnMarshal() {
 		g.M.Find(STATION, g.StationID))
 }
 
-// Permits represents Player is permitted to control
-func (g *Gate) Permits(o *Player) bool {
-	return g.Owner.Permits(o)
-}
-
 // CheckDelete check remain relation.
 func (g *Gate) CheckDelete() error {
 	return nil
@@ -148,10 +149,10 @@ func (g *Gate) CheckDelete() error {
 
 // BeforeDelete deletes related reference
 func (g *Gate) BeforeDelete() {
-	g.Own.UnResolve(g)
+	g.O.UnResolve(g)
 }
 
-func (g *Gate) Delete() {
+func (g *Gate) Delete(force bool) {
 	for _, s := range g.out {
 		g.M.Delete(s)
 	}
@@ -161,26 +162,12 @@ func (g *Gate) Delete() {
 	g.M.Delete(g)
 }
 
-func (g *Gate) IsNew() bool {
-	return g.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (g *Gate) IsChanged(after ...time.Time) bool {
-	return g.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (g *Gate) Reset() {
-	g.Base.Reset()
-}
-
 // String represents status
 func (g *Gate) String() string {
 	g.Marshal()
 	ostr := ""
-	if g.Own != nil {
-		ostr = fmt.Sprintf(":%s", g.Own.Short())
+	if g.O != nil {
+		ostr = fmt.Sprintf(":%s", g.O.Short())
 	}
 	ststr := ""
 	if g.InStation != nil {

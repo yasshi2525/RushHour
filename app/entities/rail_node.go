@@ -2,17 +2,16 @@ package entities
 
 import (
 	"fmt"
-	"time"
 )
 
 // RailNode represents rail track as point.
 // Station only stands on RailNode.
 type RailNode struct {
 	Base
-	Owner
+	Persistence
+	Shape
 	Point
 
-	M            *Model             `gorm:"-" json:"-"`
 	InEdges      map[uint]*RailEdge `gorm:"-" json:"-"`
 	OutEdges     map[uint]*RailEdge `gorm:"-" json:"-"`
 	OverPlatform *Platform          `gorm:"-" json:"-"`
@@ -26,9 +25,12 @@ type RailNode struct {
 
 // NewRailNode create new instance.
 func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
+	pos := NewPoint(x, y)
 	rn := &RailNode{
-		Base:  NewBase(m.GenID(RAILNODE)),
-		Point: NewPoint(x, y),
+		Base:        m.NewBase(RAILNODE, o),
+		Persistence: NewPersistence(),
+		Shape:       NewShapeNode(&pos),
+		Point:       pos,
 	}
 	rn.Init(m)
 	rn.Resolve(o)
@@ -38,7 +40,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 }
 
 func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
-	to := rn.M.NewRailNode(rn.Own, x, y)
+	to := rn.M.NewRailNode(rn.O, x, y)
 	e1 := rn.M.NewRailEdge(rn, to)
 	e2 := rn.M.NewRailEdge(to, rn)
 
@@ -53,19 +55,24 @@ func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 	return to, e1
 }
 
-// Idx returns unique id field.
-func (rn *RailNode) Idx() uint {
-	return rn.ID
+// B returns base information of this elements.
+func (rn *RailNode) B() *Base {
+	return &rn.Base
 }
 
-// Type returns type of entitiy
-func (rn *RailNode) Type() ModelType {
-	return RAILNODE
+// P returns time information for database.
+func (rn *RailNode) P() *Persistence {
+	return &rn.Persistence
+}
+
+// S returns entities' position.
+func (rn *RailNode) S() *Shape {
+	return &rn.Shape
 }
 
 // Init makes map
 func (rn *RailNode) Init(m *Model) {
-	rn.M = m
+	rn.Base.Init(RAILNODE, m)
 	rn.InEdges = make(map[uint]*RailEdge)
 	rn.OutEdges = make(map[uint]*RailEdge)
 	rn.InTasks = make(map[uint]*LineTask)
@@ -73,23 +80,12 @@ func (rn *RailNode) Init(m *Model) {
 	rn.Tracks = make(map[uint]*Track)
 }
 
-// Pos returns location
-func (rn *RailNode) Pos() *Point {
-	return &rn.Point
-}
-
-// IsIn returns it should be view or not.
-func (rn *RailNode) IsIn(x float64, y float64, scale float64) bool {
-	return rn.Pos().IsIn(x, y, scale)
-}
-
 // Resolve set reference
-func (rn *RailNode) Resolve(args ...interface{}) {
+func (rn *RailNode) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Player:
-			rn.Owner = NewOwner(obj)
-			obj.Resolve(rn)
+			rn.O = obj
 		case *Platform:
 			rn.OverPlatform = obj
 		default:
@@ -101,6 +97,9 @@ func (rn *RailNode) Resolve(args ...interface{}) {
 
 // Marshal set id from reference
 func (rn *RailNode) Marshal() {
+	if rn.O != nil {
+		rn.OwnerID = rn.O.ID
+	}
 	if rn.OverPlatform != nil {
 		rn.PlatformID = rn.OverPlatform.ID
 	}
@@ -112,7 +111,7 @@ func (rn *RailNode) UnMarshal() {
 
 // BeforeDelete clear reference
 func (rn *RailNode) BeforeDelete() {
-	rn.Own.UnResolve(rn)
+	rn.O.UnResolve(rn)
 }
 
 func (rn *RailNode) UnResolve(args ...interface{}) {
@@ -120,15 +119,11 @@ func (rn *RailNode) UnResolve(args ...interface{}) {
 		switch obj := raw.(type) {
 		case *Platform:
 			rn.OverPlatform = nil
+			rn.PlatformID = ZERO
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
 	}
-}
-
-// Permits represents Player is permitted to control
-func (rn *RailNode) Permits(o *Player) bool {
-	return rn.Owner.Permits(o)
 }
 
 // CheckDelete checks remaining reference
@@ -149,36 +144,22 @@ func (rn *RailNode) CheckDelete() error {
 	return nil
 }
 
-func (rn *RailNode) Delete() {
+func (rn *RailNode) Delete(force bool) {
 	for _, re := range rn.OutEdges {
-		re.Delete()
+		re.Delete(false)
 	}
 	for _, re := range rn.InEdges {
-		re.Delete()
+		re.Delete(false)
 	}
 	rn.M.Delete(rn)
-}
-
-func (rn *RailNode) IsNew() bool {
-	return rn.Base.IsNew()
-}
-
-// IsChanged returns true when it is changed after Backup()
-func (rn *RailNode) IsChanged(after ...time.Time) bool {
-	return rn.Base.IsChanged(after...)
-}
-
-// Reset set status as not changed
-func (rn *RailNode) Reset() {
-	rn.Base.Reset()
 }
 
 // String represents status
 func (rn *RailNode) String() string {
 	rn.Marshal()
 	ostr := ""
-	if rn.Own != nil {
-		ostr = fmt.Sprintf(":%s", rn.Own.Short())
+	if rn.O != nil {
+		ostr = fmt.Sprintf(":%s", rn.O.Short())
 	}
 	pstr := ""
 	if rn.OverPlatform != nil {
