@@ -85,6 +85,7 @@ func (st *Station) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (st *Station) UnMarshal() {
 	st.Resolve(st.M.Find(PLAYER, st.OwnerID))
 }
@@ -104,7 +105,7 @@ func (st *Station) CheckDelete() error {
 func (st *Station) BeforeDelete() {
 	st.O.UnResolve(st)
 }
-
+// Delete removes this entity with related ones.
 func (st *Station) Delete(force bool) {
 	st.M.Delete(st.Gate)
 	st.M.Delete(st.Platform)

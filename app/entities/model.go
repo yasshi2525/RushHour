@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 )
 
+// ZERO emphasis it is zero value.
 const ZERO uint = 0
 
 // Model represents data structure
@@ -34,6 +35,7 @@ type Model struct {
 	Values map[ModelType]reflect.Value
 }
 
+// Find returns object from type and id.
 func (m *Model) Find(res ModelType, idx uint) Entity {
 	if obj := m.Values[res].MapIndex(reflect.ValueOf(idx)); obj.IsValid() {
 		return obj.Interface().(Entity)
@@ -41,6 +43,7 @@ func (m *Model) Find(res ModelType, idx uint) Entity {
 	panic(fmt.Errorf("no corresponding object %v(%d)", res.Short(), idx))
 }
 
+// ForEach executes callback for each entity specified type.
 func (m *Model) ForEach(res ModelType, callback func(Entity)) {
 	mapdata := m.Values[res]
 	for _, key := range mapdata.MapKeys() {
@@ -48,10 +51,12 @@ func (m *Model) ForEach(res ModelType, callback func(Entity)) {
 	}
 }
 
+// GenID generates unique id. This is thread-safe.
 func (m *Model) GenID(res ModelType) uint {
 	return uint(atomic.AddUint64(m.NextIDs[res], 1))
 }
 
+// Add registers specified object to this reposiotry.
 func (m *Model) Add(args ...Entity) {
 	for _, obj := range args {
 		m.Values[obj.B().Type()].SetMapIndex(
@@ -60,6 +65,8 @@ func (m *Model) Add(args ...Entity) {
 	}
 }
 
+// DeleteIf deletes specified id resource if can.
+// When force option is specified, it skips CheckDelete function.
 func (m *Model) DeleteIf(o *Player, res ModelType, id uint, force ...bool) (Entity, error) {
 	raw := m.Values[res].MapIndex(reflect.ValueOf(id))
 	// no id
@@ -83,6 +90,7 @@ func (m *Model) DeleteIf(o *Player, res ModelType, id uint, force ...bool) (Enti
 	return obj, nil
 }
 
+// Delete unregisters specified object from this repository.
 func (m *Model) Delete(args ...Entity) {
 	for _, obj := range args {
 		obj.BeforeDelete()
@@ -93,6 +101,7 @@ func (m *Model) Delete(args ...Entity) {
 	}
 }
 
+// Ids returns list of id specified type.
 func (m *Model) Ids(res ModelType) []uint {
 	ids := make([]uint, m.Values[res].Len())
 	var i int
@@ -103,6 +112,7 @@ func (m *Model) Ids(res ModelType) []uint {
 	return ids
 }
 
+// Len returns the number of all type of objects.
 func (m *Model) Len() int {
 	var sum int
 	for _, res := range TypeList {
@@ -111,36 +121,40 @@ func (m *Model) Len() int {
 	return sum
 }
 
+// NodeLen returns the number of objects implementing Relayable.
 func (m *Model) NodeLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj(m).(Relayable); ok {
+		if res.IsRelayable() {
 			sum += m.Values[res].Len()
 		}
 	}
 	return sum
 }
 
+// EdgeLen returns the number of objects implementing Connectable.
 func (m *Model) EdgeLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj(m).(Connectable); ok {
+		if res.IsConnectable() {
 			sum += m.Values[res].Len()
 		}
 	}
 	return sum
 }
 
+// DBLen returns the number of objects persisting database.
 func (m *Model) DBLen() int {
 	var sum int
 	for _, res := range TypeList {
-		if _, ok := res.Obj(m).(Persistable); ok {
+		if res.IsDB() {
 			sum += m.Values[res].Len()
 		}
 	}
 	return sum
 }
 
+// NewModel initialize model object.
 func NewModel() *Model {
 	modelType := reflect.TypeOf(&Model{}).Elem()
 	model := reflect.New(modelType).Elem()

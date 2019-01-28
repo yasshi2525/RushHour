@@ -13,7 +13,7 @@ type Step struct {
 	ToNode   Relayable
 }
 
-// NewWalk create new instance and relation to Relayable
+// NewStep create new instance and relation to Relayable
 func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	s := &Step{
 		Base:     m.NewBase(STEP),
@@ -62,6 +62,7 @@ func (s *Step) Cost() float64 {
 func (s *Step) Resolve(args ...Entity) {
 }
 
+// CheckDelete check remaining reference.
 func (s *Step) CheckDelete() error {
 	return nil
 }
@@ -72,6 +73,7 @@ func (s *Step) BeforeDelete() {
 	delete(s.ToNode.InSteps(), s.ID)
 }
 
+// Delete removes this entity with related ones.
 func (s *Step) Delete(force bool) {
 	s.M.Delete(s)
 }

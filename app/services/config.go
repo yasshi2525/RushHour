@@ -60,6 +60,8 @@ type config struct {
 
 // Config defines game feature
 var Config config
+
+// Const has constants for service.
 var Const cfgService
 
 // LoadConf load and validate game.conf

@@ -60,6 +60,7 @@ func (g *Gate) S() *Shape {
 	return &g.Shape
 }
 
+// GenOutSteps generates Steps from this Gate.
 func (g *Gate) GenOutSteps() {
 	// skip G -> P
 	// G -> C
@@ -68,6 +69,7 @@ func (g *Gate) GenOutSteps() {
 	}
 }
 
+// GenInSteps generates Steps to this Gate.
 func (g *Gate) GenInSteps() {
 	// skip P -> G
 	// R -> G
@@ -136,6 +138,7 @@ func (g *Gate) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (g *Gate) UnMarshal() {
 	g.Resolve(
 		g.M.Find(PLAYER, g.OwnerID),
@@ -152,6 +155,7 @@ func (g *Gate) BeforeDelete() {
 	g.O.UnResolve(g)
 }
 
+// Delete removes this entity with related ones.
 func (g *Gate) Delete(force bool) {
 	for _, s := range g.out {
 		g.M.Delete(s)

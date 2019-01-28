@@ -6,6 +6,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// RefreshTransports set minimum distance route on specified rail line.
 func RefreshTransports(l *entities.RailLine, parallel int) map[uint]*Model {
 	l.ClearTransports()
 	if !l.IsRing() || len(l.Trains) == 0 {

@@ -6,6 +6,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// Scan extracts Step for Human informations.
 func Scan(ctx context.Context, model *entities.Model) (*Model, bool) {
 	result := NewModel()
 	result.GoalIDs = model.Ids(entities.COMPANY)

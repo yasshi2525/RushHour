@@ -52,6 +52,7 @@ func (l *RailLine) S() *Shape {
 	return &l.Shape
 }
 
+// StartPlatform creates LineTask which depart from specified Platform.
 func (l *RailLine) StartPlatform(p *Platform) *LineTask {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from already built RailLine %v", l))
@@ -68,6 +69,7 @@ func (l *RailLine) StartPlatform(p *Platform) *LineTask {
 	return l.M.NewLineTaskDept(l, p)
 }
 
+// StartEdge creates LineTask which depart from specified RailEdge.
 func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from built RailLine: %v", l))
@@ -87,6 +89,7 @@ func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
 	return tail
 }
 
+// Complement connects head and tail with minimum distance route.
 func (l *RailLine) Complement() {
 	if len(l.Tasks) == 0 || l.IsRing() {
 		panic(fmt.Errorf("try to complement empty or ring RailLine: %v", l))
@@ -99,6 +102,7 @@ func (l *RailLine) Complement() {
 	}
 }
 
+// RingIf connects head and tail if can.
 func (l *RailLine) RingIf() bool {
 	if l.CanRing() {
 		head, tail := l.Borders()
@@ -108,6 +112,7 @@ func (l *RailLine) RingIf() bool {
 	return false
 }
 
+// ClearTransports eraces Transport information.
 func (l *RailLine) ClearTransports() {
 	for _, p := range l.Stops {
 		p.Transports = make(map[uint]*Transport)
@@ -153,10 +158,12 @@ func (l *RailLine) Resolve(args ...Entity) {
 func (l *RailLine) Marshal() {
 }
 
+// UnMarshal set reference from id.
 func (l *RailLine) UnMarshal() {
 	l.Resolve(l.M.Find(PLAYER, l.OwnerID))
 }
 
+// UnResolve unregisters specified refernce.
 func (l *RailLine) UnResolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -178,10 +185,12 @@ func (l *RailLine) CheckDelete() error {
 	return nil
 }
 
+// BeforeDelete remove reference of related entity
 func (l *RailLine) BeforeDelete() {
 	l.O.UnResolve(l)
 }
 
+// Delete removes this entity with related ones.
 func (l *RailLine) Delete(force bool) {
 	for _, t := range l.Trains {
 		t.SetTask(nil)
@@ -222,6 +231,7 @@ func (l *RailLine) IsRing() bool {
 	return h == nil && t == nil
 }
 
+// CanRing returns head and tail is adjustable.
 func (l *RailLine) CanRing() bool {
 	head, tail := l.Borders()
 

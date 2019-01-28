@@ -8,6 +8,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// Searcher has minimum distance route for specified goal.
 type Searcher struct {
 	Name   string
 	Target entities.ModelType
@@ -16,6 +17,7 @@ type Searcher struct {
 	Ch     chan *Payload
 }
 
+// Search calculates minimum distance of route.
 func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	payload := &Payload{make(map[uint]*Model), 0, len(s.Tasks)}
@@ -34,6 +36,7 @@ func (s *Searcher) Search(ctx context.Context, wg *sync.WaitGroup) {
 	s.Ch <- payload
 }
 
+// Search calculates minimum distance of route for specified goal.
 func Search(ctx context.Context, t entities.ModelType, parallel int, model *Model) (*Payload, bool) {
 	reduceCh := make(chan *Payload)
 	defer close(reduceCh)

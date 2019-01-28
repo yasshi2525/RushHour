@@ -64,6 +64,7 @@ func (o *Player) S() *Shape {
 	return &o.Shape
 }
 
+// ClearTracks eraces track infomation.
 func (o *Player) ClearTracks() {
 	for _, rn := range o.RailNodes {
 		rn.Tracks = make(map[uint]*Track)
@@ -83,6 +84,7 @@ func (o *Player) Init(m *Model) {
 	o.Trains = make(map[uint]*Train)
 }
 
+// Resolve set reference.
 func (o *Player) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -109,6 +111,7 @@ func (o *Player) Resolve(args ...Entity) {
 	}
 }
 
+// UnResolve unregisters specified refernce.
 func (o *Player) UnResolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -140,6 +143,7 @@ func (o *Player) Marshal() {
 	// do-nothing
 }
 
+// UnMarshal set reference from id.
 func (o *Player) UnMarshal() {
 
 }
@@ -153,6 +157,7 @@ func (o *Player) CheckDelete() error {
 func (o *Player) BeforeDelete() {
 }
 
+// Delete removes this entity with related ones.
 func (o *Player) Delete(force bool) {
 	o.M.Delete(o)
 }

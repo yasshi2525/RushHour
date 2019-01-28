@@ -53,6 +53,7 @@ func (c *Company) S() *Shape {
 	return &c.Shape
 }
 
+// GenInSteps generates and registers Step for this Company.
 func (c *Company) GenInSteps() {
 	// R -> C
 	for _, r := range c.M.Residences {
@@ -99,6 +100,7 @@ func (c *Company) Marshal() {
 	// do-nothing
 }
 
+// UnMarshal do nothing.
 func (c *Company) UnMarshal() {
 
 }
@@ -107,11 +109,12 @@ func (c *Company) UnMarshal() {
 func (c *Company) BeforeDelete() {
 }
 
-// CheckDelete check remaining reference
+// CheckDelete check remaining reference.
 func (c *Company) CheckDelete() error {
 	return nil
 }
 
+// Delete removes this entity with related ones.
 func (c *Company) Delete(force bool) {
 	for _, h := range c.Targets {
 		c.M.Delete(h)

@@ -2,6 +2,7 @@ package entities
 
 import "fmt"
 
+// Transport has minimum distance route on line which connects two Platform.
 type Transport struct {
 	Base
 	Shape
@@ -11,6 +12,7 @@ type Transport struct {
 	Value        float64
 }
 
+// NewTransport creates instance.
 func (m *Model) NewTransport(f *Platform, t *Platform, via *LineTask, v float64) *Transport {
 	x := &Transport{
 		Base:         m.NewBase(TRANSPORT),
@@ -51,6 +53,7 @@ func (x *Transport) To() Entity {
 	return x.ToPlatform
 }
 
+// Cost represents how many seconds it takes.
 func (x *Transport) Cost() float64 {
 	return x.Value
 }
@@ -59,6 +62,7 @@ func (x *Transport) Cost() float64 {
 func (x *Transport) Resolve(args ...Entity) {
 }
 
+// CheckDelete checks related reference
 func (x *Transport) CheckDelete() error {
 	return nil
 }
@@ -68,6 +72,7 @@ func (x *Transport) BeforeDelete() {
 	delete(x.FromPlatform.Transports, x.ToPlatform.ID)
 }
 
+// Delete removes this entity with related ones.
 func (x *Transport) Delete(force bool) {
 	x.M.Delete(x)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// EPS represents ignore difference when it compares two float value
 const EPS float64 = 0.00001
 
 // Train carries Human from Station to Station.
@@ -65,6 +66,7 @@ func (t *Train) S() *Shape {
 	return &t.Shape
 }
 
+// UnLoad unregisters all Human ride on it forcefully.
 func (t *Train) UnLoad() {
 	for _, h := range t.Passengers {
 		h.Point = *t.Pos().Rand(Const.Train.Randomize)
@@ -74,6 +76,7 @@ func (t *Train) UnLoad() {
 	}
 }
 
+// Step procceed it with specified time.
 func (t *Train) Step(sec float64) {
 	if t.task == nil {
 		return
@@ -110,6 +113,7 @@ func (t *Train) Init(m *Model) {
 	t.Passengers = make(map[uint]*Human)
 }
 
+// SetTask change current LineTask to specified one.
 func (t *Train) SetTask(lt *LineTask) {
 	if t.task != nil {
 		if lt == nil {
@@ -178,6 +182,7 @@ func (t *Train) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (t *Train) UnMarshal() {
 	t.Resolve(t.M.Find(PLAYER, t.OwnerID))
 	// nullable fields
@@ -186,6 +191,7 @@ func (t *Train) UnMarshal() {
 	}
 }
 
+// UnResolve unregisters specified refernce.
 func (t *Train) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -200,11 +206,13 @@ func (t *Train) CheckDelete() error {
 	return nil
 }
 
+// BeforeDelete remove reference of related entity
 func (t *Train) BeforeDelete() {
 	t.UnLoad()
 	t.O.UnResolve(t)
 }
 
+// Delete removes this entity with related ones.
 func (t *Train) Delete(force bool) {
 	t.M.Delete(t)
 }

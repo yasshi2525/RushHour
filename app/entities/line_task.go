@@ -3,8 +3,6 @@ package entities
 import (
 	"fmt"
 	"math"
-
-	"github.com/revel/revel"
 )
 
 // LineTaskType represents the state what Train should do now.
@@ -112,133 +110,6 @@ func (lt *LineTask) S() *Shape {
 	return &lt.Shape
 }
 
-func (lt *LineTask) Depart(force ...bool) *LineTask {
-	if !(len(force) > 0 && force[0]) && lt.next != nil {
-		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
-	}
-	if lt.TaskType != OnStopping {
-		panic(fmt.Errorf("Tried to depart from invald TaskType : %v", lt))
-	}
-	return lt.M.NewLineTaskDept(lt.RailLine, lt.Dest, lt)
-}
-
-func (lt *LineTask) DepartIf(force ...bool) *LineTask {
-	if !(len(force) > 0 && force[0]) && lt.next != nil {
-		panic(fmt.Errorf("Tried to depart from Connectted LineTask: %v", lt))
-	}
-	if lt.TaskType == OnStopping {
-		if lt.Dest == nil {
-			revel.AppLog.Errorf("dest is nil %v", lt)
-		}
-		return lt.Depart(force...)
-	}
-	return lt
-}
-
-func (lt *LineTask) Stretch(re *RailEdge, force ...bool) *LineTask {
-	if !(len(force) > 0 && force[0]) && lt.next != nil {
-		panic(fmt.Errorf("Tried to add RailEdge to Connectted LineTask: %v -> %v", re, lt))
-	}
-	if lt.ToNode() != re.FromNode {
-		panic(fmt.Errorf("Tried to add far RailEdge to LineTask: %v -> %v", re, lt))
-	}
-
-	// when task is "stop", append task "departure"
-	tail := lt.DepartIf(force...)
-	return lt.M.NewLineTask(lt.RailLine, re, tail)
-}
-
-// InsertRailEdge corrects RailLine for new RailEdge
-// RailEdge.From must be original RailNode.
-// RailEdge.To   must be      new RailPoint.
-//
-// Before (a) ---------------> (b) -> (c)
-// After  (a) -> (X) -> (a) -> (b) -> (c)
-//
-// RailEdge : (a) -> (X)
-func (lt *LineTask) InsertRailEdge(re *RailEdge) {
-	if lt.ToNode() != re.FromNode {
-		panic(fmt.Errorf("Tried to insert far RailEdge to LineTask: %v -> %v", re, lt))
-	}
-	next := lt.Next()                     // = (b) -> (c)
-	tail := lt.Stretch(re, true)          // = (a) -> (X)
-	tail = tail.Stretch(re.Reverse, true) // = (X) -> (a)
-
-	// when (X) is station and is stopped, append "dept" task after it
-	if tail.TaskType == OnStopping && next != nil && next.TaskType != OnDeparture {
-		tail = tail.DepartIf()
-	}
-	tail.SetNext(next) // (a) -> (b) -> (c)
-}
-
-func (lt *LineTask) InsertDestination(p *Platform) {
-	if lt.TaskType == OnDeparture {
-		panic(fmt.Errorf("try to insert destination to dept LineTask: %v -> %v", p, lt))
-	}
-	lt.Dest = p
-	lt.DestID = p.ID
-	if lt.RailLine.AutoPass {
-		// change move -> pass
-		lt.TaskType = OnPassing
-		lt.RailLine.ReRouting = true
-	} else {
-		// change move -> stop
-		lt.TaskType = OnStopping
-		next := lt.next
-		lt.Depart(true).SetNext(next)
-	}
-}
-
-func (lt *LineTask) InsertDeparture(p *Platform) {
-	lt.SetDept(p)
-}
-
-func (lt *LineTask) Shrink(p *Platform) {
-	if lt.Stay != p {
-		panic(fmt.Errorf("try to shrink far platform: %v -> %v", p, lt))
-	}
-	next := lt.next
-	if next != nil {
-		next.SetDept(nil)
-	}
-	lt.SetNext(nil)
-	if lt.before != nil {
-		lt.before.SetDest(nil)
-		lt.before.TaskType = OnMoving
-		lt.before.SetNext(next)
-	}
-	lt.Delete(false)
-}
-
-func (lt *LineTask) Shave(re *RailEdge) {
-	if lt.Moving != re {
-		panic(fmt.Errorf("try to shave far edge: %v -> %v", re, lt))
-	}
-	if lt.next != nil {
-		if lt.next.Moving != re.Reverse {
-			panic(fmt.Errorf("try to shave linear RailLine: %v -> %v", re.Reverse, lt.next))
-		}
-		if lt.before != nil {
-			if lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
-				// skip redundant Departure
-				if lt.before.TaskType == OnDeparture {
-					lt.before.SetNext(lt.next.next.next)
-					lt.next.next.Delete(false)
-				} else {
-					lt.before.SetNext(lt.next.next)
-				}
-				if lt.before.TaskType == OnPassing {
-					lt.before.TaskType = OnStopping
-					lt.before.SetDest(lt.next.Stay)
-				}
-			}
-
-		}
-		lt.next.Delete(false)
-	}
-	lt.Delete(false)
-}
-
 // Init initializes map
 func (lt *LineTask) Init(m *Model) {
 	lt.Base.Init(LINETASK, m)
@@ -246,6 +117,7 @@ func (lt *LineTask) Init(m *Model) {
 	lt.OverSteps = make(map[uint]*Step)
 }
 
+// Step procceed progress to certain time.
 func (lt *LineTask) Step(prog *float64, sec *float64) {
 	canDist := *sec * Const.Train.Speed
 	remainDist := (1.0 - *prog) * lt.Cost()
@@ -258,6 +130,7 @@ func (lt *LineTask) Step(prog *float64, sec *float64) {
 	}
 }
 
+// Loc returns Point which devides progress ratio to it.
 func (lt *LineTask) Loc(prog float64) *Point {
 	if prog < 0.5 && lt.before.TaskType == OnDeparture {
 		return lt.Moving.Div(2 * prog * prog)
@@ -325,6 +198,7 @@ func (lt *LineTask) Resolve(args ...Entity) {
 	lt.Marshal()
 }
 
+// UnResolve unregisters specified refernce.
 func (lt *LineTask) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -365,6 +239,7 @@ func (lt *LineTask) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (lt *LineTask) UnMarshal() {
 	lt.Resolve(
 		lt.M.Find(PLAYER, lt.OwnerID),
@@ -403,6 +278,7 @@ func (lt *LineTask) BeforeDelete() {
 	lt.O.UnResolve(lt)
 }
 
+// Delete removes this entity with related ones.
 func (lt *LineTask) Delete(force bool) {
 	for _, t := range lt.Trains {
 		t.SetTask(lt.next)
@@ -446,7 +322,7 @@ func (lt *LineTask) ToNode() *RailNode {
 	}
 }
 
-// Cost represents distance
+// Cost represents how many seconds it takes.
 func (lt *LineTask) Cost() float64 {
 	switch lt.TaskType {
 	case OnDeparture:
@@ -513,6 +389,7 @@ func (lt *LineTask) SetNext(v *LineTask) {
 	lt.Change()
 }
 
+// SetDept set Platform to departure.
 func (lt *LineTask) SetDept(p *Platform) {
 	lt.Dept = p
 	if p != nil {
@@ -522,6 +399,7 @@ func (lt *LineTask) SetDept(p *Platform) {
 	}
 }
 
+// SetDest set Platform to destination.
 func (lt *LineTask) SetDest(p *Platform) {
 	lt.Dest = p
 	if p != nil {
@@ -531,6 +409,7 @@ func (lt *LineTask) SetDest(p *Platform) {
 	}
 }
 
+// SetBefore set LineTask to before.
 func (lt *LineTask) SetBefore(v *LineTask) {
 	lt.before = v
 	if v != nil {

@@ -95,6 +95,7 @@ func (n *Node) Fix() {
 	n.Out = nil
 }
 
+// Export create new instance which has same id of it.
 func (n *Node) Export() *Node {
 	return &Node{
 		Digest: n.Digest,

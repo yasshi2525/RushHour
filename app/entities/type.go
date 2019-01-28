@@ -50,6 +50,7 @@ func (t ModelType) String() string {
 	return attr[t].Name
 }
 
+// Short returns short description.
 func (t ModelType) Short() string {
 	return attr[t].Short
 }
@@ -87,14 +88,17 @@ func (t ModelType) IsDB() bool {
 	return attr[t].Table != ""
 }
 
+// IsRelayable returns this type implements Relayable.
 func (t ModelType) IsRelayable() bool {
 	return nodes[t]
 }
 
+// IsConnectable returns this type implements Connectable.
 func (t ModelType) IsConnectable() bool {
 	return edges[t]
 }
 
+// InitType initialize TypeList and related object.
 func InitType() {
 	TypeList = []ModelType{
 		PLAYER,

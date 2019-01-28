@@ -39,6 +39,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 	return rn
 }
 
+// Extend returns new RailNode which position is (x, y)
 func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 	to := rn.M.NewRailNode(rn.O, x, y)
 	e1 := rn.M.NewRailEdge(rn, to)
@@ -105,6 +106,7 @@ func (rn *RailNode) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (rn *RailNode) UnMarshal() {
 	rn.Resolve(rn.M.Find(PLAYER, rn.OwnerID))
 }
@@ -114,6 +116,7 @@ func (rn *RailNode) BeforeDelete() {
 	rn.O.UnResolve(rn)
 }
 
+// UnResolve unregisters specified refernce.
 func (rn *RailNode) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -144,6 +147,7 @@ func (rn *RailNode) CheckDelete() error {
 	return nil
 }
 
+// Delete removes this entity with related ones.
 func (rn *RailNode) Delete(force bool) {
 	for _, re := range rn.OutEdges {
 		re.Delete(false)

@@ -74,11 +74,13 @@ func (p *Platform) S() *Shape {
 	return &p.Shape
 }
 
+// GenOutSteps generates Steps from this Platform.
 func (p *Platform) GenOutSteps() {
 	// P -> G
 	p.M.NewStep(p, p.WithGate)
 }
 
+// GenInSteps generates Steps to this Platform.
 func (p *Platform) GenInSteps() {
 	// G -> P
 	p.M.NewStep(p.WithGate, p)
@@ -148,7 +150,8 @@ func (p *Platform) Resolve(args ...Entity) {
 	p.Marshal()
 }
 
-func (p *Platform) UnResolve(args ...interface{}) {
+// UnResolve unregisters specified refernce.
+func (p *Platform) UnResolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *LineTask:
@@ -186,6 +189,7 @@ func (p *Platform) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (p *Platform) UnMarshal() {
 	st := p.M.Find(STATION, p.StationID).(*Station)
 	p.Resolve(
@@ -223,6 +227,7 @@ func (p *Platform) BeforeDelete() {
 	p.O.UnResolve(p)
 }
 
+// Delete removes this entity with related ones.
 func (p *Platform) Delete(force bool) {
 	for _, s := range p.outSteps {
 		p.M.Delete(s)

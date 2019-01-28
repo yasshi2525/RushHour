@@ -23,19 +23,6 @@ var simCh chan *time.Ticker
 var simTickers []*time.Ticker
 var simWg *sync.WaitGroup
 
-func AfterStart() {
-	p, _ := CreatePlayer("test", "test", "test", entities.Normal)
-	rn1, _ := CreateRailNode(p, 10, 10)
-	st, _ := CreateStation(p, rn1, "test1")
-	l, _ := CreateRailLine(p, "test1", true, false)
-	StartRailLine(p, l, st.Platform)
-	rn2, e1, _, _ := ExtendRailNode(p, rn1, 20, 20)
-	InsertLineTaskRailEdge(p, l, e1)
-	_, e2, _, _ := ExtendRailNode(p, rn2, 30, 30)
-	InsertLineTaskRailEdge(p, l, e2)
-	Backup()
-}
-
 // StartSimulation immitates some user requests some actions.
 // TODO remove it
 func StartSimulation() {

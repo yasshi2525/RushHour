@@ -48,7 +48,7 @@ func (p *Point) Div(to *Point, progress float64) *Point {
 		Y: p.Y*progress + to.Y*(1-progress),
 	}
 }
-
+// Rand generates other Point randaomly within 'max' distance.
 func (p *Point) Rand(max float64) *Point {
 	dist := rand.Float64() * max
 	rad := rand.Float64() * math.Pi * 2
@@ -58,19 +58,23 @@ func (p *Point) Rand(max float64) *Point {
 	}
 }
 
+// Flat returns position as two value
 func (p *Point) Flat() (float64, float64) {
 	return p.X, p.Y
 }
 
+// Sub returns new Point which is substracted by 'to' object
 func (p *Point) Sub(to *Point) *Point {
 	return &Point{p.X - to.X, p.Y - to.Y}
 }
 
+// Unit returns unit vector of this Point origined by (0, 0)
 func (p *Point) Unit() *Point {
 	length := p.Dist(&Point{})
 	return &Point{p.X / length, p.Y / length}
 }
 
+// InnerProduct returns inner product with 'to' object.
 func (p *Point) InnerProduct(to *Point) float64 {
 	return p.X*to.X + p.Y*to.Y
 }

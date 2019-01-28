@@ -38,8 +38,7 @@ func init() {
 	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(services.Init, 1)
 	revel.OnAppStart(services.Start, 2)
-	//revel.OnAppStart(services.AfterStart, 3)
-	revel.OnAppStart(services.StartSimulation, 4)
+	revel.OnAppStart(services.StartSimulation, 3)
 
 	revel.OnAppStop(services.StopSimulation, 1)
 	revel.OnAppStop(services.Stop, 2)

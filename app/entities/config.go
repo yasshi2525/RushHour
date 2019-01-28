@@ -43,6 +43,7 @@ type cfgHuman struct {
 	Speed  float64 `validate:"gt=0"`
 }
 
+// Config represents constants for entity.
 type Config struct {
 	Residence cfgResidence
 	Company   cfgCompany
@@ -52,4 +53,5 @@ type Config struct {
 	Human     cfgHuman
 }
 
+// Const is set of constants for entity.
 var Const Config

@@ -13,6 +13,7 @@ type Edge struct {
 	ToNode   *Node
 }
 
+// NewEdge creates new instance.
 func NewEdge(base entities.Connectable, from *Node, to *Node) *Edge {
 	e := &Edge{Digest{base.B().Type(), base.B().Idx(), base.Cost()}, from, to}
 	from.Out = append(from.Out, e)
@@ -20,6 +21,7 @@ func NewEdge(base entities.Connectable, from *Node, to *Node) *Edge {
 	return e
 }
 
+// Export creates new instance which has specified Node.
 func (e *Edge) Export(from *Node, to *Node) *Edge {
 	newE := &Edge{e.Digest, from, to}
 	from.Out = append(from.Out, e)
@@ -27,6 +29,7 @@ func (e *Edge) Export(from *Node, to *Node) *Edge {
 	return newE
 }
 
+// Cost returns value.
 func (e *Edge) Cost() float64 {
 	return e.Value
 }

@@ -56,6 +56,7 @@ func (r *Residence) S() *Shape {
 	return &r.Shape
 }
 
+// GenOutSteps generates Steps from this Residence.
 func (r *Residence) GenOutSteps() {
 	// R -> C
 	for _, c := range r.M.Companies {
@@ -102,6 +103,7 @@ func (r *Residence) Marshal() {
 	// do-nothing
 }
 
+// UnMarshal set reference from id.
 func (r *Residence) UnMarshal() {
 
 }
@@ -115,6 +117,7 @@ func (r *Residence) CheckDelete() error {
 	return nil
 }
 
+// Delete removes this entity with related ones.
 func (r *Residence) Delete(force bool) {
 	for _, h := range r.Targets {
 		r.M.Delete(h)

@@ -100,6 +100,7 @@ func (re *RailEdge) BeforeDelete() {
 	re.O.UnResolve(re)
 }
 
+// Delete removes this entity with related ones.
 func (re *RailEdge) Delete(force bool) {
 	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
 		lt.Shave(re.Reverse)
@@ -144,6 +145,7 @@ func (re *RailEdge) Resolve(args ...Entity) {
 	re.Marshal()
 }
 
+// UnResolve unregisters specified refernce.
 func (re *RailEdge) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -171,6 +173,7 @@ func (re *RailEdge) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (re *RailEdge) UnMarshal() {
 	re.Resolve(
 		re.M.Find(PLAYER, re.OwnerID),

@@ -14,14 +14,16 @@ const (
 	DBChanged
 )
 
+// Persistence has time information for gorm package.
 type Persistence struct {
-	CreatedAt time.Time  `                   json:"-"`
-	UpdatedAt time.Time  `                   json:"-"`
-	DeletedAt *time.Time `gorm:"index"       json:"-"`
+	CreatedAt time.Time  `             json:"-"`
+	UpdatedAt time.Time  `             json:"-"`
+	DeletedAt *time.Time `gorm:"index" json:"-"`
 	// Changed represents it need to update database
 	DBStatus PersistentStatus `gorm:"-" json:"-"`
 }
 
+// NewPersistence create instance.
 func NewPersistence() Persistence {
 	return Persistence{
 		CreatedAt: time.Now(),

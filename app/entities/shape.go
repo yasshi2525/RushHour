@@ -2,28 +2,33 @@ package entities
 
 import "math"
 
+// Shape containts geometorical information.
 type Shape struct {
 	P1       *Point   `gorm:"-" json:"-"`
 	P2       *Point   `gorm:"-" json:"-"`
 	Children []*Shape `gorm:"-" json:"-"`
 }
 
+// NewShapeGroup create instance that groups other Shapes.
 func NewShapeGroup() Shape {
 	return Shape{nil, nil, []*Shape{}}
 }
 
+// NewShapeNode create instance that represents Point.
 func NewShapeNode(pos *Point) Shape {
 	return Shape{pos, nil, nil}
 }
 
+// NewShapeEdge create instance that represents Edge, which consists in two Point.
 func NewShapeEdge(from *Point, to *Point) Shape {
 	return Shape{from, to, nil}
 }
 
+// Append add specified child to spape's list.
 func (sh *Shape) Append(child *Shape) {
 	sh.Children = append(sh.Children, child)
 }
-
+// Delete removes specified child from shape's list.
 func (sh *Shape) Delete(child *Shape) {
 	for i, c := range sh.Children {
 		if c == child {
@@ -38,9 +43,10 @@ func (sh *Shape) Delete(child *Shape) {
 // Pos returns location.
 func (sh *Shape) Pos() *Point {
 	if sh.Children != nil {
-		if length := len(sh.Children); length == 0 {
+		length := len(sh.Children)
+		if length == 0 {
 			return nil
-		} else {
+		} 
 		var sumX, sumY float64
 		for _, c := range sh.Children {
 			x, y := c.Pos().Flat()
@@ -48,7 +54,6 @@ func (sh *Shape) Pos() *Point {
 			sumY += y
 		}
 		return &Point{sumX / float64(length), sumY / float64(length)}
-	}
 	}
 	if sh.P1 == nil {
 		return &Point{}
@@ -78,6 +83,7 @@ func (sh *Shape) IsIn(x float64, y float64, scale float64) bool {
 	return sh.P1.IsInLine(sh.P2, x, y, scale)
 }
 
+// Dist returns length of this Edge.
 func (sh *Shape) Dist() float64 {
 	if sh.P1 == nil || sh.P2 == nil {
 		return 0
@@ -85,6 +91,7 @@ func (sh *Shape) Dist() float64 {
 	return sh.P1.Dist(sh.P2)
 }
 
+// Angle returns angle with 'to' object. 
 func (sh *Shape) Angle(to *Shape) float64 {
 	if sh.P1 == nil || sh.P2 == nil {
 		return 0
@@ -98,6 +105,7 @@ func (sh *Shape) Angle(to *Shape) float64 {
 	return theta
 }
 
+// Div returns Point which divides 'prog' ratio to Edge.
 func (sh *Shape) Div(prog float64) *Point {
 	if sh.P1 == nil {
 		return &Point{}

@@ -2,6 +2,7 @@ package entities
 
 import "fmt"
 
+// Track has minimum distance route which destinates two RailNode.
 type Track struct {
 	Base
 	Shape
@@ -11,6 +12,7 @@ type Track struct {
 	Value    float64
 }
 
+// NewTrack create instance.
 func (m *Model) NewTrack(f *RailNode, t *RailNode, via *RailEdge, v float64) *Track {
 	tk := &Track{
 		Base:     m.NewBase(TRACK),
@@ -60,6 +62,7 @@ func (tk *Track) Cost() float64 {
 func (tk *Track) Resolve(args ...Entity) {
 }
 
+// CheckDelete check remaining reference.
 func (tk *Track) CheckDelete() error {
 	return nil
 }
@@ -69,6 +72,7 @@ func (tk *Track) BeforeDelete() {
 	delete(tk.FromNode.Tracks, tk.ToNode.ID)
 }
 
+// Delete removes this entity with related ones.
 func (tk *Track) Delete(force bool) {
 	tk.M.Delete(tk)
 }

@@ -141,6 +141,7 @@ func (h *Human) Marshal() {
 	}
 }
 
+// UnMarshal set reference from id.
 func (h *Human) UnMarshal() {
 	h.Resolve(
 		h.M.Find(RESIDENCE, h.FromID),
@@ -191,6 +192,7 @@ func (h *Human) BeforeDelete() {
 	}
 }
 
+// UnResolve unregisters specified refernce.
 func (h *Human) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -206,6 +208,7 @@ func (h *Human) CheckDelete() error {
 	return nil
 }
 
+// Delete removes this entity with related ones.
 func (h *Human) Delete(force bool) {
 	h.M.Delete(h)
 }

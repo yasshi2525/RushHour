@@ -6,12 +6,14 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// Model has minimux distance route information to specific Node.
 type Model struct {
 	GoalIDs []uint
 	Nodes   map[entities.ModelType]map[uint]*Node
 	Edges   map[entities.ModelType]map[uint]*Edge
 }
 
+// NewModel creates instance or copies original if it is specified.
 func NewModel(origin ...*Model) *Model {
 	nodes := make(map[entities.ModelType]map[uint]*Node)
 	edges := make(map[entities.ModelType]map[uint]*Edge)
@@ -33,6 +35,7 @@ func NewModel(origin ...*Model) *Model {
 	return &Model{[]uint{}, nodes, edges}
 }
 
+// Export copies Nodes and Edges having same id.
 func (m *Model) Export() *Model {
 	copy := NewModel(m)
 	for res, ns := range m.Nodes {
@@ -51,11 +54,13 @@ func (m *Model) Export() *Model {
 	return copy
 }
 
+// ExportWith copies Nodes and Edges, then returns corresponding Node to specified goal.
 func (m *Model) ExportWith(t entities.ModelType, id uint) (*Model, *Node) {
 	copy := m.Export()
 	return copy, copy.Nodes[t][id]
 }
 
+// NumNodes returns the number of Nodes.
 func (m *Model) NumNodes() int {
 	var sum int
 	for _, ns := range m.Nodes {
@@ -64,6 +69,7 @@ func (m *Model) NumNodes() int {
 	return sum
 }
 
+// NumEdges returns the number of Edges.
 func (m *Model) NumEdges() int {
 	var sum int
 	for _, es := range m.Edges {
@@ -72,10 +78,13 @@ func (m *Model) NumEdges() int {
 	return sum
 }
 
+// AddGoalID adds id as goal.
 func (m *Model) AddGoalID(id uint) {
 	m.GoalIDs = append(m.GoalIDs, id)
 }
 
+// FindOrCreateNode returns corresponding Node.
+// If such Node doesn't exist, create and return new Node.
 func (m *Model) FindOrCreateNode(origin entities.Entity) *Node {
 	if _, ok := m.Nodes[origin.B().Type()]; !ok {
 		m.Nodes[origin.B().Type()] = make(map[uint]*Node)
@@ -88,6 +97,8 @@ func (m *Model) FindOrCreateNode(origin entities.Entity) *Node {
 	return n
 }
 
+// FindOrCreateEdge returns corresponding Edge.
+// If such Edge doesn't exist, create and return new Edge.
 func (m *Model) FindOrCreateEdge(origin entities.Connectable) *Edge {
 	if _, ok := m.Edges[origin.B().Type()]; !ok {
 		m.Edges[origin.B().Type()] = make(map[uint]*Edge)
@@ -101,6 +112,7 @@ func (m *Model) FindOrCreateEdge(origin entities.Connectable) *Edge {
 	return e
 }
 
+// Fix discards no more using data.
 func (m *Model) Fix() {
 	for _, ns := range m.Nodes {
 		for _, n := range ns {
@@ -131,16 +143,19 @@ func (m *Model) String() string {
 	return fmt.Sprintf("Route:g=%v,n=%v,e=%v", m.GoalIDs, nodes, edges)
 }
 
+// Payload is collection of Model.
 type Payload struct {
 	Route     map[uint]*Model
 	Processed int
 	Total     int
 }
 
+// IsOK returns whether all Model was built or not.
 func (p *Payload) IsOK() bool {
 	return p.Processed == p.Total
 }
 
+// Import accepts result of calcuration.
 func (p *Payload) Import(oth *Payload) {
 	for goalID, model := range oth.Route {
 		p.Route[goalID] = model

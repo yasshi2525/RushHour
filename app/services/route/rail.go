@@ -6,6 +6,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+// RefreshTracks set minimum distance trace on specified rail.
 func RefreshTracks(o *entities.Player, parallel int) map[uint]*Model {
 	o.ClearTracks()
 	template := scanRail(o)
