@@ -11,8 +11,8 @@ import (
 // ViewMap immitates user requests view
 func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{} {
 	start := time.Now()
-	MuStatic.RLock()
-	defer MuStatic.RUnlock()
+	MuModel.RLock()
+	defer MuModel.RUnlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.View.D, "view")
 

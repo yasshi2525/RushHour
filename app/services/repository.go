@@ -18,11 +18,8 @@ var Model *entities.Model
 // RouteTemplate is default route information in order to avoid huge calculation.
 var RouteTemplate *route.Payload
 
-// MuStatic is mutex lock for Static
-var MuStatic sync.RWMutex
-
-// MuDynamic is mutex lock for Dynamic
-var MuDynamic sync.RWMutex
+// MuModel is mutex lock for Model
+var MuModel sync.RWMutex
 
 // MuRoute is mutex lock for routing
 var MuRoute sync.Mutex
@@ -68,8 +65,7 @@ var OpCache []*OpLog
 
 // InitLock must prepare first.
 func InitLock() {
-	MuStatic = sync.RWMutex{}
-	MuDynamic = sync.RWMutex{}
+	MuModel = sync.RWMutex{}
 	MuRoute = sync.Mutex{}
 }
 

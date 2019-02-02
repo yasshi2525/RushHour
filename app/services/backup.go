@@ -37,8 +37,8 @@ func watchBackup() {
 // Backup set model to database
 func Backup() {
 	start := time.Now()
-	MuStatic.RLock()
-	defer MuStatic.RUnlock()
+	MuModel.RLock()
+	defer MuModel.RUnlock()
 	lock := time.Now()
 
 	tx := db.Begin()

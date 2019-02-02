@@ -77,11 +77,8 @@ func processRouting(ctx context.Context) {
 }
 
 func scan(ctx context.Context) (time.Time, *route.Model, bool) {
-	MuStatic.RLock()
-	defer MuStatic.RUnlock()
-
-	MuDynamic.RLock()
-	defer MuDynamic.RUnlock()
+	MuModel.RLock()
+	defer MuModel.RUnlock()
 
 	lock := time.Now()
 	model, ok := route.Scan(ctx, Model)
@@ -93,8 +90,8 @@ func search(ctx context.Context, template *route.Model) (*route.Payload, bool) {
 }
 
 func reflectModel() {
-	MuDynamic.Lock()
-	defer MuDynamic.Unlock()
+	MuModel.Lock()
+	defer MuModel.Unlock()
 
 	for _, model := range RouteTemplate.Route {
 		for _, n := range model.Nodes[entities.HUMAN] {

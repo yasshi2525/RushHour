@@ -19,10 +19,8 @@ func Restore() {
 	revel.AppLog.Info("start restore from database")
 	defer revel.AppLog.Info("end restore from database")
 	start := time.Now()
-	MuStatic.Lock()
-	defer MuStatic.Unlock()
-	MuDynamic.Lock()
-	defer MuDynamic.Unlock()
+	MuModel.Lock()
+	defer MuModel.Unlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.Restore.D, "restore", true)
 

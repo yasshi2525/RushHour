@@ -85,10 +85,8 @@ func watchModel() {
 }
 
 func processMsg(msg *Operation) time.Time {
-	MuStatic.Lock()
-	defer MuStatic.Unlock()
-	MuDynamic.Lock()
-	defer MuDynamic.Unlock()
+	MuModel.Lock()
+	defer MuModel.Unlock()
 	lock := time.Now()
 
 	owner, _ := FetchOwner(msg.OName)

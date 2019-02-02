@@ -33,10 +33,8 @@ func watchGame() {
 
 func processGame() {
 	start := time.Now()
-	MuStatic.Lock()
-	defer MuStatic.Unlock()
-	MuDynamic.Lock()
-	defer MuDynamic.Unlock()
+	MuModel.Lock()
+	defer MuModel.Unlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.Game.D, "procedure")
 	defer func() { beforeProcedure = time.Now() }()
