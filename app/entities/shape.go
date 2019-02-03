@@ -1,6 +1,8 @@
 package entities
 
-import "math"
+import (
+	"math"
+)
 
 // Shape containts geometorical information.
 type Shape struct {
@@ -28,6 +30,7 @@ func NewShapeEdge(from *Point, to *Point) Shape {
 func (sh *Shape) Append(child *Shape) {
 	sh.Children = append(sh.Children, child)
 }
+
 // Delete removes specified child from shape's list.
 func (sh *Shape) Delete(child *Shape) {
 	for i, c := range sh.Children {
@@ -46,7 +49,7 @@ func (sh *Shape) Pos() *Point {
 		length := len(sh.Children)
 		if length == 0 {
 			return nil
-		} 
+		}
 		var sumX, sumY float64
 		for _, c := range sh.Children {
 			x, y := c.Pos().Flat()
@@ -91,7 +94,7 @@ func (sh *Shape) Dist() float64 {
 	return sh.P1.Dist(sh.P2)
 }
 
-// Angle returns angle with 'to' object. 
+// Angle returns angle with 'to' object.
 func (sh *Shape) Angle(to *Shape) float64 {
 	if sh.P1 == nil || sh.P2 == nil {
 		return 0

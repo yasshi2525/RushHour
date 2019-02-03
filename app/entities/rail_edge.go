@@ -123,11 +123,11 @@ func (re *RailEdge) Resolve(args ...Entity) {
 			obj.Resolve(re)
 		case *RailNode:
 			if !doneFrom {
-				re.O, re.FromNode = obj.O, obj
+				re.O, re.FromNode, re.Shape.P1 = obj.O, obj, &obj.Point
 				doneFrom = true
 				obj.OutEdges[re.ID] = re
 			} else {
-				re.ToNode = obj
+				re.ToNode, re.Shape.P2 = obj, &obj.Point
 				obj.InEdges[re.ID] = re
 			}
 		case *RailEdge:

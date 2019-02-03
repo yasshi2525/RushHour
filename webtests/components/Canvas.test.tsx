@@ -4,8 +4,17 @@ import { Canvas } from "@/components/Canvas";
 import { defaultState, RushHourStatus, GameMap } from "@/state";
 
 const testMap: GameMap =  {
-    "residences": [ { id: "1", x: 100, y: 100  }],
-    "companies": []
+    "companies": [],
+    "gates": [],
+    "humans": [],
+    "line_tasks": [],
+    "platforms": [],
+    "players": [],
+    "rail_edges": [],
+    "rail_lines": [],
+    "residences": [{id: "1", x: 100, y: 100}],
+    "stations": [],
+    "trains": [],
 };
 
 test("renders canvas", () => {

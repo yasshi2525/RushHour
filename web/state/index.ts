@@ -9,8 +9,17 @@ export interface Locatable extends Identifiable {
 
 export interface GameMap {
     [key: string]: Locatable[],
+    "companies": Locatable[],
+    "gates": Locatable[],
+    "humans": Locatable[],
+    "line_tasks": Locatable[],
+    "platforms": Locatable[],
+    "players": Locatable[],
+    "rail_edges": Locatable[],
+    "rail_lines": Locatable[],
     "residences": Locatable[],
-    "companies": Locatable[]
+    "stations": Locatable[],
+    "trains": Locatable[],
 }
 
 export interface RushHourStatus {
@@ -22,7 +31,16 @@ export interface RushHourStatus {
 export const defaultState: RushHourStatus = {
     readOnly: true,
     map: {
+        "companies": [],
+        "gates": [],
+        "humans": [],
+        "line_tasks": [],
+        "platforms": [],
+        "players": [],
+        "rail_edges": [],
+        "rail_lines": [],
         "residences": [],
-        "companies": []
+        "stations": [],
+        "trains": [],
     }
 };

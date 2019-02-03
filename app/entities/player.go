@@ -75,7 +75,8 @@ func (o *Player) ClearTracks() {
 
 // Init do nothing
 func (o *Player) Init(m *Model) {
-	o.M = m
+	o.Base.Init(PLAYER, m)
+	o.Shape.Children = []*Shape{}
 	o.RailNodes = make(map[uint]*RailNode)
 	o.RailEdges = make(map[uint]*RailEdge)
 	o.Stations = make(map[uint]*Station)

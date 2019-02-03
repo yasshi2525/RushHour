@@ -1,7 +1,7 @@
 import { aync } from ".";
 import { ActionType } from "../actions";
 
-const url = "http://5be50b8595e4340013f89011.mockapi.io/gamemap/1/";
+const url = "api/v1/gamemap";
 
 const requestGameMap = () => 
     fetch(url).then(response => {

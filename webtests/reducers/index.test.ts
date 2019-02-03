@@ -5,7 +5,7 @@ import { defaultState } from "@/state";
 test("fetches map", () => {
     const actual = reducer(defaultState, {
         type: ActionType.FETCH_MAP_SUCCEEDED,
-        payload: "test"
+        payload: {status: true, results: {foo: "bar"}}
     });
-    expect(actual.map).toEqual("test");
+    expect(actual.map).toEqual({foo: "bar"});
 });

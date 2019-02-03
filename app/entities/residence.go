@@ -23,12 +23,10 @@ type Residence struct {
 
 // NewResidence create new instance without setting parameters
 func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
-	pos := NewPoint(x, y)
 	r := &Residence{
 		Base:        m.NewBase(RESIDENCE),
 		Persistence: NewPersistence(),
-		Point:       pos,
-		Shape:       NewShapeNode(&pos),
+		Point:       NewPoint(x, y),
 		Capacity:    Const.Residence.Capacity,
 		Wait:        Const.Residence.Interval.D.Seconds() * rand.Float64(),
 	}
@@ -71,6 +69,7 @@ func (r *Residence) GenOutSteps() {
 // Init creates map.
 func (r *Residence) Init(m *Model) {
 	r.Base.Init(RESIDENCE, m)
+	r.Shape.P1 = &r.Point
 	r.out = make(map[uint]*Step)
 	r.Targets = make(map[uint]*Human)
 }

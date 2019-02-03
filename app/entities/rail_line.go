@@ -122,6 +122,7 @@ func (l *RailLine) ClearTransports() {
 // Init makes map
 func (l *RailLine) Init(m *Model) {
 	l.Base.Init(RAILLINE, m)
+	l.Shape.Children = []*Shape{}
 	l.RailEdges = make(map[uint]*RailEdge)
 	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)

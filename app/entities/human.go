@@ -59,12 +59,10 @@ type Human struct {
 
 // NewHuman create instance
 func (m *Model) NewHuman(o *Player, x float64, y float64) *Human {
-	pos := NewPoint(x, y)
 	h := &Human{
 		Base:        m.NewBase(HUMAN, o),
 		Persistence: NewPersistence(),
-		Shape:       NewShapeNode(&pos),
-		Point:       pos,
+		Point:       NewPoint(x, y),
 	}
 	h.Init(m)
 	h.Resolve()
@@ -115,6 +113,7 @@ func (h *Human) S() *Shape {
 // Init creates map.
 func (h *Human) Init(m *Model) {
 	h.Base.Init(HUMAN, m)
+	h.Shape.P1 = &h.Point
 	h.M = m
 	h.out = make(map[uint]*Step)
 }

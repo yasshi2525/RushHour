@@ -21,12 +21,10 @@ type Company struct {
 
 // NewCompany create new instance without setting parameters
 func (m *Model) NewCompany(x float64, y float64) *Company {
-	pos := NewPoint(x, y)
 	c := &Company{
 		Base:        m.NewBase(COMPANY),
 		Persistence: NewPersistence(),
-		Point:       pos,
-		Shape:       NewShapeNode(&pos),
+		Point:       NewPoint(x, y),
 		Scale:       Const.Company.Scale,
 	}
 	c.Init(m)
@@ -68,6 +66,7 @@ func (c *Company) GenInSteps() {
 // Init creates map.
 func (c *Company) Init(m *Model) {
 	c.Base.Init(COMPANY, m)
+	c.Shape.P1 = &c.Point
 	c.in = make(map[uint]*Step)
 	c.Targets = make(map[uint]*Human)
 }

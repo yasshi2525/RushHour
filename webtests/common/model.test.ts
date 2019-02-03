@@ -5,10 +5,19 @@ let instance: GameModel;
 const app = new PIXI.Application();
 
 const testmap = {
+    "companies": [],
+    "gates": [],
+    "humans": [],
+    "line_tasks": [],
+    "platforms": [],
+    "players": [],
+    "rail_edges": [],
+    "rail_lines": [],
     "residences": [{
         id: "1", x: 100, y: 100
     }],
-    "companies": []
+    "stations": [],
+    "trains": [],
 };
 
 beforeEach(() => {
@@ -24,8 +33,17 @@ describe("get", () => {
 describe("mergeAll", () => {
     test("do nothing when unregistered key is specified", () => {
         instance.mergeAll({
-            "residences": [],
             "companies": [],
+            "gates": [],
+            "humans": [],
+            "line_tasks": [],
+            "platforms": [],
+            "players": [],
+            "rail_edges": [],
+            "rail_lines": [],
+            "residences": [],
+            "stations": [],
+            "trains": [],
             "unregistered": [{
                 id: "1", x: 100, y: 100
             }]

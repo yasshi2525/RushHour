@@ -118,6 +118,7 @@ func (p *Platform) Resolve(args ...Entity) {
 			obj.Resolve(p)
 		case *RailNode:
 			p.OnRailNode = obj
+			p.Shape = obj.Shape
 			obj.Resolve(p)
 		case *Station:
 			p.InStation = obj

@@ -1,25 +1,16 @@
 import { ActionType } from "../actions";
 import { RushHourStatus } from "../state";
 
-export default (state: RushHourStatus, action: {type: string, payload: any}) => {
-
+export default (state: RushHourStatus, action: {type: string, payload: {status: boolean, results: any}}) => {
+    console.log(action.type)
+    if (action.payload !== undefined && !action.payload.status) {
+        console.log("error: ");
+        console.log(action.payload);
+        return state;
+    }
     switch (action.type) {
         case ActionType.FETCH_MAP_SUCCEEDED:
-            return Object.assign({}, state, {map: action.payload});
-
-        case ActionType.MOVE_SPRITE: {
-            const newState = {map: Object.assign({}, state.map)};
-            let sprite = newState.map[action.payload.key][action.payload.id];
-            sprite.x = action.payload.x;
-            sprite.y = action.payload.y;
-
-            return newState;
-        }
-        case ActionType.DESTROY_SPRITE: {
-            const newState = {map: Object.assign({}, state.map)};
-            delete newState.map[action.payload.key][action.payload.id];
-            return newState;
-        }
+            return Object.assign({}, state, {map: action.payload.results});
         case ActionType.FETCH_MAP_REQUESTED:
         default:
             return state;

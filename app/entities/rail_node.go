@@ -25,12 +25,10 @@ type RailNode struct {
 
 // NewRailNode create new instance.
 func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
-	pos := NewPoint(x, y)
 	rn := &RailNode{
 		Base:        m.NewBase(RAILNODE, o),
 		Persistence: NewPersistence(),
-		Shape:       NewShapeNode(&pos),
-		Point:       pos,
+		Point:       NewPoint(x, y),
 	}
 	rn.Init(m)
 	rn.Resolve(o)
@@ -74,6 +72,7 @@ func (rn *RailNode) S() *Shape {
 // Init makes map
 func (rn *RailNode) Init(m *Model) {
 	rn.Base.Init(RAILNODE, m)
+	rn.Shape.P1 = &rn.Point
 	rn.InEdges = make(map[uint]*RailEdge)
 	rn.OutEdges = make(map[uint]*RailEdge)
 	rn.InTasks = make(map[uint]*LineTask)

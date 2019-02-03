@@ -34,12 +34,10 @@ type Train struct {
 
 // NewTrain creates instance
 func (m *Model) NewTrain(o *Player, name string) *Train {
-	pos := Point{}
 	t := &Train{
 		Base:        m.NewBase(TRAIN, o),
 		Persistence: NewPersistence(),
-		Point:       pos,
-		Shape:       NewShapeNode(&pos),
+		Point:       Point{},
 		Capacity:    Const.Train.Capacity,
 		Mobility:    Const.Train.Mobility,
 		Speed:       Const.Train.Speed,
@@ -110,6 +108,7 @@ func (t *Train) Type() ModelType {
 // Init makes map
 func (t *Train) Init(m *Model) {
 	t.Base.Init(TRAIN, m)
+	t.Shape.P1 = &t.Point
 	t.Passengers = make(map[uint]*Human)
 }
 
@@ -126,11 +125,9 @@ func (t *Train) SetTask(lt *LineTask) {
 	if lt != nil {
 		t.TaskID = lt.ID
 		lt.Resolve(t)
-		t.Shape = lt.Shape
 	} else {
 		t.UnLoad()
 		t.TaskID = ZERO
-		t.Shape = Shape{}
 	}
 
 	t.Point = *t.Shape.Div(t.Progress)
