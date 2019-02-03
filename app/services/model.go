@@ -85,10 +85,7 @@ func watchModel() {
 }
 
 func processMsg(msg *Operation) time.Time {
-	defer revel.AppLog.Debug("[DEBUG] msg Model after UnLock")
-	revel.AppLog.Debug("[DEBUG] msg Model before Lock")
 	MuModel.Lock()
-	revel.AppLog.Debug("[DEBUG] msg Model after Lock")
 	defer MuModel.Unlock()
 	lock := time.Now()
 

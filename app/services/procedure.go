@@ -32,11 +32,8 @@ func watchGame() {
 }
 
 func processGame() {
-	revel.AppLog.Debug("[DEBUG] process Model after UnLock")
 	start := time.Now()
-	revel.AppLog.Debug("[DEBUG] process Model before Lock")
 	MuModel.Lock()
-	revel.AppLog.Debug("[DEBUG] process Model after Lock")
 	defer MuModel.Unlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.Game.D, "procedure")

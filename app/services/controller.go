@@ -5,17 +5,13 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/revel/revel"
-
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 // ViewMap immitates user requests view
 func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{} {
 	start := time.Now()
-	revel.AppLog.Debugf("[DEBUG] before MuLock")
 	MuModel.RLock()
-	revel.AppLog.Debugf("[DEBUG] after MuLock")
 	defer MuModel.RUnlock()
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.View.D, "view")
