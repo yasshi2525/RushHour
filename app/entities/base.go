@@ -72,16 +72,3 @@ func (b *Base) Permits(target *Player) bool {
 func (b *Base) IsChanged(after time.Time) bool {
 	return b.ChangedAt.Sub(after) > 0
 }
-
-// eachLineTasks skips LineTask which was added in inner loop
-func eachLineTask(lts map[uint]*LineTask, callback func(*LineTask)) {
-	copies := make([]*LineTask, len(lts))
-	i := 0
-	for _, lt := range lts {
-		copies[i] = lt
-		i++
-	}
-	for _, lt := range copies {
-		callback(lt)
-	}
-}

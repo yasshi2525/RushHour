@@ -43,6 +43,8 @@ func (m *Model) NewPlayer() *Player {
 		Persistence: NewPersistence(),
 		Shape:       NewShapeGroup(),
 	}
+	o.O = o
+	o.OwnerID = o.ID
 	o.Init(m)
 	o.Marshal()
 	m.Add(o)
