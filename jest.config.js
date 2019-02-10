@@ -10,5 +10,5 @@ module.exports = {
         "\\.(css|less)$": "identity-obj-proxy"
     },
     setupFiles: ["jest-canvas-mock"],
-    setupTestFrameworkScriptFile: "<rootDir>/setup.ts"
+    setupFilesAfterEnv: ["<rootDir>/setup.ts"]
 };
