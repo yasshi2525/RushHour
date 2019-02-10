@@ -97,6 +97,8 @@ func (re *RailEdge) BeforeDelete() {
 	}
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
+	re.FromNode.Shape.UnRefer(re.S())
+	re.ToNode.Shape.UnRefer(re.S())
 	re.O.UnResolve(re)
 }
 
@@ -126,9 +128,11 @@ func (re *RailEdge) Resolve(args ...Entity) {
 				re.O, re.FromNode, re.Shape.P1 = obj.O, obj, &obj.Point
 				doneFrom = true
 				obj.OutEdges[re.ID] = re
+				obj.Shape.Refer(re.S())
 			} else {
 				re.ToNode, re.Shape.P2 = obj, &obj.Point
 				obj.InEdges[re.ID] = re
+				obj.Shape.Refer(re.S())
 			}
 		case *RailEdge:
 			re.Reverse = obj
