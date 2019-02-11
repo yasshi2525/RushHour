@@ -1,6 +1,6 @@
 import { Monitorable } from "../interfaces/monitor";
 
-const defaultValues: {id: string} = {id: "no value"};
+const defaultValues: {id: number, oid: number} = {id: 0, oid: 0};
 
 /**
  * 変更監視ができるオブジェクト

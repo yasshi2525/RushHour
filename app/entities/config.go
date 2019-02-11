@@ -19,7 +19,7 @@ type cfgResidence struct {
 }
 
 type cfgCompany struct {
-	Scale float64 `validate:"gt=0"`
+	Attract float64 `validate:"gt=0"`
 }
 
 type cfgGate struct {
@@ -40,7 +40,7 @@ type cfgTrain struct {
 }
 
 type cfgHuman struct {
-	Speed  float64 `validate:"gt=0"`
+	Speed float64 `validate:"gt=0"`
 }
 
 // Config represents constants for entity.

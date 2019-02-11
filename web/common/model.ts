@@ -2,12 +2,7 @@ import { Residence, Company } from "./models/background";
 import MonitorContainer from "./models/container";
 import { Monitorable } from "./interfaces/monitor";
 import { GameMap } from "../state";
-
-const spriteOption = (name: string, app: PIXI.Application) => ({
-    name: name,
-    container: app.stage,
-    loader: app.loader
-})
+import { RailNode, RailEdge } from "./models/rail";
 
 export default class {
     stage: PIXI.Container; 
@@ -21,8 +16,10 @@ export default class {
         this.loader = options.app.loader;
         this.renderer = options.app.renderer;
 
-        this.payload["residences"] = new MonitorContainer(Residence, spriteOption("residence", options.app));
-        this.payload["companies"] = new MonitorContainer(Company, spriteOption("company", options.app));
+        this.payload["residences"] = new MonitorContainer(Residence, {name: "residence", app: options.app});
+        this.payload["companies"] = new MonitorContainer(Company, {name: "company", app: options.app});
+        this.payload["rail_nodes"] = new MonitorContainer(RailNode, {app: options.app})
+        this.payload["rail_edes"] = new MonitorContainer(RailEdge, {app: options.app})
     }
 
     /**

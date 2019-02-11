@@ -92,8 +92,8 @@ func mkOp(src string, target entities.ModelType) *Operation {
 		Op:     "create",
 		Target: target,
 		OName:  src,
-		X:      rand.Float64() * 100,
-		Y:      rand.Float64() * 100,
+		X:      rand.Float64() * 1000,
+		Y:      rand.Float64() * 1000,
 	}
 }
 

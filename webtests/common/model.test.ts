@@ -12,6 +12,7 @@ const testmap = {
     "platforms": [],
     "players": [],
     "rail_edges": [],
+    "rail_nodes": [],
     "rail_lines": [],
     "residences": [{
         id: "1", x: 100, y: 100
@@ -40,6 +41,7 @@ describe("mergeAll", () => {
             "platforms": [],
             "players": [],
             "rail_edges": [],
+            "rail_nodes": [],
             "rail_lines": [],
             "residences": [],
             "stations": [],

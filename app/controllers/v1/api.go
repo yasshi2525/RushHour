@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"math/rand"
 	"time"
 
 	"github.com/revel/revel"
@@ -16,12 +15,7 @@ type APIv1Game struct {
 // Index returns gamemap
 func (c APIv1Game) Index() revel.Result {
 	return c.RenderJSON(
-		genResponse(
-			true,
-			services.ViewMap(
-				rand.Float64()*100,
-				rand.Float64()*100,
-				rand.Float64()*7)))
+		genResponse(true, services.ViewMap(500, 500, 10)))
 }
 
 // Diff returns only diff
@@ -29,11 +23,7 @@ func (c APIv1Game) Diff() revel.Result {
 	return c.RenderJSON(
 		genResponse(
 			true,
-			services.ViewMap(
-				rand.Float64()*100,
-				rand.Float64()*100,
-				rand.Float64()*7,
-				time.Now().Add(time.Duration(-1)*time.Minute))))
+			services.ViewMap(500, 500, 10, time.Now().Add(time.Duration(-1)*time.Minute))))
 }
 
 func genResponse(status bool, results interface{}) interface{} {

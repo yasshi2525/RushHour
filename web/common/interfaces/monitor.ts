@@ -50,7 +50,6 @@ export interface Monitorable {
      */
     mergeAll(payload: {[index: string]: {}}): void; 
 
-
     /**
      * 監視を終了します。
      * @param callback 変更監視終了時に呼び出されるコールバック関数

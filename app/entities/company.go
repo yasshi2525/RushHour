@@ -11,9 +11,9 @@ type Company struct {
 	Point
 	Shape
 
-	// Scale : if Scale is bigger, more Human destinate Company
-	Scale float64 `gorm:"not null" json:"scale"`
-	Name  string  `json:"name"`
+	// Attract : if Attract is bigger, more Human destinate Company
+	Attract float64 `gorm:"not null" json:"attract"`
+	Name    string  `json:"name"`
 
 	Targets map[uint]*Human `gorm:"-" json:"-"`
 	in      map[uint]*Step
@@ -25,7 +25,7 @@ func (m *Model) NewCompany(x float64, y float64) *Company {
 		Base:        m.NewBase(COMPANY),
 		Persistence: NewPersistence(),
 		Point:       NewPoint(x, y),
-		Scale:       Const.Company.Scale,
+		Attract:     Const.Company.Attract,
 	}
 	c.Init(m)
 	c.Resolve()

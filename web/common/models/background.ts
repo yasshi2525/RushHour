@@ -2,11 +2,11 @@ import SpriteModel from "./sprite";
 import { Monitorable } from "../interfaces/monitor";
 
 const defaultValues: {[index:string]: {}} = {
-    alpha: 0.5
+    alpha: 1
 };
 
 export class Residence extends SpriteModel implements Monitorable {
-    constructor(options: {container: PIXI.Container, loader: PIXI.loaders.Loader}) {
+    constructor(options: {app: PIXI.Application}) {
         super({name: "residence", ...options});
     }
 
@@ -17,7 +17,7 @@ export class Residence extends SpriteModel implements Monitorable {
 }
 
 export class Company extends SpriteModel implements Monitorable  {
-    constructor(options: {container: PIXI.Container, loader: PIXI.loaders.Loader}) {
+    constructor(options: {app: PIXI.Application}) {
         super({name: "company", ...options});
     }
 

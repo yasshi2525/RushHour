@@ -5,8 +5,7 @@ import * as PIXI from "pixi.js";
 import GameModel from "../common/model";
 import { RushHourStatus } from "../state";
 
-const imageResources = ["residence", "company"];
-
+const imageResources = ["residence", "company", "station", "train"];
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
@@ -20,7 +19,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.app = new PIXI.Application({
             width: window.innerWidth,
             height: window.innerHeight,
-            backgroundColor: 0x333333});
+            backgroundColor: 0x333333,
+            autoStart: true,
+            resolution: window.devicePixelRatio
+        });
 
         imageResources.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         this.app.loader.load();

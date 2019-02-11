@@ -50,7 +50,7 @@ describe("merge", () => {
     });
 
     test("don't change when same value is specified", () => {
-        instance.merge("id", "no value");
+        instance.merge("id", 0);
         expect(instance.isChanged()).toBe(false);
     });
 

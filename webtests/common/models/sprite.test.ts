@@ -24,11 +24,7 @@ const expectSprite = (sprite: PIXI.Sprite, testValue: number) => {
 }
 
 beforeEach(() => {
-    instance = new SpriteModel({
-        name: "test",
-        container: app.stage,
-        loader: app.loader
-    });
+    instance = new SpriteModel({name: "test", app: app});
     instance.setupUpdateCallback();
     instance.setupAfterCallback();
     instance.setupDefaultValues();
@@ -48,14 +44,12 @@ test("update sprite properties when payload is changed", () => {
     }
 
     instance.end();
-    expect(instance.getSprite()).toBeUndefined();
 });
 
 test("do nothing when sprite creation is failed", () => {
     instance.begin();
 
     updateSpriteModel(instance, testValue);
-    expect(instance.getSprite()).toBeUndefined();
     
     instance.end();
 });
