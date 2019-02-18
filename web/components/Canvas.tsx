@@ -26,7 +26,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
         imageResources.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         this.app.loader.load();
-        this.model = new GameModel({ app: this.app });
+        this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: 10});
         this.ref = React.createRef<HTMLDivElement>();
     }
 

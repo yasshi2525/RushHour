@@ -9,13 +9,11 @@ const updateSpriteModel = (model : SpriteModel, testValue: number) => {
     model.merge("x", testValue);
     model.merge("y", testValue);
     model.merge("alpha", testValue);
-    model.merge("scale", testValue);
+    model.merge("spscale", testValue);
     model.merge("anchor", {x: testValue, y: testValue});
 };
 
 const expectSprite = (sprite: PIXI.Sprite, testValue: number) => {
-    expect(sprite.x).toBe(testValue);
-    expect(sprite.y).toBe(testValue);
     expect(sprite.alpha).toBe(testValue);
     expect(sprite.scale.x).toBe(testValue);
     expect(sprite.scale.y).toBe(testValue);
@@ -24,7 +22,7 @@ const expectSprite = (sprite: PIXI.Sprite, testValue: number) => {
 }
 
 beforeEach(() => {
-    instance = new SpriteModel({name: "test", app: app});
+    instance = new SpriteModel({name: "test", app: app, cx: 0, cy: 0, scale: 10});
     instance.setupUpdateCallback();
     instance.setupAfterCallback();
     instance.setupDefaultValues();

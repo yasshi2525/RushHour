@@ -1,12 +1,13 @@
 import SpriteModel from "./sprite";
 import { Monitorable } from "../interfaces/monitor";
+import { LocalableProprty } from "../interfaces/pixi";
 
 const defaultValues: {[index:string]: {}} = {
     alpha: 1
 };
 
 export class Residence extends SpriteModel implements Monitorable {
-    constructor(options: {app: PIXI.Application}) {
+    constructor(options: LocalableProprty) {
         super({name: "residence", ...options});
     }
 
@@ -17,7 +18,7 @@ export class Residence extends SpriteModel implements Monitorable {
 }
 
 export class Company extends SpriteModel implements Monitorable  {
-    constructor(options: {app: PIXI.Application}) {
+    constructor(options: LocalableProprty) {
         super({name: "company", ...options});
     }
 

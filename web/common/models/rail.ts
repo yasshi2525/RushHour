@@ -1,6 +1,7 @@
 import BaseModel from "./base";
 import { PointModel } from  "./geo";
 import { Monitorable } from "../interfaces/monitor";
+import { LocalableProprty } from "../interfaces/pixi";
 
 const animationOpts = { round: 600 };
 
@@ -8,10 +9,9 @@ export class RailNode extends PointModel implements Monitorable {
     protected graphics: PIXI.Graphics;
     protected tick: number
 
-    constructor(options: {app: PIXI.Application}) {
+    constructor(options: LocalableProprty) {
         super(options);
         this.graphics = new PIXI.Graphics();
-        this.graphics.lineStyle(2, 0x4169e1);
         this.tick = 0;
     }
 
@@ -23,16 +23,11 @@ export class RailNode extends PointModel implements Monitorable {
         })
     }
 
-    setupUpdateCallback() {
-        super.setupUpdateCallback();
-        this.addUpdateCallback("x", () => this.render());
-        this.addUpdateCallback("y", () => this.render());
-    }
-
-    protected render() {
-        console.log("render")
-        this.graphics.clear()
-        this.graphics.arc(this.props.x, this.props.y, 10, 0, Math.PI)
+    beforeRender() {
+        super.beforeRender();
+        this.graphics.clear();
+        this.graphics.lineStyle(2, 0x4169e1);
+        this.graphics.arc(this.vx, this.vy, 10, 0, Math.PI * 2)
     }
 
     setupAfterCallback() {

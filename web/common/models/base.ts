@@ -84,6 +84,10 @@ export default class implements Monitorable {
         // do-nothing
     }
 
+    beforeRender() {
+        // do-nothing
+    }
+
     end() {
         // より基底のクラスのコールバックが最後に呼ばれるようにするため反転
         this.afterCallbacks.reverse().forEach(func => func(this.props));

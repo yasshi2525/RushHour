@@ -30,6 +30,11 @@ export interface Monitorable {
     setupAfterCallback(): void
 
     /**
+     * 描画前に呼び出されるコールバック関数を設定します。
+     */
+    beforeRender(): void
+
+    /**
      * 監視を開始します。
      */
     begin(): void;

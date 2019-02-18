@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import * as Filters from "pixi-filters";
 import { Monitorable } from "../interfaces/monitor";
+import { SpriteProperty } from "../interfaces/pixi";
 import { PointModel } from "./geo";
 
 /**
@@ -8,11 +9,11 @@ import { PointModel } from "./geo";
  */
 const defaultValues: {
     anchor: {x: number, y: number},
-    scale: number,
+    spscale: number,
     alpha: number
 } = { 
     anchor: { x: 0.5, y: 0.5 }, 
-    scale: 0.5 * window.devicePixelRatio,
+    spscale: 0.5 * window.devicePixelRatio,
     alpha: 1
 };
 
@@ -33,7 +34,7 @@ export default class extends PointModel implements Monitorable {
     protected shadow: PIXI.filters.DropShadowFilter;
     protected tick: number
 
-    constructor(options: { name: string, app: PIXI.Application }) {
+    constructor(options: SpriteProperty) {
         super(options);
         this.name = options.name;
         let resource = this.app.loader.resources[this.name];
@@ -49,30 +50,24 @@ export default class extends PointModel implements Monitorable {
         this.addDefaultValues(defaultValues);
     }
 
-    setupUpdateCallback() {
-        super.setupUpdateCallback();
-
-        // 値の更新時、Spriteを更新するように設定
-        this.addUpdateCallback("x", (value: number) => this.sprite.x = value);
-        this.addUpdateCallback("y", (value: number) => this.sprite.y = value);
-        this.addUpdateCallback("anchor", (value: {x: number, y: number}) => this.sprite.anchor.set(value.x, value.y));
-        this.addUpdateCallback("scale", (value: number) => this.sprite.scale.set(value, value));
-        this.addUpdateCallback("alpha", (value: number) => this.sprite.alpha = value);
-    }
-
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
-            this.setupSprite();
+            this.sprite.anchor.set(this.props.anchor.x, this.props.anchor.y);
+            this.sprite.alpha = this.props.alpha;
+            this.sprite.scale.set(this.props.spscale, this.props.spscale)
             this.container.addChild(this.sprite);
             this.app.ticker.add((d: number) => this.animate(d))
         });
     }
+    
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
 
-    protected setupSprite() {
-        this.sprite.setTransform(this.props.x, this.props.y, this.props.scale, this.props.scale);
-        this.sprite.anchor.set(this.props.anchor.x, this.props.anchor.y);
-        this.sprite.alpha = this.props.alpha;
+        // 値の更新時、Spriteを更新するように設定
+        this.addUpdateCallback("anchor", (value: {x: number, y: number}) => this.sprite.anchor.set(value.x, value.y));
+        this.addUpdateCallback("spscale", (value: number) => this.sprite.scale.set(value, value));
+        this.addUpdateCallback("alpha", (value: number) => this.sprite.alpha = value);
     }
 
     setupAfterCallback() {
@@ -82,6 +77,12 @@ export default class extends PointModel implements Monitorable {
 
     getSprite() {
         return this.sprite;
+    }
+
+    beforeRender() {
+        super.beforeRender();
+        this.sprite.x = this.vx;
+        this.sprite.y = this.vy;
     }
 
     protected animate(delta: number) {
