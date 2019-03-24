@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -66,13 +67,13 @@ func connectDB() *gorm.DB {
 	for i := 1; i <= 12; i++ {
 		database, err = gorm.Open(driver, spec)
 		if err != nil {
-			revel.AppLog.Warn("failed to connect database. retry after 5 seconds.")
+			revel.AppLog.Warnf("failed to connect database(%v). retry after 5 seconds.", err)
 			time.Sleep(5 * time.Second)
 		}
 	}
 
 	if err != nil {
-		panic("failed to connect database")
+		panic(fmt.Errorf("failed to connect database: %v", err))
 	}
 
 	revel.AppLog.Info("connect database successfully")
