@@ -31,8 +31,6 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 		Point:       NewPoint(x, y),
 	}
 	rn.Init(m)
-	rn.Resolve(o)
-	rn.Marshal()
 	m.Add(rn)
 	return rn
 }

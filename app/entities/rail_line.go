@@ -53,24 +53,25 @@ func (l *RailLine) S() *Shape {
 }
 
 // StartPlatform creates LineTask which depart from specified Platform.
-func (l *RailLine) StartPlatform(p *Platform) *LineTask {
+func (l *RailLine) StartPlatform(p *Platform) (*LineTask, *LineTask) {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from already built RailLine %v", l))
 	}
+	if l.AutoPass {
+		return nil, nil
+	}
 	if l.AutoExt {
 		rn := p.OnRailNode
-		if tk := rn.Tracks[rn.ID]; l.AutoExt && tk != nil {
+		if tk := rn.Tracks[rn.ID]; tk != nil {
 			return l.StartEdge(tk.Via)
 		}
-		if l.AutoPass {
-			return nil
-		}
 	}
-	return l.M.NewLineTaskDept(l, p)
+	tail := l.M.NewLineTaskDept(l, p)
+	return tail, tail
 }
 
 // StartEdge creates LineTask which depart from specified RailEdge.
-func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
+func (l *RailLine) StartEdge(re *RailEdge) (*LineTask, *LineTask) {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from built RailLine: %v", l))
 	}
@@ -84,9 +85,9 @@ func (l *RailLine) StartEdge(re *RailEdge) *LineTask {
 	}
 	if l.AutoExt {
 		tail.Stretch(re.Reverse).SetNext(head)
-		return nil
+		return head, nil
 	}
-	return tail
+	return head, tail
 }
 
 // Complement connects head and tail with minimum distance route.
