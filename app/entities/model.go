@@ -156,6 +156,9 @@ func (m *Model) DBLen() int {
 
 // NewModel initialize model object.
 func NewModel() *Model {
+	if TypeList == nil {
+		InitType()
+	}
 	modelType := reflect.TypeOf(&Model{}).Elem()
 	model := reflect.New(modelType).Elem()
 

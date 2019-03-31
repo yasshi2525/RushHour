@@ -72,7 +72,6 @@ func InitLock() {
 // InitRepository initialize storage
 func InitRepository() {
 	entities.Const = Config.Entity
-	entities.InitType()
 	Model = entities.NewModel()
 	OpCache = []*OpLog{}
 }
