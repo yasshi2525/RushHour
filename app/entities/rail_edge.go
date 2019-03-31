@@ -103,7 +103,7 @@ func (re *RailEdge) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (re *RailEdge) Delete(force bool) {
+func (re *RailEdge) Delete() {
 	eachLineTask(re.Reverse.LineTasks, func(lt *LineTask) {
 		lt.Shave(re.Reverse)
 	})

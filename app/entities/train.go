@@ -210,7 +210,7 @@ func (t *Train) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (t *Train) Delete(force bool) {
+func (t *Train) Delete() {
 	t.M.Delete(t)
 }
 

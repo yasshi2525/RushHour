@@ -208,7 +208,7 @@ func (h *Human) CheckDelete() error {
 }
 
 // Delete removes this entity with related ones.
-func (h *Human) Delete(force bool) {
+func (h *Human) Delete() {
 	h.M.Delete(h)
 }
 

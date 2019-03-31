@@ -193,12 +193,12 @@ func (l *RailLine) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (l *RailLine) Delete(force bool) {
+func (l *RailLine) Delete() {
 	for _, t := range l.Trains {
 		t.SetTask(nil)
 	}
 	for _, lt := range l.Tasks {
-		lt.Delete(false)
+		lt.Delete()
 	}
 	l.M.Delete(l)
 }

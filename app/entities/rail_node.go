@@ -131,26 +131,22 @@ func (rn *RailNode) CheckDelete() error {
 	if rn.OverPlatform != nil {
 		return fmt.Errorf("blocked by OverPlatform of %v", rn.OverPlatform)
 	}
-	for _, re := range rn.OutEdges {
-		if err := re.CheckDelete(); err != nil {
-			return fmt.Errorf("blocked by OutEdges of %v (%v)", re, err)
-		}
-	}
-	for _, re := range rn.InEdges {
-		if err := re.CheckDelete(); err != nil {
-			return fmt.Errorf("blocked by InEdges of %v (%v)", re, err)
-		}
+	if len(rn.InTasks)+len(rn.OutTasks) > 0 {
+		return fmt.Errorf("blocked by LineTask (in=%d,out=%d)", len(rn.InTasks), len(rn.OutTasks))
 	}
 	return nil
 }
 
 // Delete removes this entity with related ones.
-func (rn *RailNode) Delete(force bool) {
+func (rn *RailNode) Delete() {
+	if rn.OverPlatform != nil {
+		rn.OverPlatform.Delete()
+	}
 	for _, re := range rn.OutEdges {
-		re.Delete(false)
+		re.Delete()
 	}
 	for _, re := range rn.InEdges {
-		re.Delete(false)
+		re.Delete()
 	}
 	rn.M.Delete(rn)
 }

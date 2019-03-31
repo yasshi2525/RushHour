@@ -229,7 +229,7 @@ func (p *Platform) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (p *Platform) Delete(force bool) {
+func (p *Platform) Delete() {
 	for _, s := range p.outSteps {
 		p.M.Delete(s)
 	}

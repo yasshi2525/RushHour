@@ -161,7 +161,7 @@ func (o *Player) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (o *Player) Delete(force bool) {
+func (o *Player) Delete() {
 	o.M.Delete(o)
 }
 

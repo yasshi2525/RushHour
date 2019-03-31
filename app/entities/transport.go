@@ -73,7 +73,7 @@ func (x *Transport) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (x *Transport) Delete(force bool) {
+func (x *Transport) Delete() {
 	x.M.Delete(x)
 }
 

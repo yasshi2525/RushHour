@@ -110,7 +110,7 @@ func (lt *LineTask) Shrink(p *Platform) {
 		lt.before.TaskType = OnMoving
 		lt.before.SetNext(next)
 	}
-	lt.Delete(false)
+	lt.Delete()
 }
 
 // Shave shorten it's route as skip specified RailEdge.
@@ -127,7 +127,7 @@ func (lt *LineTask) Shave(re *RailEdge) {
 				// skip redundant Departure
 				if lt.before.TaskType == OnDeparture {
 					lt.before.SetNext(lt.next.next.next)
-					lt.next.next.Delete(false)
+					lt.next.next.Delete()
 				} else {
 					lt.before.SetNext(lt.next.next)
 				}
@@ -138,7 +138,7 @@ func (lt *LineTask) Shave(re *RailEdge) {
 			}
 
 		}
-		lt.next.Delete(false)
+		lt.next.Delete()
 	}
-	lt.Delete(false)
+	lt.Delete()
 }

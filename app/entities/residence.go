@@ -117,7 +117,7 @@ func (r *Residence) CheckDelete() error {
 }
 
 // Delete removes this entity with related ones.
-func (r *Residence) Delete(force bool) {
+func (r *Residence) Delete() {
 	for _, h := range r.Targets {
 		r.M.Delete(h)
 	}

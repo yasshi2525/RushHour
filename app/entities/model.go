@@ -79,13 +79,13 @@ func (m *Model) DeleteIf(o *Player, res ModelType, id uint, force ...bool) (Enti
 		return obj, fmt.Errorf("no permission for %v to delete %v", o, obj)
 	}
 	if len(force) > 0 && force[0] {
-		obj.Delete(true)
+		obj.Delete()
 	} else {
 		// reference
 		if err := obj.CheckDelete(); err != nil {
 			return obj, err
 		}
-		obj.Delete(false)
+		obj.Delete()
 	}
 	return obj, nil
 }

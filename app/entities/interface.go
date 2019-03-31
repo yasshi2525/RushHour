@@ -1,13 +1,12 @@
 package entities
 
-
 // Entity represents that it is CRUD object.
 type Entity interface {
 	B() *Base
 	S() *Shape
 	CheckDelete() error
 	BeforeDelete()
-	Delete(bool)
+	Delete()
 	Resolve(...Entity)
 }
 
@@ -28,7 +27,7 @@ type Relayable interface {
 	S() *Shape
 	CheckDelete() error
 	BeforeDelete()
-	Delete(bool)
+	Delete()
 	Resolve(...Entity)
 }
 

@@ -106,7 +106,7 @@ func (st *Station) BeforeDelete() {
 	st.O.UnResolve(st)
 }
 // Delete removes this entity with related ones.
-func (st *Station) Delete(force bool) {
+func (st *Station) Delete() {
 	st.M.Delete(st.Gate)
 	st.M.Delete(st.Platform)
 	st.M.Delete(st)

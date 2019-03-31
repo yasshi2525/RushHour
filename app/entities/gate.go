@@ -156,7 +156,7 @@ func (g *Gate) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (g *Gate) Delete(force bool) {
+func (g *Gate) Delete() {
 	for _, s := range g.out {
 		g.M.Delete(s)
 	}

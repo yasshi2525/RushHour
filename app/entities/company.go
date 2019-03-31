@@ -114,7 +114,7 @@ func (c *Company) CheckDelete() error {
 }
 
 // Delete removes this entity with related ones.
-func (c *Company) Delete(force bool) {
+func (c *Company) Delete() {
 	for _, h := range c.Targets {
 		c.M.Delete(h)
 	}

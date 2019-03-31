@@ -74,7 +74,7 @@ func (s *Step) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (s *Step) Delete(force bool) {
+func (s *Step) Delete() {
 	s.M.Delete(s)
 }
 

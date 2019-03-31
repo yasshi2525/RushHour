@@ -279,7 +279,7 @@ func (lt *LineTask) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (lt *LineTask) Delete(force bool) {
+func (lt *LineTask) Delete() {
 	for _, t := range lt.Trains {
 		t.SetTask(lt.next)
 	}

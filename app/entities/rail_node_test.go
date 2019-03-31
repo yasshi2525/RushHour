@@ -58,3 +58,69 @@ func TestExtend(t *testing.T) {
 
 	})
 }
+
+func TestCheckDelete(t *testing.T) {
+	t.Run("block overPlatform", func(t *testing.T) {
+		m := NewModel()
+		o := m.NewPlayer()
+		st := m.NewStation(o)
+		g := m.NewGate(st)
+		rn := m.NewRailNode(o, 0, 0)
+		m.NewPlatform(rn, g)
+
+		if rn.CheckDelete() == nil {
+			t.Error("wanted error, but got nil")
+		}
+	})
+	t.Run("block lineTask", func(t *testing.T) {
+		m := NewModel()
+		o := m.NewPlayer()
+		l := m.NewRailLine(o)
+
+		n1 := m.NewRailNode(o, 0, 0)
+		n2, e12 := n1.Extend(10, 0)
+		_, e23 := n2.Extend(20, 0)
+
+		_, tail := l.StartEdge(e12)
+		tail.Stretch(e23)
+
+		if n2.CheckDelete() == nil {
+			t.Error("wanted error, but got nil")
+		}
+	})
+}
+
+func TestDelete(t *testing.T) {
+	t.Run("isolated", func(t *testing.T) {
+		m := NewModel()
+		o := m.NewPlayer()
+		rn := m.NewRailNode(o, 0, 0)
+		st := m.NewStation(o)
+		g := m.NewGate(st)
+		m.NewPlatform(rn, g)
+
+		rn.CheckDelete()
+		rn.Delete()
+		if m.RailNodes[rn.ID] == rn {
+			t.Error("rn remains in model")
+		}
+		if len(m.Platforms) > 0 {
+			t.Error("p remains in model")
+		}
+	})
+	t.Run("line to isolated", func(t *testing.T) {
+		m := NewModel()
+		o := m.NewPlayer()
+		n1 := m.NewRailNode(o, 0, 0)
+		n2, _ := n1.Extend(10, 0)
+		n2.Extend(20, 0)
+		n2.CheckDelete()
+		n2.Delete()
+		if m.RailNodes[n2.ID] == n2 {
+			t.Error("n2 remains in model")
+		}
+		if len(m.RailEdges) > 0 {
+			t.Error("re remains in model")
+		}
+	})
+}

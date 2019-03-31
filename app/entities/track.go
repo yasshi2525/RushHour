@@ -73,7 +73,7 @@ func (tk *Track) BeforeDelete() {
 }
 
 // Delete removes this entity with related ones.
-func (tk *Track) Delete(force bool) {
+func (tk *Track) Delete() {
 	tk.M.Delete(tk)
 }
 
