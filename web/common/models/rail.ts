@@ -46,9 +46,9 @@ const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0
 
 export class RailEdge extends PIXIModel implements Monitorable {
     protected graphics: PIXI.Graphics;
-    protected from: RailNode;
-    protected to: RailNode;
-    protected reverse: RailEdge;
+    protected from: RailNode|undefined;
+    protected to: RailNode|undefined;
+    protected reverse: RailEdge|undefined;
     protected tick: number;
 
     constructor(options: LocalableProprty) {
@@ -87,9 +87,10 @@ export class RailEdge extends PIXIModel implements Monitorable {
         this.graphics.clear();
         this.graphics.lineStyle(2, 0x4169e1);
 
-        let from = this.toView(this.from.props.x, this.from.props.y)
-
-        this.graphics.moveTo()
+        if (this.from !== undefined && this.to !== undefined) {
+            let from = this.toView(this.from.get("x"), this.from.get("y"))
+            this.graphics.moveTo(from.x, from.y)
+        }
     }
 
     protected animate(delta: number) {

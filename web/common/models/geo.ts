@@ -2,7 +2,6 @@ import * as PIXI from "pixi.js";
 import { Monitorable } from "../interfaces/monitor";
 import { LocalableProprty } from "../interfaces/pixi";
 import BaseModel from "./base";
-import { number } from "prop-types";
 
 const pixiDefaultValues: {cx: number, cy: number, scale: number} = {cx: 0, cy: 0, scale: 10};
 
