@@ -132,7 +132,7 @@ export default class implements Monitorable {
         this.changed = false;
     }
 
-    get(key: string) {
+    get(key: string): any {
         return this.props[key];
     }
 }

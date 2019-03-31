@@ -4,6 +4,7 @@ import { Monitorable } from "./interfaces/monitor";
 import { LocalableProprty } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailNode, RailEdge } from "./models/rail";
+import { resolve } from "path";
 
 export default class {
     protected stage: PIXI.Container; 
@@ -23,7 +24,7 @@ export default class {
         this.payload["residences"] = new MonitorContainer(Residence, {name: "residence", ...options});
         this.payload["companies"] = new MonitorContainer(Company, {name: "company", ...options});
         this.payload["rail_nodes"] = new MonitorContainer(RailNode, options);
-        this.payload["rail_edes"] = new MonitorContainer(RailEdge, options);
+        this.payload["rail_edges"] = new MonitorContainer(RailEdge, options);
         this.cx = 0;
         this.cy = 0;
         this.scale = 8;
@@ -51,6 +52,17 @@ export default class {
                 }
             }
         });
+        resolve();
+    }
+
+    resolve() {
+        this.payload["rail_edges"].forEachChild((re: RailEdge) => 
+            re.resolve(
+                this.get("rail_edges", re.get("from")),
+                this.get("rail_edges", re.get("to")),
+                this.get("rail_edges", re.get("eid"))
+            )
+        );
     }
 
     setCenter(x: number, y: number) {
