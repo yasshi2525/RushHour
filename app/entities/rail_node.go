@@ -31,6 +31,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 		Point:       NewPoint(x, y),
 	}
 	rn.Init(m)
+	rn.Resolve(o)
 	o.ReRouting = true
 	m.Add(rn)
 	return rn
@@ -85,6 +86,7 @@ func (rn *RailNode) Resolve(args ...Entity) {
 		switch obj := raw.(type) {
 		case *Player:
 			rn.O = obj
+			obj.Resolve(rn)
 		case *Platform:
 			rn.OverPlatform = obj
 		default:

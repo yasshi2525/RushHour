@@ -201,9 +201,6 @@ func (p *Platform) UnMarshal() {
 
 // CheckDelete checks related reference
 func (p *Platform) CheckDelete() error {
-	if len(p.Trains) > 0 {
-		return fmt.Errorf("blocked by Train of %v", p.Trains)
-	}
 	return nil
 }
 

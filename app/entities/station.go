@@ -105,10 +105,15 @@ func (st *Station) CheckDelete() error {
 func (st *Station) BeforeDelete() {
 	st.O.UnResolve(st)
 }
+
 // Delete removes this entity with related ones.
 func (st *Station) Delete() {
-	st.M.Delete(st.Gate)
-	st.M.Delete(st.Platform)
+	if st.Gate != nil {
+		st.M.Delete(st.Gate)
+	}
+	if st.Platform != nil {
+		st.M.Delete(st.Platform)
+	}
 	st.M.Delete(st)
 }
 
