@@ -10,7 +10,7 @@ func TestStation(t *testing.T) {
 
 		TestCases{
 			{"O", st.O, o},
-			{"model", m.Stations[st.ID], st},
+			{"model", m.Stations[st.Idx()], st},
 		}.Assert(t)
 	})
 	t.Run("Delete", func(t *testing.T) {

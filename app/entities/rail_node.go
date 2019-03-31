@@ -32,6 +32,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 	}
 	rn.Init(m)
 	rn.Resolve(o)
+	rn.Marshal()
 	o.ReRouting = true
 	m.Add(rn)
 	return rn

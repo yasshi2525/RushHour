@@ -85,19 +85,6 @@ func (g *Gate) Init(m *Model) {
 	g.in = make(map[uint]*Step)
 }
 
-// Pos returns location
-func (g *Gate) Pos() *Point {
-	if g.WithPlatform == nil {
-		return nil
-	}
-	return g.WithPlatform.Pos()
-}
-
-// IsIn returns it should be view or not.
-func (g *Gate) IsIn(x float64, y float64, scale float64) bool {
-	return g.Pos().IsIn(x, y, scale)
-}
-
 // OutSteps returns where it can go to
 func (g *Gate) OutSteps() map[uint]*Step {
 	return g.out

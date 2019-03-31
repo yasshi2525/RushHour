@@ -22,7 +22,7 @@ type Residence struct {
 }
 
 // NewResidence create new instance without setting parameters
-func (m *Model) NewResidence(o *Player, x float64, y float64) *Residence {
+func (m *Model) NewResidence(x float64, y float64) *Residence {
 	r := &Residence{
 		Base:        m.NewBase(RESIDENCE),
 		Persistence: NewPersistence(),
