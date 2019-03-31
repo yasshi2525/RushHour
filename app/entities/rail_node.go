@@ -31,6 +31,7 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 		Point:       NewPoint(x, y),
 	}
 	rn.Init(m)
+	o.ReRouting = true
 	m.Add(rn)
 	return rn
 }
@@ -148,6 +149,7 @@ func (rn *RailNode) Delete() {
 	for _, re := range rn.InEdges {
 		re.Delete()
 	}
+	rn.O.ReRouting = true
 	rn.M.Delete(rn)
 }
 
