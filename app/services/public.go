@@ -12,7 +12,7 @@ func CreateResidence(o *entities.Player, x float64, y float64) (*entities.Reside
 		return nil, fmt.Errorf("no permission")
 	}
 
-	r := Model.NewResidence(o, x, y)
+	r := Model.NewResidence(x, y)
 	r.Name = "NoName"
 
 	AddOpLog("CreateResidence", o, r)
