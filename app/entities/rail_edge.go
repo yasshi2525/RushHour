@@ -77,9 +77,6 @@ func (re *RailEdge) Cost() float64 {
 // CheckDelete check remain relation.
 func (re *RailEdge) CheckDelete() error {
 	for _, obj := range []*RailEdge{re, re.Reverse} {
-		if len(obj.Trains) > 0 {
-			return fmt.Errorf("blocked by Train of %v", re.Trains)
-		}
 		for _, lt := range obj.LineTasks {
 			// if RailLine is not sharp, forbit remove
 			if lt.next != nil && lt.next.Moving != re.Reverse {
@@ -92,9 +89,6 @@ func (re *RailEdge) CheckDelete() error {
 
 // BeforeDelete delete relations to RailNode
 func (re *RailEdge) BeforeDelete() {
-	for _, t := range re.Trains {
-		t.SetTask(t.task.next)
-	}
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
 	re.FromNode.Shape.UnRefer(re.S())

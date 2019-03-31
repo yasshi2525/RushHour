@@ -15,6 +15,7 @@ func TestRailNode(t *testing.T) {
 			{"O", rn.O, o},
 			{"X", rn.X, x},
 			{"Y", rn.Y, y},
+			{"o.rn", o.RailNodes[rn.Idx()], rn},
 			{"model", m.RailNodes[rn.Idx()], rn},
 			{"reroute", o.ReRouting, true},
 		}.Assert(t)
@@ -92,6 +93,7 @@ func TestRailNode(t *testing.T) {
 			}
 		})
 	})
+
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("isolated", func(t *testing.T) {
 			m := NewModel()
@@ -110,6 +112,7 @@ func TestRailNode(t *testing.T) {
 				{"rn", len(m.RailNodes), 0},
 				{"p", len(m.Platforms), 0},
 				{"reroute", o.ReRouting, true},
+				{"o", len(o.RailNodes), 0},
 			}.Assert(t)
 		})
 		t.Run("line to isolated", func(t *testing.T) {
@@ -124,6 +127,7 @@ func TestRailNode(t *testing.T) {
 				{"rn", len(m.RailNodes), 2},
 				{"re", len(m.RailEdges), 0},
 				{"reroute", o.ReRouting, true},
+				{"o", len(o.RailNodes), 2},
 			}.Assert(t)
 		})
 	})
