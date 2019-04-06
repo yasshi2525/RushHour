@@ -64,11 +64,11 @@ func connectDB() *gorm.DB {
 		panic("db.spec is not defined")
 	}
 
-	for i := 1; i <= 12; i++ {
+	for i := 1; i <= 60; i++ {
 		database, err = gorm.Open(driver, spec)
 		if err != nil {
-			revel.AppLog.Warnf("failed to connect database(%v). retry after 5 seconds.", err)
-			time.Sleep(5 * time.Second)
+			revel.AppLog.Warnf("failed to connect database(%v). retry after 10 seconds.", err)
+			time.Sleep(10 * time.Second)
 		}
 	}
 
