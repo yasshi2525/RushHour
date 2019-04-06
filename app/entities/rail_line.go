@@ -57,14 +57,14 @@ func (l *RailLine) StartPlatform(p *Platform) (*LineTask, *LineTask) {
 	if len(l.Tasks) > 0 {
 		panic(fmt.Errorf("try to start from already built RailLine %v", l))
 	}
-	if l.AutoPass {
-		return nil, nil
-	}
 	if l.AutoExt {
 		rn := p.OnRailNode
 		if tk := rn.Tracks[rn.ID]; tk != nil {
 			return l.StartEdge(tk.Via)
 		}
+	}
+	if l.AutoPass {
+		return nil, nil
 	}
 	tail := l.M.NewLineTaskDept(l, p)
 	return tail, tail
@@ -97,7 +97,7 @@ func (l *RailLine) Complement() {
 	}
 	head, tail := l.Borders()
 	tk := tail.ToNode().Tracks[head.FromNode().ID]
-	for tk != nil {
+	for tk != nil && !l.CanRing() {
 		tail = tail.Stretch(tk.Via)
 		tk = tail.ToNode().Tracks[head.FromNode().ID]
 	}
