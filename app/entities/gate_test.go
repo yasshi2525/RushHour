@@ -17,6 +17,8 @@ func TestGate(t *testing.T) {
 			{"stID", g.StationID, st.ID},
 			{"st.g", st.Gate, g},
 			{"st.gID", st.GateID, g.ID},
+			{"in", len(g.InSteps()), 1},
+			{"out", len(g.OutSteps()), 1},
 			{"model", m.Gates[g.Idx()], g},
 			{"s", len(m.Steps), 3},
 		}.Assert(t)

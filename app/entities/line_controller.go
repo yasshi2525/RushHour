@@ -81,18 +81,20 @@ func (lt *LineTask) InsertDestination(p *Platform) {
 	if lt.RailLine.AutoPass {
 		// change move -> pass
 		lt.TaskType = OnPassing
-		lt.RailLine.ReRouting = true
 	} else {
 		// change move -> stop
 		lt.TaskType = OnStopping
 		next := lt.next
 		lt.Depart(true).SetNext(next)
 	}
+	p.Resolve(lt)
+	lt.RailLine.ReRouting = true
 }
 
 // InsertDeparture set specified Platform to it's departure.
 func (lt *LineTask) InsertDeparture(p *Platform) {
 	lt.SetDept(p)
+	p.Resolve(lt)
 }
 
 // Shrink unregister specified Platform as stop or pass target.
