@@ -128,8 +128,10 @@ func (lt *LineTask) Shave(re *RailEdge) {
 			if lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
 				// skip redundant Departure
 				if lt.before.TaskType == OnDeparture {
-					lt.before.SetNext(lt.next.next.next)
-					lt.next.next.Delete()
+					redundant := lt.next.next
+					next := redundant.next
+					lt.before.SetNext(next)
+					redundant.Delete()
 				} else {
 					lt.before.SetNext(lt.next.next)
 				}
