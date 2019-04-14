@@ -120,29 +120,27 @@ func (lt *LineTask) Shave(re *RailEdge) {
 	if lt.Moving != re {
 		panic(fmt.Errorf("try to shave far edge: %v -> %v", re, lt))
 	}
-	if lt.next != nil {
-		if lt.next.Moving != re.Reverse {
+	if reverse := lt.next; reverse != nil {
+		if reverse.Moving != re.Reverse {
 			panic(fmt.Errorf("try to shave linear RailLine: %v -> %v", re.Reverse, lt.next))
 		}
-		if lt.before != nil {
-			if lt.next.next != nil && lt.next.next.TaskType == OnDeparture {
-				// skip redundant Departure
-				if lt.before.TaskType == OnDeparture {
-					redundant := lt.next.next
-					next := redundant.next
-					lt.before.SetNext(next)
+		if before := lt.before; before != nil {
+			next := reverse.next
+			if next != nil && next.TaskType == OnDeparture {
+				switch before.TaskType {
+				case OnDeparture:
+					// skip redundant Departure
+					redundant := next
+					next = redundant.next
 					redundant.Delete()
-				} else {
-					lt.before.SetNext(lt.next.next)
-				}
-				if lt.before.TaskType == OnPassing {
-					lt.before.TaskType = OnStopping
-					lt.before.SetDest(lt.next.Stay)
+				case OnPassing:
+					before.TaskType = OnStopping
+					before.SetDest(next.Stay)
 				}
 			}
-
+			before.SetNext(next)
 		}
-		lt.next.Delete()
+		reverse.Delete()
 	}
 	lt.Delete()
 }
