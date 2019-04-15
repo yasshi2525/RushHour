@@ -3,6 +3,63 @@ package entities
 import "testing"
 
 func TestLineController(t *testing.T) {
+	t.Run("Shrink", func(t *testing.T) {
+		t.Run("head", func(t *testing.T) {
+			m := NewModel()
+			o := m.NewPlayer()
+			n0 := m.NewRailNode(o, 0, 0)
+			_, e01 := n0.Extend(10, 0)
+
+			st := m.NewStation(o)
+			g := m.NewGate(st)
+			p := m.NewPlatform(n0, g)
+
+			l := m.NewRailLine(o)
+			head := m.NewLineTaskDept(l, p)
+			tail := m.NewLineTask(l, e01, head)
+
+			head.Shrink(p)
+
+			TestCaseLineTasks{
+				{"n0->n1", OnMoving, e01},
+			}.Assert(t, tail)
+
+			TestCases{
+				{"tail.before", tail.before, (*LineTask)(nil)},
+				{"tail.dept", tail.Dept, (*Platform)(nil)},
+				{"model", len(m.LineTasks), 1},
+			}.Assert(t)
+		})
+
+		t.Run("tail", func(t *testing.T) {
+			m := NewModel()
+			o := m.NewPlayer()
+			n0 := m.NewRailNode(o, 0, 0)
+			n1, e01 := n0.Extend(10, 0)
+
+			st := m.NewStation(o)
+			g := m.NewGate(st)
+			p := m.NewPlatform(n1, g)
+
+			l := m.NewRailLine(o)
+			head := m.NewLineTask(l, e01)
+			tail := m.NewLineTaskDept(l, p, head)
+
+			tail.Shrink(p)
+
+			TestCaseLineTasks{
+				{"n0->n1", OnMoving, e01},
+			}.Assert(t, head)
+
+			TestCases{
+				{"head.before", head.next, (*LineTask)(nil)},
+				{"head.dept", head.Dest, (*Platform)(nil)},
+				{"head.next", head.next, (*LineTask)(nil)},
+				{"model", len(m.LineTasks), 1},
+			}.Assert(t)
+		})
+	})
+
 	t.Run("Shave", func(t *testing.T) {
 		t.Run("no reverse set next to nil", func(t *testing.T) {
 			m := NewModel()
