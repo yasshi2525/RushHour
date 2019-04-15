@@ -216,10 +216,11 @@ func (p *Platform) BeforeDelete() {
 		lt.Shrink(p)
 	})
 	eachLineTask(p.InTasks, func(lt *LineTask) {
-		if lt.TaskType == OnPassing {
-			lt.TaskType = OnMoving
-			lt.SetDest(nil)
+		if lt.TaskType == OnDeparture {
+			panic(fmt.Errorf("lt should not be OnDeparture: %v", lt))
 		}
+		lt.TaskType = OnMoving
+		lt.SetDest(nil)
 	})
 	p.OnRailNode.UnResolve(p)
 	p.O.UnResolve(p)

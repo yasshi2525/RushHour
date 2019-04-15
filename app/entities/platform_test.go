@@ -137,5 +137,32 @@ func TestPlatform(t *testing.T) {
 				{"n1->n0", OnMoving, e01.Reverse},
 			}.Assert(t, head)
 		})
+
+		t.Run("multiple", func(t *testing.T) {
+			m := NewModel()
+			o := m.NewPlayer()
+			l := m.NewRailLine(o)
+
+			n0 := m.NewRailNode(o, 0, 0)
+			_, e01 := n0.Extend(10, 0)
+			st := m.NewStation(o)
+			g := m.NewGate(st)
+			p := m.NewPlatform(n0, g)
+
+			_, tail := l.StartPlatform(p)
+			tail.InsertRailEdge(e01)
+			tail.InsertRailEdge(e01)
+
+			p.Delete()
+
+			head, _ := l.Borders()
+
+			TestCaseLineTasks{
+				{"n0->n1", OnMoving, e01},
+				{"n1->n0", OnMoving, e01.Reverse},
+				{"n0->n1", OnMoving, e01},
+				{"n1->n0", OnMoving, e01.Reverse},
+			}.Assert(t, head)
+		})
 	})
 }
