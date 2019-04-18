@@ -4,7 +4,6 @@ import { Monitorable } from "./interfaces/monitor";
 import { LocalableProprty } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailNode, RailEdge } from "./models/rail";
-import { resolve } from "path";
 
 export default class {
     protected stage: PIXI.Container; 
@@ -52,14 +51,14 @@ export default class {
                 }
             }
         });
-        resolve();
+        this.resolve();
     }
 
     resolve() {
         this.payload["rail_edges"].forEachChild((re: RailEdge) => 
             re.resolve(
-                this.get("rail_edges", re.get("from")),
-                this.get("rail_edges", re.get("to")),
+                this.get("rail_nodes", re.get("from")),
+                this.get("rail_nodes", re.get("to")),
                 this.get("rail_edges", re.get("eid"))
             )
         );

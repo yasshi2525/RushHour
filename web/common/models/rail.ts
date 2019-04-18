@@ -89,7 +89,9 @@ export class RailEdge extends PIXIModel implements Monitorable {
 
         if (this.from !== undefined && this.to !== undefined) {
             let from = this.toView(this.from.get("x"), this.from.get("y"))
+            let to = this.toView(this.to.get("x"), this.to.get("y"))
             this.graphics.moveTo(from.x, from.y)
+            this.graphics.lineTo(to.x, to.y)
         }
     }
 
