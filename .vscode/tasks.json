@@ -21,6 +21,14 @@
             "type": "shell",
             "command": "docs/make.bat html",
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "build-watch",
+            "problemMatcher": [
+                "$tsc",
+                "$eslint-compact",
+            ]
         }
     ]
 }

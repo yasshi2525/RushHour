@@ -76,6 +76,20 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
             .forEach(id => this.removeChild(id));
     }
 
+    /**
+     * すべてのchildのkeyにvalueを設定します
+     * @param key 設定するプロパティ名
+     * @param value プロパティに設定する値
+     */
+    merge(key: string, value: any) {
+        this.forEachChild(c => {
+            c.merge(key, value);
+            if (c.isChanged()) {
+                this.change();
+            }
+        });
+    }
+
     reset() {
         this.forEachChild(c => c.reset());
         super.reset();

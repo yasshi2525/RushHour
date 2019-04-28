@@ -11,9 +11,18 @@ export default class {
     protected renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
-    protected cx: number;
-    protected cy: number;
-    protected scale: number;
+    /**
+     * 中心x座標(サーバにおけるマップ座標系)
+     */
+    cx: number;
+    /**
+     * 中心y座標(サーバにおけるマップ座標系)
+     */
+    cy: number;
+    /**
+     * 拡大率(クライエントウィンドウの幅が2^scaleに対応する)
+     */
+    scale: number;
 
     constructor(options: LocalableProprty) {
         this.stage = options.app.stage;
@@ -26,7 +35,7 @@ export default class {
         this.payload["rail_edges"] = new MonitorContainer(RailEdge, options);
         this.cx = 0;
         this.cy = 0;
-        this.scale = 8;
+        this.scale = 10;
     }
 
     /**
@@ -65,6 +74,8 @@ export default class {
     }
 
     setCenter(x: number, y: number) {
+        this.cx = x;
+        this.cy = y;
         Object.keys(this.payload).forEach(key => {
             this.payload[key].childOptions.cx = x;
             this.payload[key].childOptions.cy = y;
@@ -79,6 +90,7 @@ export default class {
         Object.keys(this.payload).forEach(key => {
             this.payload[key].mergeAll({scale: v})
             if (this.payload[key].isChanged()) {
+                console.log("changed!")
                 this.changed = true;
             }
         })

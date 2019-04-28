@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
 import GameModel from "../common/model";
 import { RushHourStatus } from "../state";
+import { DragHandler } from "../common/handlers/drag";
 
 const imageResources = ["residence", "company", "station", "train"];
 
@@ -12,6 +13,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     app: PIXI.Application;
     model: GameModel;
     ref: React.RefObject<HTMLDivElement>;
+    drag: DragHandler;
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -28,10 +30,15 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.app.loader.load();
         this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: 10});
         this.ref = React.createRef<HTMLDivElement>();
+        this.drag = new DragHandler(this.model)
     }
 
     render() {
-        return (<div ref={this.ref}></div>);
+        return (<div ref={this.ref} 
+            onMouseDown={(e) => this.drag.onDragStart(e)}
+            onMouseMove={(e) => this.drag.onDragMove(e)}
+            onMouseUp={(e) => this.drag.onDragEnd(e)}>
+            </div>);
     }
 
     componentDidMount() {
