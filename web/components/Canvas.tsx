@@ -4,7 +4,8 @@ import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
 import GameModel from "../common/model";
 import { RushHourStatus } from "../state";
-import { DragHandler } from "../common/handlers/drag";
+import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
+import { PinchHandler } from "../common/handlers/pinch";
 
 const imageResources = ["residence", "company", "station", "train"];
 
@@ -13,7 +14,9 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     app: PIXI.Application;
     model: GameModel;
     ref: React.RefObject<HTMLDivElement>;
-    drag: DragHandler;
+    mouse: MouseDragHandler;
+    touch: TouchDragHandler;
+    pinch: PinchHandler;
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -30,14 +33,19 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.app.loader.load();
         this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: 10});
         this.ref = React.createRef<HTMLDivElement>();
-        this.drag = new DragHandler(this.model)
+        this.mouse = new MouseDragHandler(this.model);
+        this.touch = new TouchDragHandler(this.model);
+        this.pinch = new PinchHandler(this.model);
     }
 
     render() {
         return (<div ref={this.ref} 
-            onMouseDown={(e) => this.drag.onDragStart(e)}
-            onMouseMove={(e) => this.drag.onDragMove(e)}
-            onMouseUp={(e) => this.drag.onDragEnd(e)}>
+            onMouseDown={(e) => this.mouse.onStart(e)}
+            onMouseMove={(e) => this.mouse.onMove(e)}
+            onMouseUp={(e) => this.mouse.onEnd(e)}
+            onTouchStart={(e) => { this.touch.onStart(e); this.pinch.onStart(e); }}
+            onTouchMove={(e) => { this.touch.onMove(e);  this.pinch.onMove(e)} }
+            onTouchEnd={(e) => { this.touch.onEnd(e);  this.pinch.onEnd(e)} }>
             </div>);
     }
 

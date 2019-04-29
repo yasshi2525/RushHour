@@ -90,7 +90,6 @@ export default class {
         Object.keys(this.payload).forEach(key => {
             this.payload[key].mergeAll({scale: v})
             if (this.payload[key].isChanged()) {
-                console.log("changed!")
                 this.changed = true;
             }
         })
