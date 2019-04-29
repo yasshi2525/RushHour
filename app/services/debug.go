@@ -14,7 +14,7 @@ var (
 	numUser        = 5
 	viewInterval   = 1 * time.Second
 	updateInterval = 120 * time.Second
-	removeInterval = 180 * time.Second
+	removeInterval = 120 * time.Second
 )
 
 type opCallback func(source string, target entities.ModelType)
