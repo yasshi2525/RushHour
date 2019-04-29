@@ -30,7 +30,7 @@ export class PinchHandler extends BaseHandler<React.TouchEvent> {
         this.dist.to = this.getDistance(ev);
 
         let ratio = this.dist.to / this.dist.from;
-        this.scale.to = this.scale.from - ratio;
+        this.scale.to = this.scale.from + (ratio - 1);
     }
 
     shouldEnd(ev: React.TouchEvent) {

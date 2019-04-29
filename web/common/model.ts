@@ -12,6 +12,7 @@ export default class {
     protected renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
+    debugText: PIXI.Text;
     /**
      * 中心x座標(サーバにおけるマップ座標系)
      */
@@ -37,6 +38,9 @@ export default class {
         this.cx = options.cx;
         this.cy = options.cy;
         this.scale = options.scale;
+        this.debugText = new PIXI.Text();
+        this.debugText.y = window.innerHeight - 50;
+        this.stage.addChild(this.debugText)
     }
 
     /**

@@ -13,12 +13,12 @@ const defaultValues: {
     alpha: number
 } = { 
     anchor: { x: 0.5, y: 0.5 }, 
-    spscale: 0.5 * window.devicePixelRatio,
+    spscale: 0.5,
     alpha: 1
 };
 
 const outlineOpts = {
-    thickness: {max: 4, min: 2},
+    thickness: {max: 4 / window.devicePixelRatio, min: 2 / window.devicePixelRatio},
     color: 0xeeeeee,
     round: 240
 };

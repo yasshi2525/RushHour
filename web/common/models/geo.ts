@@ -35,15 +35,16 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     }
 
     toView(x: number, y: number): {x: number, y:number} {
+        let center = {
+            x: this.app.renderer.width / this.app.renderer.resolution / 2,
+            y: this.app.renderer.height / this.app.renderer.resolution / 2,
+        }
+        let size = Math.max(this.app.renderer.width / this.app.renderer.resolution, this.app.renderer.height / this.app.renderer.resolution)
+        let zoom = Math.pow(2, -this.props.scale)
+
         return {
-        x: (x - this.props.cx)
-            * Math.max(this.app.renderer.width, this.app.renderer.height)
-            * Math.pow(2, -this.props.scale)
-            + this.app.renderer.width / 2,
-        y: (y - this.props.cy)
-            * Math.max(this.app.renderer.width, this.app.renderer.height)
-            * Math.pow(2, -this.props.scale)
-            + this.app.renderer.height / 2
+            x: (x - this.props.cx) * size * zoom + center.x,
+            y: (y - this.props.cy) * size * zoom + center.y
         }
     }
 }

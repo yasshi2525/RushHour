@@ -1,9 +1,11 @@
 import * as styles from "./style.css"
 import * as React from "react";
 import BaseHandler from "./base";
+import GameModel from "../model";
 import { Point } from "../interfaces/gamemap";
 
 abstract class DragHandler<T extends React.SyntheticEvent> extends BaseHandler<T> {
+    protected sensibility = 1.0;
 
     protected abstract getClientXY(ev: T): Point;
 
@@ -18,12 +20,15 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends BaseHandler<T
 
         let dx = this.client.to.x - this.client.from.x;
         let dy = this.client.to.y - this.client.from.y;
-        let size = Math.max(ev.currentTarget.clientWidth, ev.currentTarget.clientHeight);
+        let size = Math.max(
+            ev.currentTarget.clientWidth, 
+            ev.currentTarget.clientHeight
+        );
         let zoom = Math.pow(2, this.model.scale);
 
         this.server.to = {
-            x: this.server.from.x - dx / size * zoom,
-            y: this.server.from.y - dy / size * zoom
+            x: this.server.from.x - dx / size * zoom * this.sensibility,
+            y: this.server.from.y - dy / size * zoom * this.sensibility
         };
     }
 
@@ -48,6 +53,9 @@ export class MouseDragHandler extends DragHandler<React.MouseEvent> {
 }
 
 export class TouchDragHandler extends DragHandler<React.TouchEvent> {
+    constructor(model: GameModel) {
+        super(model);
+    }
 
     protected getClientXY(ev: React.TouchEvent) {
         let touch = ev.targetTouches.item(0);

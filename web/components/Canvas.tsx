@@ -29,6 +29,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             height: window.innerHeight,
             backgroundColor: 0x333333,
             autoStart: true,
+            autoResize: true,
+            antialias: true,
             resolution: window.devicePixelRatio
         });
 
@@ -44,7 +46,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.wheel = new WheelHandler(this.model);
         this.touch = new TouchDragHandler(this.model);
         this.pinch = new PinchHandler(this.model);
-        this.app.stage.addChild(new PIXI.Text("r:" + window.devicePixelRatio))
+        this.app.stage.addChild(new PIXI.Text("(" + window.innerWidth + ", " + window.innerHeight + ") :" + window.devicePixelRatio))
     }
 
     render() {
