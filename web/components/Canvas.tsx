@@ -34,12 +34,17 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
         imageResources.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         this.app.loader.load();
-        this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: config.scale.default});
+        this.model = new GameModel({ 
+            app: this.app , 
+            cx: config.gamePos.default.x, cy: config.gamePos.default.y, 
+            scale: config.scale.default
+        });
         this.ref = React.createRef<HTMLDivElement>();
         this.mouse = new MouseDragHandler(this.model);
         this.wheel = new WheelHandler(this.model);
         this.touch = new TouchDragHandler(this.model);
         this.pinch = new PinchHandler(this.model);
+        this.app.stage.addChild(new PIXI.Text("r:" + window.devicePixelRatio))
     }
 
     render() {

@@ -34,9 +34,9 @@ export default class {
         this.payload["companies"] = new MonitorContainer(Company, {name: "company", ...options});
         this.payload["rail_nodes"] = new MonitorContainer(RailNode, options);
         this.payload["rail_edges"] = new MonitorContainer(RailEdge, options);
-        this.cx = 0;
-        this.cy = 0;
-        this.scale = 10;
+        this.cx = options.cx;
+        this.cy = options.cy;
+        this.scale = options.scale;
     }
 
     /**
