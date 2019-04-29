@@ -2,9 +2,11 @@ import "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
+import { config } from "../common/interfaces/gamemap";
 import GameModel from "../common/model";
 import { RushHourStatus } from "../state";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
+import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
 
 const imageResources = ["residence", "company", "station", "train"];
@@ -15,6 +17,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     model: GameModel;
     ref: React.RefObject<HTMLDivElement>;
     mouse: MouseDragHandler;
+    wheel: WheelHandler;
     touch: TouchDragHandler;
     pinch: PinchHandler;
 
@@ -31,9 +34,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
         imageResources.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         this.app.loader.load();
-        this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: 10});
+        this.model = new GameModel({ app: this.app , cx: 0, cy: 0, scale: config.scale.default});
         this.ref = React.createRef<HTMLDivElement>();
         this.mouse = new MouseDragHandler(this.model);
+        this.wheel = new WheelHandler(this.model);
         this.touch = new TouchDragHandler(this.model);
         this.pinch = new PinchHandler(this.model);
     }
@@ -44,6 +48,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             onMouseMove={(e) => this.mouse.onMove(e)}
             onMouseUp={(e) => this.mouse.onEnd(e)}
             onMouseOut={(e) => this.mouse.onEnd(e)}
+            onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); } }
             onTouchStart={(e) => { this.touch.onStart(e); this.pinch.onStart(e); }}
             onTouchMove={(e) => { this.touch.onMove(e);  this.pinch.onMove(e)} }
             onTouchEnd={(e) => { this.touch.onEnd(e);  this.pinch.onEnd(e)} }>

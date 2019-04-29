@@ -1,5 +1,6 @@
 import { Residence, Company } from "./models/background";
 import MonitorContainer from "./models/container";
+import { config } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
 import { LocalableProprty } from "./interfaces/pixi";
 import { GameMap } from "../state";
@@ -74,6 +75,19 @@ export default class {
     }
 
     setCenter(x: number, y: number) {
+        if (x < config.gamePos.min.x) {
+            x = config.gamePos.min.x;
+        }
+        if (y < config.gamePos.min.y) {
+            y = config.gamePos.min.y;
+        }
+        if (x > config.gamePos.max.x) {
+            x = config.gamePos.max.x;
+        }
+        if (y > config.gamePos.max.y) {
+            y = config.gamePos.max.y;
+        }
+
         this.cx = x;
         this.cy = y;
         Object.keys(this.payload).forEach(key => {
@@ -87,6 +101,15 @@ export default class {
     }
 
     setScale(v: number) {
+        if (v < config.scale.min) {
+            v = config.scale.min;
+        }
+        if (v > config.scale.max) {
+            v = config.scale.max;
+        }
+
+        this.scale = v;
+
         Object.keys(this.payload).forEach(key => {
             this.payload[key].mergeAll({scale: v})
             if (this.payload[key].isChanged()) {
