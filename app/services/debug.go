@@ -64,7 +64,7 @@ func StartSimulation() {
 
 	}
 	simWg.Wait()
-	revel.AppLog.Info("simulation was succeesfully started.")
+	revel.AppLog.Info("simulation was successfully started.")
 }
 
 // StopSimulation stop simulation.
@@ -74,7 +74,7 @@ func StopSimulation() {
 		for _, t := range simTickers {
 			t.Stop()
 		}
-		revel.AppLog.Info("simulation was succeesfully stopped.")
+		revel.AppLog.Info("simulation was successfully stopped.")
 	}
 }
 
@@ -82,7 +82,7 @@ func watchSim() {
 	for v := range simCh {
 		simTickers = append(simTickers, v)
 	}
-	revel.AppLog.Info("simulation channel was succeesfully stopped.")
+	revel.AppLog.Info("simulation channel was successfully stopped.")
 }
 
 // mkOp returns creation operation

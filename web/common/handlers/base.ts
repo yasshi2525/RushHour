@@ -1,5 +1,5 @@
-import GameModel from "../model";
 import { Edge } from "../interfaces/gamemap";
+import GameModel from "../model";
 
 export default abstract class <T> {
     protected isExec: boolean;
