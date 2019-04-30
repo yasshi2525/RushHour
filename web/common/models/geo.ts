@@ -2,8 +2,15 @@ import * as PIXI from "pixi.js";
 import { Monitorable } from "../interfaces/monitor";
 import { LocalableProprty } from "../interfaces/pixi";
 import BaseModel from "./base";
+import { config } from "../interfaces/gamemap";
 
-const pixiDefaultValues: {cx: number, cy: number, scale: number} = {cx: 0, cy: 0, scale: 10};
+const pixiDefaultValues: {
+    cx: number, cy: number, scale: number
+} = {
+    cx: config.gamePos.default.x, 
+    cy: config.gamePos.default.y, 
+    scale: config.scale.default
+};
 
 export abstract class PIXIModel extends BaseModel implements Monitorable {
     protected app: PIXI.Application;

@@ -9,7 +9,7 @@ import { RailNode, RailEdge } from "./models/rail";
 export default class {
     protected stage: PIXI.Container; 
     protected loader: PIXI.loaders.Loader;
-    protected renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
+    renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
     debugText: PIXI.Text;

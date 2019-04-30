@@ -46,7 +46,6 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.wheel = new WheelHandler(this.model);
         this.touch = new TouchDragHandler(this.model);
         this.pinch = new PinchHandler(this.model);
-        this.app.stage.addChild(new PIXI.Text("(" + window.innerWidth + ", " + window.innerHeight + ") :" + window.devicePixelRatio))
     }
 
     render() {
