@@ -1,10 +1,20 @@
-import { aync } from ".";
-import { ActionType } from "../actions";
+import { put, call } from "redux-saga/effects";
+import * as Action from "../actions";
+import { Coordinates } from "../state";
 
-const url = "api/v1/gamemap";
+const fetch_url = "api/v1/gamemap";
+const diff_url = "api/v1/gamemap/diff";
 
-const requestGameMap = () => 
-    fetch(url).then(response => {
+function buildQuery(coord: Coordinates): string {
+    let params = new URLSearchParams();
+    params.set("cx", coord.cx.toString());
+    params.set("cy", coord.cy.toString());
+    params.set("scale", coord.scale.toString());
+    return params.toString();
+}
+
+const request = (url: string, coord: Coordinates): Promise<any> => 
+    fetch(url + "?" + buildQuery(coord)).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);
         }
@@ -12,4 +22,20 @@ const requestGameMap = () =>
     }).then(response => response.json())
     .catch(error => error);
 
-export const fetchMap = () => aync(requestGameMap, ActionType.FETCH_MAP_SUCCEEDED, ActionType.FETCH_MAP_FAILED, "payload");
+export function* fetchMap(action: ReturnType<typeof Action.fetchMap.request>) {
+    try {
+        const response = yield call(request, fetch_url, action.payload);
+        return yield put(Action.fetchMap.success(response));
+    } catch (e) {
+        return yield put(Action.fetchMap.failure(e));
+    }
+}
+
+export function* diffMap(action: ReturnType<typeof Action.diffMap.request>) {
+    try {
+        const response: Action.GameMapResponse = yield call(request, diff_url, action.payload);
+        return yield put(Action.diffMap.success(response));
+    } catch (e) {
+        return yield put(Action.diffMap.failure(e));
+    }
+}

@@ -9,6 +9,7 @@ export interface Edge {
 };
 
 export const config = {
+    interval: 1000, // ms
     gamePos: { 
         min: {x: -1000, y: -1000}, 
         max: {x: 1000, y: 1000},

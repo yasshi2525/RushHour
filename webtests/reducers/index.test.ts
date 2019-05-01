@@ -1,11 +1,11 @@
-import { ActionType } from "@/actions";
 import reducer from "@/reducers";
 import { defaultState } from "@/state";
+import { fetchMap } from "@/actions";
 
 test("fetches map", () => {
     const actual = reducer(defaultState, {
-        type: ActionType.FETCH_MAP_SUCCEEDED,
-        payload: {status: true, results: {foo: "bar"}}
+        type: fetchMap.success.toString(),
+        payload: {status: true, timestamp: new Date().getTime(), results: {foo: "bar"}}
     });
-    expect(actual.map).toEqual({foo: "bar"});
+    expect(actual.map.foo).toEqual("bar");
 });

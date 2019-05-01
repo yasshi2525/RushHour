@@ -4,10 +4,11 @@ import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
 import { config } from "../common/interfaces/gamemap";
 import GameModel from "../common/model";
-import { RushHourStatus } from "../state";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
+import { RushHourStatus } from "../state";
+import { fetchMap } from "../actions";
 
 const imageResources = ["residence", "company", "station", "train"];
 
@@ -20,6 +21,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     wheel: WheelHandler;
     touch: TouchDragHandler;
     pinch: PinchHandler;
+    timestamp: number;
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -46,6 +48,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.wheel = new WheelHandler(this.model);
         this.touch = new TouchDragHandler(this.model);
         this.pinch = new PinchHandler(this.model);
+        this.timestamp = 0;
     }
 
     render() {
@@ -62,17 +65,25 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     }
 
     componentDidMount() {
-        // 一度描画して、canvas要素を子要素にする
         if (this.ref.current !== null) {
+            // 一度描画して、canvas要素を子要素にする
             this.ref.current.appendChild(this.app.view);
+
+            this.props.dispatch(fetchMap.request({
+                cx: this.model.cx, 
+                cy: this.model.cy, 
+                scale: this.model.scale
+            }));
         } 
     }
 
     componentDidUpdate() {
+        this.timestamp = this.props.timestamp;
         this.model.mergeAll(this.props.map);
         if (this.model.isChanged()) {
             this.model.render();
         }
+
     }
 
     componentWillUnmount() {
@@ -81,7 +92,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 }
 
 function mapStateToProps(state: RushHourStatus) {
-    return { map: state.map };
+    return { timestamp: state.timestamp, map: state.map };
 }
 
 export default connect(mapStateToProps)(Canvas);

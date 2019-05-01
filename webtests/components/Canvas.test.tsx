@@ -26,7 +26,7 @@ test("renders canvas", () => {
 describe("updates gamemodel", () => {
     let wrapper: ReactWrapper<RushHourStatus, RushHourStatus, Canvas>;
     beforeEach(() => {
-        wrapper = mount(<Canvas {...defaultState} />);
+        wrapper = mount(<Canvas {...defaultState} dispatch={()=>{}} />);
     });
 
     test("renders sprites in first time", () => {

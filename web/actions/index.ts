@@ -1,17 +1,15 @@
-import { createAction } from "typesafe-actions";
+import { createAsyncAction } from "typesafe-actions";
+import { Coordinates, GameMap } from "../state";
 
-export enum ActionType {
-    FETCH_MAP_REQUESTED = "FETCH_MAP_REQUESTED",
-    FETCH_MAP_SUCCEEDED = "FETCH_MAP_SUCCEEDED",
-    FETCH_MAP_FAILED = "FETCH_MAP_FAILED",
-    MOVE_SPRITE = "MOVE_SPRITE",
-    DESTROY_SPRITE = "DESTROY_SPRITE",
+export interface ActionPayload {
+    status: boolean,
+    timestamp: number,
+    results: any
 };
 
-export const requestFetchMap = createAction(ActionType.FETCH_MAP_REQUESTED);
-export const moveSprite = createAction(ActionType.MOVE_SPRITE, resolve => {
-    return (key: string, id: string, x: number, y: number) => resolve({key, id, x, y});
-})
-export const destroySprite = createAction(ActionType.DESTROY_SPRITE, resolve => {
-    return (key: string, id: string) => resolve({key, id});
-})
+export interface GameMapResponse extends ActionPayload {
+    results: GameMap
+};
+
+export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEESSED", "FETCH_MAP_FAILED")<Coordinates, GameMapResponse ,Error>();
+export const diffMap = createAsyncAction("DIFF_MAP_REQUESTED", "DIFF_MAP_SUCCEEDED", "DIFF_MAP_FAILED")<Coordinates, GameMapResponse ,Error>();

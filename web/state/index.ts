@@ -1,11 +1,18 @@
+export interface Coordinates {
+    cx: number,
+    cy: number,
+    scale: number,
+    latest?: number
+};
+
 export interface Identifiable {
     id: string
-}
+};
 
 export interface Locatable extends Identifiable {
     x: number,
     y: number
-}
+};
 
 export interface GameMap {
     [key: string]: Locatable[],
@@ -21,16 +28,18 @@ export interface GameMap {
     "residences": Locatable[],
     "stations": Locatable[],
     "trains": Locatable[],
-}
+};
 
 export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
+    timestamp: number,
     map: GameMap
-}
+};
 
 export const defaultState: RushHourStatus = {
     readOnly: true,
+    timestamp: 0,
     map: {
         "companies": [],
         "gates": [],

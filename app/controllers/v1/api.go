@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/revel/revel"
@@ -14,8 +15,16 @@ type APIv1Game struct {
 
 // Index returns gamemap
 func (c APIv1Game) Index() revel.Result {
+	var params = make(map[string]float64)
+
+	for _, p := range []string{"cx", "cy", "scale"} {
+		if v, err := strconv.ParseFloat(c.Params.Get(p), 64); err == nil {
+			params[p] = v
+		}
+	}
+
 	return c.RenderJSON(
-		genResponse(true, services.ViewMap(500, 500, 10)))
+		genResponse(true, services.ViewMap(params["cx"], params["cy"], params["scale"])))
 }
 
 // Diff returns only diff
@@ -28,10 +37,12 @@ func (c APIv1Game) Diff() revel.Result {
 
 func genResponse(status bool, results interface{}) interface{} {
 	return &struct {
-		Status  bool        `json:"status"`
-		Results interface{} `json:"results"`
+		Status    bool        `json:"status"`
+		Timestamp int64       `json:"timestamp"`
+		Results   interface{} `json:"results"`
 	}{
-		Status:  true,
-		Results: results,
+		Status:    true,
+		Timestamp: time.Now().Unix(),
+		Results:   results,
 	}
 }
