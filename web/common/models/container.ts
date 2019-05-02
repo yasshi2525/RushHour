@@ -66,8 +66,11 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
         }
     }
 
-    mergeChildren(payload: {id: string, [propName: string]: any}[]) {
-        payload.forEach((props => this.mergeChild(props)));
+    mergeChildren(payload: {id: string, [propName: string]: any}[], opts: {[index: string]: any}) {
+        payload.forEach(props => {
+            Object.assign(props, opts)
+            this.mergeChild(props);
+        });
 
         // payloadに含まれない child を削除する
         let aliveIds = payload.map(props => props.id);
@@ -102,5 +105,11 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
 
     forEachChild(func: (c: T) => any) {
         Object.keys(this.children).forEach(id => func(this.children[id]));
+    }
+
+    removeOutsider() {
+        Object.keys(this.children)
+            .filter(id => this.children[id].shouldEnd())
+            .forEach(id => this.removeChild(id));
     }
 }

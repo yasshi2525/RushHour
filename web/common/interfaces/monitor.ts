@@ -56,6 +56,11 @@ export interface Monitorable {
     mergeAll(payload: {[index: string]: {}}): void; 
 
     /**
+     * 画面外の領域にあり、監視を終了すべきかどうかを返します。
+     */
+    shouldEnd(): boolean;
+
+    /**
      * 監視を終了します。
      * @param callback 変更監視終了時に呼び出されるコールバック関数
      */
@@ -82,8 +87,9 @@ export interface MonitorContrainer extends Monitorable {
     mergeChild(payload: {id: string}): void;
     /**
      * このなかに存在しない child は削除されます。
-     * @param payload 
+     * @param payload
+     * @param opts 全child共通に設定するプロパティ
      */
-    mergeChildren(payload: {id: string}[]): void;
+    mergeChildren(payload: {id: string}[], opts: {[index: string]: any}): void;
     removeChild(id: string): void;
 }

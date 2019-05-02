@@ -5,8 +5,8 @@ import PointHandler from "./point";
 export class PinchHandler extends PointHandler<React.TouchEvent> {
     dist: {from: number, to: number};
 
-    constructor(model: GameModel) {
-        super(model);
+    constructor(model: GameModel, dispatch: any) {
+        super(model, dispatch);
         this.dist = {from: 0, to: 0};
     }
 
@@ -42,9 +42,9 @@ export class PinchHandler extends PointHandler<React.TouchEvent> {
         // scaleの変更
         this.dist.to = this.getDistance(ev);
 
-        let ratio = this.dist.to / this.dist.from;
+        let ratio = this.dist.from / this.dist.to;
         this.model.setScale(this.scale.from + (ratio - 1))
-        this.scale.to = this.model.scale;
+        this.scale.to = this.model.coord.scale;
 
         // 画面中心座標の変更
         let center = this.zoom(this.getClientXY(ev), this.scale.to - this.scale.from);

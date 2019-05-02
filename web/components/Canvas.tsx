@@ -21,7 +21,6 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     wheel: WheelHandler;
     touch: TouchDragHandler;
     pinch: PinchHandler;
-    timestamp: number;
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -44,11 +43,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             scale: config.scale.default
         });
         this.ref = React.createRef<HTMLDivElement>();
-        this.mouse = new MouseDragHandler(this.model);
-        this.wheel = new WheelHandler(this.model);
-        this.touch = new TouchDragHandler(this.model);
-        this.pinch = new PinchHandler(this.model);
-        this.timestamp = 0;
+        this.mouse = new MouseDragHandler(this.model, this.props.dispatch);
+        this.wheel = new WheelHandler(this.model, this.props.dispatch);
+        this.touch = new TouchDragHandler(this.model, this.props.dispatch);
+        this.pinch = new PinchHandler(this.model, this.props.dispatch);
     }
 
     render() {
@@ -69,16 +67,12 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             // 一度描画して、canvas要素を子要素にする
             this.ref.current.appendChild(this.app.view);
 
-            this.props.dispatch(fetchMap.request({
-                cx: this.model.cx, 
-                cy: this.model.cy, 
-                scale: this.model.scale
-            }));
+            this.fetchMap();
         } 
     }
 
     componentDidUpdate() {
-        this.timestamp = this.props.timestamp;
+        this.model.timestamp = this.props.timestamp;
         this.model.mergeAll(this.props.map);
         if (this.model.isChanged()) {
             this.model.render();
@@ -88,6 +82,14 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
     componentWillUnmount() {
         this.model.unmount();
+    }
+
+    protected fetchMap() {
+        this.props.dispatch(fetchMap.request({
+            cx: this.model.coord.cx, 
+            cy: this.model.coord.cy, 
+            scale: this.model.coord.scale + 1
+        }));
     }
 }
 

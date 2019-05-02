@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -92,8 +93,8 @@ func mkOp(src string, target entities.ModelType) *Operation {
 		Op:     "create",
 		Target: target,
 		OName:  src,
-		X:      rand.Float64() * 1000,
-		Y:      rand.Float64() * 1000,
+		X:      rand.Float64()*math.Pow(2, 16) - math.Pow(2, 15),
+		Y:      rand.Float64()*math.Pow(2, 16) - math.Pow(2, 15),
 	}
 }
 

@@ -8,6 +8,21 @@ export interface Edge {
     to: Point
 };
 
+export interface Coordinates {
+    /**
+     * 中心x座標(サーバにおけるマップ座標系)
+     */
+    cx: number,
+    /**
+     * 中心y座標(サーバにおけるマップ座標系)
+     */
+    cy: number,
+    /**
+     * 拡大率(クライエントウィンドウの幅が2^scaleに対応する)
+     */
+    scale: number,
+}
+
 export const config = {
     interval: 1000, // ms
     gamePos: { 

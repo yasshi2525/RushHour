@@ -1,6 +1,6 @@
 import { PointModel, PIXIModel } from  "./geo";
 import { Monitorable } from "../interfaces/monitor";
-import { LocalableProprty } from "../interfaces/pixi";
+import { ApplicationProperty } from "../interfaces/pixi";
 
 const animationOpts = { round: 600 };
 
@@ -8,7 +8,7 @@ export class RailNode extends PointModel implements Monitorable {
     protected graphics: PIXI.Graphics;
     protected tick: number
 
-    constructor(options: LocalableProprty) {
+    constructor(options: ApplicationProperty) {
         super(options);
         this.graphics = new PIXI.Graphics();
         this.tick = 0;
@@ -51,7 +51,7 @@ export class RailEdge extends PIXIModel implements Monitorable {
     protected reverse: RailEdge|undefined;
     protected tick: number;
 
-    constructor(options: LocalableProprty) {
+    constructor(options: ApplicationProperty) {
         super(options);
         this.graphics = new PIXI.Graphics();
         this.tick = 0;
@@ -92,6 +92,16 @@ export class RailEdge extends PIXIModel implements Monitorable {
             let to = this.toView(this.to.get("x"), this.to.get("y"))
             this.graphics.moveTo(from.x, from.y)
             this.graphics.lineTo(to.x, to.y)
+        }
+    }
+
+    shouldEnd() {
+        if (this.from !== undefined && this.to !== undefined) {
+            return super.shouldEnd()
+                && this.isOut(this.from.get("x"), this.from.get("y"))
+                && this.isOut(this.to.get("x"), this.to.get("y"));
+        } else {
+            return super.shouldEnd();
         }
     }
 

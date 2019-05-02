@@ -49,7 +49,7 @@ describe("mergeChildren", () => {
     let testId = "test";
     test("remove child when no property is specified", () => {
         instance.mergeChild({ id: testId });
-        instance.mergeChildren([]);
+        instance.mergeChildren([], {});
         expect(instance.existsChild(testId)).toBe(false);
     });
 });

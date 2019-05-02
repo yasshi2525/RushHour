@@ -20,7 +20,7 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
             this.model.renderer.width, 
             this.model.renderer.height
         );
-        let zoom = Math.pow(2, this.model.scale);
+        let zoom = Math.pow(2, this.model.coord.scale);
 
         this.server.to = {
             x: this.server.from.x - dx / size * zoom,
@@ -49,8 +49,8 @@ export class MouseDragHandler extends DragHandler<React.MouseEvent> {
 }
 
 export class TouchDragHandler extends DragHandler<React.TouchEvent> {
-    constructor(model: GameModel) {
-        super(model);
+    constructor(model: GameModel, dispatch: any) {
+        super(model, dispatch);
     }
 
     protected getClientXY(ev: React.TouchEvent) {

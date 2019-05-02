@@ -1,8 +1,8 @@
 import { Residence, Company } from "./models/background";
 import MonitorContainer from "./models/container";
-import { config } from "./interfaces/gamemap";
+import { Coordinates, config } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
-import { LocalableProprty } from "./interfaces/pixi";
+import { ApplicationProperty } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailNode, RailEdge } from "./models/rail";
 
@@ -12,21 +12,16 @@ export default class {
     renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
+    timestamp: number;
+    coord: Coordinates;
+    /**
+     * サーバから全データの取得が必要か
+     */
+    shouldFetch: boolean;
+    shouldRemoveOutsider: boolean;
     debugText: PIXI.Text;
-    /**
-     * 中心x座標(サーバにおけるマップ座標系)
-     */
-    cx: number;
-    /**
-     * 中心y座標(サーバにおけるマップ座標系)
-     */
-    cy: number;
-    /**
-     * 拡大率(クライエントウィンドウの幅が2^scaleに対応する)
-     */
-    scale: number;
 
-    constructor(options: LocalableProprty) {
+    constructor(options: ApplicationProperty & Coordinates) {
         this.stage = options.app.stage;
         this.loader = options.app.loader;
         this.renderer = options.app.renderer;
@@ -35,9 +30,10 @@ export default class {
         this.payload["companies"] = new MonitorContainer(Company, {name: "company", ...options});
         this.payload["rail_nodes"] = new MonitorContainer(RailNode, options);
         this.payload["rail_edges"] = new MonitorContainer(RailEdge, options);
-        this.cx = options.cx;
-        this.cy = options.cy;
-        this.scale = options.scale;
+        this.coord = { cx: options.cx, cy: options.cy, scale: options.scale }
+        this.shouldFetch = false;
+        this.shouldRemoveOutsider = false;
+        this.timestamp = 0;
         this.debugText = new PIXI.Text();
         this.debugText.y = window.innerHeight - 50;
         this.stage.addChild(this.debugText)
@@ -59,13 +55,14 @@ export default class {
     mergeAll(payload: GameMap) {
         Object.keys(payload).forEach(key => {
             if (this.payload[key] !== undefined) {
-                this.payload[key].mergeChildren(payload[key]);
+                this.payload[key].mergeChildren(payload[key], this.coord);
                 if (this.payload[key].isChanged()) {
                     this.changed = true;
                 }
             }
         });
         this.resolve();
+        this.shouldFetch = false;
     }
 
     resolve() {
@@ -91,13 +88,16 @@ export default class {
         if (y > config.gamePos.max.y) {
             y = config.gamePos.max.y;
         }
-
-        this.cx = x;
-        this.cy = y;
+        if (this.coord.cx == x && this.coord.cy == y) {
+            return;
+        }
+        this.shouldFetch = true;
+        this.shouldRemoveOutsider = true;
+        this.coord.cx = x;
+        this.coord.cy = y;
+        
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].childOptions.cx = x;
-            this.payload[key].childOptions.cy = y;
-            this.payload[key].mergeAll({cx: x, cy: y})
+            this.payload[key].mergeAll(this.coord)
             if (this.payload[key].isChanged()) {
                 this.changed = true;
             }
@@ -111,15 +111,21 @@ export default class {
         if (v > config.scale.max) {
             v = config.scale.max;
         }
-
-        this.scale = v;
+        if (this.coord.scale == v) {
+            return;
+        } else if (v > this.coord.scale) { // 縮小
+            this.shouldFetch = true;
+        } else { // 拡大
+            this.shouldRemoveOutsider = true;
+        }
+        this.coord.scale = v;
 
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].mergeAll({scale: v})
+            this.payload[key].mergeAll(this.coord)
             if (this.payload[key].isChanged()) {
                 this.changed = true;
             }
-        })
+        });
     }
 
     isChanged() {
@@ -137,5 +143,9 @@ export default class {
 
     unmount() {
         Object.keys(this.payload).forEach(key => this.payload[key].end());
+    }
+
+    removeOutsider() {
+        Object.keys(this.payload).forEach(key => this.payload[key].removeOutsider());
     }
 }
