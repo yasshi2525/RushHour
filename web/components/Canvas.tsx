@@ -72,12 +72,15 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     }
 
     componentDidUpdate() {
+        //let beforeFetch = new Date().getTime();
         this.model.timestamp = this.props.timestamp;
         this.model.mergeAll(this.props.map);
+        //let beforeRender = new Date().getTime();
         if (this.model.isChanged()) {
             this.model.render();
         }
-
+        //let afterRender = new Date().getTime();
+        //this.model.debugValue = (beforeRender - beforeFetch) + ", " + (afterRender - beforeRender);
     }
 
     componentWillUnmount() {
@@ -94,7 +97,11 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 }
 
 function mapStateToProps(state: RushHourStatus) {
-    return { timestamp: state.timestamp, map: state.map };
+    return { 
+        timestamp: state.timestamp, 
+        map: {
+            rail_nodes: state.map.rail_nodes
+        } };
 }
 
 export default connect(mapStateToProps)(Canvas);

@@ -1,16 +1,16 @@
 import * as PIXI from "pixi.js";
+import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable } from "../interfaces/monitor";
 import { ApplicationProperty } from "../interfaces/pixi";
 import BaseModel from "./base";
-import { config, Coordinates } from "../interfaces/gamemap";
 
-const pixiDefaultValues: Coordinates & {[index: string]: any} = {
+const defaultValues: Coordinates & {[index: string]: any} = {
     cx: config.gamePos.default.x, 
     cy: config.gamePos.default.y, 
     scale: config.scale.default
 };
 
-export abstract class PIXIModel extends BaseModel implements Monitorable {
+export default abstract class extends BaseModel implements Monitorable {
     protected app: PIXI.Application;
     protected container: PIXI.Container;
 
@@ -22,7 +22,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 
     setupDefaultValues() {
         super.setupDefaultValues();
-        this.addDefaultValues(pixiDefaultValues);
+        this.addDefaultValues(defaultValues);
     }
 
     setupBeforeCallback() {
@@ -39,7 +39,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         })
     }
 
-    protected toView(x: number, y: number): {x: number, y:number} {
+    protected toView(x: number, y: number): Point {
         let center = {
             x: this.app.renderer.width / this.app.renderer.resolution / 2,
             y: this.app.renderer.height / this.app.renderer.resolution / 2,
@@ -68,27 +68,3 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     }
 }
 
-const pointDefaultValues: {x: number, y:number} = {x: 0, y: 0};
-
-export abstract class PointModel extends PIXIModel implements Monitorable {
-    protected vx: number;
-    protected vy: number;
-
-    constructor(options: ApplicationProperty) {
-        super(options);
-        this.vx = 0;
-        this.vy = 0;
-    }
-
-    setupDefaultValues() {
-        super.setupDefaultValues();
-        this.addDefaultValues(pointDefaultValues);
-    }
-
-    beforeRender() {
-        super.beforeRender();
-        let v = this.toView(this.props.x, this.props.y);
-        this.vx = v.x;
-        this.vy = v.y;
-    }
-}

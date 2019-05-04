@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js";
 import * as Filters from "pixi-filters";
 import { Monitorable } from "../interfaces/monitor";
 import { SpriteProperty } from "../interfaces/pixi";
-import { PointModel } from "./geo";
+import PointModel from "./point";
 
 /**
  * x, y座標はPointModelで初期化済み
@@ -18,13 +18,14 @@ const defaultValues: {
 };
 
 const outlineOpts = {
-    thickness: {max: 4 / window.devicePixelRatio, min: 2 / window.devicePixelRatio},
+    width: {min: 0, max: 4},
     color: 0xeeeeee,
-    round: 240
+    round: 5000
 };
 
 const shadowOpts: PIXI.filters.DropShadowFilterOptions = {
-    color: 0x00ffff
+    color: 0x00ffff,
+    distance: 5
 }
 
 export default class extends PointModel implements Monitorable {
@@ -32,17 +33,28 @@ export default class extends PointModel implements Monitorable {
     protected sprite: PIXI.Sprite;
     protected outline: PIXI.filters.OutlineFilter;
     protected shadow: PIXI.filters.DropShadowFilter;
-    protected tick: number
+    /**
+     * インスタンス作成からの累計時間
+     */
+    protected tick: number;
+    /**
+     * 明滅率(0-1)
+     */
+    protected offset: number;
 
     constructor(options: SpriteProperty) {
         super(options);
         this.name = options.name;
         let resource = this.app.loader.resources[this.name];
         this.sprite = new PIXI.Sprite(resource ? resource.texture : undefined);
-        this.outline = new Filters.OutlineFilter(outlineOpts.thickness.min, outlineOpts.color);
+        this.outline = new Filters.OutlineFilter(
+            outlineOpts.width.min / this.app.renderer.resolution, 
+            outlineOpts.color);
         this.shadow = new Filters.DropShadowFilter(shadowOpts);
+        this.shadow.distance /= this.app.renderer.resolution;
         this.sprite.filters = [this.outline, this.shadow];
-        this.tick = 0
+        this.tick = 0;
+        this.offset = 0;
     }
 
     setupDefaultValues() {
@@ -57,7 +69,7 @@ export default class extends PointModel implements Monitorable {
             this.sprite.alpha = this.props.alpha;
             this.sprite.scale.set(this.props.spscale, this.props.spscale)
             this.container.addChild(this.sprite);
-            this.app.ticker.add((d: number) => this.animate(d))
+            this.app.ticker.add(() => this.flash())
         });
     }
     
@@ -81,19 +93,18 @@ export default class extends PointModel implements Monitorable {
 
     beforeRender() {
         super.beforeRender();
-        this.sprite.x = this.vx;
-        this.sprite.y = this.vy;
+        this.sprite.x = this.current.x;
+        this.sprite.y = this.current.y;
+
+        this.outline.thickness = (this.offset * outlineOpts.width.min
+                                    + (1- this.offset) * outlineOpts.width.max)
+                                    / this.app.renderer.resolution;
     }
 
-    protected animate(delta: number) {
-        this.tick += delta;
-
-        let dx = (this.tick / outlineOpts.round) - Math.floor(this.tick / outlineOpts.round);
-        if (dx > 0.5) {
-            dx = 1 - dx;
-        }
-        this.outline.thickness = dx * outlineOpts.thickness.min + (1 - dx) * outlineOpts.thickness.max;
-        this.outline.thickness *= window.devicePixelRatio;
-        this.app.renderer.render(this.sprite);
+    protected flash() {
+        this.tick += this.app.ticker.elapsedMS;
+        let ratio = (this.tick % outlineOpts.round) / outlineOpts.round;
+        this.offset = Math.cos(ratio * Math.PI * 2) / 2 + 0.5;
+        this.beforeRender();
     }
 }

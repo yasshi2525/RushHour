@@ -24,10 +24,17 @@ export interface Coordinates {
 }
 
 export const config = {
-    interval: 1000, // ms
+    /**
+     * サーバからマップ情報を取得する間隔 (ms)
+     */
+    interval: 1000, 
+    /**
+     * 座標に変化があった際、位置合わせをするまでの遅延時間 (ms)
+     */
+    latency: 1000,
     gamePos: { 
-        min: {x: -1000, y: -1000}, 
-        max: {x: 1000, y: 1000},
+        min: {x: -Math.pow(2, 16), y: -Math.pow(2, 16)}, 
+        max: {x: Math.pow(2, 16), y: Math.pow(2, 16)},
         default: {x: 0, y: 0}
     },
     scale: { 

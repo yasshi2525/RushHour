@@ -7,8 +7,7 @@ import { GameMap } from "../state";
 import { RailNode, RailEdge } from "./models/rail";
 
 export default class {
-    protected stage: PIXI.Container; 
-    protected loader: PIXI.loaders.Loader;
+    protected app: PIXI.Application;
     renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
@@ -20,10 +19,10 @@ export default class {
     shouldFetch: boolean;
     shouldRemoveOutsider: boolean;
     debugText: PIXI.Text;
+    debugValue: any;
 
     constructor(options: ApplicationProperty & Coordinates) {
-        this.stage = options.app.stage;
-        this.loader = options.app.loader;
+        this.app = options.app;
         this.renderer = options.app.renderer;
 
         this.payload["residences"] = new MonitorContainer(Residence, {name: "residence", ...options});
@@ -35,8 +34,16 @@ export default class {
         this.shouldRemoveOutsider = false;
         this.timestamp = 0;
         this.debugText = new PIXI.Text();
-        this.debugText.y = window.innerHeight - 50;
-        this.stage.addChild(this.debugText)
+        this.debugText.style.fontSize = 14;
+        this.debugText.style.fill = 0xffffff;
+        this.app.stage.addChild(this.debugText)
+        setInterval(() => this.viewDebugInfo(), 250)
+    }
+
+    protected viewDebugInfo() {
+        this.debugText.text = "FPS: " + this.app.ticker.FPS.toFixed(2)
+                                + ", " + this.app.stage.children.length + " entities"
+                                + ", debug=" + this.debugValue;
     }
 
     /**
@@ -76,17 +83,17 @@ export default class {
     }
 
     setCenter(x: number, y: number) {
-        if (x < config.gamePos.min.x) {
-            x = config.gamePos.min.x;
+        if (x - Math.pow(2, this.coord.scale - 1) < config.gamePos.min.x) {
+            x = config.gamePos.min.x + Math.pow(2, this.coord.scale - 1);
         }
-        if (y < config.gamePos.min.y) {
-            y = config.gamePos.min.y;
+        if (y - Math.pow(2, this.coord.scale - 1) < config.gamePos.min.y) {
+            y = config.gamePos.min.y + Math.pow(2, this.coord.scale - 1);
         }
-        if (x > config.gamePos.max.x) {
-            x = config.gamePos.max.x;
+        if (x + Math.pow(2, this.coord.scale - 1) > config.gamePos.max.x) {
+            x = config.gamePos.max.x - Math.pow(2, this.coord.scale - 1);
         }
-        if (y > config.gamePos.max.y) {
-            y = config.gamePos.max.y;
+        if (y + Math.pow(2, this.coord.scale - 1) > config.gamePos.max.y) {
+            y = config.gamePos.max.y - Math.pow(2, this.coord.scale - 1);
         }
         if (this.coord.cx == x && this.coord.cy == y) {
             return;
@@ -136,7 +143,6 @@ export default class {
         Object.keys(this.payload).forEach(key => 
             this.payload[key].forEachChild((c) => c.beforeRender())
         );
-        this.renderer.render(this.stage);
         Object.keys(this.payload).forEach(key => this.payload[key].reset());
         this.changed = false;
     }
