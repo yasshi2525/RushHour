@@ -1,6 +1,6 @@
 import Container from "@/common/models/container";
 import Model from "@/common/models/base";
-import { Monitorable } from "@/common/interfaces/monitor";
+import { Monitorable, MonitorContrainer } from "@/common/interfaces/monitor";
 
 let instance: Container<Model>;
 
@@ -11,8 +11,12 @@ class SimpleModel extends Model implements Monitorable {
     }
 }
 
+class SimpleContainer extends Container<SimpleModel> implements MonitorContrainer {
+
+}
+
 beforeEach(() => {
-    instance = new Container(SimpleModel);
+    instance = new SimpleContainer(SimpleModel, {});
     instance.setupDefaultValues();
 });
 

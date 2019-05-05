@@ -6,7 +6,7 @@ const opts = {
     }
 }
 
-function generateRailNode(app: PIXI.Application): PIXI.Texture  {
+function generateRailNode(app: PIXI.Application): PIXI.Texture {
     let graphics = new PIXI.Graphics();
     graphics.lineStyle(opts.rail_node.width, opts.rail_node.color);
     graphics.arc(0, 0, opts.rail_node.radius, 0, Math.PI * 2);

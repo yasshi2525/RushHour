@@ -1,6 +1,8 @@
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
 import { GraphicsModel, GraphicsContainer } from  "./graphics";
 import { ApplicationProperty } from "../interfaces/pixi";
+import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
+import { GraphicsAnimationGenerator } from "./animate";
 
 const graphicsOpts = {
     width: 2,
@@ -8,21 +10,23 @@ const graphicsOpts = {
     radius: 10
 };
 
-export class RailNode extends GraphicsModel implements Monitorable {
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => {
-            this.graphics.lineStyle(
-                graphicsOpts.width, 
-                graphicsOpts.color);
-            this.graphics.arc(0, 0, graphicsOpts.radius, 0, Math.PI * 2)
-        });
-    }
+export class RailNode extends AnimatedSpriteModel implements Monitorable {
 }
 
-export class RailNodeContainer extends GraphicsContainer<RailNode> implements MonitorContrainer {
+export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContrainer {
     constructor(options: ApplicationProperty) {
-        super(options, RailNode, {});
+        let graphics = new PIXI.Graphics();
+        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
+        graphics.arc(0, 0, graphicsOpts.radius, 0, Math.PI * 2);
+
+        let generator = new GraphicsAnimationGenerator(options.app, graphics);
+        let rect = graphics.getBounds().clone();
+        rect.x -= 4;
+        rect.y -= 4;
+        rect.width += 8;
+        rect.height += 8;
+        let animation =  generator.record(rect);
+        super({ animation, ...options}, RailNode, {});
     }
 }
 

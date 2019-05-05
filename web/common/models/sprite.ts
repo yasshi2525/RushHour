@@ -1,7 +1,6 @@
 import * as PIXI from "pixi.js";
-import * as Filters from "pixi-filters";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { SpriteProperty, SpriteContainerProperty } from "../interfaces/pixi";
+import { SpriteProperty, SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty } from "../interfaces/pixi";
 import { PointModel, PointContainer } from "./point";
 
 /**
@@ -16,17 +15,6 @@ const defaultValues: {
     spscale: 0.5,
     alpha: 1
 };
-
-const outlineOpts = {
-    width: {min: 0, max: 4},
-    color: 0xeeeeee,
-    round: 5000
-};
-
-const shadowOpts: PIXI.filters.DropShadowFilterOptions = {
-    color: 0x00ffff,
-    distance: 5
-}
 
 export abstract class SpriteModel extends PointModel implements Monitorable {
     protected sprite: PIXI.Sprite;
@@ -77,30 +65,41 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
 }
 
 export abstract class SpriteContainer<T extends SpriteModel> extends PointContainer<T> implements MonitorContrainer {
-    protected outline: PIXI.filters.OutlineFilter;
-    protected shadow: PIXI.filters.DropShadowFilter;
     
     constructor(
         options: SpriteContainerProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
         super(options, newInstance, newInstanceOptions);
-
-        this.outline = new Filters.OutlineFilter(
-            outlineOpts.width.min / this.app.renderer.resolution, 
-            outlineOpts.color);
-        this.outline.resolution = this.app.renderer.resolution;
-        this.shadow = new Filters.DropShadowFilter(shadowOpts);
-        this.shadow.resolution = this.app.renderer.resolution;
-
-        this.container.filters = [this.outline, this.shadow];
-
+        
         this.childOptions.texture = options.texture;
     }
+}
 
-    beforeRender() {
-        super.beforeRender();
-        this.outline.thickness = (this.offset * outlineOpts.width.min
-            + (1- this.offset) * outlineOpts.width.max);
+export abstract class AnimatedSpriteModel extends SpriteModel implements Monitorable {
+    constructor(options: AnimatedSpriteProperty) {
+        super({ texture: PIXI.Texture.EMPTY, ...options });
+        
+        this.container.removeChild(this.sprite);
+        let sprite = new PIXI.extras.AnimatedSprite(options.animation);
+        sprite.play();
+        this.sprite = sprite;
+        this.container.addChild(this.sprite);
+    }
+
+    setupDefaultValues() {
+        super.setupDefaultValues();
+        this.addDefaultValues({ spscale: 1.0 });
+    }
+}
+
+export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> extends SpriteContainer<T> implements MonitorContrainer {
+    constructor(
+        options: AnimatedSpriteContainerProperty,
+        newInstance: { new (props: {[index:string]: {}}): T }, 
+        newInstanceOptions: {[index:string]: {}}) {
+        super({ texture: PIXI.Texture.EMPTY, ...options }, newInstance, newInstanceOptions);
+
+        this.childOptions.animation = options.animation;
     }
 }
