@@ -1,6 +1,6 @@
-import { Monitorable } from "../interfaces/monitor";
+import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { GraphicsModel, GraphicsContainer } from  "./graphics";
 import { ApplicationProperty } from "../interfaces/pixi";
-import GraphicsModel from  "./graphics";
 
 const graphicsOpts = {
     width: 2,
@@ -9,7 +9,6 @@ const graphicsOpts = {
 };
 
 export class RailNode extends GraphicsModel implements Monitorable {
-
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
@@ -21,18 +20,18 @@ export class RailNode extends GraphicsModel implements Monitorable {
     }
 }
 
+export class RailNodeContainer extends GraphicsContainer<RailNode> implements MonitorContrainer {
+    constructor(options: ApplicationProperty) {
+        super(options, RailNode, {});
+    }
+}
+
 const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0, eid: 0};
 
 export class RailEdge extends GraphicsModel implements Monitorable {
     protected from: RailNode|undefined;
     protected to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
-
-    constructor(options: ApplicationProperty) {
-        super(options);
-        this.graphics = new PIXI.Graphics();
-        this.tick = 0;
-    }
 
     setupDefaultValues() {
         super.setupDefaultValues();
@@ -53,9 +52,7 @@ export class RailEdge extends GraphicsModel implements Monitorable {
 
     beforeRender() {
         super.beforeRender();
-        this.graphics.clear();
-        this.graphics.lineStyle(graphicsOpts.width / this.app.renderer.resolution, 
-            graphicsOpts.color);
+        this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
 
         if (this.from !== undefined && this.to !== undefined) {
             // 中心がcurrentなので、相対座標を求める
@@ -76,5 +73,11 @@ export class RailEdge extends GraphicsModel implements Monitorable {
         } else {
             return super.shouldEnd();
         }
+    }
+}
+
+export class RailEdgeContainer extends GraphicsContainer<RailEdge> implements MonitorContrainer {
+    constructor(options: ApplicationProperty) {
+        super(options, RailEdge, {});
     }
 }

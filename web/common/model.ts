@@ -1,10 +1,10 @@
-import { Residence, Company } from "./models/background";
+import { ResidenceContainer, CompanyContainer } from "./models/background";
 import MonitorContainer from "./models/container";
 import { Coordinates, config } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
-import { ApplicationProperty } from "./interfaces/pixi";
+import { GameModelProperty } from "./interfaces/pixi";
 import { GameMap } from "../state";
-import { RailNode, RailEdge } from "./models/rail";
+import { RailEdge, RailNodeContainer, RailEdgeContainer } from "./models/rail";
 
 export default class {
     protected app: PIXI.Application;
@@ -12,6 +12,7 @@ export default class {
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
     timestamp: number;
+    textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
     /**
      * サーバから全データの取得が必要か
@@ -21,14 +22,24 @@ export default class {
     debugText: PIXI.Text;
     debugValue: any;
 
-    constructor(options: ApplicationProperty & Coordinates) {
+    constructor(options: GameModelProperty) {
         this.app = options.app;
         this.renderer = options.app.renderer;
+        this.textures = options.textures;
 
-        this.payload["residences"] = new MonitorContainer(Residence, {name: "residence", ...options});
-        this.payload["companies"] = new MonitorContainer(Company, {name: "company", ...options});
-        this.payload["rail_nodes"] = new MonitorContainer(RailNode, options);
-        this.payload["rail_edges"] = new MonitorContainer(RailEdge, options);
+        this.payload["residences"] = new ResidenceContainer({texture: this.textures.residence, ...options});
+        this.payload["companies"] = new CompanyContainer({texture: this.textures.company, ...options});
+        this.payload["rail_nodes"] = new RailNodeContainer(options);
+        this.payload["rail_edges"] = new RailEdgeContainer(options);
+
+        Object.keys(this.payload).forEach(key => {
+            this.payload[key].setupDefaultValues();
+            this.payload[key].setupUpdateCallback();
+            this.payload[key].setupBeforeCallback();
+            this.payload[key].setupAfterCallback();
+            this.payload[key].begin();
+        });
+
         this.coord = { cx: options.cx, cy: options.cy, scale: options.scale }
         this.shouldFetch = false;
         this.shouldRemoveOutsider = false;
@@ -148,7 +159,11 @@ export default class {
     }
 
     unmount() {
-        Object.keys(this.payload).forEach(key => this.payload[key].end());
+        Object.keys(this.payload).reverse().forEach(key => this.payload[key].end());
+
+        Object.keys(this.payload).reverse().forEach(key => {
+            this.payload[key].end();
+        });
     }
 
     removeOutsider() {

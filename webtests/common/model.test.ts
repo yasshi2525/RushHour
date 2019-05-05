@@ -22,7 +22,7 @@ const testmap = {
 };
 
 beforeEach(() => {
-    instance = new GameModel({app: app, cx: 0, cy: 0, scale: 8});
+    instance = new GameModel({textures: {}, app: app, cx: 0, cy: 0, scale: 8});
 });
 
 describe("get", () => {

@@ -1,4 +1,4 @@
-import SpriteModel from "@/common/models/sprite";
+import { SpriteModel } from "@/common/models/sprite";
 import * as PIXI from "pixi.js"; 
 
 let instance: SpriteModel;
@@ -21,8 +21,12 @@ const expectSprite = (sprite: PIXI.Sprite, testValue: number) => {
     expect(sprite.anchor.y).toBe(testValue);
 }
 
+class SimpleSpriteModel extends SpriteModel {
+
+}
+
 beforeEach(() => {
-    instance = new SpriteModel({name: "test", app: app, cx: 0, cy: 0, scale: 10});
+    instance = new SimpleSpriteModel({texture: PIXI.Texture.EMPTY, container: new PIXI.Container(), app: app, cx: 0, cy: 0, scale: 10});
     instance.setupUpdateCallback();
     instance.setupAfterCallback();
     instance.setupDefaultValues();

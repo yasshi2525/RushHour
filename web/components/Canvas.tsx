@@ -3,14 +3,13 @@ import * as React from "react";
 import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
 import { config } from "../common/interfaces/gamemap";
+import { generateTextures } from "../common/models/texture";
 import GameModel from "../common/model";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
 import { RushHourStatus } from "../state";
 import { fetchMap } from "../actions";
-
-const imageResources = ["residence", "company", "station", "train"];
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
@@ -34,10 +33,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             antialias: true,
             resolution: window.devicePixelRatio
         });
-
-        imageResources.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
-        this.app.loader.load();
-        this.model = new GameModel({ 
+        this.model = new GameModel({
+            textures: generateTextures(this.app),
             app: this.app , 
             cx: config.gamePos.default.x, cy: config.gamePos.default.y, 
             scale: config.scale.default
@@ -55,7 +52,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             onMouseMove={(e) => this.mouse.onMove(e)}
             onMouseUp={(e) => this.mouse.onEnd(e)}
             onMouseOut={(e) => this.mouse.onEnd(e)}
-            onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); } }
+            onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); }}
             onTouchStart={(e) => { this.touch.onStart(e); this.pinch.onStart(e); }}
             onTouchMove={(e) => { this.touch.onMove(e);  this.pinch.onMove(e)} }
             onTouchEnd={(e) => { this.touch.onEnd(e);  this.pinch.onEnd(e)} }>

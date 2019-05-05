@@ -2,7 +2,7 @@ import BaseModel from "./base";
 import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
 
 
-export default class <T extends Monitorable> extends BaseModel implements MonitorContrainer {
+export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContrainer {
 
     childOptions: {[index:string]: {}};
     Child: { new (props: {[index:string]: {}}): T };
@@ -11,7 +11,7 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
 
     constructor(
         newInstance: { new (props: {[index:string]: {}}): T }, 
-        newInstanceOptions: {[index:string]: {}} = {}) {
+        newInstanceOptions: {[index:string]: {}}) {
         super();
 
         this.Child = newInstance;
@@ -85,6 +85,7 @@ export default class <T extends Monitorable> extends BaseModel implements Monito
      * @param value プロパティに設定する値
      */
     merge(key: string, value: any) {
+        super.merge(key, value);
         this.forEachChild(c => {
             c.merge(key, value);
             if (c.isChanged()) {
