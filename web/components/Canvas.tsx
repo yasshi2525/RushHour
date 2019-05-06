@@ -33,6 +33,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             antialias: true,
             resolution: window.devicePixelRatio
         });
+
         this.model = new GameModel({
             textures: generateTextures(this.app),
             app: this.app , 
@@ -40,6 +41,23 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             scale: config.scale.default
         });
         this.ref = React.createRef<HTMLDivElement>();
+
+        window.addEventListener("resize", () => {
+            let beforeW = this.model.renderer.width;
+            let beforeH = this.model.renderer.height;
+            let afterW = window.innerWidth;
+            let afterH = window.innerHeight;
+
+            let dW = afterW - beforeW;
+            let dH = afterH - beforeH;
+
+            let dx = dW / Math.pow(2, this.model.coord.scale - 1);
+            let dy = dH / Math.pow(2, this.model.coord.scale - 1);
+
+            this.model.setCenter(this.model.coord.cx - dx, this.model.coord.cy - dy);
+            this.model.renderer.resize(afterW, afterH);
+        })
+
         this.mouse = new MouseDragHandler(this.model, this.props.dispatch);
         this.wheel = new WheelHandler(this.model, this.props.dispatch);
         this.touch = new TouchDragHandler(this.model, this.props.dispatch);

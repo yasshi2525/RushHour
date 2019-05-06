@@ -57,7 +57,7 @@ export default class {
             Object.keys(this.payload).forEach(key => this.payload[key].merge("offset", this.offset));
         });
 
-        this.debugText = new PIXI.Text();
+        this.debugText = new PIXI.Text("");
         this.debugText.style.fontSize = 14;
         this.debugText.style.fill = 0xffffff;
         this.app.stage.addChild(this.debugText)

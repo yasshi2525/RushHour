@@ -1,4 +1,3 @@
-import * as PIXI from "pixi.js"
 import { Coordinates } from "./gamemap";
 
 export interface ApplicationProperty {
