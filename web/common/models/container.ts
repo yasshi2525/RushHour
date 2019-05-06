@@ -1,6 +1,7 @@
 import BaseModel from "./base";
 import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
 
+const defaultValues: {offset: number} = {offset: 0};
 
 export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContrainer {
 
@@ -13,10 +14,19 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
         super();
-
         this.Child = newInstance;
         this.childOptions = newInstanceOptions;
         this.children = {};
+    }
+
+    setupDefaultValues() {
+        super.setupDefaultValues();
+        this.addDefaultValues(defaultValues);
+    }
+
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("offset", v => this.childOptions.offset = v);
     }
 
     existsChild(id: string) {

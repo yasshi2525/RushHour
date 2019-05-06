@@ -9,6 +9,7 @@ export default abstract class <T> {
     protected scale: {from: number, to: number};
     protected model: GameModel;
     protected dispatch: any;
+    protected forceMove: boolean;
 
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
@@ -17,9 +18,12 @@ export default abstract class <T> {
         this.server = {from: {x: model.coord.cx, y: model.coord.cy}, to: {x: model.coord.cx, y: model.coord.cy}};
         this.scale = {from: model.coord.scale, to: model.coord.scale};
         this.dispatch = dispatch;
+        this.forceMove = false;
     }
 
-    protected abstract shouldStart(ev: T): boolean
+    protected shouldStart(_: T) {
+        return true;
+    }
 
     onStart(ev: T) {
         if (this.shouldStart(ev)) {
@@ -35,21 +39,26 @@ export default abstract class <T> {
     protected abstract handleStart(ev: T): void
 
     onMove(ev: T) {
-        if (this.isExec) {
+        if (this.shouldMove(ev)) {
             this.handleMove(ev);
 
-            this.model.setScale(this.scale.to);
-            this.model.setCenter(this.server.to.x, this.server.to.y);
+            this.model.setScale(this.scale.to, this.forceMove);
+            this.model.setCenter(this.server.to.x, this.server.to.y, this.forceMove);
+        }
+        if (this.shouldEnd(ev)) {
 
-            if (this.model.isChanged()) {
-                this.model.render();
-            }
-        } 
+        }
     }
 
     protected abstract handleMove(ev: T): void
 
-    protected abstract shouldEnd(ev: T): boolean
+    protected shouldMove(_: T) {
+        return this.isExec;
+    }
+
+    protected shouldEnd(_: T) {
+        return true;
+    }
 
     onEnd(ev: T) {
         if (this.shouldEnd(ev)) {

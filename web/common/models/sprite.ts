@@ -17,7 +17,7 @@ const defaultValues: {
 };
 
 export abstract class SpriteModel extends PointModel implements Monitorable {
-    protected sprite: PIXI.Sprite;
+    sprite: PIXI.Sprite;
       
     constructor(options: SpriteProperty) {
         super(options);
@@ -53,10 +53,6 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
         this.addAfterCallback(() => this.container.removeChild(this.sprite));
     }
 
-    getSprite() {
-        return this.sprite;
-    }
-
     beforeRender() {
         super.beforeRender();
         this.sprite.x = this.current.x;
@@ -80,11 +76,9 @@ export abstract class AnimatedSpriteModel extends SpriteModel implements Monitor
     constructor(options: AnimatedSpriteProperty) {
         super({ texture: PIXI.Texture.EMPTY, ...options });
         
-        this.container.removeChild(this.sprite);
         let sprite = new PIXI.extras.AnimatedSprite(options.animation);
-        sprite.play();
+        sprite.gotoAndPlay(options.offset);
         this.sprite = sprite;
-        this.container.addChild(this.sprite);
     }
 
     setupDefaultValues() {

@@ -1,13 +1,9 @@
 import { AnimationProperty } from "../interfaces/pixi";
 import { generateFlash, generateOutline, generateShadow } from "./filter";
-
-const animateOpts = {
-    fps: 60,
-    frame: 5 * 60
-}
+import { config } from "../interfaces/gamemap";
 
 function getCurveOffset(frame: number) {
-    let ratio = frame / animateOpts.frame;
+    let ratio = frame / config.round;
     return Math.cos(ratio * Math.PI * 2) / 2 + 0.5;
 }
 
@@ -29,8 +25,7 @@ export abstract class AnimationGenerator {
     }
 
     record(rect: PIXI.Rectangle) {
-        this.applyFilter();
-        for(let i = 0; i < animateOpts.frame; i++) {
+        for(let i = 0; i < config.round; i++) {
             let offset = getCurveOffset(i);
             this.filters.forEach(v => v.fn(v.filter, offset));
             this.textures.push(this.app.renderer.generateTexture(
@@ -44,7 +39,9 @@ export abstract class AnimationGenerator {
 export class GraphicsAnimationGenerator extends AnimationGenerator {
     constructor(app: PIXI.Application, obj: PIXI.Graphics) {
         super(app, obj);
+        this.filters.push(generateOutline(app));
         this.filters.push(generateFlash(app));
+        this.applyFilter();
     }
 } 
 
@@ -53,5 +50,6 @@ export class ImageAnimationGenerator extends AnimationGenerator {
         super(app, new PIXI.Sprite(texture));
         this.filters.push(generateOutline(app));
         this.filters.push(generateShadow(app));
+        this.applyFilter();
     }
 }

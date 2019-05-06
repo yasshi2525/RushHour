@@ -5,7 +5,7 @@ import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator } from "./animate";
 
 const graphicsOpts = {
-    width: 2,
+    width: 4,
     color: 0x4169e1,
     radius: 10
 };
@@ -20,11 +20,12 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         graphics.arc(0, 0, graphicsOpts.radius, 0, Math.PI * 2);
 
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
+
         let rect = graphics.getBounds().clone();
-        rect.x -= 4;
-        rect.y -= 4;
-        rect.width += 8;
-        rect.height += 8;
+        rect.x -= 3 * options.app.renderer.resolution;
+        rect.y -= 3 * options.app.renderer.resolution;
+        rect.width += 6 * options.app.renderer.resolution;
+        rect.height += 6 * options.app.renderer.resolution;
         let animation =  generator.record(rect);
         super({ animation, ...options}, RailNode, {});
     }

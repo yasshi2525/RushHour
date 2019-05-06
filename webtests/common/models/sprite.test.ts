@@ -33,12 +33,12 @@ beforeEach(() => {
 });
 
 test("update sprite properties when payload is changed", () => {
-    let sprite: PIXI.Sprite | undefined;
+    let sprite: PIXI.Sprite;
     instance.setupBeforeCallback(); // create sprite instance
     instance.begin();
 
     updateSpriteModel(instance, testValue);
-    sprite = instance.getSprite();
+    sprite = instance.sprite;
 
     expect(sprite).toBeDefined();
     if (sprite !== undefined) {

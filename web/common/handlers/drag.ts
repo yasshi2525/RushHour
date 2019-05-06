@@ -4,14 +4,18 @@ import PointHandler from "./point";
 import GameModel from "../model";
 
 abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<T> {
+    constructor(model: GameModel, dispatch: any) {
+        super(model, dispatch);
+        this.forceMove = true;
+    }
 
-    handleStart(ev: T) {
+    protected handleStart(ev: T) {
         this.client.from = this.getClientXY(ev);
         this.client.to = this.getClientXY(ev);
         ev.currentTarget.classList.add(styles.dragging);
     }
 
-    handleMove(ev: T) {
+    protected handleMove(ev: T) {
         this.client.to = this.getClientXY(ev);
 
         let dx = (this.client.to.x - this.client.from.x);
@@ -28,7 +32,7 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
         };
     }
 
-    handleEnd(ev: T) {
+    protected handleEnd(ev: T) {
         ev.currentTarget.classList.remove(styles.dragging);
     }
 }
@@ -38,14 +42,6 @@ export class MouseDragHandler extends DragHandler<React.MouseEvent> {
     protected getClientXY(ev: React.MouseEvent) {
         return {x: ev.clientX, y: ev.clientY};
     }
-
-    shouldStart(): boolean {
-        return true;
-    }
-
-    shouldEnd(): boolean {
-        return true;
-    }
 }
 
 export class TouchDragHandler extends DragHandler<React.TouchEvent> {
@@ -53,19 +49,23 @@ export class TouchDragHandler extends DragHandler<React.TouchEvent> {
         super(model, dispatch);
     }
 
+    protected shouldStart(ev: React.TouchEvent) {
+        return ev.touches.length == 1;
+    }
+
     protected getClientXY(ev: React.TouchEvent) {
-        let touch = ev.targetTouches.item(0);
-        return {
-            x: touch.clientX * this.model.renderer.resolution, 
-            y: touch.clientY * this.model.renderer.resolution
-        };
+        let ts = ev.targetTouches;
+        let pos = {x: 0, y: 0};
+
+        for (let i = 0; i < ts.length; i++) {
+            pos.x += ts.item(i).clientX / ts.length * this.model.renderer.resolution;
+            pos.y += ts.item(i).clientY / ts.length * this.model.renderer.resolution;
+        }
+
+        return pos;
     }
 
-    shouldStart(ev: React.TouchEvent) {
-        return ev.targetTouches.length == 1;
-    }
-
-    shouldEnd(ev: React.TouchEvent) {
-        return ev.targetTouches.length == 1;
+    protected shouldEnd(ev: React.TouchEvent) {
+        return ev.touches.length == 1;
     }
 }

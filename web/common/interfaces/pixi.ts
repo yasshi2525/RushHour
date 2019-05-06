@@ -15,7 +15,8 @@ export interface SpriteProperty extends ContainerProperty {
 };
 
 export interface AnimatedSpriteProperty extends ContainerProperty {
-    animation: PIXI.Texture[]
+    animation: PIXI.Texture[],
+    offset: number
 }
 
 export interface GameModelProperty extends ApplicationProperty, Coordinates {

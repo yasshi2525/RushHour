@@ -29,12 +29,16 @@ export const config = {
      */
     interval: 1000, 
     /**
-     * 座標に変化があった際、位置合わせをするまでの遅延時間 (ms)
+     * 座標に変化があった際、位置合わせをするまでの遅延フレーム数
      */
-    latency: 1000,
+    latency: 30,
+    /**
+     * 繰り返しアニメーションのフレーム数
+     */
+    round: 240,
     gamePos: { 
-        min: {x: -Math.pow(2, 16), y: -Math.pow(2, 16)}, 
-        max: {x: Math.pow(2, 16), y: Math.pow(2, 16)},
+        min: {x: -Math.pow(2, 15), y: -Math.pow(2, 15)}, 
+        max: {x: Math.pow(2, 15), y: Math.pow(2, 15)},
         default: {x: 0, y: 0}
     },
     scale: { 

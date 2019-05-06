@@ -8,19 +8,38 @@ import BaseModel from "./base";
 const defaultValues: Coordinates & {[index: string]: any} = {
     cx: config.gamePos.default.x, 
     cy: config.gamePos.default.y, 
-    scale: config.scale.default
+    scale: config.scale.default,
+    forceMove: false
 };
 
 export abstract class PIXIModel extends BaseModel implements Monitorable {
     protected app: PIXI.Application;
     protected parent: PIXI.Container;
     protected container: PIXI.Container;
+    /**
+     * smoothMove後、描画する座標(クライアント座標系)
+     */
+    destination: Point;
+    /**
+     * 描画する座標(クライアント座標系)
+     */
+    current: Point;
+    /**
+     * (x, y)が変化したとき、destination に移動するまでの残りフレーム数。
+     */
+    protected latency: number;
+
+    protected smoothMoveFn: () => void;
 
     constructor(options: ContainerProperty) {
         super();
         this.app = options.app;
         this.parent = options.container;
         this.container = new PIXI.Container();
+        this.destination = {x: 0, y: 0};
+        this.current = {x: 0, y: 0};
+        this.latency = 0;
+        this.smoothMoveFn = () => this.smoothMove();
     }
 
     setupDefaultValues() {
@@ -31,14 +50,16 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
-            this.parent.addChild(this.container);
+            this.app.stage.addChild(this.container);
+            this.app.ticker.add(this.smoothMoveFn);
         })
     }
 
     setupAfterCallback() {
         super.setupAfterCallback();
         this.addAfterCallback(() => {
-            this.parent.removeChild(this.container);
+            this.app.ticker.remove(this.smoothMoveFn);
+            this.app.stage.removeChild(this.container);
         })
     }
 
@@ -69,26 +90,36 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     shouldEnd() {
         return this.isOut(this.props.x, this.props.y);
     }
-}
 
-const animationOpts = {
-    round: 5000
-};
+    updateDestination(force: boolean = false) {
+        this.destination = this.toView(this.props.x, this.props.y);
+        this.latency = config.latency;
+        if (force) {
+            this.current = this.destination;
+            this.latency = 0;
+            this.props.forceMove = false;
+        }
+    }
+
+    protected smoothMove() {   
+        if (this.latency > 0) {
+            let ratio = this.latency / config.latency;
+            if (ratio < 0.5) {
+                ratio = 1.0 - ratio, 2;
+            }
+            this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
+            this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
+            this.latency--;
+        } else {
+            this.current = this.destination;
+            this.latency = 0;
+        }
+        this.beforeRender();
+    }
+}
 
 export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContrainer {
     protected app: PIXI.Application;
-    protected container: PIXI.Container;
-    /**
-     * アニメーション時の進行率(0-1) cosカーブ
-     */
-    protected offset: number;
-
-    /**
-     * インスタンス作成からの累計時間
-     */
-    protected tick: number;
-
-    protected counterFn: () => void;
 
     constructor(
         options: ApplicationProperty,
@@ -96,12 +127,7 @@ export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T
         newInstanceOptions: {[index:string]: {}}) {
         super(newInstance, newInstanceOptions);
         this.app = options.app;
-        this.container = new PIXI.Container();
         this.childOptions.app = this.app;
-        this.childOptions.container = this.container;
-        this.tick = 0;
-        this.offset = 0;
-        this.counterFn = () => this.counter();
     }
 
     setupDefaultValues() {
@@ -109,25 +135,14 @@ export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T
         this.addDefaultValues(defaultValues);
     }
 
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => {
-            this.app.stage.addChild(this.container);
-            this.app.ticker.add(this.counterFn)
-        })
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        ["cx", "cy", "scale"].forEach(v => this.addUpdateCallback(v, () => this.updateDestination()));
+        this.addUpdateCallback("forceMove", () => this.updateDestination(true));
     }
 
-    setupAfterCallback() {
-        super.setupAfterCallback();
-        this.addAfterCallback(() => {
-            this.app.ticker.remove(this.counterFn);
-            this.app.stage.removeChild(this.container);
-        })
-    }
-
-    protected counter() {
-        this.tick += this.app.ticker.elapsedMS;
-        let ratio = (this.tick % animationOpts.round) / animationOpts.round;
-        this.offset = Math.cos(ratio * Math.PI * 2) / 2 + 0.5;
+    protected updateDestination(force: boolean = false) {
+        this.forEachChild(c => c.updateDestination(force));
+        this.props.forceMove = false;
     }
 }

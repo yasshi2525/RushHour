@@ -20,11 +20,7 @@ export class WheelHandler extends PointHandler<React.WheelEvent> {
     }
 
     protected handleMove(ev: React.WheelEvent): void {
-        // scaleの変更
-        this.model.setScale(this.scale.from + ev.deltaY * sensitivity)
-        this.scale.to = this.model.coord.scale;
-
-        // 画面中心座標の変更
+        this.scale.to = this.scale.from + ev.deltaY * sensitivity;
         let center = this.zoom(this.getClientXY(ev), this.scale.to - this.scale.from);
         this.server.to.x = center.x;
         this.server.to.y = center.y;

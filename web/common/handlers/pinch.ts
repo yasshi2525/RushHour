@@ -8,18 +8,19 @@ export class PinchHandler extends PointHandler<React.TouchEvent> {
     constructor(model: GameModel, dispatch: any) {
         super(model, dispatch);
         this.dist = {from: 0, to: 0};
+        this.forceMove = true;
     }
 
-    /**
-     * 2つのタッチポイントの重心を取得します。
-     * @param ev イベント
-     */
     protected getClientXY(ev: React.TouchEvent) {
         let ts = ev.targetTouches;
-        return {
-            x: (ts.item(0).clientX + ts.item(1).clientX) * this.model.renderer.resolution / 2, 
-            y: (ts.item(0).clientY + ts.item(1).clientY) * this.model.renderer.resolution / 2
-        };
+        let pos = {x: 0, y: 0};
+
+        for (let i = 0; i < ts.length; i++) {
+            pos.x += ts.item(i).clientX / ts.length * this.model.renderer.resolution;
+            pos.y += ts.item(i).clientY / ts.length * this.model.renderer.resolution;
+        }
+
+        return pos;
     }
 
     protected getDistance(ev: React.TouchEvent) {
@@ -29,33 +30,40 @@ export class PinchHandler extends PointHandler<React.TouchEvent> {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    shouldStart(ev: React.TouchEvent) {
+    protected shouldStart(ev: React.TouchEvent) {
         return ev.targetTouches.length > 1;
     }
 
-    handleStart(ev: React.TouchEvent) {
+    protected handleStart(ev: React.TouchEvent) {
         this.dist.from = this.getDistance(ev);
         this.dist.to = this.dist.from;
     }
 
-    handleMove(ev: React.TouchEvent) {
-        // scaleの変更
+    protected shouldMove(ev: React.TouchEvent) {
+        return ev.targetTouches.length > 1;
+    }
+
+    protected handleMove(ev: React.TouchEvent) {
         this.dist.to = this.getDistance(ev);
 
-        let ratio = this.dist.from / this.dist.to;
-        this.model.setScale(this.scale.from + (ratio - 1))
-        this.scale.to = this.model.coord.scale;
+        let d = this.dist.to - this.dist.from;
 
-        // 画面中心座標の変更
+        let size = Math.max(
+            this.model.renderer.width, 
+            this.model.renderer.height
+        );
+
+        let ratio = d / size;
+        this.scale.to = this.scale.from - ratio * this.model.renderer.resolution;
         let center = this.zoom(this.getClientXY(ev), this.scale.to - this.scale.from);
         this.server.to.x = center.x;
         this.server.to.y = center.y;
     }
 
-    shouldEnd(ev: React.TouchEvent) {
+    protected shouldEnd(ev: React.TouchEvent) {
         return ev.targetTouches.length > 1;
     }
 
-    handleEnd() {
+    protected handleEnd() {
     }
 }

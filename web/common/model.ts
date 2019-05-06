@@ -6,6 +6,8 @@ import { GameModelProperty } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer } from "./models/rail";
 
+const forceMove = { forceMove: true };
+
 export default class {
     protected app: PIXI.Application;
     renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
@@ -14,6 +16,7 @@ export default class {
     timestamp: number;
     textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
+    offset: number;
     /**
      * サーバから全データの取得が必要か
      */
@@ -44,6 +47,16 @@ export default class {
         this.shouldFetch = false;
         this.shouldRemoveOutsider = false;
         this.timestamp = 0;
+        this.offset = 0;
+
+        this.app.ticker.add(() => {
+            this.offset++;
+            if (this.offset >= config.round) {
+                this.offset = 0;
+            }
+            Object.keys(this.payload).forEach(key => this.payload[key].merge("offset", this.offset));
+        });
+
         this.debugText = new PIXI.Text();
         this.debugText.style.fontSize = 14;
         this.debugText.style.fill = 0xffffff;
@@ -93,18 +106,19 @@ export default class {
         );
     }
 
-    setCenter(x: number, y: number) {
-        if (x - Math.pow(2, this.coord.scale - 1) < config.gamePos.min.x) {
-            x = config.gamePos.min.x + Math.pow(2, this.coord.scale - 1);
+    setCenter(x: number, y: number, force: boolean = false) {
+        let radius = Math.pow(2, this.coord.scale - 1);
+        if (x - radius < config.gamePos.min.x) {
+            x = config.gamePos.min.x + radius;
         }
-        if (y - Math.pow(2, this.coord.scale - 1) < config.gamePos.min.y) {
-            y = config.gamePos.min.y + Math.pow(2, this.coord.scale - 1);
+        if (y - radius < config.gamePos.min.y) {
+            y = config.gamePos.min.y + radius;
         }
-        if (x + Math.pow(2, this.coord.scale - 1) > config.gamePos.max.x) {
-            x = config.gamePos.max.x - Math.pow(2, this.coord.scale - 1);
+        if (x + radius > config.gamePos.max.x) {
+            x = config.gamePos.max.x - radius;
         }
-        if (y + Math.pow(2, this.coord.scale - 1) > config.gamePos.max.y) {
-            y = config.gamePos.max.y - Math.pow(2, this.coord.scale - 1);
+        if (y + radius > config.gamePos.max.y) {
+            y = config.gamePos.max.y - radius;
         }
         if (this.coord.cx == x && this.coord.cy == y) {
             return;
@@ -115,14 +129,17 @@ export default class {
         this.coord.cy = y;
         
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].mergeAll(this.coord)
+            this.payload[key].mergeAll(this.coord);
+            if (force) {
+                this.payload[key].mergeAll(forceMove);
+            }
             if (this.payload[key].isChanged()) {
                 this.changed = true;
             }
-        })
+        });
     }
 
-    setScale(v: number) {
+    setScale(v: number, force: boolean = false) {
         if (v < config.scale.min) {
             v = config.scale.min;
         }
@@ -139,7 +156,10 @@ export default class {
         this.coord.scale = v;
 
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].mergeAll(this.coord)
+            this.payload[key].mergeAll(this.coord);
+            if (force) {
+                this.payload[key].mergeAll(forceMove);
+            }
             if (this.payload[key].isChanged()) {
                 this.changed = true;
             }
