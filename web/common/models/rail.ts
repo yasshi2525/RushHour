@@ -7,7 +7,8 @@ import { GraphicsAnimationGenerator } from "./animate";
 const graphicsOpts = {
     width: 4,
     color: 0x4169e1,
-    radius: 10
+    radius: 10,
+    slide: 10
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
@@ -44,11 +45,11 @@ export class RailEdge extends GraphicsModel implements Monitorable {
     }
 
     resolve(from: any | undefined, to: any | undefined, reverse: any | undefined) {
-        if (from !== undefined) {
+        if (from !== undefined && to !== undefined) {
             this.from = from;
-        }
-        if (to !== undefined) {
             this.to = to;
+            this.props.x = (from.get("x") + to.get("x")) / 2;
+            this.props.y = (from.get("y") + to.get("y")) / 2;
         }
         if (reverse !== undefined) {
             this.reverse = reverse;
@@ -57,16 +58,22 @@ export class RailEdge extends GraphicsModel implements Monitorable {
 
     beforeRender() {
         super.beforeRender();
+        this.graphics.clear();
         this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
 
         if (this.from !== undefined && this.to !== undefined) {
             // 中心がcurrentなので、相対座標を求める
+            let from = this.from.current;
+            let to = this.to.current;
+
+            var theta = Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2;
+
             this.graphics.moveTo(
-                this.from.get("x") - this.props.x, 
-                this.from.get("y") - this.props.y)
+                from.x + Math.cos(theta) * graphicsOpts.slide - this.current.x, 
+                from.y + Math.sin(theta) * graphicsOpts.slide - this.current.y);
             this.graphics.lineTo(
-                this.to.get("x") - this.props.x, 
-                this.to.get("y") - this.props.y)
+                to.x + Math.cos(theta) * graphicsOpts.slide - this.current.x, 
+                to.y + Math.sin(theta) * graphicsOpts.slide - this.current.y);
         }
     }
 

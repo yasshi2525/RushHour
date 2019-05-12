@@ -114,9 +114,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 function mapStateToProps(state: RushHourStatus) {
     return { 
         timestamp: state.timestamp, 
-        map: {
-            rail_nodes: state.map.rail_nodes
-        } };
+        map: state.map
+    };
 }
 
 export default connect(mapStateToProps)(Canvas);

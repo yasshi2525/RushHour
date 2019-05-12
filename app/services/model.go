@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -117,6 +118,17 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(raw),
 					reflect.ValueOf(msg.X),
 					reflect.ValueOf(msg.Y)})
+			}
+			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
+				re := raw.(*entities.RailEdge)
+				len := rand.Intn(int(math.Pow(2, 9)))
+				for i := 0; i < len; i++ {
+					d := re.ToNode.Point.Sub(&re.FromNode.Point)
+					theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+					_, re = re.ToNode.Extend(
+						re.ToNode.X+math.Cos(theta),
+						re.ToNode.Y+math.Sin(theta))
+				}
 			}
 		case entities.STATION:
 			if rn := randEntity(owner, entities.RAILNODE); rn != nil {
