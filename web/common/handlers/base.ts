@@ -45,9 +45,6 @@ export default abstract class <T> {
             this.model.setScale(this.scale.to, this.forceMove);
             this.model.setCenter(this.server.to.x, this.server.to.y, this.forceMove);
         }
-        if (this.shouldEnd(ev)) {
-
-        }
     }
 
     protected abstract handleMove(ev: T): void

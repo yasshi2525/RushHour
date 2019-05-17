@@ -121,13 +121,14 @@ func processMsg(msg *Operation) time.Time {
 			}
 			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
 				re := raw.(*entities.RailEdge)
-				len := rand.Intn(int(math.Pow(2, 9)))
+				len := rand.Intn(10)
 				for i := 0; i < len; i++ {
+					size := math.Pow(2, 10)
 					d := re.ToNode.Point.Sub(&re.FromNode.Point)
 					theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 					_, re = re.ToNode.Extend(
-						re.ToNode.X+math.Cos(theta),
-						re.ToNode.Y+math.Sin(theta))
+						re.ToNode.X+math.Cos(theta)*size,
+						re.ToNode.Y+math.Sin(theta)*size)
 				}
 			}
 		case entities.STATION:

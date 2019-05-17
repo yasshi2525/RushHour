@@ -1,8 +1,7 @@
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { GraphicsModel, GraphicsContainer } from  "./graphics";
 import { ApplicationProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
-import { GraphicsAnimationGenerator } from "./animate";
+import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 
 const graphicsOpts = {
     width: 4,
@@ -27,17 +26,18 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         rect.y -= 3 * options.app.renderer.resolution;
         rect.width += 6 * options.app.renderer.resolution;
         rect.height += 6 * options.app.renderer.resolution;
-        let animation =  generator.record(rect);
+        let animation = generator.record(rect);
         super({ animation, ...options}, RailNode, {});
     }
 }
 
 const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0, eid: 0};
 
-export class RailEdge extends GraphicsModel implements Monitorable {
+export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     protected from: RailNode|undefined;
     protected to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
+    protected theta: number = 0;
 
     setupDefaultValues() {
         super.setupDefaultValues();
@@ -46,35 +46,53 @@ export class RailEdge extends GraphicsModel implements Monitorable {
 
     resolve(from: any | undefined, to: any | undefined, reverse: any | undefined) {
         if (from !== undefined && to !== undefined) {
-            this.from = from;
-            this.to = to;
-            this.props.x = (from.get("x") + to.get("x")) / 2;
-            this.props.y = (from.get("y") + to.get("y")) / 2;
+            if (this.from !== from || this.to !== to ) {
+                this.from = from;
+                this.to = to;
+                this.updateDestination(true);
+            }
         }
         if (reverse !== undefined) {
             this.reverse = reverse;
         }
     }
 
-    beforeRender() {
-        super.beforeRender();
-        this.graphics.clear();
-        this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
-
+    protected calcDestination() {
         if (this.from !== undefined && this.to !== undefined) {
-            // 中心がcurrentなので、相対座標を求める
-            let from = this.from.current;
-            let to = this.to.current;
-
-            var theta = Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2;
-
-            this.graphics.moveTo(
-                from.x + Math.cos(theta) * graphicsOpts.slide - this.current.x, 
-                from.y + Math.sin(theta) * graphicsOpts.slide - this.current.y);
-            this.graphics.lineTo(
-                to.x + Math.cos(theta) * graphicsOpts.slide - this.current.x, 
-                to.y + Math.sin(theta) * graphicsOpts.slide - this.current.y);
+            let theta = Math.atan2(
+                this.to.destination.y - this.from.destination.y, 
+                this.to.destination.x - this.from.destination.x);
+            return {
+                x: (this.from.destination.x + this.to.destination.x) / 2
+                    + graphicsOpts.slide * Math.cos(theta + Math.PI / 2),
+                y: (this.from.destination.y + this.to.destination.y) / 2
+                    + graphicsOpts.slide * Math.sin(theta + Math.PI / 2)
+            };
         }
+        return {x: 0, y: 0};
+    }
+
+    protected smoothMove() {
+        if (this.from !== undefined && this.to !== undefined) {
+            let d = { 
+                x: this.to.current.x - this.from.current.x,
+                y: this.to.current.y - this.from.current.y
+            };
+            let avg = {
+                x: (this.from.current.x + this.to.current.x) / 2,
+                y: (this.from.current.y + this.to.current.y) / 2
+            };
+            let theta = Math.atan2(d.y, d.x);
+            this.current = {
+                x: avg.x + graphicsOpts.slide * Math.cos(theta + Math.PI / 2),
+                y: avg.y + graphicsOpts.slide * Math.sin(theta + Math.PI / 2)
+            };
+
+            this.sprite.rotation = theta;
+            this.sprite.height = graphicsOpts.width;
+            this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
+        }
+        this.beforeRender();
     }
 
     shouldEnd() {
@@ -88,8 +106,10 @@ export class RailEdge extends GraphicsModel implements Monitorable {
     }
 }
 
-export class RailEdgeContainer extends GraphicsContainer<RailEdge> implements MonitorContrainer {
+export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContrainer {
     constructor(options: ApplicationProperty) {
-        super(options, RailEdge, {});
+        let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
+        let animation =  generator.record();
+        super({ animation, ...options}, RailEdge, {});
     }
 }

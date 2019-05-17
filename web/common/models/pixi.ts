@@ -91,8 +91,12 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         return this.isOut(this.props.x, this.props.y);
     }
 
+    protected calcDestination() {
+        return this.toView(this.props.x, this.props.y);
+    }
+
     updateDestination(force: boolean = false) {
-        this.destination = this.toView(this.props.x, this.props.y);
+        this.destination = this.calcDestination();
         this.latency = config.latency;
         if (force) {
             this.current = this.destination;
