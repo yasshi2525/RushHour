@@ -45,6 +45,8 @@ type cfgHuman struct {
 
 // Config represents constants for entity.
 type Config struct {
+	MaxScale  float64
+	MinScale  float64
 	Residence cfgResidence
 	Company   cfgCompany
 	Gate      cfgGate

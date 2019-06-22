@@ -34,6 +34,7 @@ type Player struct {
 	RailLines map[uint]*RailLine `gorm:"-" json:"-"`
 	LineTasks map[uint]*LineTask `gorm:"-" json:"-"`
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
+	Tracks    map[uint]*Track    `gorm:"-" json:"-"`
 }
 
 // NewPlayer create instance
@@ -68,8 +69,8 @@ func (o *Player) S() *Shape {
 
 // ClearTracks eraces track infomation.
 func (o *Player) ClearTracks() {
-	for _, rn := range o.RailNodes {
-		rn.Tracks = make(map[uint]*Track)
+	for _, tr := range o.Tracks {
+		tr.Delete()
 	}
 }
 
@@ -85,6 +86,7 @@ func (o *Player) Init(m *Model) {
 	o.RailLines = make(map[uint]*RailLine)
 	o.LineTasks = make(map[uint]*LineTask)
 	o.Trains = make(map[uint]*Train)
+	o.Tracks = make(map[uint]*Track)
 }
 
 // Resolve set reference.
@@ -107,6 +109,8 @@ func (o *Player) Resolve(args ...Entity) {
 			o.LineTasks[obj.ID] = obj
 		case *Train:
 			o.Trains[obj.ID] = obj
+		case *Track:
+			o.Tracks[obj.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
@@ -134,6 +138,8 @@ func (o *Player) UnResolve(args ...Entity) {
 			delete(o.LineTasks, obj.ID)
 		case *Train:
 			delete(o.Trains, obj.ID)
+		case *Track:
+			delete(o.Tracks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}

@@ -26,6 +26,10 @@ type Model struct {
 	Tracks     map[uint]*Track
 	Transports map[uint]*Transport
 	Steps      map[uint]*Step
+	Cluster    map[uint]*Cluster
+	Chunks     map[uint]*Chunk
+
+	RootCluster *Cluster
 
 	NextIDs map[ModelType]*uint64
 	// Deletes represents the list of deleting in next Backup()
@@ -62,6 +66,7 @@ func (m *Model) Add(args ...Entity) {
 		m.Values[obj.B().Type()].SetMapIndex(
 			reflect.ValueOf(obj.B().Idx()),
 			reflect.ValueOf(obj))
+		m.RootCluster.Add(obj)
 	}
 }
 
@@ -98,6 +103,7 @@ func (m *Model) Delete(args ...Entity) {
 			reflect.ValueOf(obj.B().Idx()),
 			reflect.Value{})
 		m.Deletes[obj.B().Type()] = append(m.Deletes[obj.B().Type()], obj.B().Idx())
+		m.RootCluster.Remove(obj)
 	}
 }
 
@@ -170,6 +176,7 @@ func NewModel() *Model {
 	}
 
 	obj := model.Addr().Interface().(*Model)
+	obj.RootCluster = obj.NewCluster(nil, 0, 0)
 	obj.NextIDs = make(map[ModelType]*uint64)
 	obj.Deletes = make(map[ModelType][]uint)
 	obj.Values = make(map[ModelType]reflect.Value)

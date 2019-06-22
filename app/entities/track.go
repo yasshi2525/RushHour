@@ -15,7 +15,7 @@ type Track struct {
 // NewTrack create instance.
 func (m *Model) NewTrack(f *RailNode, t *RailNode, via *RailEdge, v float64) *Track {
 	tk := &Track{
-		Base:     m.NewBase(TRACK),
+		Base:     m.NewBase(TRACK, f.O),
 		Shape:    NewShapeEdge(&f.Point, &t.Point),
 		FromNode: f,
 		ToNode:   t,
@@ -23,7 +23,8 @@ func (m *Model) NewTrack(f *RailNode, t *RailNode, via *RailEdge, v float64) *Tr
 		Value:    v,
 	}
 	tk.Init(m)
-	f.Tracks[t.ID] = tk
+	tk.O.Resolve(tk)
+	f.Resolve(tk)
 	m.Add(tk)
 	return tk
 }
@@ -69,6 +70,8 @@ func (tk *Track) CheckDelete() error {
 
 // BeforeDelete delete selt from related Locationable.
 func (tk *Track) BeforeDelete() {
+	tk.O.UnResolve(tk)
+	tk.FromNode.UnResolve(tk)
 	delete(tk.FromNode.Tracks, tk.ToNode.ID)
 }
 

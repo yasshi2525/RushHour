@@ -22,6 +22,8 @@ const (
 	TRACK
 	TRANSPORT
 	STEP
+	CLUSTER
+	CHUNK
 )
 
 // TypeList is list of ModelType
@@ -116,6 +118,8 @@ func InitType() {
 		TRACK,
 		TRANSPORT,
 		STEP,
+		CLUSTER,
+		CHUNK,
 	}
 
 	attr = make(map[ModelType]*attribute)
@@ -137,6 +141,8 @@ func InitType() {
 	attr[TRACK] = &attribute{"Track", "tk", "", ""}
 	attr[TRANSPORT] = &attribute{"Transport", "x", "", ""}
 	attr[STEP] = &attribute{"Step", "s", "", ""}
+	attr[CLUSTER] = &attribute{"Cluster", "cl", "", ""}
+	attr[CHUNK] = &attribute{"Chunk", "ch", "", ""}
 
 	types = make(map[ModelType]reflect.Type)
 	nodes = make(map[ModelType]bool)

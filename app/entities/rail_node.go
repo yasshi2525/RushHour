@@ -90,6 +90,8 @@ func (rn *RailNode) Resolve(args ...Entity) {
 			obj.Resolve(rn)
 		case *Platform:
 			rn.OverPlatform = obj
+		case *Track:
+			rn.Tracks[obj.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -124,6 +126,8 @@ func (rn *RailNode) UnResolve(args ...interface{}) {
 		case *Platform:
 			rn.OverPlatform = nil
 			rn.PlatformID = ZERO
+		case *Track:
+			delete(rn.Tracks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
