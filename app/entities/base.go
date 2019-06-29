@@ -21,7 +21,7 @@ type Base struct {
 func (m *Model) NewBase(t ModelType, owner ...*Player) Base {
 	var o *Player
 	oid := ZERO
-	if len(owner) > 0 {
+	if len(owner) > 0 && owner[0] != nil {
 		o = owner[0]
 		oid = o.ID
 	}

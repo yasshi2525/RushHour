@@ -47,8 +47,9 @@ type TestCaseLineTasks []TestCaseLineTask
 func (cases TestCaseLineTasks) Assert(t *testing.T, lt *LineTask) {
 	for i, c := range cases {
 		t.Run(fmt.Sprintf("[%d] %s", i, c.Name), func(t *testing.T) {
-			if lt == (*LineTask)(nil) {
+			if lt == nil {
 				t.Error("lt want not be nil, but got nil")
+				return
 			}
 			if lt.TaskType != c.Type {
 				t.Errorf("type error: want %v, but got %v", c.Type, lt.TaskType)

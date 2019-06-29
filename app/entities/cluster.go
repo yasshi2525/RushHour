@@ -91,21 +91,26 @@ func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
 	return cl.M.NewCluster(c, dx, dy)
 }
 
-func (cl *Cluster) Add(obj Entity) {
-	o := obj.B().O
-	if _, ok := cl.Data[o.OwnerID]; !ok {
-		cl.M.NewChunk(cl, o)
-	}
-
-	cl.Data[o.OwnerID].Add(obj)
-
-	len := math.Pow(2, cl.Scale-2)
-	process := func(dx int, dy int, c *Cluster) {
-		if obj.S().IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
-			c.Add(obj)
+func (cl *Cluster) Add(raw Entity) {
+	switch obj := raw.(type) {
+	case *Cluster:
+	case *Chunk:
+	default:
+		oid := obj.B().OwnerID
+		if _, ok := cl.Data[oid]; !ok {
+			cl.Data[oid] = cl.M.NewChunk(cl, obj.B().O)
 		}
+
+		cl.Data[oid].Add(obj)
+
+		len := math.Pow(2, cl.Scale-2)
+		process := func(dx int, dy int, c *Cluster) {
+			if obj.S().IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
+				c.Add(obj)
+			}
+		}
+		cl.EachChildren(process)
 	}
-	cl.EachChildren(process)
 }
 
 func (cl *Cluster) Update(obj Entity) {
@@ -114,17 +119,19 @@ func (cl *Cluster) Update(obj Entity) {
 }
 
 func (cl *Cluster) Remove(obj Entity) {
-	o := obj.B().O
-	cl.Data[o.ID].Remove(obj)
-	if cl.Data[o.ID].IsEmpty() {
-		cl.Delete()
-	}
-	process := func(dx int, dy int, c *Cluster) {
-		if c.Data[o.ID].Has(obj) {
-			c.Data[o.ID].Remove(obj)
+	oid := obj.B().OwnerID
+	if chunk := cl.Data[oid]; chunk != nil {
+		chunk.Remove(obj)
+		process := func(dx int, dy int, c *Cluster) {
+			if chunk.Has(obj) {
+				chunk.Remove(obj)
+			}
+		}
+		cl.EachChildren(process)
+		if chunk.IsEmpty() {
+			cl.Delete()
 		}
 	}
-	cl.EachChildren(process)
 }
 
 func (cl *Cluster) EachChildren(callback func(int, int, *Cluster)) {
@@ -138,7 +145,9 @@ func (cl *Cluster) EachChildren(callback func(int, int, *Cluster)) {
 }
 
 func (cl *Cluster) BeforeDelete() {
-	cl.Parent.UnResolve(cl)
+	if cl.Parent != nil {
+		cl.Parent.UnResolve(cl)
+	}
 }
 
 func (cl *Cluster) UnResolve(args ...interface{}) {

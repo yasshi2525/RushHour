@@ -91,7 +91,7 @@ func (rn *RailNode) Resolve(args ...Entity) {
 		case *Platform:
 			rn.OverPlatform = obj
 		case *Track:
-			rn.Tracks[obj.ID] = obj
+			rn.Tracks[obj.ToNode.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

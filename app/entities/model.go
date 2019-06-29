@@ -176,7 +176,6 @@ func NewModel() *Model {
 	}
 
 	obj := model.Addr().Interface().(*Model)
-	obj.RootCluster = obj.NewCluster(nil, 0, 0)
 	obj.NextIDs = make(map[ModelType]*uint64)
 	obj.Deletes = make(map[ModelType][]uint)
 	obj.Values = make(map[ModelType]reflect.Value)
@@ -193,5 +192,6 @@ func NewModel() *Model {
 		obj.Values[res] = model.Field(idx)
 	}
 
+	obj.RootCluster = obj.NewCluster(nil, 0, 0)
 	return obj
 }
