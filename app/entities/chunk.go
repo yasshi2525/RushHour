@@ -36,12 +36,11 @@ func (ch *Chunk) S() *Shape {
 	return &ch.Shape
 }
 
-func (ch *Chunk) Init(m *Model) *Chunk {
+func (ch *Chunk) Init(m *Model) {
 	ch.Base.Init(CHUNK, m)
 	ch.Shape.P1 = &ch.Point
 	ch.InRailEdges = make(map[uint]*DelegateRailEdge)
 	ch.OutRailEdges = make(map[uint]*DelegateRailEdge)
-	return ch
 }
 
 func (ch *Chunk) Add(raw Entity) {

@@ -38,6 +38,22 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 		cl.X = p.X + len*float64(dx)
 		cl.Y = p.Y + len*float64(dy)
 	}
+	cl.Init(m)
+	m.Add(cl)
+	return cl
+}
+
+func (cl *Cluster) B() *Base {
+	return &cl.Base
+}
+
+func (cl *Cluster) S() *Shape {
+	return &cl.Shape
+}
+
+func (cl *Cluster) Init(m *Model) {
+	cl.Base.Init(CLUSTER, m)
+
 	cl.Shape.P1 = &cl.Point
 
 	cl.Data = make(map[uint]*Chunk)
@@ -50,16 +66,6 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 		cl.ChPos[S][W] = &Point{cl.X - len, cl.Y + len}
 		cl.ChPos[S][E] = &Point{cl.X + len, cl.Y + len}
 	}
-	m.Add(cl)
-	return cl
-}
-
-func (cl *Cluster) B() *Base {
-	return &cl.Base
-}
-
-func (cl *Cluster) S() *Shape {
-	return &cl.Shape
 }
 
 func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
