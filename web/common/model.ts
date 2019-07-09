@@ -1,3 +1,4 @@
+import * as PIXI from "pixi.js";
 import { ResidenceContainer, CompanyContainer } from "./models/background";
 import MonitorContainer from "./models/container";
 import { Coordinates, config } from "./interfaces/gamemap";
@@ -10,7 +11,7 @@ const forceMove = { forceMove: true };
 
 export default class {
     protected app: PIXI.Application;
-    renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
+    renderer: PIXI.Renderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
     protected changed: boolean = false;
     timestamp: number;

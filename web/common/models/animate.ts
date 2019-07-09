@@ -1,3 +1,4 @@
+import * as PIXI from "pixi.js";
 import { AnimationProperty } from "../interfaces/pixi";
 import { generateFlash, generateOutline, generateShadow } from "./filter";
 import { config } from "../interfaces/gamemap";

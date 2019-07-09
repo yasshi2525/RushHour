@@ -29,7 +29,6 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             height: window.innerHeight,
             backgroundColor: 0x333333,
             autoStart: true,
-            autoResize: true,
             antialias: true,
             resolution: window.devicePixelRatio
         });
@@ -79,9 +78,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
     componentDidMount() {
         if (this.ref.current !== null) {
-            // 一度描画して、canvas要素を子要素にする
-            this.ref.current.appendChild(this.app.view);
-
+            if (this.app.view instanceof Node) { // 単体テスト時、Node非実装のため
+                // 一度描画して、canvas要素を子要素にする
+                this.ref.current.appendChild(this.app.view);
+            }
             this.fetchMap();
         } 
     }

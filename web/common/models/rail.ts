@@ -1,3 +1,4 @@
+import * as PIXI from "pixi.js"
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
 import { ApplicationProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";

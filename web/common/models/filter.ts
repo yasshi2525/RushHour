@@ -1,4 +1,4 @@
-import { GlowFilter, OutlineFilter, DropShadowFilter } from "pixi-filters";
+import { GlowFilter, OutlineFilter, DropShadowFilter, DropShadowFilterOptions } from "pixi-filters";
 import { AnimationProperty } from "../interfaces/pixi";
 
 const flashOpts = { 
@@ -38,7 +38,7 @@ export function generateOutline(app: PIXI.Application) {
     return { app, filter, fn: () => {}};
 }
 
-const shadowOpts: PIXI.filters.DropShadowFilterOptions = {
+const shadowOpts: DropShadowFilterOptions = {
     color: 0x000000,
     distance: 5
 }

@@ -31,6 +31,6 @@ export interface AnimatedSpriteContainerProperty extends ApplicationProperty {
 }
 
 export interface AnimationProperty extends ApplicationProperty {
-    filter: PIXI.Filter<any>,
-    fn: (filter: PIXI.Filter<any>, offset: number) => void
+    filter: PIXI.Filter,
+    fn: (filter: PIXI.Filter, offset: number) => void
 }

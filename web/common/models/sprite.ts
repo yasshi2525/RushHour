@@ -76,7 +76,7 @@ export abstract class AnimatedSpriteModel extends SpriteModel implements Monitor
     constructor(options: AnimatedSpriteProperty) {
         super({ texture: PIXI.Texture.EMPTY, ...options });
         
-        let sprite = new PIXI.extras.AnimatedSprite(options.animation);
+        let sprite = new PIXI.AnimatedSprite(options.animation);
         sprite.gotoAndPlay(options.offset);
         this.sprite = sprite;
     }

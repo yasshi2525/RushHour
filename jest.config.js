@@ -9,6 +9,9 @@ module.exports = {
         "^@/(.+)": "<rootDir>/web/$1",
         "\\.(css|less)$": "identity-obj-proxy"
     },
-    setupFiles: ["jest-canvas-mock"],
-    setupFilesAfterEnv: ["<rootDir>/setup.ts"]
+    setupFilesAfterEnv: ["./setup.ts"],
+    setupFiles: [ "./client.js" ],
+    globalSetup: "./setup.js",
+    globalTeardown: "./teardown.js",
+    testEnvironment: "./puppeteer_environment.js",
 };
