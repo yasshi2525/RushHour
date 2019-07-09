@@ -16,7 +16,7 @@ jobs:
 
   test-client:
     docker:
-      - image: circleci/node-browsers
+      - image: circleci/node:latest-browsers
 
     steps:
       - checkout
