@@ -11,6 +11,9 @@ function createCanvasMock() {
     // pixi.js Rendererの作成で、addEventListenerが使われるためモック化
     Object.defineProperty(canvas, "addEventListener", {value: ()=>{}});
 
+    // pixi.js autoDensityの中で style属性が使われるためモック化
+    Object.defineProperty(canvas, "style", { value: {}});
+
     // jsdomではwebglを使えないので、作成したwebglを返す
     Object.defineProperty(canvas, "getContext", {
         value: function(value, options) {
