@@ -30,7 +30,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             backgroundColor: 0x333333,
             autoStart: true,
             antialias: true,
-            resolution: window.devicePixelRatio
+            resolution: window.devicePixelRatio,
+            autoDensity: true
         });
 
         this.model = new GameModel({
