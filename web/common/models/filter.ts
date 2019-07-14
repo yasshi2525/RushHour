@@ -18,6 +18,7 @@ export function generateFlash(app: PIXI.Application): AnimationProperty {
         flashOpts.innerStrength,
         flashOpts.color,
         flashOpts.quality);
+    filter.padding = flashOpts.distance + flashOpts.outerStrength * 2;
     filter.resolution = app.renderer.resolution;
     return { app, filter, fn: (filter: GlowFilter, offset: number) => {
         filter.outerStrength = offset * flashOpts.width.min 
@@ -27,13 +28,15 @@ export function generateFlash(app: PIXI.Application): AnimationProperty {
 
 const outlineOpts = {
     width: 1,
-    color: 0xffffff
+    color: 0xffffff,
+    quality: 1
 };
 
 export function generateOutline(app: PIXI.Application) {
     let filter = new OutlineFilter(
-        outlineOpts.width, outlineOpts.color
+        outlineOpts.width, outlineOpts.color, outlineOpts.quality
     );
+    filter.padding = outlineOpts.width;
     filter.resolution = app.renderer.resolution;
     return { app, filter, fn: () => {}};
 }

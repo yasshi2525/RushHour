@@ -41,6 +41,14 @@ func StartSimulation() {
 		tickOp("admin", target, removeInterval, func(src string, tar entities.ModelType) {
 			UpdateModel(rmOp(src, tar))
 		})
+		UpdateModel(&Operation{
+			Source: "admin",
+			Op:     "create",
+			Target: entities.RAILNODE,
+			OName:  "admin",
+			X:      0,
+			Y:      0,
+		})
 	}
 
 	// user

@@ -5,6 +5,7 @@ import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 
 const graphicsOpts = {
+    padding: 10,
     width: 4,
     color: 0x4169e1,
     radius: 10,
@@ -12,21 +13,30 @@ const graphicsOpts = {
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
+    beforeRender() {
+        super.beforeRender();
+        this.sprite.x -= graphicsOpts.padding / 2;
+        this.sprite.y -= graphicsOpts.padding / 2;
+    }
 }
 
 export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContrainer {
     constructor(options: ApplicationProperty) {
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
-        graphics.arc(0, 0, graphicsOpts.radius, 0, Math.PI * 2);
+        graphics.drawCircle(
+            graphicsOpts.padding + graphicsOpts.radius, 
+            graphicsOpts.padding + graphicsOpts.radius,
+            graphicsOpts.radius);
 
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
-
+        
         let rect = graphics.getBounds().clone();
-        rect.x -= 3 * options.app.renderer.resolution;
-        rect.y -= 3 * options.app.renderer.resolution;
-        rect.width += 6 * options.app.renderer.resolution;
-        rect.height += 6 * options.app.renderer.resolution;
+        rect.x -= graphicsOpts.padding;
+        rect.y -= graphicsOpts.padding;
+        rect.width += graphicsOpts.padding * 2;
+        rect.height += graphicsOpts.padding * 2;
+
         let animation = generator.record(rect);
         super({ animation, ...options}, RailNode, {});
     }

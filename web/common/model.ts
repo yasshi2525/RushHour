@@ -61,8 +61,8 @@ export default class {
         this.debugText = new PIXI.Text("");
         this.debugText.style.fontSize = 14;
         this.debugText.style.fill = 0xffffff;
-        this.app.stage.addChild(this.debugText)
-        setInterval(() => this.viewDebugInfo(), 250)
+        this.app.stage.addChild(this.debugText);
+        setInterval(() => this.viewDebugInfo(), 250);
     }
 
     protected viewDebugInfo() {
