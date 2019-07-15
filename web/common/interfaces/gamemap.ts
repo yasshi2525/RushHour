@@ -45,5 +45,18 @@ export const config = {
         min: 0, 
         max: 16, 
         default: 10
-    }
+    },
+    zIndices: [
+        "residences",
+        "companies",
+        "rail_edges",
+        "rail_nodes",
+        "stations",
+        "gates",
+        "platforms",
+        "rail_lines",
+        "line_tasks",
+        "players",
+        "humans",
+    ]
 };

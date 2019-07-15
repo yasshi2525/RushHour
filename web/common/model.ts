@@ -87,7 +87,7 @@ export default class implements ResourceAttachable {
     }
 
     mergeAll(payload: GameMap) {
-        Object.keys(payload).forEach(key => {
+        config.zIndices.forEach(key => {
             if (this.payload[key] !== undefined) {
                 this.payload[key].mergeChildren(payload[key], this.coord);
                 if (this.payload[key].isChanged()) {
