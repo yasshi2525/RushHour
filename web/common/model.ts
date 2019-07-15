@@ -3,13 +3,13 @@ import { ResidenceContainer, CompanyContainer } from "./models/background";
 import MonitorContainer from "./models/container";
 import { Coordinates, config } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
-import { GameModelProperty } from "./interfaces/pixi";
+import { GameModelProperty, ResourceAttachable } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer } from "./models/rail";
 
 const forceMove = { forceMove: true };
 
-export default class {
+export default class implements ResourceAttachable {
     protected app: PIXI.Application;
     renderer: PIXI.Renderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
@@ -29,21 +29,8 @@ export default class {
     constructor(options: GameModelProperty) {
         this.app = options.app;
         this.renderer = options.app.renderer;
-        this.textures = options.textures;
-
-        this.payload["residences"] = new ResidenceContainer({texture: this.textures.residence, ...options});
-        this.payload["companies"] = new CompanyContainer({texture: this.textures.company, ...options});
-        this.payload["rail_nodes"] = new RailNodeContainer(options);
-        this.payload["rail_edges"] = new RailEdgeContainer(options);
-
-        Object.keys(this.payload).forEach(key => {
-            this.payload[key].setupDefaultValues();
-            this.payload[key].setupUpdateCallback();
-            this.payload[key].setupBeforeCallback();
-            this.payload[key].setupAfterCallback();
-            this.payload[key].begin();
-        });
-
+        this.textures = {};
+       
         this.coord = { cx: options.cx, cy: options.cy, scale: options.scale }
         this.shouldFetch = false;
         this.shouldRemoveOutsider = false;
@@ -63,6 +50,21 @@ export default class {
         this.debugText.style.fill = 0xffffff;
         this.app.stage.addChild(this.debugText);
         setInterval(() => this.viewDebugInfo(), 250);
+    }
+
+    attach(textures: {[index: string]: PIXI.Texture}) {
+        this.payload["residences"] = new ResidenceContainer({ app: this.app, texture: textures.residence});
+        this.payload["companies"] = new CompanyContainer({ app: this.app, texture: textures.company});
+        this.payload["rail_nodes"] = new RailNodeContainer({ app: this.app});
+        this.payload["rail_edges"] = new RailEdgeContainer({ app: this.app});
+
+        Object.keys(this.payload).forEach(key => {
+            this.payload[key].setupDefaultValues();
+            this.payload[key].setupUpdateCallback();
+            this.payload[key].setupBeforeCallback();
+            this.payload[key].setupAfterCallback();
+            this.payload[key].begin();
+        });
     }
 
     protected viewDebugInfo() {
@@ -98,13 +100,15 @@ export default class {
     }
 
     resolve() {
-        this.payload["rail_edges"].forEachChild((re: RailEdge) => 
-            re.resolve(
-                this.get("rail_nodes", re.get("from")),
-                this.get("rail_nodes", re.get("to")),
-                this.get("rail_edges", re.get("eid"))
-            )
-        );
+        if (this.payload["rail_edges"] !== undefined) {
+            this.payload["rail_edges"].forEachChild((re: RailEdge) => 
+                re.resolve(
+                    this.get("rail_nodes", re.get("from")),
+                    this.get("rail_nodes", re.get("to")),
+                    this.get("rail_edges", re.get("eid"))
+                )
+            );
+        }
     }
 
     setCenter(x: number, y: number, force: boolean = false) {

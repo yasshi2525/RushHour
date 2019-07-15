@@ -44,7 +44,7 @@ func StartSimulation() {
 		UpdateModel(&Operation{
 			Source: "admin",
 			Op:     "create",
-			Target: entities.RAILNODE,
+			Target: entities.RESIDENCE,
 			OName:  "admin",
 			X:      0,
 			Y:      0,

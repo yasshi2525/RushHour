@@ -3,7 +3,6 @@ import * as React from "react";
 import { connect } from "react-redux";
 import * as PIXI from "pixi.js";
 import { config } from "../common/interfaces/gamemap";
-import { generateTextures } from "../common/models/texture";
 import GameModel from "../common/model";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import { WheelHandler } from "../common/handlers/wheel";
@@ -35,11 +34,20 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         });
 
         this.model = new GameModel({
-            textures: generateTextures(this.app),
             app: this.app , 
             cx: config.gamePos.default.x, cy: config.gamePos.default.y, 
             scale: config.scale.default
         });
+
+        ["residence", "company", "station", "train"].forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
+        this.app.loader.load(() => {
+            this.model.attach({
+                residence: this.app.loader.resources["residence"].texture,
+                company: this.app.loader.resources["company"].texture,
+            });
+            this.fetchMap();
+        });
+
         this.ref = React.createRef<HTMLDivElement>();
 
         window.addEventListener("resize", () => {
@@ -83,7 +91,6 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
                 // 一度描画して、canvas要素を子要素にする
                 this.ref.current.appendChild(this.app.view);
             }
-            this.fetchMap();
         } 
     }
 

@@ -19,7 +19,6 @@ export interface AnimatedSpriteProperty extends ContainerProperty {
 }
 
 export interface GameModelProperty extends ApplicationProperty, Coordinates {
-    textures: {[index: string]: PIXI.Texture}
 };
 
 export interface SpriteContainerProperty extends ApplicationProperty {
@@ -33,4 +32,8 @@ export interface AnimatedSpriteContainerProperty extends ApplicationProperty {
 export interface AnimationProperty extends ApplicationProperty {
     filter: PIXI.Filter,
     fn: (filter: PIXI.Filter, offset: number) => void
+}
+
+export interface ResourceAttachable {
+    attach(textures: {[index: string]: PIXI.Texture}): void
 }
