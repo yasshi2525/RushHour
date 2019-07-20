@@ -135,3 +135,15 @@ func (ch *Chunk) Resolve(args ...Entity) {
 		}
 	}
 }
+
+func (ch *Chunk) Export(dm *DelegateMap) {
+	if rn := ch.RailNode; rn != nil {
+		dm.RailNodes[rn.ID] = rn
+	}
+	for eid, re := range ch.InRailEdges {
+		dm.RailEdges[eid] = re
+	}
+	for eid, re := range ch.OutRailEdges {
+		dm.RailEdges[eid] = re
+	}
+}

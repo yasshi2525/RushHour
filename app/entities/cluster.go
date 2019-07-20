@@ -37,6 +37,9 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 		len := math.Pow(2, p.Scale-2)
 		cl.X = p.X + len*float64(dx)
 		cl.Y = p.Y + len*float64(dy)
+		x := int(math.Ceil(float64(dx) / 2))
+		y := int(math.Ceil(float64(dy) / 2))
+		p.Children[y][x] = cl
 	}
 	cl.Init(m)
 	m.Add(cl)
@@ -85,16 +88,17 @@ func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	return nil
 }
 
-func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
+func (cl *Cluster) FindChild(dx int, dy int) *Cluster {
 	x := int(math.Ceil(float64(dx) / 2))
 	y := int(math.Ceil(float64(dy) / 2))
+	return cl.Children[y][x]
+}
 
-	c := cl.Children[y][x]
-
-	if c != nil {
+func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
+	if c := cl.FindChild(dx, dy); c != nil {
 		return c
 	}
-	return cl.M.NewCluster(c, dx, dy)
+	return cl.M.NewCluster(cl, dx, dy)
 }
 
 func (cl *Cluster) Add(raw Entity) {
@@ -110,12 +114,14 @@ func (cl *Cluster) Add(raw Entity) {
 		cl.Data[oid].Add(obj)
 
 		len := math.Pow(2, cl.Scale-2)
-		process := func(dx int, dy int, c *Cluster) {
+		cl.EachChildren(func(dx int, dy int, c *Cluster) {
 			if obj.S().IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
+				if c == nil {
+					c = cl.M.NewCluster(cl, dx, dy)
+				}
 				c.Add(obj)
 			}
-		}
-		cl.EachChildren(process)
+		})
 	}
 }
 
@@ -124,18 +130,38 @@ func (cl *Cluster) Update(obj Entity) {
 	cl.Add(obj)
 }
 
-func (cl *Cluster) Remove(obj Entity) {
-	oid := obj.B().OwnerID
-	if chunk := cl.Data[oid]; chunk != nil {
-		chunk.Remove(obj)
-		process := func(dx int, dy int, c *Cluster) {
-			if chunk.Has(obj) {
-				chunk.Remove(obj)
+func (cl *Cluster) Remove(raw Entity) {
+	switch obj := raw.(type) {
+	case *Cluster:
+	case *Chunk:
+	default:
+		oid := obj.B().OwnerID
+		if chunk := cl.Data[oid]; chunk != nil {
+			chunk.Remove(obj)
+			cl.EachChildren(func(dx int, dy int, c *Cluster) {
+				if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
+					chunk.Remove(obj)
+				}
+			})
+			if chunk.IsEmpty() {
+				cl.Delete()
 			}
 		}
-		cl.EachChildren(process)
-		if chunk.IsEmpty() {
-			cl.Delete()
+	}
+}
+
+func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float64, span float64) {
+	if cl.IntersectsWith(cx, cy, scale) {
+		if cl.Scale < scale-span {
+			for _, d := range cl.Data {
+				d.Export(dm)
+			}
+		} else {
+			cl.EachChildren(func(dx int, dy int, c *Cluster) {
+				if c != nil {
+					c.ViewMap(dm, cx, cy, scale, span)
+				}
+			})
 		}
 	}
 }
@@ -144,7 +170,7 @@ func (cl *Cluster) EachChildren(callback func(int, int, *Cluster)) {
 	if cl.Scale > Const.MinScale {
 		for _, dy := range []int{-1, +1} {
 			for _, dx := range []int{-1, +1} {
-				callback(dx, dy, cl.FindOrCreateChild(dx, dy))
+				callback(dx, dy, cl.FindChild(dx, dy))
 			}
 		}
 	}
@@ -214,4 +240,12 @@ func (cl *Cluster) Delete() {
 		ch.Delete()
 	}
 	cl.M.Delete(cl)
+}
+
+func (cl *Cluster) IntersectsWith(cx float64, cy float64, scale float64) bool {
+	myL := math.Pow(2, cl.Scale) / 2
+	othL := math.Pow(2, scale) / 2
+
+	return math.Max(cl.X-myL, cx-othL) <= math.Min(cl.X+myL, cx+othL) &&
+		math.Max(cl.Y-myL, cy-othL) <= math.Min(cl.Y+myL, cy+othL)
 }

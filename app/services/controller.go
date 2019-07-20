@@ -8,6 +8,13 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
+func ViewDelegateMap(x float64, y float64, scale float64) *entities.DelegateMap {
+	dm := &entities.DelegateMap{}
+	dm.Init()
+	Model.RootCluster.ViewMap(dm, x, y, scale, 4)
+	return dm
+}
+
 // ViewMap immitates user requests view
 func ViewMap(x float64, y float64, scale float64, after ...time.Time) interface{} {
 	start := time.Now()

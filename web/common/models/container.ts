@@ -77,6 +77,9 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
     }
 
     mergeChildren(payload: {id: string, [propName: string]: any}[], opts: {[index: string]: any}) {
+        if (payload === undefined) {
+            return
+        }
         payload.forEach(props => {
             Object.assign(props, opts)
             this.mergeChild(props);

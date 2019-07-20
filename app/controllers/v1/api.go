@@ -24,7 +24,7 @@ func (c APIv1Game) Index() revel.Result {
 	}
 
 	return c.RenderJSON(
-		genResponse(true, services.ViewMap(params["cx"], params["cy"], params["scale"])))
+		genResponse(true, services.ViewDelegateMap(params["cx"], params["cy"], params["scale"])))
 }
 
 // Diff returns only diff

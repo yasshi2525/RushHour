@@ -68,6 +68,7 @@ func fetchStatic() {
 
 					// Model に登録
 					Model.Values[key].SetMapIndex(reflect.ValueOf(obj.B().Idx()), reflect.ValueOf(obj))
+					Model.RootCluster.Add(obj.(entities.Entity))
 					cnt++
 				} else {
 					panic(err)
