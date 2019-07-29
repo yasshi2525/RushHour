@@ -17,8 +17,8 @@ func RefreshTracks(o *entities.Player, parallel int) map[uint]*Model {
 		for deptID, dept := range model.Nodes[entities.RAILNODE] {
 			if dept.ViaEdge != nil {
 				o.M.NewTrack(
-					o.RailNodes[destID],          // from
-					o.RailNodes[deptID],          // to
+					o.RailNodes[deptID],          // from
+					o.RailNodes[destID],          // to
 					o.RailEdges[dept.ViaEdge.ID], // via
 					dept.Value)                   // cost
 			}

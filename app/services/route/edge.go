@@ -24,8 +24,8 @@ func NewEdge(base entities.Connectable, from *Node, to *Node) *Edge {
 // Export creates new instance which has specified Node.
 func (e *Edge) Export(from *Node, to *Node) *Edge {
 	newE := &Edge{e.Digest, from, to}
-	from.Out = append(from.Out, e)
-	to.In = append(to.In, e)
+	from.Out = append(from.Out, newE)
+	to.In = append(to.In, newE)
 	return newE
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 )
@@ -61,6 +62,7 @@ func (n *Node) WalkThrough() {
 	var q NodeQueue = []*Node{}
 	for _, e := range n.In {
 		e.FromNode.Value = e.Value
+		e.FromNode.Via = n
 		q = append(q, e.FromNode)
 	}
 	sort.Sort(q)
@@ -102,6 +104,33 @@ func (n *Node) Export() *Node {
 		Out:    []*Edge{},
 		In:     []*Edge{},
 	}
+}
+
+func (n *Node) RawRoute() string {
+	tail := n
+	res := []string{fmt.Sprintf("%v(%d)", n.ModelType, n.ID)}
+	for tail.Via != nil {
+		tail = tail.Via
+		res = append(res, fmt.Sprintf("%v(%d)", tail.ModelType, tail.ID))
+
+		if tail == n {
+			break
+		}
+	}
+	return strings.Join(res, "=>")
+}
+
+func (n *Node) Route() string {
+	tail := n
+	res := []string{fmt.Sprintf("%v(%d)", n.ModelType, n.ID)}
+	for tail.ViaEdge != nil {
+		tail = tail.ViaEdge.ToNode
+		if tail == n {
+			break
+		}
+		res = append(res, fmt.Sprintf("%v(%d)", tail.ModelType, tail.ID))
+	}
+	return strings.Join(res, "=>")
 }
 
 func (n *Node) String() string {
