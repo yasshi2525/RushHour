@@ -160,12 +160,12 @@ func (ch *Chunk) Export(dm *DelegateMap) {
 	if rn := ch.RailNode; rn != nil {
 		dm.RailNodes[rn.ID] = rn
 	}
-	for eid, re := range ch.InRailEdges {
-		dm.RailEdges[eid] = re
+	for _, re := range ch.InRailEdges {
+		dm.RailEdges[re.ID] = re
 		dm.RailNodes[re.FromID] = re.From
 	}
-	for eid, re := range ch.OutRailEdges {
-		dm.RailEdges[eid] = re
+	for _, re := range ch.OutRailEdges {
+		dm.RailEdges[re.ID] = re
 		dm.RailNodes[re.ToID] = re.To
 	}
 }
