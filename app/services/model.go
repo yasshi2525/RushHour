@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -119,33 +118,33 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(msg.X),
 					reflect.ValueOf(msg.Y)})
 			}
-			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
-				re := raw.(*entities.RailEdge)
-				len := rand.Intn(10)
-				for i := 0; i < len; i++ {
-					size := math.Pow(2, 10)
-					d := re.ToNode.Point.Sub(&re.FromNode.Point)
-					theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+			// if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
+			// 	re := raw.(*entities.RailEdge)
+			// 	len := rand.Intn(10)
+			// 	for i := 0; i < len; i++ {
+			// 		size := math.Pow(2, 10)
+			// 		d := re.ToNode.Point.Sub(&re.FromNode.Point)
+			// 		theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 
-					p := &entities.Point{
-						X: re.ToNode.X + math.Cos(theta)*size,
-						Y: re.ToNode.Y + math.Sin(theta)*size,
-					}
+			// 		p := &entities.Point{
+			// 			X: re.ToNode.X + math.Cos(theta)*size,
+			// 			Y: re.ToNode.Y + math.Sin(theta)*size,
+			// 		}
 
-					for !p.IsIn(0, 0, Config.Entity.MaxScale) {
-						theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+			// 		for !p.IsIn(0, 0, Config.Entity.MaxScale) {
+			// 			theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 
-						p = &entities.Point{
-							X: re.ToNode.X + math.Cos(theta)*size,
-							Y: re.ToNode.Y + math.Sin(theta)*size,
-						}
-					}
+			// 			p = &entities.Point{
+			// 				X: re.ToNode.X + math.Cos(theta)*size,
+			// 				Y: re.ToNode.Y + math.Sin(theta)*size,
+			// 			}
+			// 		}
 
-					_, re = re.ToNode.Extend(
-						re.ToNode.X+math.Cos(theta)*size,
-						re.ToNode.Y+math.Sin(theta)*size)
-				}
-			}
+			// 		_, re = re.ToNode.Extend(
+			// 			re.ToNode.X+math.Cos(theta)*size,
+			// 			re.ToNode.Y+math.Sin(theta)*size)
+			// 	}
+			// }
 		case entities.STATION:
 			if rn := randEntity(owner, entities.RAILNODE); rn != nil {
 				rv.Call([]reflect.Value{
