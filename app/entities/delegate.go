@@ -21,6 +21,8 @@ type DelegateRailNode struct {
 	Point
 
 	RailNodes map[uint]*RailNode `json:"-"`
+	Multi     int                `json:"mul"`
+	Scale     float64            `json:"sc"`
 }
 
 func (rn *DelegateRailNode) UpdatePos() {
@@ -61,6 +63,8 @@ type DelegateRailEdge struct {
 	To   *DelegateRailNode `json:"-"`
 
 	RailEdges map[uint]*RailEdge `json:"-"`
+	Multi     int                `json:"mul"`
+	Scale     float64            `json:"sc"`
 
 	FromID    uint `json:"from"`
 	ToID      uint `json:"to"`

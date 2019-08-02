@@ -57,10 +57,12 @@ func (ch *Chunk) addRailNode(rn *RailNode) {
 		ch.RailNode = &DelegateRailNode{
 			Base:  ch.M.NewBase(RAILNODE, rn.O),
 			Point: rn.Point,
+			Scale: ch.Parent.Scale,
 		}
 		ch.RailNode.RailNodes = make(map[uint]*RailNode)
 	}
 	ch.RailNode.RailNodes[rn.ID] = rn
+	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
 	ch.RailNode.UpdatePos()
 }
 
@@ -75,6 +77,7 @@ func (ch *Chunk) addRailEdge(re *RailEdge) {
 			To:        target.RailNode,
 			ToID:      target.RailNode.ID,
 			RailEdges: make(map[uint]*RailEdge),
+			Scale:     ch.Parent.Scale,
 		}
 		ch.OutRailEdges[target.ID] = dre
 		target.InRailEdges[ch.ID] = dre
@@ -83,7 +86,9 @@ func (ch *Chunk) addRailEdge(re *RailEdge) {
 			reverse.ReverseID = dre.ID
 		}
 	}
-	ch.OutRailEdges[target.ID].RailEdges[re.ID] = re
+	dre := ch.OutRailEdges[target.ID]
+	dre.RailEdges[re.ID] = re
+	dre.Multi = len(dre.RailEdges)
 }
 
 func (ch *Chunk) Remove(raw Entity) {
@@ -98,6 +103,7 @@ func (ch *Chunk) Remove(raw Entity) {
 func (ch *Chunk) removeRailNode(rn *RailNode) {
 	delete(ch.RailNode.RailNodes, rn.ID)
 	ch.RailNode.UpdatePos()
+	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
 
 	if len(ch.RailNode.RailNodes) == 0 {
 		ch.RailNode = nil
@@ -108,6 +114,7 @@ func (ch *Chunk) removeRailEdge(re *RailEdge) {
 	target := ch.M.RootCluster.FindChunk(re.ToNode, ch.Parent.Scale)
 	dre := ch.OutRailEdges[target.ID]
 	delete(dre.RailEdges, re.ID)
+	dre.Multi = len(dre.RailEdges)
 	if len(dre.RailEdges) == 0 {
 		delete(ch.OutRailEdges, dre.ID)
 		delete(target.InRailEdges, dre.ID)
