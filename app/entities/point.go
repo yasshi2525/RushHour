@@ -21,7 +21,7 @@ func NewPoint(x float64, y float64) Point {
 func (p *Point) IsIn(x float64, y float64, scale float64) bool {
 	len := math.Pow(2, scale)
 
-	return p.X > x-len/2 && p.X < x+len/2 && p.Y > y-len/2 && p.Y < y+len/2
+	return p.X >= x-len/2 && p.X < x+len/2 && p.Y >= y-len/2 && p.Y < y+len/2
 }
 
 // IsInLine returns true when this or to or center is in.
@@ -48,6 +48,7 @@ func (p *Point) Div(to *Point, progress float64) *Point {
 		Y: p.Y*progress + to.Y*(1-progress),
 	}
 }
+
 // Rand generates other Point randaomly within 'max' distance.
 func (p *Point) Rand(max float64) *Point {
 	dist := rand.Float64() * max

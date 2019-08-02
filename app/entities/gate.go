@@ -108,6 +108,7 @@ func (g *Gate) Resolve(args ...Entity) {
 		case *Platform:
 			g.WithPlatform = obj
 			g.Shape = obj.Shape
+			g.M.RootCluster.Add(g)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

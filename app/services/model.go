@@ -126,6 +126,21 @@ func processMsg(msg *Operation) time.Time {
 					size := math.Pow(2, 10)
 					d := re.ToNode.Point.Sub(&re.FromNode.Point)
 					theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+
+					p := &entities.Point{
+						X: re.ToNode.X + math.Cos(theta)*size,
+						Y: re.ToNode.Y + math.Sin(theta)*size,
+					}
+
+					for !p.IsIn(0, 0, Config.Entity.MaxScale) {
+						theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+
+						p = &entities.Point{
+							X: re.ToNode.X + math.Cos(theta)*size,
+							Y: re.ToNode.Y + math.Sin(theta)*size,
+						}
+					}
+
 					_, re = re.ToNode.Extend(
 						re.ToNode.X+math.Cos(theta)*size,
 						re.ToNode.Y+math.Sin(theta)*size)

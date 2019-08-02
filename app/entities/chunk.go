@@ -45,55 +45,72 @@ func (ch *Chunk) Init(m *Model) {
 
 func (ch *Chunk) Add(raw Entity) {
 	switch obj := raw.(type) {
-	case *Track:
-		ch.addTrack(obj)
+	case *RailNode:
+		ch.addRailNode(obj)
+	case *RailEdge:
+		ch.addRailEdge(obj)
 	}
 }
 
-func (ch *Chunk) addTrack(tr *Track) {
+func (ch *Chunk) addRailNode(rn *RailNode) {
 	if ch.RailNode == nil {
 		ch.RailNode = &DelegateRailNode{
-			Base:  ch.M.NewBase(RAILNODE, tr.O),
-			Point: tr.FromNode.Point,
+			Base:  ch.M.NewBase(RAILNODE, rn.O),
+			Point: rn.Point,
 		}
 		ch.RailNode.RailNodes = make(map[uint]*RailNode)
 	}
-	ch.RailNode.RailNodes[tr.FromNode.ID] = tr.FromNode
+	ch.RailNode.RailNodes[rn.ID] = rn
+	ch.RailNode.UpdatePos()
+}
 
-	target := ch.M.RootCluster.FindChunk(tr.ToNode, ch.Parent.Scale)
+func (ch *Chunk) addRailEdge(re *RailEdge) {
+	target := ch.M.RootCluster.FindChunk(re.ToNode, ch.Parent.Scale)
 
 	if ch.OutRailEdges[target.ID] == nil {
-		re := &DelegateRailEdge{
-			Base:   ch.M.NewBase(RAILEDGE, tr.O),
-			From:   ch.RailNode,
-			FromID: ch.RailNode.ID,
-			To:     target.RailNode,
-			ToID:   target.RailNode.ID,
-			Tracks: make(map[uint]*Track),
+		dre := &DelegateRailEdge{
+			Base:      ch.M.NewBase(RAILEDGE, re.O),
+			From:      ch.RailNode,
+			FromID:    ch.RailNode.ID,
+			To:        target.RailNode,
+			ToID:      target.RailNode.ID,
+			RailEdges: make(map[uint]*RailEdge),
 		}
-		re.Tracks[tr.ID] = tr
-		ch.OutRailEdges[target.ID] = re
-		target.InRailEdges[ch.ID] = re
+		ch.OutRailEdges[target.ID] = dre
+		target.InRailEdges[ch.ID] = dre
 		if reverse, ok := target.OutRailEdges[ch.ID]; ok {
-			re.ReverseID = reverse.ID
-			reverse.ReverseID = re.ID
+			dre.ReverseID = reverse.ID
+			reverse.ReverseID = dre.ID
 		}
 	}
+	ch.OutRailEdges[target.ID].RailEdges[re.ID] = re
 }
 
 func (ch *Chunk) Remove(raw Entity) {
 	switch obj := raw.(type) {
-	case *Track:
-		for _, re := range ch.OutRailEdges {
-			delete(re.Tracks, obj.ID)
-			if len(re.Tracks) == 0 {
-				delete(ch.OutRailEdges, re.ID)
-			}
-		}
-		delete(ch.RailNode.RailNodes, obj.FromNode.ID)
-		if len(ch.RailNode.RailNodes) == 0 {
-			ch.RailNode = nil
-		}
+	case *RailNode:
+		ch.removeRailNode(obj)
+	case *RailEdge:
+		ch.removeRailEdge(obj)
+	}
+}
+
+func (ch *Chunk) removeRailNode(rn *RailNode) {
+	delete(ch.RailNode.RailNodes, rn.ID)
+	ch.RailNode.UpdatePos()
+
+	if len(ch.RailNode.RailNodes) == 0 {
+		ch.RailNode = nil
+	}
+}
+
+func (ch *Chunk) removeRailEdge(re *RailEdge) {
+	target := ch.M.RootCluster.FindChunk(re.ToNode, ch.Parent.Scale)
+	dre := ch.OutRailEdges[target.ID]
+	delete(dre.RailEdges, re.ID)
+	if len(dre.RailEdges) == 0 {
+		delete(ch.OutRailEdges, dre.ID)
+		delete(target.InRailEdges, dre.ID)
 	}
 }
 
@@ -104,6 +121,9 @@ func (ch *Chunk) Has(raw Entity) bool {
 			return false
 		}
 		_, ok := ch.RailNode.RailNodes[obj.ID]
+		return ok
+	case *RailEdge:
+		_, ok := ch.OutRailEdges[obj.ID]
 		return ok
 	}
 	return false
@@ -142,8 +162,16 @@ func (ch *Chunk) Export(dm *DelegateMap) {
 	}
 	for eid, re := range ch.InRailEdges {
 		dm.RailEdges[eid] = re
+		dm.RailNodes[re.FromID] = re.From
 	}
 	for eid, re := range ch.OutRailEdges {
 		dm.RailEdges[eid] = re
+		dm.RailNodes[re.ToID] = re.To
 	}
+}
+
+// String represents status
+func (ch *Chunk) String() string {
+	return fmt.Sprintf("%s(%.1f:%d):u=%d,%v,i=%d,o=%d:%v", ch.Type().Short(),
+		ch.Parent.Scale, ch.ID, ch.OwnerID, ch.RailNode, len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)
 }

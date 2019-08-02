@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 const (
@@ -73,14 +74,17 @@ func (cl *Cluster) Init(m *Model) {
 
 func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	if cl.Scale == scale {
-		if data := cl.Data[obj.B().OwnerID]; data.Has(obj) {
+		data := cl.Data[obj.B().OwnerID]
+		if data != nil && data.Has(obj) {
 			return data
 		}
 	} else {
 		for _, list := range cl.Children {
 			for _, child := range list {
-				if d := child.FindChunk(obj, scale); d != nil {
-					return d
+				if child != nil {
+					if d := child.FindChunk(obj, scale); d != nil {
+						return d
+					}
 				}
 			}
 		}
@@ -105,7 +109,26 @@ func (cl *Cluster) Add(raw Entity) {
 	switch obj := raw.(type) {
 	case *Cluster:
 	case *Chunk:
+	case *Player:
+	case *RailLine:
+	case *LineTask:
+	case *Step:
+	case *Track:
+	case *Transport:
 	default:
+		var p *Point
+
+		switch obj := obj.(type) {
+		case *RailEdge:
+			p = obj.FromNode.S().P1
+		default:
+			p = obj.S().P1
+		}
+
+		if p == nil {
+			return
+		}
+
 		oid := obj.B().OwnerID
 		if _, ok := cl.Data[oid]; !ok {
 			cl.Data[oid] = cl.M.NewChunk(cl, obj.B().O)
@@ -115,7 +138,7 @@ func (cl *Cluster) Add(raw Entity) {
 
 		len := math.Pow(2, cl.Scale-2)
 		cl.EachChildren(func(dx int, dy int, c *Cluster) {
-			if obj.S().IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
+			if p.IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
 				if c == nil {
 					c = cl.M.NewCluster(cl, dx, dy)
 				}
@@ -134,18 +157,27 @@ func (cl *Cluster) Remove(raw Entity) {
 	switch obj := raw.(type) {
 	case *Cluster:
 	case *Chunk:
+	case *Player:
+	case *RailLine:
+	case *LineTask:
+	case *Step:
+	case *Track:
+	case *Transport:
 	default:
 		oid := obj.B().OwnerID
 		if chunk := cl.Data[oid]; chunk != nil {
 			chunk.Remove(obj)
 			cl.EachChildren(func(dx int, dy int, c *Cluster) {
 				if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
-					chunk.Remove(obj)
+					c.Data[oid].Remove(obj)
 				}
 			})
 			if chunk.IsEmpty() {
-				cl.Delete()
+				chunk.Delete()
 			}
+		}
+		if len(cl.Data) == 0 {
+			cl.Delete()
 		}
 	}
 }
@@ -186,10 +218,10 @@ func (cl *Cluster) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
 		case *Cluster:
-			for _, list := range cl.Children {
-				for _, child := range list {
+			for y, list := range cl.Children {
+				for x, child := range list {
 					if child == cl {
-						child = nil
+						cl.Children[y][x] = nil
 					}
 				}
 			}
@@ -248,4 +280,14 @@ func (cl *Cluster) IntersectsWith(cx float64, cy float64, scale float64) bool {
 
 	return math.Max(cl.X-myL, cx-othL) <= math.Min(cl.X+myL, cx+othL) &&
 		math.Max(cl.Y-myL, cy-othL) <= math.Min(cl.Y+myL, cy+othL)
+}
+
+// String represents status
+func (cl *Cluster) String() string {
+	list := []string{}
+	for id := range cl.Data {
+		list = append(list, fmt.Sprintf("ch(%d)", id))
+	}
+	return fmt.Sprintf("%s(%.1f:%d):%s,%v", cl.Type().Short(),
+		cl.Scale, cl.ID, strings.Join(list, ","), cl.Point)
 }
