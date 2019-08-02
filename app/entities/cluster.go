@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	"github.com/revel/revel"
 )
 
 const (
@@ -127,6 +129,10 @@ func (cl *Cluster) Add(raw Entity) {
 
 		if p == nil {
 			return
+		}
+
+		if !cl.Point.IsIn(p.X, p.Y, cl.Scale) {
+			revel.AppLog.Warnf("%v(%v) is out of bounds for %v", obj, p, cl)
 		}
 
 		oid := obj.B().OwnerID

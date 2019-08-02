@@ -3,6 +3,7 @@ package entities
 import "testing"
 
 func TestPlatform(t *testing.T) {
+	Const = Config{MaxScale: 7}
 	t.Run("NewPlatform", func(t *testing.T) {
 		t.Run("stop", func(t *testing.T) {
 			m := NewModel()

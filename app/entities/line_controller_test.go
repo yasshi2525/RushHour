@@ -3,6 +3,7 @@ package entities
 import "testing"
 
 func TestLineController(t *testing.T) {
+	Const = Config{MaxScale: 6}
 	t.Run("Shrink", func(t *testing.T) {
 		t.Run("head", func(t *testing.T) {
 			m := NewModel()
