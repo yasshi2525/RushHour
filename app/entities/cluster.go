@@ -94,14 +94,14 @@ func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	return nil
 }
 
-func (cl *Cluster) FindChild(dx int, dy int) *Cluster {
+func (cl *Cluster) FindChild(dx int, dy int) (*Cluster, *Point) {
 	x := int(math.Ceil(float64(dx) / 2))
 	y := int(math.Ceil(float64(dy) / 2))
-	return cl.Children[y][x]
+	return cl.Children[y][x], cl.ChPos[y][x]
 }
 
 func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
-	if c := cl.FindChild(dx, dy); c != nil {
+	if c, _ := cl.FindChild(dx, dy); c != nil {
 		return c
 	}
 	return cl.M.NewCluster(cl, dx, dy)
@@ -142,9 +142,8 @@ func (cl *Cluster) Add(raw Entity) {
 
 		cl.Data[oid].Add(obj)
 
-		len := math.Pow(2, cl.Scale-2)
-		cl.EachChildren(func(dx int, dy int, c *Cluster) {
-			if p.IsIn(cl.X+len*float64(dx), cl.Y+len*float64(dy), cl.Scale-1) {
+		cl.EachChildren(func(dx int, dy int, c *Cluster, pos *Point) {
+			if pos.IsIn(p.X, p.Y, cl.Scale-1) {
 				if c == nil {
 					c = cl.M.NewCluster(cl, dx, dy)
 				}
@@ -173,7 +172,7 @@ func (cl *Cluster) Remove(raw Entity) {
 		oid := obj.B().OwnerID
 		if chunk := cl.Data[oid]; chunk != nil {
 			chunk.Remove(obj)
-			cl.EachChildren(func(dx int, dy int, c *Cluster) {
+			cl.EachChildren(func(dx int, dy int, c *Cluster, p *Point) {
 				if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
 					c.Data[oid].Remove(obj)
 				}
@@ -195,7 +194,7 @@ func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float6
 				d.Export(dm)
 			}
 		} else {
-			cl.EachChildren(func(dx int, dy int, c *Cluster) {
+			cl.EachChildren(func(dx int, dy int, c *Cluster, p *Point) {
 				if c != nil {
 					c.ViewMap(dm, cx, cy, scale, span)
 				}
@@ -204,11 +203,12 @@ func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float6
 	}
 }
 
-func (cl *Cluster) EachChildren(callback func(int, int, *Cluster)) {
+func (cl *Cluster) EachChildren(callback func(int, int, *Cluster, *Point)) {
 	if cl.Scale > Const.MinScale {
 		for _, dy := range []int{-1, +1} {
 			for _, dx := range []int{-1, +1} {
-				callback(dx, dy, cl.FindChild(dx, dy))
+				c, p := cl.FindChild(dx, dy)
+				callback(dx, dy, c, p)
 			}
 		}
 	}
