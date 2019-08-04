@@ -18,7 +18,7 @@ export function generateFlash(app: PIXI.Application): AnimationProperty {
         flashOpts.innerStrength,
         flashOpts.color,
         flashOpts.quality);
-    filter.padding = (flashOpts.distance + flashOpts.outerStrength) * 2.5;
+    filter.padding = (flashOpts.distance + flashOpts.outerStrength) * 2;
     filter.resolution = app.renderer.resolution;
     return { app, filter, fn: (filter: GlowFilter, offset: number) => {
         filter.outerStrength = offset * flashOpts.width.min 

@@ -74,8 +74,8 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
         
         let rect = graphics.getBounds().clone();
-        rect.x -= graphicsOpts.padding;
-        rect.y -= graphicsOpts.padding;
+        rect.x -= graphicsOpts.padding - 1;
+        rect.y -= graphicsOpts.padding - 1;
         rect.width += graphicsOpts.padding * 2;
         rect.height += graphicsOpts.padding * 2;
 
