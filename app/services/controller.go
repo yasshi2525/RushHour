@@ -10,7 +10,7 @@ import (
 
 func ViewDelegateMap(x float64, y float64, scale float64) *entities.DelegateMap {
 	dm := &entities.DelegateMap{}
-	dm.Init()
+	dm.Init(Model)
 	Model.RootCluster.ViewMap(dm, x, y, scale, 2)
 	return dm
 }

@@ -68,7 +68,6 @@ func fetchStatic() {
 
 					// Model に登録
 					Model.Values[key].SetMapIndex(reflect.ValueOf(obj.B().Idx()), reflect.ValueOf(obj))
-					Model.RootCluster.Add(obj.(entities.Entity))
 					cnt++
 				} else {
 					panic(err)
@@ -89,6 +88,7 @@ func resolveStatic() {
 		}
 		Model.ForEach(key, func(obj entities.Entity) {
 			obj.(entities.Migratable).UnMarshal()
+			Model.RootCluster.Add(obj)
 		})
 	}
 }

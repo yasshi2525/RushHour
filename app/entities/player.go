@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 // PlayerType represents authenticate level
@@ -25,6 +26,7 @@ type Player struct {
 	LoginID     string     `gorm:"not null;index" json:"-"`
 	Password    string     `gorm:"not null"       json:"-"`
 	ReRouting   bool       `gorm:"-"              json:"-"`
+	Color       int        `gorm:"not null"       json:"color"`
 
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
@@ -44,6 +46,9 @@ func (m *Model) NewPlayer() *Player {
 		Persistence: NewPersistence(),
 		Shape:       NewShapeGroup(),
 	}
+	r, g, b := rand.Intn(0x100), rand.Intn(0x100), rand.Intn(0x100)
+	o.Color = r<<16 + g<<8 + b
+
 	o.O = o
 	o.OwnerID = o.ID
 	o.Init(m)

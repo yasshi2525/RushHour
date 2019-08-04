@@ -1,18 +1,41 @@
 import * as PIXI from "pixi.js"
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { ApplicationProperty } from "../interfaces/pixi";
+import { ApplicationProperty, AnimatedSpriteProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 
 const graphicsOpts = {
     padding: 10,
     width: 4,
-    color: 0x4169e1,
+    color: 0xaaaaaa,
     radius: 10,
     slide: 10
 };
 
+const rnDefaultValues: {color: number} = {color: 0};
+
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
+    constructor(options: AnimatedSpriteProperty) {
+        super(options)
+    }
+
+    setupDefaultValues() {
+        super.setupDefaultValues();
+        this.addDefaultValues(rnDefaultValues);
+    }
+
+    setupBeforeCallback() {
+        super.setupBeforeCallback();
+        this.addBeforeCallback(() => {
+            this.sprite.tint = this.props.color
+        });
+    }
+
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
+    }
+
     beforeRender() {
         super.beforeRender();
         this.sprite.x -= graphicsOpts.padding / 2;
@@ -60,6 +83,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             if (this.from !== from || this.to !== to ) {
                 this.from = from;
                 this.to = to;
+                this.sprite.tint = from.get("color")
                 this.updateDestination(true);
             }
         }
