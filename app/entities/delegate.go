@@ -35,6 +35,9 @@ type DelegateRailNode struct {
 	RailNodes map[uint]*RailNode `json:"-"`
 	Multi     int                `json:"mul"`
 	Color     int                `json:"color"`
+	ParentID  uint               `json:"pid"`
+	ParentX   float64            `json:"px"`
+	ParentY   float64            `json:"py"`
 }
 
 func (rn *DelegateRailNode) UpdatePos() {

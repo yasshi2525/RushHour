@@ -3,6 +3,7 @@ import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
 import { ApplicationProperty, AnimatedSpriteProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
+import { config } from "../interfaces/gamemap";
 
 const graphicsOpts = {
     padding: 10,
@@ -12,7 +13,17 @@ const graphicsOpts = {
     slide: 10
 };
 
-const rnDefaultValues: {color: number} = {color: 0};
+const rnDefaultValues: {
+    pid: number,
+    px: number,
+    py: number,
+    color: number
+} = {
+    pid: 0,
+    px: 0,
+    py: 0,
+    color: 0
+};
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
     constructor(options: AnimatedSpriteProperty) {
@@ -22,6 +33,14 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupDefaultValues() {
         super.setupDefaultValues();
         this.addDefaultValues(rnDefaultValues);
+    }
+
+    setInitialValues(props: {[index: string]: {}}) {
+        super.setInitialValues(props);
+        if (this.props.pid !== 0) {
+            this.current = this.toView(this.props.px, this.props.py);
+            this.latency = config.latency;
+        }
     }
 
     setupBeforeCallback() {
@@ -55,8 +74,8 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
         
         let rect = graphics.getBounds().clone();
-        rect.x -= graphicsOpts.padding;
-        rect.y -= graphicsOpts.padding;
+        rect.x -= graphicsOpts.padding - 1;
+        rect.y -= graphicsOpts.padding - 1;
         rect.width += graphicsOpts.padding * 2;
         rect.height += graphicsOpts.padding * 2;
 
