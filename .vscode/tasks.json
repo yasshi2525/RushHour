@@ -6,7 +6,7 @@
         {
             "label": "run RushHour",
             "type": "shell",
-            "command": "ansicon revel run -a github.com/yasshi2525/RushHour",
+            "command": "revel run -a github.com/yasshi2525/RushHour",
             "problemMatcher": [
                 "$go"
             ]
