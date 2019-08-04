@@ -121,6 +121,17 @@ func processMsg(msg *Operation) time.Time {
 					X: rn.X + math.Cos(theta)*size,
 					Y: rn.Y + math.Sin(theta)*size,
 				}
+
+				for !p.IsIn(0, 0, Config.Entity.MaxScale) {
+					size = math.Pow(2, 10) * rand.Float64()
+					theta = 2 * math.Pi * rand.Float64()
+
+					p = &entities.Point{
+						X: rn.X + math.Cos(theta)*size,
+						Y: rn.Y + math.Sin(theta)*size,
+					}
+				}
+
 				rv.Call([]reflect.Value{
 					reflect.ValueOf(owner),
 					reflect.ValueOf(raw),
@@ -129,7 +140,7 @@ func processMsg(msg *Operation) time.Time {
 			}
 			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
 				re := raw.(*entities.RailEdge)
-				size := math.Pow(2, 10)
+				size := math.Pow(2, 10) * rand.Float64()
 				d := re.ToNode.Point.Sub(&re.FromNode.Point)
 				theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 
@@ -139,6 +150,7 @@ func processMsg(msg *Operation) time.Time {
 				}
 
 				for !p.IsIn(0, 0, Config.Entity.MaxScale) {
+					size = math.Pow(2, 10) * rand.Float64()
 					theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 
 					p = &entities.Point{
@@ -147,9 +159,7 @@ func processMsg(msg *Operation) time.Time {
 					}
 				}
 
-				_, re = re.ToNode.Extend(
-					re.ToNode.X+math.Cos(theta)*size,
-					re.ToNode.Y+math.Sin(theta)*size)
+				_, re = re.ToNode.Extend(p.X, p.Y)
 			}
 		case entities.STATION:
 			if rn := randEntity(owner, entities.RAILNODE); rn != nil {
