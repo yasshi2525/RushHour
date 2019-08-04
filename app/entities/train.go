@@ -192,6 +192,8 @@ func (t *Train) UnMarshal() {
 func (t *Train) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
+		case *Platform:
+			delete(obj.Trains, t.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
