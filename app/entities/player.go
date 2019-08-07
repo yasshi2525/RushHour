@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -46,7 +47,25 @@ func (m *Model) NewPlayer() *Player {
 		Persistence: NewPersistence(),
 		Shape:       NewShapeGroup(),
 	}
-	r, g, b := rand.Intn(0x100), rand.Intn(0x100), rand.Intn(0x100)
+	h := rand.Float64() * 360
+	var r, g, b int
+	h0 := int(math.Floor(float64(h) / 60))
+
+	switch h0 {
+	case 0:
+		r, g, b = 0xFF, int(h/60*0x100), 0x00
+	case 1:
+		r, g, b = int((h-120)/60*0x100), 0xFF, 0x00
+	case 2:
+		r, g, b = 0x00, 0xFF, int((h-120)/60*0x100)
+	case 3:
+		r, g, b = 0x00, int((240-h)/60*0x100), 0xFF
+	case 4:
+		r, g, b = int((240-h)/60*0x100), 0x00, 0xFF
+	case 5:
+		r, g, b = 0xFF, 0x00, int((360-h)/60*0x100)
+	}
+
 	o.Color = r<<16 + g<<8 + b
 
 	o.O = o
