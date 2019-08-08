@@ -5,11 +5,16 @@ import { ApplicationProperty, ContainerProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 
-const defaultValues: Coordinates & {[index: string]: any} = {
-    cx: config.gamePos.default.x, 
-    cy: config.gamePos.default.y, 
-    scale: config.scale.default,
-    forceMove: false
+const defaultValues: {coord: Coordinates, [index: string]: any} = {
+    coord:  {
+        cx: config.gamePos.default.x, 
+        cy: config.gamePos.default.y, 
+        scale: config.scale.default,
+        zoom: 0
+    },
+    forceMove: false,
+    outMap: false,
+    visible: true
 };
 
 export abstract class PIXIModel extends BaseModel implements Monitorable {
@@ -52,7 +57,19 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         this.addBeforeCallback(() => {
             this.app.stage.addChild(this.container);
             this.app.ticker.add(this.smoothMoveFn);
+            this.container.visible = this.props.visible;
         })
+    }
+    
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("coord", () => this.updateDestination());
+        this.addUpdateCallback("forceMove", (v) => {
+            if (v) {
+                this.moveDestination();
+            }
+        });
+        this.addUpdateCallback("visible", (v) => {this.container.visible = v});
     }
 
     setupAfterCallback() {
@@ -69,40 +86,31 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
             y: this.app.renderer.height / this.app.renderer.resolution / 2,
         }
         let size = Math.max(this.app.renderer.width / this.app.renderer.resolution, this.app.renderer.height / this.app.renderer.resolution)
-        let zoom = Math.pow(2, -this.props.scale)
+        let zoom = Math.pow(2, -this.props.coord.scale)
 
         return {
-            x: (x - this.props.cx) * size * zoom + center.x,
-            y: (y - this.props.cy) * size * zoom + center.y
+            x: (x - this.props.coord.cx) * size * zoom + center.x,
+            y: (y - this.props.coord.cy) * size * zoom + center.y
         }
     }
 
-    /**
-     * scale + 1 の範囲をキャッシュ保持領域としたとき、それを外れたかどうか判定する
-     * @param x サーバ座標系x座標
-     * @param y サーバ座標系y座標
-     */
-    protected isOut(x: number, y: number) {
-        let zoom = Math.pow(2, this.props.scale);
-        return Math.abs(x - this.props.cx) > zoom || Math.abs(y - this.props.cy) > zoom;
-    }
-
     shouldEnd() {
-        return this.isOut(this.props.x, this.props.y);
+        return this.props.outMap && this.current == this.destination;
     }
 
     protected calcDestination() {
         return this.toView(this.props.x, this.props.y);
     }
 
-    updateDestination(force: boolean = false) {
+    updateDestination() {
         this.destination = this.calcDestination();
         this.latency = config.latency;
-        if (force) {
-            this.current = this.destination;
-            this.latency = 0;
-            this.props.forceMove = false;
-        }
+    }
+
+    moveDestination() {
+        this.current = this.destination;
+        this.latency = 0;
+        this.props.forceMove = false;
     }
 
     protected smoothMove() {   
@@ -137,16 +145,5 @@ export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T
     setupDefaultValues() {
         super.setupDefaultValues();
         this.addDefaultValues(defaultValues);
-    }
-
-    setupUpdateCallback() {
-        super.setupUpdateCallback();
-        ["cx", "cy", "scale"].forEach(v => this.addUpdateCallback(v, () => this.updateDestination()));
-        this.addUpdateCallback("forceMove", () => this.updateDestination(true));
-    }
-
-    protected updateDestination(force: boolean = false) {
-        this.forEachChild(c => c.updateDestination(force));
-        this.props.forceMove = false;
     }
 }

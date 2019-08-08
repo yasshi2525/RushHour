@@ -21,6 +21,10 @@ export interface Coordinates {
      * 拡大率(クライエントウィンドウの幅が2^scaleに対応する)
      */
     scale: number,
+    /**
+     * 最後にsetScaleしたときズームしたか？(1=ズームした, 0=変更なし、-1=縮小した)
+     */
+    zoom: number
 }
 
 export const config = {

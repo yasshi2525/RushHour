@@ -5,7 +5,8 @@ import { Coordinates, config } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
 import { GameModelProperty, ResourceAttachable } from "./interfaces/pixi";
 import { GameMap } from "../state";
-import { RailEdge, RailNodeContainer, RailEdgeContainer } from "./models/rail";
+import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./models/rail";
+import { StationContainer } from "./models/station";
 
 const forceMove = { forceMove: true };
 
@@ -18,11 +19,6 @@ export default class implements ResourceAttachable {
     textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
     offset: number;
-    /**
-     * サーバから全データの取得が必要か
-     */
-    shouldFetch: boolean;
-    shouldRemoveOutsider: boolean;
     debugText: PIXI.Text;
     debugValue: any;
 
@@ -31,9 +27,7 @@ export default class implements ResourceAttachable {
         this.renderer = options.app.renderer;
         this.textures = {};
        
-        this.coord = { cx: options.cx, cy: options.cy, scale: options.scale }
-        this.shouldFetch = false;
-        this.shouldRemoveOutsider = false;
+        this.coord = { cx: options.cx, cy: options.cy, scale: options.scale, zoom: options.zoom };
         this.timestamp = 0;
         this.offset = 0;
 
@@ -42,7 +36,10 @@ export default class implements ResourceAttachable {
             if (this.offset >= config.round) {
                 this.offset = 0;
             }
-            Object.keys(this.payload).forEach(key => this.payload[key].merge("offset", this.offset));
+            Object.keys(this.payload).forEach(key => {
+                this.payload[key].merge("offset", this.offset);
+                this.payload[key].endChildren();
+            });
         });
 
         this.debugText = new PIXI.Text("");
@@ -55,6 +52,7 @@ export default class implements ResourceAttachable {
     attach(textures: {[index: string]: PIXI.Texture}) {
         this.payload["residences"] = new ResidenceContainer({ app: this.app, texture: textures.residence});
         this.payload["companies"] = new CompanyContainer({ app: this.app, texture: textures.company});
+        this.payload["stations"] = new StationContainer({ app: this.app, texture: textures.station});
         this.payload["rail_nodes"] = new RailNodeContainer({ app: this.app});
         this.payload["rail_edges"] = new RailEdgeContainer({ app: this.app});
 
@@ -89,17 +87,21 @@ export default class implements ResourceAttachable {
     mergeAll(payload: GameMap) {
         config.zIndices.forEach(key => {
             if (this.payload[key] !== undefined) {
-                this.payload[key].mergeChildren(payload[key], this.coord);
+                this.payload[key].mergeChildren(payload[key], {coord: this.coord});
                 if (this.payload[key].isChanged()) {
                     this.changed = true;
                 }
             }
         });
         this.resolve();
-        this.shouldFetch = false;
     }
 
     resolve() {
+        if (this.payload["rail_nodes"] !== undefined) {
+            this.payload["rail_nodes"].forEachChild((rn : RailNode) => {
+                rn.resolve(this.get("rail_nodes", rn.get("pid")))
+            });
+        }
         if (this.payload["rail_edges"] !== undefined) {
             this.payload["rail_edges"].forEachChild((re: RailEdge) => 
                 re.resolve(
@@ -128,13 +130,11 @@ export default class implements ResourceAttachable {
         if (this.coord.cx == x && this.coord.cy == y) {
             return;
         }
-        this.shouldFetch = true;
-        this.shouldRemoveOutsider = true;
         this.coord.cx = x;
         this.coord.cy = y;
         
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].mergeAll(this.coord);
+            this.payload[key].merge("coord", this.coord);
             if (force) {
                 this.payload[key].mergeAll(forceMove);
             }
@@ -145,23 +145,21 @@ export default class implements ResourceAttachable {
     }
 
     setScale(v: number, force: boolean = false) {
+        let old = this.coord.scale
         if (v < config.scale.min) {
             v = config.scale.min;
         }
         if (v > config.scale.max) {
             v = config.scale.max;
         }
+        this.coord.zoom = v < old ? 1 : v > old ? -1 : 0;
         if (this.coord.scale == v) {
             return;
-        } else if (v > this.coord.scale) { // 縮小
-            this.shouldFetch = true;
-        } else { // 拡大
-            this.shouldRemoveOutsider = true;
-        }
+        } 
         this.coord.scale = v;
 
         Object.keys(this.payload).forEach(key => {
-            this.payload[key].mergeAll(this.coord);
+            this.payload[key].merge("coord", this.coord);
             if (force) {
                 this.payload[key].mergeAll(forceMove);
             }
@@ -189,9 +187,5 @@ export default class implements ResourceAttachable {
         Object.keys(this.payload).reverse().forEach(key => {
             this.payload[key].end();
         });
-    }
-
-    removeOutsider() {
-        Object.keys(this.payload).forEach(key => this.payload[key].removeOutsider());
     }
 }

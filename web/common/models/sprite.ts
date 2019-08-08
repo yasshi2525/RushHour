@@ -92,6 +92,7 @@ export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> ext
         options: AnimatedSpriteContainerProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
+        newInstanceOptions.offset = 0;
         super({ texture: PIXI.Texture.EMPTY, ...options }, newInstance, newInstanceOptions);
 
         this.childOptions.animation = options.animation;

@@ -1,6 +1,6 @@
 import { Monitorable } from "../interfaces/monitor";
 
-const defaultValues: {id: number, oid: number} = {id: 0, oid: 0};
+const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0, outMap: false};
 
 /**
  * 変更監視ができるオブジェクト
@@ -39,7 +39,13 @@ export default class implements Monitorable {
      * @param props 
      */
     addDefaultValues(props: {[index: string]: {}}) {
-        Object.keys(props).forEach(key => this.props[key] = props[key]);
+        Object.keys(props).forEach(key => {
+            if (!(props[key] instanceof Object)) {
+                this.props[key] = props[key]
+            } else {
+                this.props[key] = Object.assign({}, props[key]);
+            }
+        });
     }
 
     setupDefaultValues() {
@@ -48,7 +54,13 @@ export default class implements Monitorable {
 
     setInitialValues(initialValues: {[index: string]: {}}) {
         Object.keys(initialValues).filter(key => this.props[key] !== undefined)
-            .forEach(key => this.props[key] = initialValues[key]);
+            .forEach(key => {
+                if (!(initialValues[key] instanceof Object)) {
+                    this.props[key] = initialValues[key]
+                } else {
+                    this.props[key] = Object.assign({}, initialValues[key]);
+                }
+            });
     }
 
     /**
@@ -89,12 +101,20 @@ export default class implements Monitorable {
     }
 
     shouldEnd() {
-        return false;
+        return this.props.outMap;
     }
 
     end() {
         // より基底のクラスのコールバックが最後に呼ばれるようにするため反転
         this.afterCallbacks.reverse().forEach(func => func(this.props));
+    }
+
+    protected equals(key: string, value: any) {
+        if (!(value instanceof Object)) {
+            return this.props[key] == value;
+        } else {
+            return Object.keys(value).filter(k => this.props[key][k] != value[k]).length == 0;
+        }
     }
 
     /**
@@ -107,8 +127,12 @@ export default class implements Monitorable {
             return;
         }
 
-        if (this.props[key] != value) {
-            this.props[key] = value;
+        if (!this.equals(key, value)) {
+            if (!(value instanceof Object)) {
+                this.props[key] = value;
+            } else {
+                this.props[key] = Object.assign({}, value)
+            }
             if (this.updateCallbacks[key] !== undefined) {
                 this.updateCallbacks[key](value);
             }

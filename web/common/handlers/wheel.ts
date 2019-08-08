@@ -32,4 +32,8 @@ export class WheelHandler extends PointHandler<React.WheelEvent> {
 
     protected handleEnd() {
     }
+
+    protected shouldFetch() {
+        return Math.floor(this.scale.from) != Math.floor(this.scale.to);
+    }
 } 

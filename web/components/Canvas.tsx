@@ -35,8 +35,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
         this.model = new GameModel({
             app: this.app , 
-            cx: config.gamePos.default.x, cy: config.gamePos.default.y, 
-            scale: config.scale.default
+            cx: config.gamePos.default.x, 
+            cy: config.gamePos.default.y, 
+            scale: config.scale.default,
+            zoom: 0
         });
 
         ["residence", "company", "station", "train"].forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
@@ -44,6 +46,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             this.model.attach({
                 residence: this.app.loader.resources["residence"].texture,
                 company: this.app.loader.resources["company"].texture,
+                station: this.app.loader.resources["station"].texture
             });
             this.fetchMap();
         });
@@ -114,7 +117,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.props.dispatch(fetchMap.request({
             cx: this.model.coord.cx, 
             cy: this.model.coord.cy, 
-            scale: this.model.coord.scale + 1
+            scale: this.model.coord.scale
         }));
     }
 }
