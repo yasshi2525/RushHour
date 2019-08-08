@@ -26,8 +26,13 @@ const rnDefaultValues: {
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
+    parentRailNode: RailNode | undefined;
+    protected edges: {[index: string]: RailEdge};
+
     constructor(options: AnimatedSpriteProperty) {
-        super(options)
+        super(options);
+        this.parentRailNode = undefined;
+        this.edges = {};
     }
 
     setupDefaultValues() {
@@ -35,30 +40,54 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         this.addDefaultValues(rnDefaultValues);
     }
 
-    setInitialValues(props: {[index: string]: {}}) {
-        super.setInitialValues(props);
-        if (this.props.pid !== 0) {
-            this.current = this.toView(this.props.px, this.props.py);
-            this.latency = config.latency;
-        }
-    }
-
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
-            this.sprite.tint = this.props.color
+            this.sprite.tint = this.props.color;
         });
     }
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
+        this.addUpdateCallback("visible", (v: boolean) => {
+            Object.keys(this.edges).forEach(eid => {
+                this.edges[eid].merge("visible", v);
+            })
+            this.container.visible = v;
+        })
+    }
+
+    setupAfterCallback() {
+        super.setupAfterCallback();
+        this.addAfterCallback(() => {
+            if (this.parentRailNode !== undefined) {
+                this.parentRailNode.merge("visible", true);
+            }
+        })
     }
 
     beforeRender() {
         super.beforeRender();
         this.sprite.x -= graphicsOpts.padding / 2;
         this.sprite.y -= graphicsOpts.padding / 2;
+    }
+
+    resolve(parent: any | undefined) {
+        if (parent !== undefined) {
+            this.parentRailNode = parent;
+            // 拡大時、派生元の座標から移動を開始する
+            if (this.props.coord.zoom == 1) {
+                this.current = Object.assign({}, parent.current)
+                this.latency = config.latency;
+            }
+            // 縮小時、集約先の座標に向かって移動する
+            if (this.props.coord.zoom == -1) {
+                this.merge("x", parent.get("x"));
+                this.merge("y", parent.get("y"));
+            }
+            parent.merge("visible", false);
+        }
     }
 }
 
@@ -99,11 +128,17 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
 
     resolve(from: any | undefined, to: any | undefined, reverse: any | undefined) {
         if (from !== undefined && to !== undefined) {
-            if (this.from !== from || this.to !== to ) {
+            if (this.from !== from && this.to !== to) {
                 this.from = from;
                 this.to = to;
-                this.sprite.tint = from.get("color")
-                this.updateDestination(true);
+                if (this.props.coord.zoom == -1) {
+                    this.merge("visible", from.get("visible") && to.get("visible"))
+                }
+                this.sprite.tint = from.get("color");
+                from.edges[this.props.id] = this;
+                to.edges[this.props.id] = this;
+                this.updateDestination();
+                this.moveDestination();
             }
         }
         if (reverse !== undefined) {
@@ -111,22 +146,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         }
     }
 
-    protected calcDestination() {
-        if (this.from !== undefined && this.to !== undefined) {
-            let theta = Math.atan2(
-                this.to.destination.y - this.from.destination.y, 
-                this.to.destination.x - this.from.destination.x);
-            return {
-                x: (this.from.destination.x + this.to.destination.x) / 2
-                    + graphicsOpts.slide * Math.cos(theta + Math.PI / 2),
-                y: (this.from.destination.y + this.to.destination.y) / 2
-                    + graphicsOpts.slide * Math.sin(theta + Math.PI / 2)
-            };
-        }
-        return {x: 0, y: 0};
-    }
-
-    protected smoothMove() {
+    beforeRender() {
         if (this.from !== undefined && this.to !== undefined) {
             let d = { 
                 x: this.to.current.x - this.from.current.x,
@@ -138,25 +158,25 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
             let theta = Math.atan2(d.y, d.x);
             this.current = {
-                x: avg.x + graphicsOpts.slide * Math.cos(theta + Math.PI / 2),
-                y: avg.y + graphicsOpts.slide * Math.sin(theta + Math.PI / 2)
+                x: avg.x + graphicsOpts.slide * Math.cos(theta + Math.PI / 2) - graphicsOpts.width,
+                y: avg.y + graphicsOpts.slide * Math.sin(theta + Math.PI / 2) - graphicsOpts.width
             };
 
             this.sprite.rotation = theta;
             this.sprite.height = graphicsOpts.width;
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
         }
-        this.beforeRender();
+        super.beforeRender();
     }
 
     shouldEnd() {
         if (this.from !== undefined && this.to !== undefined) {
-            return super.shouldEnd()
-                && this.isOut(this.from.get("x"), this.from.get("y"))
-                && this.isOut(this.to.get("x"), this.to.get("y"));
-        } else {
-            return super.shouldEnd();
+            // 縮小時、集約先に行き着くまで描画する
+            if (this.props.coord.zoom == -1) {
+                return this.from.shouldEnd() && this.to.shouldEnd();
+            }
         }
+        return this.props.outMap;
     }
 }
 

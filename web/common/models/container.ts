@@ -60,6 +60,14 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         }
     }
 
+    endChildren() {
+        this.forEachChild(ch => {
+            if (ch.shouldEnd()) {
+                this.removeChild(ch.get("id"))
+            }
+        })
+    }
+
     removeChild(id: string) {
         if (this.existsChild(id)) {
             this.children[id].end();
@@ -81,15 +89,15 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
             return
         }
         payload.forEach(props => {
-            Object.assign(props, opts)
+            Object.assign(props, opts, {outMap: false})
             this.mergeChild(props);
         });
 
-        // payloadに含まれない child を削除する
+        // payloadに含まれない child に outMap をつける
         let aliveIds = payload.map(props => props.id);
         Object.keys(this.children)
             .filter(myId => !aliveIds.find(id => myId == id))
-            .forEach(id => this.removeChild(id));
+            .forEach(id => this.getChild(id).merge("outMap", true));
     }
 
     /**
@@ -119,11 +127,5 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
 
     forEachChild(func: (c: T) => any) {
         Object.keys(this.children).forEach(id => func(this.children[id]));
-    }
-
-    removeOutsider() {
-        Object.keys(this.children)
-            .filter(id => this.children[id].shouldEnd())
-            .forEach(id => this.removeChild(id));
     }
 }

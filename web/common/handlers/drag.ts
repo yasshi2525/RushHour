@@ -35,6 +35,10 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
     protected handleEnd(ev: T) {
         ev.currentTarget.classList.remove(styles.dragging);
     }
+
+    protected shouldFetch(ev: T) {
+        return ev.type != "mouseout"
+    }
 }
 
 export class MouseDragHandler extends DragHandler<React.MouseEvent> {

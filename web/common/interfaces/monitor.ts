@@ -86,10 +86,14 @@ export interface MonitorContrainer extends Monitorable {
     existsChild(id: string): boolean;
     mergeChild(payload: {id: string}): void;
     /**
-     * このなかに存在しない child は削除されます。
+     * このなかに存在しない child は outMap 属性が true になります
      * @param payload
      * @param opts 全child共通に設定するプロパティ
      */
     mergeChildren(payload: {id: string}[], opts: {[index: string]: any}): void;
+    /**
+     * shouldEndをみたすchildを削除します
+     */
+    endChildren(): void;
     removeChild(id: string): void;
 }

@@ -57,21 +57,20 @@ export default abstract class <T> {
         return true;
     }
 
+    protected shouldFetch(_: T) {
+        return true;
+    }
+
     onEnd(ev: T) {
         if (this.shouldEnd(ev)) {
             this.isExec = false;
             this.handleEnd(ev);
-            if (this.model.shouldRemoveOutsider) {
-                this.model.removeOutsider();
-                this.model.shouldRemoveOutsider = false;
-            }
-            if (this.model.shouldFetch) {
+            if (this.shouldFetch(ev)) {
                 this.dispatch(fetchMap.request({
                     cx: this.model.coord.cx, 
                     cy: this.model.coord.cy, 
                     scale: this.model.coord.scale + 1
                 }));
-                this.model.shouldFetch = false;
             }
         }
     }

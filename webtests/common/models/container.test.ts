@@ -54,6 +54,7 @@ describe("mergeChildren", () => {
     test("remove child when no property is specified", () => {
         instance.mergeChild({ id: testId });
         instance.mergeChildren([], {});
+        instance.endChildren();
         expect(instance.existsChild(testId)).toBe(false);
     });
 });
