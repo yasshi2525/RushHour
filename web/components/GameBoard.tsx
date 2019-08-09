@@ -1,5 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
+import Button from '@material-ui/core/Button';
 import Canvas from "./Canvas";
 import { RushHourStatus } from "../state";
 
@@ -14,6 +15,7 @@ export class GameBoard extends React.Component<RushHourStatus, RushHourStatus> {
         return (
             <div>
                 <Canvas readOnly = {this.props.readOnly} />
+                <Button variant="contained" color="primary">Hello World</Button>
             </div>
         );
     }
