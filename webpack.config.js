@@ -18,10 +18,10 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: ["style-loader", "css-loader?modules"],
-            },      
+            },
             {
                 test: /\.tsx?$/,
-                use: ["awesome-typescript-loader"]
+                use: ["ts-loader"]
             },
             { 
                 enforce: "pre", test: /\.js$/, 
