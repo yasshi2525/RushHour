@@ -8,7 +8,7 @@ import { config } from "../interfaces/gamemap";
 const graphicsOpts = {
     padding: 10,
     width: 4,
-    color: 0xaaaaaa,
+    color: 0x9e9e9e,
     radius: 10,
     slide: 10
 };

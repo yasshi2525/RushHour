@@ -6,7 +6,6 @@ export interface ApplicationProperty {
 };
 
 export interface ContainerProperty extends ApplicationProperty {
-    container: PIXI.Container
 }
 
 export interface SpriteProperty extends ContainerProperty {
