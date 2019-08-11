@@ -1,11 +1,11 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import Button from '@material-ui/core/Button';
 import Canvas from "./Canvas";
 import { RushHourStatus } from "../state";
+import ToolBar from "./Toolbar";
 
 // ゲーム画面のルートコンポーネント
-export class GameBoard extends React.Component<RushHourStatus, RushHourStatus> {
+export class GameBoard extends React.Component<RushHourStatus, any> {
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -15,14 +15,14 @@ export class GameBoard extends React.Component<RushHourStatus, RushHourStatus> {
         return (
             <div>
                 <Canvas readOnly = {this.props.readOnly} />
-                <Button variant="contained" color="primary">Hello World</Button>
+                <ToolBar />
             </div>
         );
     }
 }
 
 function mapStateToProps(state: RushHourStatus) {
-    return { map: state.map };
+    return { readOnly: state.readOnly };
 }
 
 export default connect(mapStateToProps)(GameBoard);

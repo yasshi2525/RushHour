@@ -1,4 +1,4 @@
-import { createAsyncAction } from "typesafe-actions";
+import { createAsyncAction, createAction } from "typesafe-actions";
 import { Coordinates, GameMap } from "../state";
 
 export interface ActionPayload {
@@ -13,3 +13,5 @@ export interface GameMapResponse extends ActionPayload {
 
 export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEESSED", "FETCH_MAP_FAILED")<Coordinates, GameMapResponse ,Error>();
 export const diffMap = createAsyncAction("DIFF_MAP_REQUESTED", "DIFF_MAP_SUCCEEDED", "DIFF_MAP_FAILED")<Coordinates, GameMapResponse ,Error>();
+export const cancelEditting = createAction("CANCEL");
+export const startDeparture = createAction("START_DEPT");
