@@ -35,7 +35,7 @@ RUN apk update && apk --no-cache add tzdata
 WORKDIR /rushhour
 
 COPY --from=server /rushhour/ ./
-COPY --from=client /data/public/js/ src/github.com/yasshi2525/RushHour/public/js/
+COPY --from=client /data/public/ src/github.com/yasshi2525/RushHour/public/
 
 EXPOSE 9000
 
