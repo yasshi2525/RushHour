@@ -81,11 +81,11 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     render() {
         return (<div ref={this.ref} 
             onMouseDown={(e) => this.mouse.onStart(e)}
-            onMouseMove={(e) => this.mouse.onMove(e)}
+            onMouseMove={(e) => {this.clickCursor.onMove(e); this.mouse.onMove(e);} }
             onMouseUp={(e) => this.mouse.onEnd(e)}
             onMouseOut={(e) => this.mouse.onEnd(e)}
             onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); }}
-            onClick={(e) => { this.clickCursor.onClick(this.props.menu, e); }}
+            onClick={(e) => { this.clickCursor.onClick(e); }}
             onTouchStart={(e) => {this.touch.onStart(e); this.pinch.onStart(e); }}
             onTouchMove={(e) => {this.touch.onMove(e);  this.pinch.onMove(e); } }
             onTouchEnd={(e) => {this.touch.onEnd(e);  this.pinch.onEnd(e); } }>
@@ -103,6 +103,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
     componentDidUpdate() {
         //let beforeFetch = new Date().getTime();
+        this.model.cursor.merge("menu", this.props.menu);
         this.model.timestamp = this.props.timestamp;
         this.model.mergeAll(this.props.map);
         //let beforeRender = new Date().getTime();

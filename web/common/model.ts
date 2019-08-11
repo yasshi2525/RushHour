@@ -7,14 +7,16 @@ import { GameModelProperty, ResourceAttachable } from "./interfaces/pixi";
 import { GameMap } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./models/rail";
 import { StationContainer } from "./models/station";
+import CursorModel from "./models/cursor";
 
 const forceMove = { forceMove: true };
 
 export default class implements ResourceAttachable {
     protected app: PIXI.Application;
     renderer: PIXI.Renderer;
-    protected payload: {[index:string]: MonitorContainer<Monitorable>} = {}
+    protected payload: {[index:string]: MonitorContainer<Monitorable>} = {};
     protected changed: boolean = false;
+    cursor: CursorModel;
     timestamp: number;
     textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
@@ -31,6 +33,14 @@ export default class implements ResourceAttachable {
         this.timestamp = 0;
         this.offset = 0;
 
+        this.cursor = new CursorModel({ app: this.app, offset: this.offset });
+        this.cursor.setupDefaultValues();
+        this.cursor.setupUpdateCallback();
+        this.cursor.setupBeforeCallback();
+        this.cursor.setupAfterCallback();
+        this.cursor.setInitialValues({ visible: false });
+        this.cursor.begin();
+
         this.app.ticker.add(() => {
             this.offset++;
             if (this.offset >= config.round) {
@@ -39,6 +49,7 @@ export default class implements ResourceAttachable {
             Object.keys(this.payload).forEach(key => {
                 this.payload[key].merge("offset", this.offset);
                 this.payload[key].endChildren();
+                this.cursor.merge("offset", this.offset);
             });
         });
 

@@ -1,13 +1,17 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
 import GameModel from "../model";
+import CursorModel from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
 
 abstract class CursorHandler<T> {
     protected model: GameModel;
+    protected cursor: CursorModel;
     protected dispatch: any;
+
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
+        this.cursor = model.cursor;
         this.dispatch = dispatch;
     }
 
@@ -30,10 +34,18 @@ abstract class CursorHandler<T> {
             y: this.model.coord.cy + d.y * zoom
         }
     }
+
+    onMove(ev: T) {
+        let client = this.getClientXY(ev);
+        this.cursor.merge("client", client);
+        if (this.cursor.isChanged()) {
+            this.cursor.beforeRender();
+        }
+    }
     
-    onClick(menu: MenuStatus, _ev: T) {
-        //let loc = this.toServerXY(this.getClientXY(ev));
-        switch(menu) {
+    onClick(_ev: T) {
+        //let _server = this.toServerXY(this.getClientXY(ev));
+        switch(this.cursor.get("menu")) {
             case MenuStatus.SEEK_DEPARTURE:
                 break;
         }
