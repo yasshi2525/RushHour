@@ -23,6 +23,19 @@ module.exports = {
                 test: /\.tsx?$/,
                 use: ["ts-loader"]
             },
+            {
+                test: /\.(woff|woff2|eot|ttf|svg)$/,
+                use: [
+                    {
+                        loader: "file-loader",
+                        options: {
+                            name: "[name].[ext]",
+                            outputPath: "../fonts",
+                            publicPath: "public/fonts"
+                        }
+                    }
+                ]
+            },
             { 
                 enforce: "pre", test: /\.js$/, 
                 loader: "source-map-loader" 
