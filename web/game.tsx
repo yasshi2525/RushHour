@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { store } from "./store";
 import GameBoard from "./components/GameBoard";
+import "typeface-roboto";
 
 ReactDOM.render(
     <Provider store={store}>
