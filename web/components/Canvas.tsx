@@ -9,6 +9,7 @@ import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
 import { RushHourStatus } from "../state";
 import { fetchMap } from "../actions";
+import { ClickCursor } from "@/common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
@@ -19,6 +20,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     wheel: WheelHandler;
     touch: TouchDragHandler;
     pinch: PinchHandler;
+    clickCursor: ClickCursor;
 
     constructor(props: RushHourStatus) {
         super(props);
@@ -73,6 +75,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.wheel = new WheelHandler(this.model, this.props.dispatch);
         this.touch = new TouchDragHandler(this.model, this.props.dispatch);
         this.pinch = new PinchHandler(this.model, this.props.dispatch);
+        this.clickCursor = new ClickCursor(this.model, this.props.dispatch);
     }
 
     render() {
@@ -82,9 +85,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             onMouseUp={(e) => this.mouse.onEnd(e)}
             onMouseOut={(e) => this.mouse.onEnd(e)}
             onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); }}
+            onClick={(e) => { this.clickCursor.onClick(this.props.menu, e); }}
             onTouchStart={(e) => {this.touch.onStart(e); this.pinch.onStart(e); }}
-            onTouchMove={(e) => {this.touch.onMove(e);  this.pinch.onMove(e)} }
-            onTouchEnd={(e) => {this.touch.onEnd(e);  this.pinch.onEnd(e)} }>
+            onTouchMove={(e) => {this.touch.onMove(e);  this.pinch.onMove(e); } }
+            onTouchEnd={(e) => {this.touch.onEnd(e);  this.pinch.onEnd(e); } }>
             </div>);
     }
 
@@ -125,7 +129,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 function mapStateToProps(state: RushHourStatus) {
     return { 
         timestamp: state.timestamp, 
-        map: state.map
+        map: state.map,
+        menu: state.menu
     };
 }
 

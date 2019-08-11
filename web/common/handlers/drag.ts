@@ -1,4 +1,4 @@
-import * as styles from "./style.css"
+import * as styles from "./style.css";
 import * as React from "react";
 import PointHandler from "./point";
 import GameModel from "../model";

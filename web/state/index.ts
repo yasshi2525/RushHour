@@ -14,6 +14,11 @@ export interface Locatable extends Identifiable {
     y: number
 };
 
+export enum MenuStatus {
+    IDLE,
+    SEEK_DEPARTURE
+};
+
 export interface GameMap {
     [key: string]: Locatable[],
     "companies": Locatable[],
@@ -34,7 +39,8 @@ export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
     timestamp: number,
-    map: GameMap
+    map: GameMap,
+    menu: MenuStatus,
 };
 
 export const defaultState: RushHourStatus = {
@@ -53,5 +59,6 @@ export const defaultState: RushHourStatus = {
         "residences": [],
         "stations": [],
         "trains": [],
-    }
+    },
+    menu: MenuStatus.IDLE
 };
