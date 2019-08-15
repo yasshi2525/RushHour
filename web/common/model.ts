@@ -181,16 +181,7 @@ export default class implements ResourceAttachable {
         this.coord.cx = x;
         this.coord.cy = y;
         
-        Object.keys(this.payload).forEach(key => {
-            this.payload[key].merge("coord", this.coord);
-            if (force) {
-                this.payload[key].mergeAll(forceMove);
-            }
-            if (this.payload[key].isChanged()) {
-                this.changed = true;
-            }
-        });
-        this.world.merge("coord", this.coord);
+        this.updateCoord(force);
     }
 
     setScale(v: number, force: boolean = false) {
@@ -212,6 +203,10 @@ export default class implements ResourceAttachable {
         } 
         this.coord.scale = v;
 
+        this.updateCoord(force);
+    }
+
+    protected updateCoord(force: boolean) {
         Object.keys(this.payload).forEach(key => {
             this.payload[key].merge("coord", this.coord);
             if (force) {
