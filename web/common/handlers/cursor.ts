@@ -18,6 +18,18 @@ abstract class CursorHandler<T> {
         this.dispatch = dispatch;
     }
 
+    protected handle(server: Point) {
+        switch(this.cursor.get("menu")) {
+            case MenuStatus.SEEK_DEPARTURE:
+                this.dispatch(depart.request({
+                    oid: 1, // TODO
+                    x: server.x,
+                    y: server.y
+                }))
+                break;
+        }
+    }
+
     protected toServerXY(client: Point) {
         let w = this.model.renderer.width;
         let h = this.model.renderer.height;
@@ -38,7 +50,11 @@ abstract class CursorHandler<T> {
         }
     }
 
-    onMove(ev: T) {
+    protected abstract getClientXY(ev: T): Point;
+}
+
+export class ClickCursor extends CursorHandler<React.MouseEvent> {
+    onMove(ev: React.MouseEvent) {
         let client = this.getClientXY(ev);
         this.cursor.merge("x", client.x);
         this.cursor.merge("y", client.y);
@@ -52,24 +68,50 @@ abstract class CursorHandler<T> {
         this.cursor.merge("y", -1);
     }
     
-    onClick(ev: T) {
-        let server = this.toServerXY(this.getClientXY(ev));
-        switch(this.cursor.get("menu")) {
-            case MenuStatus.SEEK_DEPARTURE:
-                this.dispatch(depart.request({
-                    oid: 1, // TODO
-                    x: server.x,
-                    y: server.y
-                }))
-                break;
-        }
+    onClick(ev: React.MouseEvent) {
+        this.handle(this.toServerXY(this.getClientXY(ev)));
     }
 
-    protected abstract getClientXY(ev: T): Point;
-}
-
-export class ClickCursor extends CursorHandler<React.MouseEvent> {
     protected getClientXY(ev: React.MouseEvent) {
         return {x: ev.clientX, y: ev.clientY};
+    }
+}
+
+const sensitivity = 1;
+
+export class TapCursor extends CursorHandler<React.TouchEvent> {
+    protected pos: Point = {x: -1, y: -1};
+    protected moveCnt = 0;
+
+    onStart(ev: React.TouchEvent) {
+        this.pos = this.getClientXY(ev);
+        this.moveCnt = 0;
+    }
+
+    onMove(_ev: React.TouchEvent) {
+        this.moveCnt++;
+    }
+
+    onEnd(_ev: React.TouchEvent) {
+        if (this.pos.x !== -1 && this.pos.y !== -1 && this.moveCnt <= sensitivity) {
+            this.cursor.merge("x", this.pos.x);
+            this.cursor.merge("y", this.pos.y);
+            this.cursor.beforeRender();
+
+            this.handle(this.toServerXY(this.pos));
+
+            this.cursor.merge("x", -1);
+            this.cursor.merge("y", -1);
+            this.cursor.beforeRender();
+        }
+        this.pos = {x: -1, y: -1};
+        this.moveCnt = 0;
+    }
+
+    protected getClientXY(ev: React.TouchEvent) {
+        let ts = ev.touches;
+        return (ts.length === 1) ?
+            {x: ts.item(0).clientX, y: ts.item(0).clientY}
+            : {x: -1, y: -1}
     }
 }
