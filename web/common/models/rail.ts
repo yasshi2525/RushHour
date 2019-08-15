@@ -50,9 +50,12 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
-        this.addUpdateCallback("visible", (v: boolean) => {
+        this.addUpdateCallback("visible", () => {
             Object.keys(this.edges).forEach(eid => {
-                this.edges[eid].merge("visible", v);
+                let re = this.edges[eid];
+                if (re.from !== undefined && re.to !== undefined) {
+                    re.merge("visible", re.from.get("visible") && re.to.get("visible"));
+                }
             });
         })
     }
@@ -115,8 +118,8 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
 const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0, eid: 0};
 
 export class RailEdge extends AnimatedSpriteModel implements Monitorable {
-    protected from: RailNode|undefined;
-    protected to: RailNode|undefined;
+    from: RailNode|undefined;
+    to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
     protected theta: number = 0;
 
