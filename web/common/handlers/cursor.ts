@@ -73,7 +73,10 @@ export class ClickCursor extends CursorHandler<React.MouseEvent> {
     }
 
     protected getClientXY(ev: React.MouseEvent) {
-        return {x: ev.clientX, y: ev.clientY};
+        return {
+            x: ev.clientX * this.model.renderer.resolution, 
+            y: ev.clientY * this.model.renderer.resolution
+        };
     }
 }
 
