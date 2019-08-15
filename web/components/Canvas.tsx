@@ -102,6 +102,9 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     }
 
     componentDidUpdate() {
+        if (this.props.needsFetch) {
+            this.fetchMap();
+        }
         //let beforeFetch = new Date().getTime();
         this.model.cursor.merge("menu", this.props.menu);
         this.model.timestamp = this.props.timestamp;
@@ -122,7 +125,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.props.dispatch(fetchMap.request({
             cx: this.model.coord.cx, 
             cy: this.model.coord.cy, 
-            scale: this.model.coord.scale
+            scale: this.model.coord.scale + 1
         }));
     }
 }
@@ -131,7 +134,8 @@ function mapStateToProps(state: RushHourStatus) {
     return { 
         timestamp: state.timestamp, 
         map: state.map,
-        menu: state.menu
+        menu: state.menu,
+        needsFetch: state.needsFetch
     };
 }
 

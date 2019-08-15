@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -33,6 +34,40 @@ func (c APIv1Game) Diff() revel.Result {
 		genResponse(
 			true,
 			services.ViewMap(500, 500, 10, time.Now().Add(time.Duration(-1)*time.Minute))))
+}
+
+func (c APIv1Game) Departure() revel.Result {
+	x, err := strconv.ParseFloat(c.Params.Form.Get("x"), 64)
+	if err != nil {
+		return c.RenderJSON(genResponse(false, err.Error()))
+	}
+	y, err := strconv.ParseFloat(c.Params.Form.Get("y"), 64)
+	if err != nil {
+		return c.RenderJSON(genResponse(false, err.Error()))
+	}
+	oid, err := strconv.ParseUint(c.Params.Form.Get("oid"), 10, 64)
+	if err != nil {
+		return c.RenderJSON(genResponse(false, err.Error()))
+	}
+	if o, ok := services.Model.Players[uint(oid)]; !ok {
+		return c.RenderJSON(genResponse(false, fmt.Sprintf("%d not exists", oid)))
+	} else {
+		rn, err := services.CreateRailNode(o, x, y)
+		if err != nil {
+			return c.RenderJSON(genResponse(false, err.Error()))
+		}
+		return c.RenderJSON(genResponse(true, &struct {
+			OwnerID uint    `json:"oid"`
+			ID      uint    `json:"id"`
+			X       float64 `json:"x"`
+			Y       float64 `json:"y"`
+		}{
+			OwnerID: uint(oid),
+			ID:      rn.ID,
+			X:       rn.X,
+			Y:       rn.Y,
+		}))
+	}
 }
 
 func genResponse(status bool, results interface{}) interface{} {

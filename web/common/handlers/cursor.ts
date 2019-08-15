@@ -1,8 +1,11 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
+import { depart } from "../../actions";
 import GameModel from "../model";
 import CursorModel from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
+
+const offset = 2;
 
 abstract class CursorHandler<T> {
     protected model: GameModel;
@@ -24,8 +27,8 @@ abstract class CursorHandler<T> {
         );
 
         let d = {
-            x: (client.x - w / 2) / size,
-            y: (client.y - h / 2) / size
+            x: (client.x + offset - w / 2) / size,
+            y: (client.y + offset - h / 2) / size
         }
 
         let zoom = Math.pow(2, this.model.coord.scale);
@@ -49,10 +52,15 @@ abstract class CursorHandler<T> {
         this.cursor.merge("y", -1);
     }
     
-    onClick(_ev: T) {
-        //let _server = this.toServerXY(this.getClientXY(ev));
+    onClick(ev: T) {
+        let server = this.toServerXY(this.getClientXY(ev));
         switch(this.cursor.get("menu")) {
             case MenuStatus.SEEK_DEPARTURE:
+                this.dispatch(depart.request({
+                    oid: 1, // TODO
+                    x: server.x,
+                    y: server.y
+                }))
                 break;
         }
     }

@@ -41,6 +41,7 @@ export interface RushHourStatus {
     timestamp: number,
     map: GameMap,
     menu: MenuStatus,
+    needsFetch: boolean
 };
 
 export const defaultState: RushHourStatus = {
@@ -60,5 +61,6 @@ export const defaultState: RushHourStatus = {
         "stations": [],
         "trains": [],
     },
-    menu: MenuStatus.IDLE
+    menu: MenuStatus.IDLE,
+    needsFetch: true
 };
