@@ -142,7 +142,7 @@ func processMsg(msg *Operation) time.Time {
 				re := raw.(*entities.RailEdge)
 				size := math.Pow(2, 10) * rand.Float64()
 				d := re.ToNode.Point.Sub(&re.FromNode.Point)
-				theta := math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
+				theta := math.Atan2(d.Y, d.Y) + (rand.Float64()-0.5)*math.Pi/8
 
 				p := &entities.Point{
 					X: re.ToNode.X + math.Cos(theta)*size,

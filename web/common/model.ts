@@ -125,18 +125,45 @@ export default class implements ResourceAttachable {
     }
 
     setCenter(x: number, y: number, force: boolean = false) {
-        let radius = Math.pow(2, this.coord.scale - 1);
-        if (x - radius < config.gamePos.min.x) {
-            x = config.gamePos.min.x + radius;
-        }
-        if (y - radius < config.gamePos.min.y) {
-            y = config.gamePos.min.y + radius;
-        }
-        if (x + radius > config.gamePos.max.x) {
-            x = config.gamePos.max.x - radius;
-        }
-        if (y + radius > config.gamePos.max.y) {
-            y = config.gamePos.max.y - radius;
+        let short = Math.min(this.renderer.width, this.renderer.height);
+        let long = Math.max(this.renderer.width, this.renderer.height);
+        let shortRadius = Math.pow(2, this.coord.scale - 1 + Math.log2(short/long));
+        let longRadius = Math.pow(2, this.coord.scale - 1);
+
+        if (this.renderer.width < this.renderer.height) {
+            // 縦長
+            if (x - shortRadius < config.gamePos.min.x) {
+                x = config.gamePos.min.x + shortRadius;
+            }
+            if (x + shortRadius > config.gamePos.max.x) {
+                x = config.gamePos.max.x - shortRadius;
+            }
+            if (y - longRadius < config.gamePos.min.y) {
+                y = config.gamePos.min.y + longRadius;
+            }
+            if (y + longRadius > config.gamePos.max.y) {
+                y = config.gamePos.max.y - longRadius;
+            }
+            if (this.coord.scale > config.scale.max) { 
+                y = 0;
+            }
+        }else {
+            // 横長
+            if (x - longRadius < config.gamePos.min.x) {
+                x = config.gamePos.min.x + longRadius;
+            }
+            if (x + longRadius > config.gamePos.max.x) {
+                x = config.gamePos.max.x - longRadius;
+            }
+            if (y - shortRadius < config.gamePos.min.y) {
+                y = config.gamePos.min.y + shortRadius;
+            }
+            if (y + shortRadius > config.gamePos.max.y) {
+                y = config.gamePos.max.y - shortRadius;
+            }
+            if (this.coord.scale > config.scale.max) { 
+                x = 0;
+            }
         }
         if (this.coord.cx == x && this.coord.cy == y) {
             return;
@@ -157,11 +184,16 @@ export default class implements ResourceAttachable {
 
     setScale(v: number, force: boolean = false) {
         let old = this.coord.scale
+
+        let short = Math.min(this.renderer.width, this.renderer.height);
+        let long = Math.max(this.renderer.width, this.renderer.height);
+        let maxScale = config.scale.max + Math.log2(long/short);
+
         if (v < config.scale.min) {
             v = config.scale.min;
         }
-        if (v > config.scale.max) {
-            v = config.scale.max;
+        if (v > maxScale) {
+            v = maxScale;
         }
         this.coord.zoom = v < old ? 1 : v > old ? -1 : 0;
         if (this.coord.scale == v) {

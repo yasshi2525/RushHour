@@ -8,6 +8,7 @@ import { config } from "../interfaces/gamemap";
 const graphicsOpts = {
     padding: 10,
     width: 4,
+    maxWidth: 10,
     color: 0x9e9e9e,
     radius: 10,
     slide: 10
@@ -50,11 +51,14 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
-        this.addUpdateCallback("visible", (v: boolean) => {
+        this.addUpdateCallback("visible", () => {
             Object.keys(this.edges).forEach(eid => {
-                this.edges[eid].merge("visible", v);
+                let re = this.edges[eid];
+                if (re.from !== undefined && re.to !== undefined) {
+                    re.merge("visible", re.from.get("visible") && re.to.get("visible"));
+                }
             });
-        })
+        });
     }
 
     setupAfterCallback() {
@@ -112,11 +116,21 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
     }
 }
 
-const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0, eid: 0};
+const reDefaultValues: {
+    from: number, 
+    to: number, 
+    eid: number,
+    mul: number
+} = {
+    from: 0, 
+    to: 0, 
+    eid: 0,
+    mul: 1
+};
 
 export class RailEdge extends AnimatedSpriteModel implements Monitorable {
-    protected from: RailNode|undefined;
-    protected to: RailNode|undefined;
+    from: RailNode|undefined;
+    to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
     protected theta: number = 0;
 
@@ -162,7 +176,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
 
             this.sprite.rotation = theta;
-            this.sprite.height = graphicsOpts.width;
+            this.sprite.height = Math.min(this.props.mul, graphicsOpts.maxWidth);
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
         }
         super.beforeRender();
