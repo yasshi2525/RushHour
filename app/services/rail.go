@@ -7,6 +7,9 @@ import (
 
 // CreateRailNode create RailNode
 func CreateRailNode(o *entities.Player, x float64, y float64) (*entities.RailNode, error) {
+	if err := CheckArea(x, y); err != nil {
+		return nil, err
+	}
 	rn := Model.NewRailNode(o, x, y)
 	AddOpLog("CreateRailNode", o, rn)
 	return rn, nil
@@ -35,6 +38,9 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	x float64, y float64) (*entities.RailNode, *entities.RailEdge, *entities.RailEdge, error) {
 	if err := CheckAuth(o, from); err != nil {
+		return nil, nil, nil, err
+	}
+	if err := CheckArea(x, y); err != nil {
 		return nil, nil, nil, err
 	}
 	to, e1 := from.Extend(x, y)

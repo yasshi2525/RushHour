@@ -1,6 +1,7 @@
 import { takeLatest } from "redux-saga/effects";
 import * as Action from "../actions";
 import { fetchMap, diffMap } from "./gamemap";
+import { depart } from "./rail";
 
 /**
  * 非同期処理呼び出す ActionType を指定する。
@@ -9,4 +10,5 @@ import { fetchMap, diffMap } from "./gamemap";
 export default function* rushHourSaga() {
     yield takeLatest(Action.fetchMap.request, fetchMap);
     yield takeLatest(Action.diffMap.request, diffMap);
+    yield takeLatest(Action.depart.request, depart)
 };

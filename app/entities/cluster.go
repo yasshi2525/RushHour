@@ -189,7 +189,7 @@ func (cl *Cluster) Remove(raw Entity) {
 
 func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float64, span float64) {
 	if cl.IntersectsWith(cx, cy, scale) {
-		if cl.Scale < scale-span {
+		if cl.Scale <= scale-span {
 			for _, d := range cl.Data {
 				d.Export(dm)
 			}

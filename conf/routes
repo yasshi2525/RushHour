@@ -10,6 +10,7 @@ module:testrunner
 GET     /                                       App.Index
 GET     /api/v1/gamemap                         ApiV1Game.Index
 GET     /api/v1/gamemap/diff                    ApiV1Game.Diff
+POST    /api/v1/dept                            ApiV1Game.Departure
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
