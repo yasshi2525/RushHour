@@ -5,14 +5,11 @@ export interface ApplicationProperty {
     app: PIXI.Application,
 };
 
-export interface ContainerProperty extends ApplicationProperty {
-}
-
-export interface SpriteProperty extends ContainerProperty {
+export interface SpriteProperty extends ApplicationProperty {
     texture: PIXI.Texture
 };
 
-export interface AnimatedSpriteProperty extends ContainerProperty {
+export interface AnimatedSpriteProperty extends ApplicationProperty {
     animation: PIXI.Texture[],
     offset: number
 }

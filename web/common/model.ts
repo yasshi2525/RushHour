@@ -8,6 +8,7 @@ import { GameMap } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./models/rail";
 import { StationContainer } from "./models/station";
 import CursorModel from "./models/cursor";
+import { WorldBorder } from "./models/border";
 
 const forceMove = { forceMove: true };
 
@@ -15,6 +16,7 @@ export default class implements ResourceAttachable {
     protected app: PIXI.Application;
     renderer: PIXI.Renderer;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {};
+    protected world: WorldBorder;
     protected changed: boolean = false;
     cursor: CursorModel;
     timestamp: number;
@@ -40,6 +42,14 @@ export default class implements ResourceAttachable {
         this.cursor.setupAfterCallback();
         this.cursor.setInitialValues({ visible: false, x: -1, y: -1 });
         this.cursor.begin();
+
+        this.world = new WorldBorder({ app: this.app });
+        this.world.setupDefaultValues();
+        this.world.setupUpdateCallback();
+        this.world.setupBeforeCallback();
+        this.world.setupAfterCallback();
+        this.world.setInitialValues({});
+        this.world.begin();
 
         this.app.ticker.add(() => {
             this.offset++;
@@ -180,6 +190,7 @@ export default class implements ResourceAttachable {
                 this.changed = true;
             }
         });
+        this.world.merge("coord", this.coord);
     }
 
     setScale(v: number, force: boolean = false) {
@@ -210,6 +221,7 @@ export default class implements ResourceAttachable {
                 this.changed = true;
             }
         });
+        this.world.merge("coord", this.coord);
     }
 
     isChanged() {
@@ -226,9 +238,7 @@ export default class implements ResourceAttachable {
 
     unmount() {
         Object.keys(this.payload).reverse().forEach(key => this.payload[key].end());
-
-        Object.keys(this.payload).reverse().forEach(key => {
-            this.payload[key].end();
-        });
+        this.cursor.end();
+        this.world.end();
     }
 }

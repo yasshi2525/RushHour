@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { ApplicationProperty, ContainerProperty } from "../interfaces/pixi";
+import { ApplicationProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 
@@ -36,7 +36,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 
     protected smoothMoveFn: () => void;
 
-    constructor(options: ContainerProperty) {
+    constructor(options: ApplicationProperty) {
         super();
         this.app = options.app;
         this.parent = options.container;
@@ -117,7 +117,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         if (this.latency > 0) {
             let ratio = this.latency / config.latency;
             if (ratio < 0.5) {
-                ratio = 1.0 - ratio, 2;
+                ratio = 1.0 - ratio;
             }
             this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
             this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
