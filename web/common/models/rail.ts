@@ -8,6 +8,7 @@ import { config } from "../interfaces/gamemap";
 const graphicsOpts = {
     padding: 10,
     width: 4,
+    maxWidth: 10,
     color: 0x9e9e9e,
     radius: 10,
     slide: 10
@@ -57,7 +58,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
                     re.merge("visible", re.from.get("visible") && re.to.get("visible"));
                 }
             });
-        })
+        });
     }
 
     setupAfterCallback() {
@@ -115,7 +116,17 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
     }
 }
 
-const reDefaultValues: {from: number, to: number, eid: number} = {from: 0, to: 0, eid: 0};
+const reDefaultValues: {
+    from: number, 
+    to: number, 
+    eid: number,
+    mul: number
+} = {
+    from: 0, 
+    to: 0, 
+    eid: 0,
+    mul: 1
+};
 
 export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     from: RailNode|undefined;
@@ -165,7 +176,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
 
             this.sprite.rotation = theta;
-            this.sprite.height = graphicsOpts.width;
+            this.sprite.height = Math.min(this.props.mul, graphicsOpts.maxWidth);
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
         }
         super.beforeRender();
