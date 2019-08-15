@@ -11,6 +11,7 @@ import CursorModel from "./models/cursor";
 import { WorldBorder } from "./models/border";
 
 const forceMove = { forceMove: true };
+const resize = { resize: true };
 
 export default class implements ResourceAttachable {
     protected app: PIXI.Application;
@@ -206,7 +207,17 @@ export default class implements ResourceAttachable {
         this.updateCoord(force);
     }
 
+    resize(width: number, height: number) {
+        this.renderer.resize(width, height);
+        this.world.mergeAll(resize);
+        Object.keys(this.payload).forEach(key => this.payload[key].mergeAll(resize));
+    }
+
     protected updateCoord(force: boolean) {
+        this.world.merge("coord", this.coord);
+        if (force) {
+            this.world.mergeAll(forceMove);
+        }
         Object.keys(this.payload).forEach(key => {
             this.payload[key].merge("coord", this.coord);
             if (force) {
@@ -216,7 +227,6 @@ export default class implements ResourceAttachable {
                 this.changed = true;
             }
         });
-        this.world.merge("coord", this.coord);
     }
 
     isChanged() {

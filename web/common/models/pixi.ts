@@ -12,6 +12,7 @@ const defaultValues: {coord: Coordinates, [index: string]: any} = {
         scale: config.scale.default,
         zoom: 0
     },
+    resize: false,
     forceMove: false,
     outMap: false,
     visible: true
@@ -64,9 +65,15 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("coord", () => this.updateDestination());
-        this.addUpdateCallback("forceMove", (v) => {
+        this.addUpdateCallback("forceMove", (v: boolean) => {
             if (v) {
                 this.moveDestination();
+            }
+        });
+        this.addUpdateCallback("resize", (v: boolean) => {
+            if (v) {
+                this.updateDestination();
+                this.props.resize = false;
             }
         });
         this.addUpdateCallback("visible", (v) => {this.container.visible = v});
