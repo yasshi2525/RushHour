@@ -39,8 +39,8 @@ export class Rail extends React.Component<any, RailState> {
         this.setState({ selected: newState })
     }
 
-    protected startDeparture() {
-        
+    componentWillUnmount() {
+        this.props.dispatch(cancelEditting());
     }
 }
 

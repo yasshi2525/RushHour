@@ -16,10 +16,12 @@ const graphicsOpts = {
 
 const defaultValues: {
     client: Point,
-    menu: MenuStatus
+    menu: MenuStatus,
+    enable: boolean
 } = {
     client: {x: 0, y: 0},
-    menu: MenuStatus.IDLE
+    menu: MenuStatus.IDLE,
+    enable: false
 };
 
 export default class extends AnimatedSpriteModel implements Monitorable {
@@ -55,20 +57,19 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        this.addUpdateCallback("menu", (v: MenuStatus) => {
-            switch(v) {
-                case MenuStatus.SEEK_DEPARTURE:
-                    this.merge("visible", true);
-                    break;
-                default:
-                    this.merge("visible", false);
-            }
-        });
+        ["x", "y", "menu"].forEach(key => 
+            this.addUpdateCallback(key,
+                () => this.merge("visible", this.isVisible())));
     }
 
     beforeRender() {
         super.beforeRender();
-        this.sprite.x = this.props.client.x;
-        this.sprite.y = this.props.client.y;
+        this.sprite.x = this.props.x;
+        this.sprite.y = this.props.y;
+    }
+
+    protected isVisible() {
+        return this.props.menu === MenuStatus.SEEK_DEPARTURE
+            && this.props.x != -1 && this.props.y != -1;
     }
 }

@@ -38,7 +38,7 @@ export default class implements ResourceAttachable {
         this.cursor.setupUpdateCallback();
         this.cursor.setupBeforeCallback();
         this.cursor.setupAfterCallback();
-        this.cursor.setInitialValues({ visible: false });
+        this.cursor.setInitialValues({ visible: false, x: -1, y: -1 });
         this.cursor.begin();
 
         this.app.ticker.add(() => {
