@@ -53,8 +53,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         this.addUpdateCallback("visible", (v: boolean) => {
             Object.keys(this.edges).forEach(eid => {
                 this.edges[eid].merge("visible", v);
-            })
-            this.container.visible = v;
+            });
         })
     }
 

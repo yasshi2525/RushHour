@@ -37,10 +37,16 @@ abstract class CursorHandler<T> {
 
     onMove(ev: T) {
         let client = this.getClientXY(ev);
-        this.cursor.merge("client", client);
+        this.cursor.merge("x", client.x);
+        this.cursor.merge("y", client.y);
         if (this.cursor.isChanged()) {
             this.cursor.beforeRender();
         }
+    }
+
+    onMouseOut() {
+        this.cursor.merge("x", -1);
+        this.cursor.merge("y", -1);
     }
     
     onClick(_ev: T) {

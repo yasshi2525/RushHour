@@ -39,9 +39,11 @@ export class ToolBar extends React.Component<any, ToolBardState> {
                     <Fab hidden={!this.state.expandsMenu} onClick={this.toggleMenu}>
                         <MinimizeIcon fontSize="large" />
                     </Fab>
-                    <Container hidden={!this.state.expandsMenu}>
-                        <Rail />
-                    </Container>
+                    {this.state.expandsMenu ?
+                        <Container hidden={!this.state.expandsMenu}>
+                            <Rail />
+                        </Container>
+                    : null }
                 </Hidden>
             </ThemeProvider>
         );

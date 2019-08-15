@@ -3,4 +3,5 @@ canvas {
     left: 0px;
     top: 0px;
     z-index: -1;
+    cursor: pointer;
 }

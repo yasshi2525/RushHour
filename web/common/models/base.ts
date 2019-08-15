@@ -14,7 +14,7 @@ export default class implements Monitorable {
     /**
      * 各プロパティが変更されたとき呼び出されるコールバック関数を格納した連想配列
      */
-    protected updateCallbacks: {[index: string]: (value: any) => void} = {};
+    protected updateCallbacks: {[index: string]: ((value: any) => void)[]} = {};
 
     /**
      * 監視開始前に呼び出すコールバック関数。
@@ -69,7 +69,10 @@ export default class implements Monitorable {
      * @param callback 
      */
     addUpdateCallback(key: string, callback: (value: any) => void ) {
-        this.updateCallbacks[key] = callback;
+        if (this.updateCallbacks[key] === undefined) {
+            this.updateCallbacks[key] = [];
+        }
+        this.updateCallbacks[key].push(callback);
     }
 
     setupUpdateCallback() {
@@ -134,7 +137,7 @@ export default class implements Monitorable {
                 this.props[key] = Object.assign({}, value)
             }
             if (this.updateCallbacks[key] !== undefined) {
-                this.updateCallbacks[key](value);
+                this.updateCallbacks[key].forEach(v => v(value));
             }
             this.change();
         }

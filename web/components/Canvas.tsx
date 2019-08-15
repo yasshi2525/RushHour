@@ -83,7 +83,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
             onMouseDown={(e) => this.mouse.onStart(e)}
             onMouseMove={(e) => {this.clickCursor.onMove(e); this.mouse.onMove(e);} }
             onMouseUp={(e) => this.mouse.onEnd(e)}
-            onMouseOut={(e) => this.mouse.onEnd(e)}
+            onMouseOut={(e) => { this.clickCursor.onMouseOut(); this.mouse.onEnd(e);}}
             onWheel={(e) => { this.wheel.onStart(e); this.wheel.onMove(e); this.wheel.onEnd(e); }}
             onClick={(e) => { this.clickCursor.onClick(e); }}
             onTouchStart={(e) => {this.touch.onStart(e); this.pinch.onStart(e); }}
