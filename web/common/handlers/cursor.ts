@@ -110,8 +110,9 @@ export class TapCursor extends CursorHandler<React.TouchEvent> {
 
     protected getClientXY(ev: React.TouchEvent) {
         let ts = ev.touches;
-        return (ts.length === 1) ?
-            {x: ts.item(0).clientX, y: ts.item(0).clientY}
+        return (ts.length === 1) ? { 
+            x: ts.item(0).clientX * this.model.renderer.resolution, 
+            y: ts.item(0).clientY * this.model.renderer.resolution}
             : {x: -1, y: -1}
     }
 }
