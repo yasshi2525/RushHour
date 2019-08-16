@@ -8,7 +8,7 @@ import { GameMap } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./models/rail";
 import { StationContainer } from "./models/station";
 import CursorModel from "./models/cursor";
-import { WorldBorder } from "./models/border";
+import { WorldBorder, XBorderContainer, YBorderContainer } from "./models/border";
 
 const forceMove = { forceMove: true };
 const resize = { resize: true };
@@ -16,8 +16,10 @@ const resize = { resize: true };
 export default class implements ResourceAttachable {
     protected app: PIXI.Application;
     renderer: PIXI.Renderer;
-    protected payload: {[index:string]: MonitorContainer<Monitorable>} = {};
+    protected xborder: XBorderContainer;
+    protected yborder: YBorderContainer;
     protected world: WorldBorder;
+    protected payload: {[index:string]: MonitorContainer<Monitorable>} = {};
     protected changed: boolean = false;
     cursor: CursorModel;
     timestamp: number;
@@ -44,19 +46,26 @@ export default class implements ResourceAttachable {
         this.cursor.setInitialValues({ visible: false, x: -1, y: -1 });
         this.cursor.begin();
 
+        this.xborder = new XBorderContainer({ app: this.app });
+        this.yborder = new YBorderContainer({ app: this.app });
         this.world = new WorldBorder({ app: this.app });
-        this.world.setupDefaultValues();
-        this.world.setupUpdateCallback();
-        this.world.setupBeforeCallback();
-        this.world.setupAfterCallback();
-        this.world.setInitialValues({});
-        this.world.begin();
+
+        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => {         
+            v.setupDefaultValues();
+            v.setupUpdateCallback();
+            v.setupBeforeCallback();
+            v.setupAfterCallback();
+            v.setInitialValues({});
+            v.begin();
+        })
 
         this.app.ticker.add(() => {
             this.offset++;
             if (this.offset >= config.round) {
                 this.offset = 0;
             }
+            this.xborder.endChildren();
+            this.yborder.endChildren();
             Object.keys(this.payload).forEach(key => {
                 this.payload[key].merge("offset", this.offset);
                 this.payload[key].endChildren();
@@ -209,14 +218,14 @@ export default class implements ResourceAttachable {
 
     resize(width: number, height: number) {
         this.renderer.resize(width, height);
-        this.world.mergeAll(resize);
+        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(resize));
         Object.keys(this.payload).forEach(key => this.payload[key].mergeAll(resize));
     }
 
     protected updateCoord(force: boolean) {
-        this.world.merge("coord", this.coord);
+        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.merge("coord", this.coord));
         if (force) {
-            this.world.mergeAll(forceMove);
+            [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(forceMove));
         }
         Object.keys(this.payload).forEach(key => {
             this.payload[key].merge("coord", this.coord);
@@ -244,6 +253,6 @@ export default class implements ResourceAttachable {
     unmount() {
         Object.keys(this.payload).reverse().forEach(key => this.payload[key].end());
         this.cursor.end();
-        this.world.end();
+        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.end());
     }
 }
