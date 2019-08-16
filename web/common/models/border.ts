@@ -209,6 +209,8 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 
     protected abstract getOffset(chunk: Chunk): number;
 
+    protected abstract isAreaIn(offset: number): boolean;
+
     protected genChildOpts(chunk: Chunk, offset: number) {
         let coord: Coordinates = (this.props.coord !== undefined) ? this.props.coord : {
             cx: config.gamePos.default.x, 
@@ -227,7 +229,10 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     protected genChildren(chunk: Chunk) {
         let num = Math.pow(2, config.scale.delegate);
         for (var offset = -Math.floor(num / 2); offset < Math.floor(num / 2) + 1; offset++) {
-            this.addChild(this.genChildOpts(chunk, offset));
+            let opt = this.genChildOpts(chunk, offset);
+            if (this.isAreaIn(opt.offset)) {
+                this.addChild(opt);
+            }
         }
     }
 }
@@ -240,6 +245,10 @@ export class XBorderContainer extends NormalBorderContainer implements MonitorCo
     protected getOffset(chunk: Chunk) {
         return chunk.chy;
     }
+
+    protected isAreaIn(offset: number) {
+        return offset > config.gamePos.min.x && offset < config.gamePos.max.x;
+    }
 }
 
 export class YBorderContainer extends NormalBorderContainer implements MonitorContrainer {
@@ -249,5 +258,9 @@ export class YBorderContainer extends NormalBorderContainer implements MonitorCo
 
     protected getOffset(chunk: Chunk) {
         return chunk.chx;
+    }
+
+    protected isAreaIn(offset: number) {
+        return offset > config.gamePos.min.y && offset < config.gamePos.max.y;
     }
 }

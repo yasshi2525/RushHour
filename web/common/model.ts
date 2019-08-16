@@ -64,8 +64,6 @@ export default class implements ResourceAttachable {
             if (this.offset >= config.round) {
                 this.offset = 0;
             }
-            this.xborder.endChildren();
-            this.yborder.endChildren();
             Object.keys(this.payload).forEach(key => {
                 this.payload[key].merge("offset", this.offset);
                 this.payload[key].endChildren();
