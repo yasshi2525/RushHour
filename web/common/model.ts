@@ -142,7 +142,13 @@ export default class implements ResourceAttachable {
         }
     }
 
-    setCenter(x: number, y: number, force: boolean = false) {
+    setCoord(x: number, y: number, scale: number, force: boolean = false) {
+        this.setCenter(x, y);
+        this.setScale(scale);
+        this.updateCoord(force);
+    }
+
+    protected setCenter(x: number, y: number) {
         let short = Math.min(this.renderer.width, this.renderer.height);
         let long = Math.max(this.renderer.width, this.renderer.height);
         let shortRadius = Math.pow(2, this.coord.scale - 1 + Math.log2(short/long));
@@ -183,16 +189,12 @@ export default class implements ResourceAttachable {
                 x = 0;
             }
         }
-        if (this.coord.cx == x && this.coord.cy == y) {
-            return;
-        }
+        
         this.coord.cx = x;
         this.coord.cy = y;
-        
-        this.updateCoord(force);
     }
 
-    setScale(v: number, force: boolean = false) {
+    protected setScale(v: number) {
         let old = this.coord.scale
 
         let short = Math.min(this.renderer.width, this.renderer.height);
@@ -206,12 +208,8 @@ export default class implements ResourceAttachable {
             v = maxScale;
         }
         this.coord.zoom = v < old ? 1 : v > old ? -1 : 0;
-        if (this.coord.scale == v) {
-            return;
-        } 
-        this.coord.scale = v;
 
-        this.updateCoord(force);
+        this.coord.scale = v;
     }
 
     resize(width: number, height: number) {

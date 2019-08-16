@@ -140,6 +140,7 @@ const borderContainerDefaultValues: { coord: Coordinates, [index: string]: any }
 
 abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> implements MonitorContrainer {
     protected chunk: Chunk;
+    protected coord: Coordinates;
     protected v: boolean;
 
     constructor(props: ApplicationProperty & { v: boolean }) {
@@ -147,6 +148,12 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
         this.v = props.v;
 
         this.chunk = this.getChunk(config.gamePos.default, config.scale.default);
+        this.coord = {
+            cx: config.gamePos.default.x, 
+            cy: config.gamePos.default.y,
+            scale: config.scale.default,
+            zoom: 0
+        };
         this.genChildren(this.chunk);
     }
 
@@ -167,25 +174,27 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
                 // 拡大(縮小)による再作成
                 this.forEachChild(c => this.removeChild(c.get("id")));
                 this.genChildren(nowChunk);
-            } else {
-                // 左(上)側を作成、右(下)側を削除
-                for (var i = 0; i < this.getOffset(this.chunk) - nowOffset; i++) {
-                    var offset = i - Math.floor(num / 2) - 1;
-                    this.addChild(this.genChildOpts(this.chunk, offset));
+            } 
 
-                    var offset = i + Math.floor(num / 2) + this.getOffset(this.chunk);
-                    this.removeChild(this.getId(offset, this.chunk.scale));
-                }
-                // 右(下)側を作成、左(上)側を削除
-                for (var i = 0; i < nowOffset - this.getOffset(this.chunk); i++) {
-                    var offset = i + Math.floor(num / 2) + 1;
-                    this.addChild(this.genChildOpts(this.chunk, offset));
+            // 左(上)側を作成、右(下)側を削除
+            for (var i = 0; i < this.getOffset(this.chunk) - nowOffset; i++) {
+                var offset = i - Math.floor(num / 2) - 1;
+                this.addChild(this.genChildOpts(this.chunk, offset));
 
-                    var offset = i - Math.floor(num / 2) + this.getOffset(this.chunk);
-                    this.removeChild(this.getId(offset, this.chunk.scale));
-                }
+                var offset = i + Math.floor(num / 2) + this.getOffset(this.chunk);
+                this.removeChild(this.getId(offset, this.chunk.scale));
             }
+            // 右(下)側を作成、左(上)側を削除
+            for (var i = 0; i < nowOffset - this.getOffset(this.chunk); i++) {
+                var offset = i + Math.floor(num / 2) + 1;
+                this.addChild(this.genChildOpts(this.chunk, offset));
+
+                var offset = i - Math.floor(num / 2) + this.getOffset(this.chunk);
+                this.removeChild(this.getId(offset, this.chunk.scale));
+            }
+            
             this.chunk = nowChunk;
+            this.coord = v;
         });
     }
 
@@ -212,17 +221,11 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     protected abstract isAreaIn(offset: number): boolean;
 
     protected genChildOpts(chunk: Chunk, offset: number) {
-        let coord: Coordinates = (this.props.coord !== undefined) ? this.props.coord : {
-            cx: config.gamePos.default.x, 
-            cy: config.gamePos.default.y,
-            scale: config.scale.default,
-            zoom: 0
-        }
         return {
             id: this.getId(this.getOffset(chunk) + offset, chunk.scale),
             offset: (this.getOffset(chunk) + offset) * this.getInterval(chunk),
             v: this.v,
-            coord: coord
+            coord: this.coord
         }
     }
 
