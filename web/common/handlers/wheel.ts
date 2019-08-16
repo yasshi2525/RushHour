@@ -7,8 +7,8 @@ export class WheelHandler extends PointHandler<React.WheelEvent> {
 
     protected getClientXY(ev: React.WheelEvent) {
         return {
-            x: ev.clientX, 
-            y: ev.clientY
+            x: ev.clientX * this.model.renderer.resolution, 
+            y: ev.clientY * this.model.renderer.resolution
         };
     }
 

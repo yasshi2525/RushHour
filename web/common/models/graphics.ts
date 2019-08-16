@@ -1,5 +1,5 @@
-
-import { ContainerProperty } from "../interfaces/pixi";
+import * as PIXI from "pixi.js";
+import { ApplicationProperty } from "../interfaces/pixi";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
 import { PointModel, PointContainer } from "./point"
 
@@ -8,7 +8,7 @@ import { PointModel, PointContainer } from "./point"
 export abstract class GraphicsModel extends PointModel implements Monitorable {
     protected graphics: PIXI.Graphics;
 
-    constructor(options: ContainerProperty) {
+    constructor(options: ApplicationProperty) {
         super(options);
         this.graphics = new PIXI.Graphics();
     }

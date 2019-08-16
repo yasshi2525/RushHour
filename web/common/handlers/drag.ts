@@ -44,7 +44,10 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
 export class MouseDragHandler extends DragHandler<React.MouseEvent> {
 
     protected getClientXY(ev: React.MouseEvent) {
-        return {x: ev.clientX, y: ev.clientY};
+        return {
+            x: ev.clientX * this.model.renderer.resolution, 
+            y: ev.clientY * this.model.renderer.resolution
+        };
     }
 }
 

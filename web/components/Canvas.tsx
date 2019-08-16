@@ -57,19 +57,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.ref = React.createRef<HTMLDivElement>();
 
         window.addEventListener("resize", () => {
-            let beforeW = this.model.renderer.width;
-            let beforeH = this.model.renderer.height;
-            let afterW = window.innerWidth;
-            let afterH = window.innerHeight;
-
-            let dW = afterW - beforeW;
-            let dH = afterH - beforeH;
-
-            let dx = dW / Math.pow(2, this.model.coord.scale - 1);
-            let dy = dH / Math.pow(2, this.model.coord.scale - 1);
-
-            this.model.setCenter(this.model.coord.cx - dx, this.model.coord.cy - dy);
-            this.model.renderer.resize(afterW, afterH);
+            this.model.resize(window.innerWidth, window.innerHeight);
         })
 
         this.mouse = new MouseDragHandler(this.model, this.props.dispatch);

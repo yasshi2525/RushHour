@@ -18,7 +18,7 @@ export interface Coordinates {
      */
     cy: number,
     /**
-     * 拡大率(クライエントウィンドウの幅が2^scaleに対応する)
+     * 拡大率(クライアントウィンドウの幅が2^scaleに対応する)
      */
     scale: number,
     /**
@@ -48,7 +48,8 @@ export const config = {
     scale: { 
         min: 0, 
         max: 16, 
-        default: 10
+        default: 10,
+        delegate: 3
     },
     zIndices: [
         "residences",
