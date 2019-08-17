@@ -22,7 +22,7 @@ export interface Coordinates {
      */
     scale: number,
     /**
-     * 最後にsetScaleしたときズームしたか？(1=ズームした, 0=変更なし、-1=縮小した)
+     * 最後にsetCoordしたときズームしたか？(1=ズームした, 0=変更なし、-1=縮小した)
      */
     zoom: number
 }

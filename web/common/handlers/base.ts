@@ -42,8 +42,7 @@ export default abstract class <T> {
         if (this.shouldMove(ev)) {
             this.handleMove(ev);
 
-            this.model.setScale(this.scale.to, this.forceMove);
-            this.model.setCenter(this.server.to.x, this.server.to.y, this.forceMove);
+            this.model.setCoord(this.server.to.x, this.server.to.y, this.scale.to, this.forceMove);
         }
     }
 
