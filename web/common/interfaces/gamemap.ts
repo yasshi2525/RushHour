@@ -64,8 +64,7 @@ export const config = {
     scale: { 
         min: 0, 
         max: 16, 
-        default: 10,
-        delegate: 3
+        default: 10
     },
     zIndices: [
         "residences",

@@ -25,6 +25,7 @@ export default class implements ResourceAttachable {
     timestamp: number;
     textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
+    delegate: number;
     offset: number;
     debugText: PIXI.Text;
     debugValue: any;
@@ -37,6 +38,7 @@ export default class implements ResourceAttachable {
         this.coord = { cx: options.cx, cy: options.cy, scale: options.scale, zoom: options.zoom };
         this.timestamp = 0;
         this.offset = 0;
+        this.delegate = this.getDelegate();
 
         this.cursor = new CursorModel({ model: this, app: this.app, offset: this.offset });
         this.cursor.setupDefaultValues();
@@ -46,8 +48,8 @@ export default class implements ResourceAttachable {
         this.cursor.setInitialValues({});
         this.cursor.begin();
 
-        this.xborder = new XBorderContainer({ model: this, app: this.app });
-        this.yborder = new YBorderContainer({ model: this, app: this.app });
+        this.xborder = new XBorderContainer({ model: this, app: this.app, delegate: this.delegate });
+        this.yborder = new YBorderContainer({ model: this, app: this.app, delegate: this.delegate });
         this.world = new WorldBorder({ model: this, app: this.app });
 
         [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => {         
@@ -75,6 +77,7 @@ export default class implements ResourceAttachable {
         this.debugText = new PIXI.Text("");
         this.debugText.style.fontSize = 14;
         this.debugText.style.fill = 0xffffff;
+        this.debugText.x = 50;
         this.app.stage.addChild(this.debugText);
         setInterval(() => this.viewDebugInfo(), 250);
     }
@@ -98,7 +101,7 @@ export default class implements ResourceAttachable {
     protected viewDebugInfo() {
         this.debugText.text = "FPS: " + this.app.ticker.FPS.toFixed(2)
                                 + ", " + this.app.stage.children.length + " entities"
-                                + ", debug=" + this.debugValue;
+                                + ", debug=" + this.debugValue + ", type=" + this.app.renderer.type;
     }
 
     /**
@@ -115,7 +118,7 @@ export default class implements ResourceAttachable {
     }
 
     getOnChunk(key: string, pos: Point, oid: number) {
-        return this.payload[key].getChildOnChunk(getChunk(pos, this.coord.scale - config.scale.delegate + 1), oid)
+        return this.payload[key].getChildOnChunk(getChunk(pos, this.coord.scale - this.delegate + 1), oid)
     }  
 
     mergeAll(payload: GameMap) {
@@ -151,6 +154,26 @@ export default class implements ResourceAttachable {
         this.setCenter(x, y);
         this.setScale(scale);
         this.updateCoord(force);
+    }
+
+    protected getDelegate() {
+        if (this.renderer.width < 600) { // sm
+            return 3
+        } else if (this.renderer.width < 960) { // md
+            return 4
+        } else if (this.renderer.width < 1280 ) { // lg
+            return 5
+        } else { // xl
+            return 6
+        }
+    }
+
+    protected updateDelegate() {
+        let old = this.delegate;
+        this.delegate = this.getDelegate();
+        if (this.delegate !== old) {
+            [this.xborder, this.yborder].forEach((v: Monitorable) => v.merge("delegate", this.delegate));
+        }
     }
 
     protected setCenter(x: number, y: number) {
@@ -219,6 +242,7 @@ export default class implements ResourceAttachable {
 
     resize(width: number, height: number) {
         this.renderer.resize(width, height);
+        this.updateDelegate();
         [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(resize));
         Object.keys(this.payload).forEach(key => this.payload[key].mergeAll(resize));
     }

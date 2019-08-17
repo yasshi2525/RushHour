@@ -61,18 +61,30 @@ export abstract class CursorHandler<T> {
     protected abstract getClientXY(ev: T): Point | undefined;
 }
 
+const sensitivity = 1;
+
 export class ClickCursor extends CursorHandler<React.MouseEvent> {
-    onMove(ev: React.MouseEvent) {
-        this.view.merge("pos", this.toServerXY(this.getClientXY(ev)));
+    protected moveCnt = 0;
+
+    onStart(_ev: React.MouseEvent) {
+        this.moveCnt = 0;
     }
 
-    onMouseOut() {
-        this.view.merge("pos", undefined);
+    onMove(ev: React.MouseEvent) {
+        this.view.merge("pos", this.toServerXY(this.getClientXY(ev)));
+        this.moveCnt++;
     }
-    
-    onClick(ev: React.MouseEvent) {
-        let client = this.getClientXY(ev);
-        this.handle(client);
+
+    onOut(_ev: React.MouseEvent) {
+        this.view.merge("pos", undefined);
+        this.moveCnt = 0;
+    }
+
+    onEnd(ev: React.MouseEvent) {
+        if (this.moveCnt <= sensitivity) {
+            this.handle(this.getClientXY(ev));
+        }
+        this.moveCnt = 0;
     }
 
     protected getClientXY(ev: React.MouseEvent) {
@@ -84,7 +96,6 @@ export class ClickCursor extends CursorHandler<React.MouseEvent> {
     }
 }
 
-const sensitivity = 1;
 
 export class TapCursor extends CursorHandler<React.TouchEvent> {
     protected pos: Point | undefined;
