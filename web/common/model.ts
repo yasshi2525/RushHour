@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { ResidenceContainer, CompanyContainer } from "./models/background";
 import MonitorContainer from "./models/container";
-import { Coordinates, config } from "./interfaces/gamemap";
+import { Coordinates, config, getChunk, Point } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
 import { GameModelProperty, ResourceAttachable } from "./interfaces/pixi";
 import { GameMap } from "../state";
@@ -38,17 +38,17 @@ export default class implements ResourceAttachable {
         this.timestamp = 0;
         this.offset = 0;
 
-        this.cursor = new CursorModel({ app: this.app, offset: this.offset });
+        this.cursor = new CursorModel({ model: this, app: this.app, offset: this.offset });
         this.cursor.setupDefaultValues();
         this.cursor.setupUpdateCallback();
         this.cursor.setupBeforeCallback();
         this.cursor.setupAfterCallback();
-        this.cursor.setInitialValues({ visible: false, x: -1, y: -1 });
+        this.cursor.setInitialValues({});
         this.cursor.begin();
 
-        this.xborder = new XBorderContainer({ app: this.app });
-        this.yborder = new YBorderContainer({ app: this.app });
-        this.world = new WorldBorder({ app: this.app });
+        this.xborder = new XBorderContainer({ model: this, app: this.app });
+        this.yborder = new YBorderContainer({ model: this, app: this.app });
+        this.world = new WorldBorder({ model: this, app: this.app });
 
         [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => {         
             v.setupDefaultValues();
@@ -64,7 +64,7 @@ export default class implements ResourceAttachable {
             if (this.offset >= config.round) {
                 this.offset = 0;
             }
-            [this.xborder, this.yborder].forEach((v: Monitorable) => v.beforeRender() )
+            [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.beforeRender() )
             Object.keys(this.payload).forEach(key => {
                 this.payload[key].merge("offset", this.offset);
                 this.payload[key].endChildren();
@@ -80,11 +80,11 @@ export default class implements ResourceAttachable {
     }
 
     attach(textures: {[index: string]: PIXI.Texture}) {
-        this.payload["residences"] = new ResidenceContainer({ app: this.app, texture: textures.residence});
-        this.payload["companies"] = new CompanyContainer({ app: this.app, texture: textures.company});
-        this.payload["stations"] = new StationContainer({ app: this.app, texture: textures.station});
-        this.payload["rail_nodes"] = new RailNodeContainer({ app: this.app});
-        this.payload["rail_edges"] = new RailEdgeContainer({ app: this.app});
+        this.payload["residences"] = new ResidenceContainer({ model: this, app: this.app, texture: textures.residence});
+        this.payload["companies"] = new CompanyContainer({ model: this, app: this.app, texture: textures.company});
+        this.payload["stations"] = new StationContainer({ model: this, app: this.app, texture: textures.station});
+        this.payload["rail_nodes"] = new RailNodeContainer({ model: this,app: this.app});
+        this.payload["rail_edges"] = new RailEdgeContainer({ model: this, app: this.app});
 
         Object.keys(this.payload).forEach(key => {
             this.payload[key].setupDefaultValues();
@@ -113,6 +113,10 @@ export default class implements ResourceAttachable {
         }
         return undefined;
     }
+
+    getOnChunk(key: string, pos: Point, oid: number) {
+        return this.payload[key].getChildOnChunk(getChunk(pos, this.coord.scale - config.scale.delegate + 1), oid)
+    }  
 
     mergeAll(payload: GameMap) {
         config.zIndices.forEach(key => {
@@ -220,9 +224,9 @@ export default class implements ResourceAttachable {
     }
 
     protected updateCoord(force: boolean) {
-        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.merge("coord", this.coord));
+        [this.cursor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.merge("coord", this.coord));
         if (force) {
-            [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(forceMove));
+            [this.cursor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(forceMove));
         }
         Object.keys(this.payload).forEach(key => {
             this.payload[key].merge("coord", this.coord);

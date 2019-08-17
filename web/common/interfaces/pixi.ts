@@ -1,15 +1,21 @@
+import * as PIXI from "pixi.js";
 import { Coordinates } from "./gamemap";
+import GameModel from "../model"
 
 export interface ApplicationProperty {
     [key: string]: any,
-    app: PIXI.Application,
+    app: PIXI.Application
 };
 
-export interface SpriteProperty extends ApplicationProperty {
+export interface ModelProperty extends ApplicationProperty {
+    model: GameModel
+}
+
+export interface SpriteProperty extends ModelProperty {
     texture: PIXI.Texture
 };
 
-export interface AnimatedSpriteProperty extends ApplicationProperty {
+export interface AnimatedSpriteProperty extends ModelProperty {
     animation: PIXI.Texture[],
     offset: number
 }
@@ -17,11 +23,11 @@ export interface AnimatedSpriteProperty extends ApplicationProperty {
 export interface GameModelProperty extends ApplicationProperty, Coordinates {
 };
 
-export interface SpriteContainerProperty extends ApplicationProperty {
+export interface SpriteContainerProperty extends ModelProperty {
     texture: PIXI.Texture
 }
 
-export interface AnimatedSpriteContainerProperty extends ApplicationProperty {
+export interface AnimatedSpriteContainerProperty extends ModelProperty {
     animation: PIXI.Texture[]
 }
 

@@ -1,9 +1,13 @@
+import * as PIXI from "pixi.js";
+import GameModel from "@/common/model";
 import Base from "@/common/models/base";
 
+const app = new PIXI.Application();
+const model = new GameModel({ app, cx: 0, cy: 0, scale: 10, zoom: 0 });
 let instance: Base;
 
 beforeEach(() => {
-    instance = new Base();
+    instance = new Base({model});
     instance.setupDefaultValues();
     instance.setupUpdateCallback();
 });
@@ -43,10 +47,10 @@ describe("setInitialValues", () => {
 });
 
 describe("merge", () => {
-    test("don't set value when unregistered key is specified", () => {
+    test("set value when unregistered key is specified", () => {
         instance.merge("unregistered", 100);
-        expect(instance.get("unregistered")).toBeUndefined();
-        expect(instance.isChanged()).toBe(false);
+        expect(instance.get("unregistered")).toBe(100);
+        expect(instance.isChanged()).toBe(true);
     });
 
     test("don't change when same value is specified", () => {

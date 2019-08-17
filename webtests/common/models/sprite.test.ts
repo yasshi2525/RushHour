@@ -1,13 +1,14 @@
+import * as PIXI from "pixi.js";
+import GameModel from "@/common/model";
 import { SpriteModel } from "@/common/models/sprite";
-import * as PIXI from "pixi.js"; 
 
 let instance: SpriteModel;
 const app = new PIXI.Application();
+const model = new GameModel({ app: app, cx: 0, cy: 0, scale: 10, zoom: 0 });
 const testValue = 100;
 
 const updateSpriteModel = (model : SpriteModel, testValue: number) => {
-    model.merge("x", testValue);
-    model.merge("y", testValue);
+    model.merge("pos", {x: testValue, y: testValue});
     model.merge("alpha", testValue);
     model.merge("spscale", testValue);
     model.merge("anchor", {x: testValue, y: testValue});
@@ -26,7 +27,11 @@ class SimpleSpriteModel extends SpriteModel {
 }
 
 beforeEach(() => {
-    instance = new SimpleSpriteModel({texture: PIXI.Texture.EMPTY, container: new PIXI.Container(), app: app, cx: 0, cy: 0, scale: 10});
+    instance = new SimpleSpriteModel({
+        model: model,
+        texture: PIXI.Texture.EMPTY, 
+        container: new PIXI.Container(), 
+        app: app, cx: 0, cy: 0, scale: 10});
     instance.setupUpdateCallback();
     instance.setupAfterCallback();
     instance.setupDefaultValues();

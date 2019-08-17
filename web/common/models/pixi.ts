@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { ApplicationProperty } from "../interfaces/pixi";
+import { ModelProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 
@@ -25,11 +25,11 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     /**
      * smoothMove後、描画する座標(クライアント座標系)
      */
-    destination: Point;
+    destination: Point | undefined;
     /**
      * 描画する座標(クライアント座標系)
      */
-    current: Point;
+    current: Point | undefined;
     /**
      * (x, y)が変化したとき、destination に移動するまでの残りフレーム数。
      */
@@ -37,8 +37,8 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 
     protected smoothMoveFn: () => void;
 
-    constructor(options: ApplicationProperty) {
-        super();
+    constructor(options: ModelProperty) {
+        super(options);
         this.app = options.app;
         this.parent = options.container;
         this.container = new PIXI.Container();
@@ -87,7 +87,10 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         })
     }
 
-    toView(x: number, y: number): Point {
+    toView(pos: Point | undefined): Point | undefined {
+        if (pos === undefined) {
+            return undefined;
+        }
         let center = {
             x: this.app.renderer.width / this.app.renderer.resolution / 2,
             y: this.app.renderer.height / this.app.renderer.resolution / 2,
@@ -96,8 +99,8 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         let zoom = Math.pow(2, -this.props.coord.scale)
 
         return {
-            x: (x - this.props.coord.cx) * size * zoom + center.x,
-            y: (y - this.props.coord.cy) * size * zoom + center.y
+            x: (pos.x - this.props.coord.cx) * size * zoom + center.x,
+            y: (pos.y - this.props.coord.cy) * size * zoom + center.y
         }
     }
 
@@ -106,7 +109,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     }
 
     protected calcDestination() {
-        return this.toView(this.props.x, this.props.y);
+        return this.toView(this.props.pos);
     }
 
     updateDestination() {
@@ -126,8 +129,10 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
             if (ratio < 0.5) {
                 ratio = 1.0 - ratio;
             }
-            this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
-            this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
+            if (this.current !== undefined && this.destination !== undefined) {
+                this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
+                this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
+            }
             this.latency--;
         } else {
             this.current = this.destination;
@@ -138,15 +143,11 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 }
 
 export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContrainer {
-    protected app: PIXI.Application;
-
     constructor(
-        options: ApplicationProperty,
+        options: ModelProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
-        super(newInstance, newInstanceOptions);
-        this.app = options.app;
-        this.childOptions.app = this.app;
+        super(options.model, newInstance, { ...newInstanceOptions, app: options.app });
     }
 
     setupDefaultValues() {

@@ -1,3 +1,5 @@
+import { Chunk } from "./gamemap";
+
 /**
  * 変更監視ができるクラスを表すインタフェース
  */
@@ -40,6 +42,12 @@ export interface Monitorable {
     begin(): void;
 
     get(key: string): any;
+
+    /**
+     * 引数のチャンク上に存在するか取得します。
+     * @param chunk 
+     */
+    standOnChunk(chunk: Chunk): boolean;
 
     /**
      * keyに対応するプロパティが定義されているとき、値を更新します.

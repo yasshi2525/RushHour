@@ -1,5 +1,7 @@
+import GameModel from "../model";
 import BaseModel from "./base";
 import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
+import { Chunk } from "../interfaces/gamemap";
 
 const defaultValues: {offset: number} = {offset: 0};
 
@@ -11,11 +13,12 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
     children: {[index: string]: T};
 
     constructor(
+        model: GameModel,
         newInstance: { new (props: {[index:string]: {}}): T }, 
-        newInstanceOptions: {[index:string]: {}}) {
-        super();
+        newInstanceOptions: { [index:string]: {}}) {
+        super({ model: model});
         this.Child = newInstance;
-        this.childOptions = newInstanceOptions;
+        this.childOptions = { ...newInstanceOptions, model };
         this.children = {};
     }
 
@@ -35,6 +38,11 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
 
     getChild(id: string) {
         return this.children[id];
+    }
+
+    getChildOnChunk(chunk: Chunk, oid: number) {
+        return Object.keys(this.children).map(id => this.children[id])
+            .find(c => c.get("oid") === oid && c.standOnChunk(chunk));
     }
 
     addChild(props: {id: string}) {

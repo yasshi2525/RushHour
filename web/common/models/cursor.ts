@@ -2,9 +2,9 @@ import * as PIXI from "pixi.js";
 import { AnimatedSpriteModel } from "./sprite";
 import { Monitorable } from "../interfaces/monitor";
 import { MenuStatus } from "../../state";
-import { ApplicationProperty } from "../interfaces/pixi";
+import { ModelProperty } from "../interfaces/pixi";
 import { GraphicsAnimationGenerator } from "./animate";
-import { Point } from "../interfaces/gamemap";
+import { PointModel } from "./point";
 
 const graphicsOpts = {
     padding: 20,
@@ -15,18 +15,17 @@ const graphicsOpts = {
 };
 
 const defaultValues: {
-    client: Point,
     menu: MenuStatus,
     enable: boolean
 } = {
-    client: {x: 0, y: 0},
     menu: MenuStatus.IDLE,
     enable: false
 };
 
 export default class extends AnimatedSpriteModel implements Monitorable {
+    selected: PointModel | undefined;
 
-    constructor(options: ApplicationProperty & { offset: number } ) { 
+    constructor(options: ModelProperty & { offset: number } ) { 
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
         graphics.beginFill(graphicsOpts.color, graphicsOpts.alpha);
@@ -57,19 +56,63 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        ["x", "y", "menu"].forEach(key => 
-            this.addUpdateCallback(key,
-                () => this.merge("visible", this.isVisible())));
+        this.addUpdateCallback("pos", () => {
+            this.selectObject();
+            this.moveDestination();
+        });
+        this.addUpdateCallback("coord", () => {
+            this.selectObject();
+            this.moveDestination();
+        });
     }
 
+    protected calcDestination() {
+        return (this.selected === undefined) 
+        ? this.toView(this.props.pos)
+        : this.props.client;
+    }
+
+
     beforeRender() {
+        if (!this.isVisible()) {
+            this.sprite.visible = false;
+            return;
+        }
+        if (this.selected !== undefined && this.selected.current !== undefined) {
+            this.sprite.visible = true;
+            this.sprite.x = this.selected.current.x - 2;
+            this.sprite.y = this.selected.current.y - 2;
+            return;
+        }
         super.beforeRender();
-        this.sprite.x = this.props.x;
-        this.sprite.y = this.props.y;
+    }
+
+    selectObject() {
+        if (this.props.pos === undefined) {
+            this.unlinkSelected();
+            return;
+        }
+        var selected;
+        switch(this.props.menu) {
+            case MenuStatus.SEEK_DEPARTURE:
+                selected = this.model.getOnChunk("rail_nodes", this.props.pos, 1);
+                break;
+        }
+        if (selected instanceof PointModel) {
+            this.selected = selected;
+            selected.refferedCursor = this;
+            this.updateDestination();
+        } else {
+            this.unlinkSelected();
+        }
+    }
+
+    unlinkSelected() {
+        this.selected = undefined;
+        this.updateDestination();
     }
 
     protected isVisible() {
-        return this.props.menu === MenuStatus.SEEK_DEPARTURE
-            && this.props.x != -1 && this.props.y != -1;
+        return this.props.menu === MenuStatus.SEEK_DEPARTURE;
     }
 }

@@ -1,4 +1,6 @@
 import { Monitorable } from "../interfaces/monitor";
+import { Chunk } from "../interfaces/gamemap";
+import GameModel from "../model";
 
 const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0, outMap: false};
 
@@ -6,6 +8,7 @@ const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0
  * 変更監視ができるオブジェクト
  */
 export default class implements Monitorable {
+    protected model: GameModel;
     /**
      * 監視対象プロパティ
      */
@@ -33,12 +36,16 @@ export default class implements Monitorable {
      */
     protected changed: boolean = false;
 
+    constructor(props: { model: GameModel, [index: string]: any }) {
+        this.model = props.model;
+    }
+
     /**
      * initialValueが存在しないときの値を設定します。
      * ここで登録した値は以降変更可能で監視対象になります。
      * @param props 
      */
-    addDefaultValues(props: {[index: string]: {}}) {
+    addDefaultValues(props: {[index: string]: {} | undefined }) {
         Object.keys(props).forEach(key => {
             if (!(props[key] instanceof Object)) {
                 this.props[key] = props[key]
@@ -52,7 +59,7 @@ export default class implements Monitorable {
         this.addDefaultValues(defaultValues);
     }
 
-    setInitialValues(initialValues: {[index: string]: {}}) {
+    setInitialValues(initialValues: {[index: string]: {} | undefined }) {
         Object.keys(initialValues).filter(key => this.props[key] !== undefined)
             .forEach(key => {
                 if (!(initialValues[key] instanceof Object)) {
@@ -116,8 +123,15 @@ export default class implements Monitorable {
         if (!(value instanceof Object)) {
             return this.props[key] == value;
         } else {
+            if (this.props[key] === undefined) {
+                return false;
+            }
             return Object.keys(value).filter(k => this.props[key][k] != value[k]).length == 0;
         }
+    }
+
+    standOnChunk(_: Chunk) {
+        return false;
     }
 
     /**
@@ -126,10 +140,6 @@ export default class implements Monitorable {
      * @param value プロパティ値
      */
     merge(key: string, value: any) {
-        if (this.props[key] === undefined) {
-            return;
-        }
-
         if (!this.equals(key, value)) {
             if (!(value instanceof Object)) {
                 this.props[key] = value;

@@ -30,22 +30,20 @@ func (jp jsonPlayer) MarshalJSON() ([]byte, error) {
 
 type DelegateRailNode struct {
 	Base
-	Point
 
 	RailNodes map[uint]*RailNode `json:"-"`
+	Pos       *Point             `json:"pos"`
 	Multi     int                `json:"mul"`
 	Color     int                `json:"color"`
 	ParentID  uint               `json:"pid"`
-	ParentX   float64            `json:"px"`
-	ParentY   float64            `json:"py"`
 }
 
 func (rn *DelegateRailNode) UpdatePos() {
-	rn.X, rn.Y = 0, 0
+	rn.Pos = &Point{}
 
 	for _, child := range rn.RailNodes {
-		rn.X += child.X / float64(len(rn.RailNodes))
-		rn.Y += child.Y / float64(len(rn.RailNodes))
+		rn.Pos.X += child.X / float64(len(rn.RailNodes))
+		rn.Pos.Y += child.Y / float64(len(rn.RailNodes))
 	}
 }
 

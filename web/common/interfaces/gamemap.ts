@@ -25,6 +25,22 @@ export interface Coordinates {
      * 最後にsetCoordしたときズームしたか？(1=ズームした, 0=変更なし、-1=縮小した)
      */
     zoom: number
+};
+
+export interface Chunk {
+    x: number,
+    y: number,
+    scale: number
+};
+
+export function getChunk(pos: Point, scale: number): Chunk {
+    scale = Math.floor(scale);
+    let interval = Math.pow(2, scale);
+    return {
+        x: Math.floor(pos.x / interval),
+        y: Math.floor(pos.y / interval),
+        scale: scale
+    }
 }
 
 export const config = {
