@@ -59,14 +59,33 @@ export class WorldBorder extends GraphicsModel implements Monitorable {
     }
 }
 
-const borderDefaultValues: { offset: number } = {offset: 0};
+enum BorderState {
+    INVISIBLE,
+    APPEAR,
+    KEEP,
+    DISAPPEAR,
+}
+
+const borderDefaultValues: {
+    index: number,
+    pos: number, 
+    scale: number, 
+    state: BorderState 
+} = { 
+    index: 0,
+    pos: 0, 
+    scale: config.scale.default, 
+    state: BorderState.KEEP 
+};
 
 export class NormalBorder extends GraphicsModel implements Monitorable {
     protected v: boolean;
+    count: number;
 
-    constructor(props: ApplicationProperty & {v: boolean}) {
+    constructor(props: ApplicationProperty & { v: boolean }) {
         super(props);
         this.v = props.v;
+        this.count = 0;
     }
 
     setupDefaultValues() {
@@ -77,9 +96,9 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     setInitialValues(props: {[index: string]: any}) {
         super.setInitialValues(props);
         if (props.v) {
-            this.props.x = props.offset;
+            this.props.x = props.pos;
         } else {
-            this.props.y = props.offset;
+            this.props.y = props.pos;
         }
     }
 
@@ -116,7 +135,30 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
         } else {
             this.graphics.x = 0;
         }
+        switch (this.props.state) {
+            case BorderState.INVISIBLE:
+                this.graphics.visible = false;
+                break;
+            case BorderState.APPEAR:
+                this.graphics.visible = true;
+                this.graphics.alpha = this.count / config.latency * 2;
+                break;
+            case BorderState.DISAPPEAR:
+                this.graphics.visible = true;
+                this.graphics.alpha = 1 - this.count / config.latency * 2
+                break;
+            case BorderState.KEEP:
+                this.graphics.visible = true;
+                this.graphics.alpha = 1;
+                break;
+        }
     }
+}
+
+enum BorderContainerState {
+    KEEP,
+    DESTROY,
+    GENERATE
 }
 
 interface Chunk {
@@ -132,19 +174,19 @@ const borderContainerDefaultValues: { coord: Coordinates, [index: string]: any }
         scale: config.scale.default,
         zoom: 0
     },
-    resize: false,
-    forceMove: false,
-    outMap: false,
-    visible: true
+    resize: false
 };
 
 abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> implements MonitorContrainer {
     protected chunk: Chunk;
     protected coord: Coordinates;
     protected v: boolean;
+    protected state: BorderContainerState;
+    protected zoom: boolean;
+    protected count: number;
 
     constructor(props: ApplicationProperty & { v: boolean }) {
-        super(props, NormalBorder, {v: props.v});
+        super(props, NormalBorder, {v: props.v });
         this.v = props.v;
 
         this.chunk = this.getChunk(config.gamePos.default, config.scale.default);
@@ -154,6 +196,9 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
             scale: config.scale.default,
             zoom: 0
         };
+        this.state = BorderContainerState.KEEP;
+        this.zoom = false;
+        this.count = 0;
         this.genChildren(this.chunk);
     }
 
@@ -171,30 +216,66 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
             let num = Math.pow(2, config.scale.delegate);
 
             if (this.chunk.scale !== nowChunk.scale) {
+                this.zoom = nowChunk.scale < this.chunk.scale;
+
+                switch(this.state) {
+                    case BorderContainerState.DESTROY:
+                    case BorderContainerState.GENERATE:
+                        this.forEachChild(c => {
+                            if (c.get("state") !== BorderState.KEEP) {
+                                this.removeChild(c.get("id"));
+                            }
+                        });
+                        break;
+                }
+                this.changeState(BorderContainerState.DESTROY);
                 // 拡大(縮小)による再作成
-                this.forEachChild(c => this.removeChild(c.get("id")));
                 this.genChildren(nowChunk);
-            } 
+            } else {
+                // 左(上)側を作成、右(下)側を削除
+                for (var i = 0; i < this.getOffset(this.chunk) - nowOffset; i++) {
+                    var offset = i - Math.floor(num / 2) - 1;
+                    this.genChild(this.chunk, offset);
 
-            // 左(上)側を作成、右(下)側を削除
-            for (var i = 0; i < this.getOffset(this.chunk) - nowOffset; i++) {
-                var offset = i - Math.floor(num / 2) - 1;
-                this.addChild(this.genChildOpts(this.chunk, offset));
+                    var offset = i + Math.floor(num / 2) + this.getOffset(this.chunk);
+                    this.removeChild(this.getId(offset, this.chunk.scale));
+                }
+                // 右(下)側を作成、左(上)側を削除
+                for (var i = 0; i < nowOffset - this.getOffset(this.chunk); i++) {
+                    var offset = i + Math.floor(num / 2) + 1;
+                    this.genChild(this.chunk, offset);
 
-                var offset = i + Math.floor(num / 2) + this.getOffset(this.chunk);
-                this.removeChild(this.getId(offset, this.chunk.scale));
-            }
-            // 右(下)側を作成、左(上)側を削除
-            for (var i = 0; i < nowOffset - this.getOffset(this.chunk); i++) {
-                var offset = i + Math.floor(num / 2) + 1;
-                this.addChild(this.genChildOpts(this.chunk, offset));
-
-                var offset = i - Math.floor(num / 2) + this.getOffset(this.chunk);
-                this.removeChild(this.getId(offset, this.chunk.scale));
+                    var offset = i - Math.floor(num / 2) + this.getOffset(this.chunk);
+                    this.removeChild(this.getId(offset, this.chunk.scale));
+                }
             }
             
             this.chunk = nowChunk;
             this.coord = v;
+        });
+    }
+
+    beforeRender() {
+        super.beforeRender();
+        switch(this.state) {
+            case BorderContainerState.KEEP:
+                break;
+            case BorderContainerState.DESTROY:
+                this.count++;
+                if (this.count >= config.latency / 2) {
+                    this.changeState(BorderContainerState.GENERATE);
+                }
+                break;
+            case BorderContainerState.GENERATE:
+                this.count++;
+                if (this.count >= config.latency / 2) {
+                    this.changeState(BorderContainerState.KEEP);
+                }
+                break;
+        }
+        this.forEachChild(c => {
+            c.count = this.count;
+            c.beforeRender();
         });
     }
 
@@ -220,23 +301,85 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 
     protected abstract isAreaIn(offset: number): boolean;
 
-    protected genChildOpts(chunk: Chunk, offset: number) {
-        return {
-            id: this.getId(this.getOffset(chunk) + offset, chunk.scale),
-            offset: (this.getOffset(chunk) + offset) * this.getInterval(chunk),
-            v: this.v,
-            coord: this.coord
+    protected genChildOpts(id: string, index: number, pos: number, scale: number) {
+        var state = BorderState.KEEP;
+        switch (this.state) {
+            case BorderContainerState.DESTROY:
+                state = BorderState.INVISIBLE;
         }
+
+        return {
+            v: this.v,
+            id: id,
+            index: index,
+            pos: pos,
+            scale: scale,
+            coord: this.coord,
+            state: state
+        }
+    }
+
+    protected genChild(chunk: Chunk, offset: number) {
+        let index = this.getOffset(chunk) + offset;
+        let id = this.getId(index, chunk.scale);
+        let pos = index * this.getInterval(chunk);
+
+        if (!this.isAreaIn(pos)) {
+            return;
+        }
+
+        if (this.existsChild(id)) {
+            this.removeChild(id);
+        }
+
+        this.addChild(this.genChildOpts(id, index, pos, chunk.scale));
     }
 
     protected genChildren(chunk: Chunk) {
         let num = Math.pow(2, config.scale.delegate);
         for (var offset = -Math.floor(num / 2); offset < Math.floor(num / 2) + 1; offset++) {
-            let opt = this.genChildOpts(chunk, offset);
-            if (this.isAreaIn(opt.offset)) {
-                this.addChild(opt);
-            }
+            this.genChild(chunk, offset);
         }
+    }
+
+    protected changeState(state: BorderContainerState) {
+        switch(state) {
+            case BorderContainerState.DESTROY:
+                if (!this.zoom) {
+                    this.forEachChild(c => {
+                        if (c.get("index") % 2 !== 0) {
+                            c.merge("state", BorderState.DISAPPEAR);
+                        }
+                    });
+                }
+                break;
+            case BorderContainerState.GENERATE: {
+                this.forEachChild(c => {
+                    if (c.get("scale") !== this.chunk.scale) {
+                        this.removeChild(c.get("id"));
+                    }
+                });
+
+                if (this.zoom) {
+                    this.forEachChild(c => {
+                        if (c.get("index") % 2 !== 0) {
+                            c.merge("state", BorderState.APPEAR);
+                        } else {
+                            c.merge("state", BorderState.KEEP);
+                        }
+                    });
+                } else {
+                    this.forEachChild(c => c.merge("state", BorderState.KEEP));
+                }
+
+                break;
+            }
+            case BorderContainerState.KEEP:
+                this.forEachChild(c => c.merge("state", BorderState.KEEP));
+                break;
+        }
+        this.state = state;
+        this.count = 0;
     }
 }
 
