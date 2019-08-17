@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { ApplicationProperty } from "../interfaces/pixi";
+import { ModelProperty } from "../interfaces/pixi";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
 import { PointModel, PointContainer } from "./point"
 
@@ -8,7 +8,7 @@ import { PointModel, PointContainer } from "./point"
 export abstract class GraphicsModel extends PointModel implements Monitorable {
     protected graphics: PIXI.Graphics;
 
-    constructor(options: ApplicationProperty) {
+    constructor(options: ModelProperty) {
         super(options);
         this.graphics = new PIXI.Graphics();
     }
@@ -27,8 +27,13 @@ export abstract class GraphicsModel extends PointModel implements Monitorable {
 
     beforeRender() {
         super.beforeRender();
-        this.graphics.x = this.current.x;
-        this.graphics.y = this.current.y;
+        if (this.current === undefined) {
+            this.graphics.visible = false;
+        } else {
+            this.graphics.visible = true;
+            this.graphics.x = this.current.x;
+            this.graphics.y = this.current.y;
+        }
     }    
 }
 

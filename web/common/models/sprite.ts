@@ -55,8 +55,13 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
 
     beforeRender() {
         super.beforeRender();
-        this.sprite.x = this.current.x;
-        this.sprite.y = this.current.y;
+        if (this.current === undefined) {
+            this.sprite.visible = false;
+        } else {
+            this.sprite.visible = true;
+            this.sprite.x = this.current.x;
+            this.sprite.y = this.current.y;
+        }
     }
 }
 
@@ -93,8 +98,9 @@ export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> ext
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
         newInstanceOptions.offset = 0;
-        super({ texture: PIXI.Texture.EMPTY, ...options }, newInstance, newInstanceOptions);
-
-        this.childOptions.animation = options.animation;
+        super(
+            { texture: PIXI.Texture.EMPTY, ...options }, 
+            newInstance,
+            { ...newInstanceOptions, animation: options.animation});
     }
 }

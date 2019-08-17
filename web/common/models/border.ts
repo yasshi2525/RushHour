@@ -1,7 +1,7 @@
 import { GraphicsModel, GraphicsContainer } from "./graphics";
 import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
-import { ApplicationProperty } from "../interfaces/pixi";
-import { config, Coordinates, Point } from "../interfaces/gamemap";
+import { ModelProperty } from "../interfaces/pixi";
+import { config, Coordinates, Chunk, getChunk } from "../interfaces/gamemap";
 
 const graphicsOpts = {
     world: 0xf44336,
@@ -13,7 +13,7 @@ export class WorldBorder extends GraphicsModel implements Monitorable {
     protected radius: number;
     protected destRadius: number;
 
-    constructor(props: ApplicationProperty) {
+    constructor(props: ModelProperty) {
         super(props);
         this.radius = this.calcRadius(config.scale.default);
         this.destRadius = this.radius;
@@ -82,7 +82,7 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     protected v: boolean;
     count: number;
 
-    constructor(props: ApplicationProperty & { v: boolean }) {
+    constructor(props: ModelProperty & { v: boolean }) {
         super(props);
         this.v = props.v;
         this.count = 0;
@@ -96,9 +96,9 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     setInitialValues(props: {[index: string]: any}) {
         super.setInitialValues(props);
         if (props.v) {
-            this.props.x = props.pos;
+            this.props.pos = { x: props.pos, y: 0 };
         } else {
-            this.props.y = props.pos;
+            this.props.pos = { x: 0, y: props.pos} ;
         }
     }
 
@@ -161,12 +161,6 @@ enum BorderContainerState {
     GENERATE
 }
 
-interface Chunk {
-    chx: number,
-    chy: number,
-    scale: number
-}
-
 const borderContainerDefaultValues: { coord: Coordinates, [index: string]: any } = {
     coord:  {
         cx: config.gamePos.default.x, 
@@ -186,11 +180,14 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     protected count: number;
     protected suspends: boolean
 
-    constructor(props: ApplicationProperty & { v: boolean }) {
+    constructor(props: ModelProperty & { v: boolean }) {
         super(props, NormalBorder, {v: props.v });
         this.v = props.v;
 
-        this.chunk = this.getChunk(config.gamePos.default, config.scale.default);
+        this.chunk = getChunk(
+            config.gamePos.default, 
+            config.scale.default - config.scale.delegate + 1
+        );
         this.coord = {
             cx: config.gamePos.default.x, 
             cy: config.gamePos.default.y,
@@ -212,7 +209,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("coord", (v: Coordinates) => {
-            let nowChunk = this.getChunk({x: v.cx, y: v.cy }, v.scale);
+            let nowChunk = getChunk({x: v.cx, y: v.cy}, v.scale - config.scale.delegate + 1);
             let nowOffset = this.getOffset(nowChunk);
 
             let num = Math.pow(2, config.scale.delegate);
@@ -283,17 +280,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     }
 
     protected getInterval(chunk: Chunk) {
-        return Math.pow(2, chunk.scale - config.scale.delegate + 1);
-    }
-
-    protected getChunk(pos: Point, scale: number): Chunk {
-        scale = Math.floor(scale);
-        let interval = Math.pow(2, scale - config.scale.delegate + 1);
-        return {
-            chx: Math.floor(pos.x / interval),
-            chy: Math.floor(pos.y / interval),
-            scale: scale
-        };
+        return Math.pow(2, chunk.scale);
     }
 
     protected getId(offset: number, scale: number) {
@@ -387,12 +374,12 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 }
 
 export class XBorderContainer extends NormalBorderContainer implements MonitorContrainer {
-    constructor(props: ApplicationProperty) {
+    constructor(props: ModelProperty) {
         super({ ...props, v: false });
     }
 
     protected getOffset(chunk: Chunk) {
-        return chunk.chy;
+        return chunk.y;
     }
 
     protected isAreaIn(offset: number) {
@@ -401,12 +388,12 @@ export class XBorderContainer extends NormalBorderContainer implements MonitorCo
 }
 
 export class YBorderContainer extends NormalBorderContainer implements MonitorContrainer {
-    constructor(props: ApplicationProperty) {
+    constructor(props: ModelProperty) {
         super({ ...props, v: true });
     }
 
     protected getOffset(chunk: Chunk) {
-        return chunk.chx;
+        return chunk.x;
     }
 
     protected isAreaIn(offset: number) {

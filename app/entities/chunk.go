@@ -55,18 +55,15 @@ func (ch *Chunk) Add(raw Entity) {
 func (ch *Chunk) addRailNode(rn *RailNode) {
 	if ch.RailNode == nil {
 		var pid uint
-		pp := &Point{}
 		if parent := ch.Parent.Parent; parent != nil && parent.Data[rn.OwnerID] != nil {
 			p := parent.Data[rn.OwnerID].RailNode
-			pid, pp.X, pp.Y = p.ID, p.X, p.Y
+			pid = p.ID
 		}
 		ch.RailNode = &DelegateRailNode{
 			Base:     ch.M.NewBase(RAILNODE, rn.O),
-			Point:    rn.Point,
+			Pos:      &rn.Point,
 			Color:    rn.O.Color,
 			ParentID: pid,
-			ParentX:  pp.X,
-			ParentY:  pp.Y,
 		}
 		ch.RailNode.RailNodes = make(map[uint]*RailNode)
 	}

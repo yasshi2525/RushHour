@@ -37,7 +37,7 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         });
 
         this.model = new GameModel({
-            app: this.app , 
+            app: this.app, 
             cx: config.gamePos.default.x, 
             cy: config.gamePos.default.y, 
             scale: config.scale.default,

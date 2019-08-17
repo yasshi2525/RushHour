@@ -6,31 +6,39 @@ import CursorModel from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
 
 const offset = 2;
-
-abstract class CursorHandler<T> {
+export abstract class CursorHandler<T> {
     protected model: GameModel;
-    protected cursor: CursorModel;
+    protected view: CursorModel;
     protected dispatch: any;
 
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
-        this.cursor = model.cursor;
+        this.view = model.cursor;
         this.dispatch = dispatch;
     }
 
-    protected handle(server: Point) {
-        switch(this.cursor.get("menu")) {
+    protected handle(client: Point) {
+        let server = this.toServerXY(client, offset);
+        if (server === undefined) {
+            return;
+        }
+        switch(this.view.get("menu")) {
             case MenuStatus.SEEK_DEPARTURE:
-                this.dispatch(depart.request({
-                    oid: 1, // TODO
-                    x: server.x,
-                    y: server.y
-                }))
+                if (this.view.selected === undefined) {
+                    this.dispatch(depart.request({
+                        oid: 1, // TODO
+                        x: server.x,
+                        y: server.y
+                    }));
+                }
                 break;
         }
     }
 
-    protected toServerXY(client: Point) {
+    protected toServerXY(client: Point | undefined, offset: number = 0) {
+        if (client === undefined) {
+            return undefined;
+        }
         let w = this.model.renderer.width;
         let h = this.model.renderer.height;
         let size = Math.max(
@@ -42,7 +50,7 @@ abstract class CursorHandler<T> {
             x: (client.x + offset - w / 2) / size,
             y: (client.y + offset - h / 2) / size
         }
-
+        
         let zoom = Math.pow(2, this.model.coord.scale);
         return {
             x: this.model.coord.cx + d.x * zoom,
@@ -50,40 +58,36 @@ abstract class CursorHandler<T> {
         }
     }
 
-    protected abstract getClientXY(ev: T): Point;
+    protected abstract getClientXY(ev: T): Point | undefined;
 }
 
 export class ClickCursor extends CursorHandler<React.MouseEvent> {
     onMove(ev: React.MouseEvent) {
-        let client = this.getClientXY(ev);
-        this.cursor.merge("x", client.x);
-        this.cursor.merge("y", client.y);
-        if (this.cursor.isChanged()) {
-            this.cursor.beforeRender();
-        }
+        this.view.merge("pos", this.toServerXY(this.getClientXY(ev)));
     }
 
     onMouseOut() {
-        this.cursor.merge("x", -1);
-        this.cursor.merge("y", -1);
+        this.view.merge("pos", undefined);
     }
     
     onClick(ev: React.MouseEvent) {
-        this.handle(this.toServerXY(this.getClientXY(ev)));
+        let client = this.getClientXY(ev);
+        this.handle(client);
     }
 
     protected getClientXY(ev: React.MouseEvent) {
-        return {
+        let result = {
             x: ev.clientX * this.model.renderer.resolution, 
             y: ev.clientY * this.model.renderer.resolution
         };
+        return result;
     }
 }
 
 const sensitivity = 1;
 
 export class TapCursor extends CursorHandler<React.TouchEvent> {
-    protected pos: Point = {x: -1, y: -1};
+    protected pos: Point | undefined;
     protected moveCnt = 0;
 
     onStart(ev: React.TouchEvent) {
@@ -96,26 +100,25 @@ export class TapCursor extends CursorHandler<React.TouchEvent> {
     }
 
     onEnd(_ev: React.TouchEvent) {
-        if (this.pos.x !== -1 && this.pos.y !== -1 && this.moveCnt <= sensitivity) {
-            this.cursor.merge("x", this.pos.x);
-            this.cursor.merge("y", this.pos.y);
-            this.cursor.beforeRender();
-
-            this.handle(this.toServerXY(this.pos));
-
-            this.cursor.merge("x", -1);
-            this.cursor.merge("y", -1);
-            this.cursor.beforeRender();
+        if (this.pos !== undefined && this.moveCnt <= sensitivity) {
+            this.view.merge("pos", this.toServerXY(this.pos));
+            this.handle(this.pos);
+            this.view.merge("pos", undefined);
         }
-        this.pos = {x: -1, y: -1};
+        this.pos = undefined;
         this.moveCnt = 0;
     }
 
     protected getClientXY(ev: React.TouchEvent) {
         let ts = ev.touches;
-        return (ts.length === 1) ? { 
-            x: ts.item(0).clientX * this.model.renderer.resolution, 
-            y: ts.item(0).clientY * this.model.renderer.resolution}
-            : {x: -1, y: -1}
+
+        if (ts.length === 1) {
+            let result = { 
+                x: ts.item(0).clientX * this.model.renderer.resolution, 
+                y: ts.item(0).clientY * this.model.renderer.resolution
+            }
+            return result;
+        }
+        return undefined;
     }
 }
