@@ -184,6 +184,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     protected state: BorderContainerState;
     protected zoom: boolean;
     protected count: number;
+    protected suspends: boolean
 
     constructor(props: ApplicationProperty & { v: boolean }) {
         super(props, NormalBorder, {v: props.v });
@@ -199,6 +200,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
         this.state = BorderContainerState.KEEP;
         this.zoom = false;
         this.count = 0;
+        this.suspends = false;
         this.genChildren(this.chunk);
     }
 
@@ -218,19 +220,13 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
             if (this.chunk.scale !== nowChunk.scale) {
                 this.zoom = nowChunk.scale < this.chunk.scale;
 
-                switch(this.state) {
-                    case BorderContainerState.DESTROY:
-                    case BorderContainerState.GENERATE:
-                        this.forEachChild(c => {
-                            if (c.get("state") !== BorderState.KEEP) {
-                                this.removeChild(c.get("id"));
-                            }
-                        });
-                        break;
+                if (this.state === BorderContainerState.KEEP) {
+                    this.changeState(BorderContainerState.DESTROY);
+                    // 拡大(縮小)による再作成
+                    this.genChildren(nowChunk);
+                } else {
+                    this.suspends = true;
                 }
-                this.changeState(BorderContainerState.DESTROY);
-                // 拡大(縮小)による再作成
-                this.genChildren(nowChunk);
             } else {
                 // 左(上)側を作成、右(下)側を削除
                 for (var i = 0; i < this.getOffset(this.chunk) - nowOffset; i++) {
@@ -257,6 +253,13 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 
     beforeRender() {
         super.beforeRender();
+        if (this.suspends && this.state === BorderContainerState.KEEP) {
+            this.changeState(BorderContainerState.DESTROY);
+            // 拡大(縮小)による再作成
+            this.genChildren(this.chunk);
+            this.suspends = false;
+        }
+
         switch(this.state) {
             case BorderContainerState.KEEP:
                 break;
