@@ -18,14 +18,14 @@ type APIv1Game struct {
 func (c APIv1Game) Index() revel.Result {
 	var params = make(map[string]float64)
 
-	for _, p := range []string{"cx", "cy", "scale"} {
+	for _, p := range []string{"cx", "cy", "scale", "delegate"} {
 		if v, err := strconv.ParseFloat(c.Params.Get(p), 64); err == nil {
 			params[p] = v
 		}
 	}
 
 	return c.RenderJSON(
-		genResponse(true, services.ViewDelegateMap(params["cx"], params["cy"], params["scale"])))
+		genResponse(true, services.ViewDelegateMap(params["cx"], params["cy"], params["scale"], params["delegate"])))
 }
 
 // Diff returns only diff

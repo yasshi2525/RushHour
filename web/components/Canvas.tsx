@@ -57,7 +57,10 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.ref = React.createRef<HTMLDivElement>();
 
         window.addEventListener("resize", () => {
-            this.model.resize(window.innerWidth, window.innerHeight);
+            let needsFetch = this.model.resize(window.innerWidth, window.innerHeight);
+            if (needsFetch) {
+                this.fetchMap();
+            }
         })
 
         this.mouse = new MouseDragHandler(this.model, this.props.dispatch);
@@ -114,7 +117,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
         this.props.dispatch(fetchMap.request({
             cx: this.model.coord.cx, 
             cy: this.model.coord.cy, 
-            scale: this.model.coord.scale + 1
+            scale: this.model.coord.scale + 1,
+            delegate: this.model.delegate
         }));
     }
 }
