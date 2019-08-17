@@ -168,7 +168,8 @@ const borderContainerDefaultValues: { coord: Coordinates, [index: string]: any }
         scale: config.scale.default,
         zoom: 0
     },
-    resize: false
+    resize: false,
+    delegate: 0
 };
 
 abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> implements MonitorContrainer {
@@ -180,13 +181,14 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     protected count: number;
     protected suspends: boolean
 
-    constructor(props: ModelProperty & { v: boolean }) {
-        super(props, NormalBorder, {v: props.v });
+    constructor(props: ModelProperty & { v: boolean, delegate: number }) {
+        super(props, NormalBorder, { v: props.v });
         this.v = props.v;
+        this.props.delegate = props.delegate;
 
         this.chunk = getChunk(
             config.gamePos.default, 
-            config.scale.default - config.scale.delegate + 1
+            config.scale.default - props.delegate + 1
         );
         this.coord = {
             cx: config.gamePos.default.x, 
@@ -206,13 +208,24 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
         this.addDefaultValues(borderContainerDefaultValues);
     }
 
+    setInitialValues(props: {[index: string]: any}) {
+        super.setInitialValues(props);
+        this.props.delegate = this.model.delegate;
+    }
+
     setupUpdateCallback() {
         super.setupUpdateCallback();
+        this.addUpdateCallback("delegate", () => {
+            this.forEachChild(c => this.removeChild(c.get("id")));
+            this.changeState(BorderContainerState.KEEP);
+            this.chunk = getChunk({x: this.props.coord.cx, y: this.props.coord.cy}, this.props.coord.scale - this.props.delegate + 1);
+            this.genChildren(this.chunk);
+        });
         this.addUpdateCallback("coord", (v: Coordinates) => {
-            let nowChunk = getChunk({x: v.cx, y: v.cy}, v.scale - config.scale.delegate + 1);
+            let nowChunk = getChunk({x: v.cx, y: v.cy}, v.scale - this.props.delegate + 1);
             let nowOffset = this.getOffset(nowChunk);
 
-            let num = Math.pow(2, config.scale.delegate);
+            let num = Math.pow(2, this.props.delegate);
 
             if (this.chunk.scale !== nowChunk.scale) {
                 this.zoom = nowChunk.scale < this.chunk.scale;
@@ -326,7 +339,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     }
 
     protected genChildren(chunk: Chunk) {
-        let num = Math.pow(2, config.scale.delegate);
+        let num = Math.pow(2, this.props.delegate);
         for (var offset = -Math.floor(num / 2); offset < Math.floor(num / 2) + 1; offset++) {
             this.genChild(chunk, offset);
         }
@@ -374,7 +387,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 }
 
 export class XBorderContainer extends NormalBorderContainer implements MonitorContrainer {
-    constructor(props: ModelProperty) {
+    constructor(props: ModelProperty & { delegate: number }) {
         super({ ...props, v: false });
     }
 
@@ -388,7 +401,7 @@ export class XBorderContainer extends NormalBorderContainer implements MonitorCo
 }
 
 export class YBorderContainer extends NormalBorderContainer implements MonitorContrainer {
-    constructor(props: ModelProperty) {
+    constructor(props: ModelProperty & { delegate: number }) {
         super({ ...props, v: true });
     }
 
