@@ -160,11 +160,11 @@ export default class implements ResourceAttachable {
         if (this.renderer.width < 600) { // sm
             return 3
         } else if (this.renderer.width < 960) { // md
-            return 4
+            return 3
         } else if (this.renderer.width < 1280 ) { // lg
-            return 5
+            return 4
         } else { // xl
-            return 6
+            return 5
         }
     }
 
@@ -241,10 +241,12 @@ export default class implements ResourceAttachable {
     }
 
     resize(width: number, height: number) {
+        let oldDelegate = this.delegate;
         this.renderer.resize(width, height);
         this.updateDelegate();
         [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(resize));
         Object.keys(this.payload).forEach(key => this.payload[key].mergeAll(resize));
+        return this.delegate !== oldDelegate;
     }
 
     protected updateCoord(force: boolean) {

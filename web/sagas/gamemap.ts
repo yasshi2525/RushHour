@@ -1,19 +1,19 @@
 import { put, call } from "redux-saga/effects";
 import * as Action from "../actions";
-import { Coordinates } from "../state";
 
 const fetch_url = "api/v1/gamemap";
 const diff_url = "api/v1/gamemap/diff";
 
-function buildQuery(coord: Coordinates): string {
+function buildQuery(coord: Action.GameMapRequest): string {
     let params = new URLSearchParams();
     params.set("cx", coord.cx.toString());
     params.set("cy", coord.cy.toString());
     params.set("scale", coord.scale.toString());
+    params.set("delegate", coord.delegate.toString());
     return params.toString();
 }
 
-const request = (url: string, coord: Coordinates): Promise<any> => 
+const request = (url: string, coord: Action.GameMapRequest): Promise<any> => 
     fetch(url + "?" + buildQuery(coord)).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);

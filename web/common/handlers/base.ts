@@ -68,7 +68,8 @@ export default abstract class <T> {
                 this.dispatch(fetchMap.request({
                     cx: this.model.coord.cx, 
                     cy: this.model.coord.cy, 
-                    scale: this.model.coord.scale + 1
+                    scale: this.model.coord.scale + 1,
+                    delegate: this.model.delegate
                 }));
             }
         }
