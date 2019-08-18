@@ -1,6 +1,6 @@
 import * as React from "react";
 import GameModel from "../model";
-import PointHandler from "./point";
+import { PointHandler } from "./point";
 
 export class PinchHandler extends PointHandler<React.TouchEvent> {
     dist: {from: number, to: number};

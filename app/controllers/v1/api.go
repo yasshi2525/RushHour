@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/services"
 )
@@ -45,6 +47,10 @@ func (c APIv1Game) Departure() revel.Result {
 	if err != nil {
 		return c.RenderJSON(genResponse(false, err.Error()))
 	}
+	scale, err := strconv.ParseFloat(c.Params.Form.Get("scale"), 64)
+	if err != nil {
+		return c.RenderJSON(genResponse(false, err.Error()))
+	}
 	oid, err := strconv.ParseUint(c.Params.Form.Get("oid"), 10, 64)
 	if err != nil {
 		return c.RenderJSON(genResponse(false, err.Error()))
@@ -52,21 +58,13 @@ func (c APIv1Game) Departure() revel.Result {
 	if o, ok := services.Model.Players[uint(oid)]; !ok {
 		return c.RenderJSON(genResponse(false, fmt.Sprintf("%d not exists", oid)))
 	} else {
-		rn, err := services.CreateRailNode(o, x, y)
+		rn, err := services.CreateRailNode(o, x, y, scale)
 		if err != nil {
 			return c.RenderJSON(genResponse(false, err.Error()))
 		}
 		return c.RenderJSON(genResponse(true, &struct {
-			OwnerID uint    `json:"oid"`
-			ID      uint    `json:"id"`
-			X       float64 `json:"x"`
-			Y       float64 `json:"y"`
-		}{
-			OwnerID: uint(oid),
-			ID:      rn.ID,
-			X:       rn.X,
-			Y:       rn.Y,
-		}))
+			RailNode *entities.DelegateRailNode `json:"rn"`
+		}{rn}))
 	}
 }
 

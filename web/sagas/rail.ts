@@ -8,6 +8,7 @@ function buildQuery(params: Action.PointRequest): string {
     res.set("oid", params.oid.toString());
     res.set("x", params.x.toString());
     res.set("y", params.y.toString());
+    res.set("scale", params.scale.toString());
     return res.toString();
 }
 
@@ -17,6 +18,15 @@ const deptRequest = (url: string, params: Action.PointRequest) =>
         body: buildQuery(params),
         headers : new Headers({"Content-type" : "application/x-www-form-urlencoded" })
     }).then(response => response.json())
+    .then((response) => {
+        let anchorObj = params.model.merge("rail_nodes", response.results.rn);
+        params.model.anchor.merge("anchor", {
+            type: "rail_nodes", 
+            pos: anchorObj.get("pos"), 
+            cid: anchorObj.get("cid")
+        });
+        return response;
+    })
     .catch(error => error);
 
 

@@ -105,12 +105,18 @@ func processMsg(msg *Operation) time.Time {
 		case entities.RESIDENCE:
 			fallthrough
 		case entities.COMPANY:
-			fallthrough
+			rv.Call([]reflect.Value{
+				reflect.ValueOf(owner),
+				reflect.ValueOf(msg.X),
+				reflect.ValueOf(msg.Y),
+			})
 		case entities.RAILNODE:
 			rv.Call([]reflect.Value{
 				reflect.ValueOf(owner),
 				reflect.ValueOf(msg.X),
-				reflect.ValueOf(msg.Y)})
+				reflect.ValueOf(msg.Y),
+				reflect.ValueOf(10.0),
+			})
 		case entities.RAILEDGE:
 			if raw := randEntity(owner, entities.RAILNODE); raw != nil {
 				rn := raw.(*entities.RailNode)

@@ -1,18 +1,24 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services/route"
 )
 
 // CreateRailNode create RailNode
-func CreateRailNode(o *entities.Player, x float64, y float64) (*entities.RailNode, error) {
+func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*entities.DelegateRailNode, error) {
 	if err := CheckArea(x, y); err != nil {
 		return nil, err
 	}
 	rn := Model.NewRailNode(o, x, y)
 	AddOpLog("CreateRailNode", o, rn)
-	return rn, nil
+
+	if ch := Model.RootCluster.FindChunk(rn, scale); ch != nil {
+		return ch.RailNode, nil
+	}
+	return nil, fmt.Errorf("invalid scale=%f", scale)
 }
 
 // RemoveRailNode remove RailNode

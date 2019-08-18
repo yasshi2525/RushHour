@@ -1,5 +1,5 @@
 import * as React from "react";
-import PointHandler from "./point";
+import { PointHandler } from "./point";
 
 const sensitivity = 0.001;
 

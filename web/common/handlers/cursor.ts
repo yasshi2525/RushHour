@@ -1,20 +1,37 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
-import { depart } from "../../actions";
+import { depart, fetchMap, seekDest } from "../../actions";
 import GameModel from "../model";
-import CursorModel from "../models/cursor";
+import { Cursor, Anchor } from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
+import { getZoomPos } from "./point";
 
 const offset = 2;
 export abstract class CursorHandler<T> {
     protected model: GameModel;
-    protected view: CursorModel;
+    protected view: Cursor;
+    protected anchor: Anchor;
     protected dispatch: any;
 
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
         this.view = model.cursor;
+        this.anchor = model.anchor;
         this.dispatch = dispatch;
+    }
+
+    /**
+     * 選択した点に複数の線路ノードが存在したため、拡大して選ばせる
+     */
+    protected requestZoom(client: Point) {
+        let center = getZoomPos(
+            this.model, {x: this.model.coord.cx, y: this.model.coord.cy}, 
+            this.model.coord.scale, client, -1)
+        this.model.setCoord(center.x, center.y, this.model.coord.scale - 1);
+        this.dispatch(fetchMap.request({
+            model: this.model,
+            dispatch: this.dispatch
+        }));
     }
 
     protected handle(client: Point) {
@@ -22,14 +39,34 @@ export abstract class CursorHandler<T> {
         if (server === undefined) {
             return;
         }
-        switch(this.view.get("menu")) {
+        switch(this.model.menu) {
             case MenuStatus.SEEK_DEPARTURE:
                 if (this.view.selected === undefined) {
                     this.dispatch(depart.request({
+                        model: this.model,
+                        dispatch: this.dispatch,
                         oid: 1, // TODO
-                        x: server.x,
-                        y: server.y
+                        x: server.x, y: server.y,
+                        scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                     }));
+                } else {
+                    if (this.view.selected.get("mul") === 1) {
+                        this.model.anchor.merge("anchor", this.view.genAnchorStatus())
+                        this.dispatch(seekDest());
+                    } else {
+                        this.requestZoom(client);
+                    }
+                }
+                break;
+            case MenuStatus.EXTEND_RAIL:
+                if (this.view.selected === undefined) {
+                    console.log("TODO: send extend request");
+                } else {
+                    if (this.view.selected.get("mul") === 1) {
+                        console.log("TODO: connect");
+                    } else {
+                        this.requestZoom(client);
+                    }
                 }
                 break;
         }
