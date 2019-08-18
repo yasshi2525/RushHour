@@ -158,13 +158,13 @@ export default class implements ResourceAttachable {
 
     protected getDelegate() {
         if (this.renderer.width < 600) { // sm
-            return 3
+            return 2
         } else if (this.renderer.width < 960) { // md
             return 3
         } else if (this.renderer.width < 1280 ) { // lg
-            return 4
+            return 3
         } else { // xl
-            return 5
+            return 4
         }
     }
 
