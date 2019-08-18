@@ -10,6 +10,7 @@ import { PinchHandler } from "../common/handlers/pinch";
 import { RushHourStatus } from "../state";
 import { fetchMap } from "../actions";
 import { ClickCursor, TapCursor } from "@/common/handlers/cursor";
+import { store } from "../store";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
@@ -51,6 +52,12 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
                 company: this.app.loader.resources["company"].texture,
                 station: this.app.loader.resources["station"].texture
             });
+
+            store.subscribe(() => {
+                let state = store.getState();
+                this.model.setMenuState(state.menu);
+            });
+
             this.fetchMap();
         });
 
@@ -94,17 +101,8 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     }
 
     componentDidUpdate() {
-        if (this.props.needsFetch) {
-            this.fetchMap();
-        }
         //let beforeFetch = new Date().getTime();
-        this.model.cursor.merge("menu", this.props.menu);
-        this.model.timestamp = this.props.timestamp;
-        this.model.mergeAll(this.props.map);
         //let beforeRender = new Date().getTime();
-        if (this.model.isChanged()) {
-            this.model.render();
-        }
         //let afterRender = new Date().getTime();
         //this.model.debugValue = (beforeRender - beforeFetch) + ", " + (afterRender - beforeRender);
     }
@@ -114,22 +112,13 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     }
 
     protected fetchMap() {
-        this.props.dispatch(fetchMap.request({
-            cx: this.model.coord.cx, 
-            cy: this.model.coord.cy, 
-            scale: this.model.coord.scale + 1,
-            delegate: this.model.delegate
-        }));
+        this.props.dispatch(fetchMap.request({ 
+            model: this.model, dispatch: this.props.dispatch }));
     }
 }
 
-function mapStateToProps(state: RushHourStatus) {
-    return { 
-        timestamp: state.timestamp, 
-        map: state.map,
-        menu: state.menu,
-        needsFetch: state.needsFetch
-    };
+function mapStateToProps(_: RushHourStatus) {
+    return {};
 }
 
 export default connect(mapStateToProps)(Canvas);

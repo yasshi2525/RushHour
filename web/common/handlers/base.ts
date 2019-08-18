@@ -66,10 +66,8 @@ export default abstract class <T> {
             this.handleEnd(ev);
             if (this.shouldFetch(ev)) {
                 this.dispatch(fetchMap.request({
-                    cx: this.model.coord.cx, 
-                    cy: this.model.coord.cy, 
-                    scale: this.model.coord.scale + 1,
-                    delegate: this.model.delegate
+                    model: this.model,
+                    dispatch: this.dispatch
                 }));
             }
         }

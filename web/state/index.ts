@@ -1,3 +1,5 @@
+import { Point } from "../common/interfaces/gamemap";
+
 export interface Coordinates {
     cx: number,
     cy: number,
@@ -16,7 +18,8 @@ export interface Locatable extends Identifiable {
 
 export enum MenuStatus {
     IDLE,
-    SEEK_DEPARTURE
+    SEEK_DEPARTURE,
+    EXTEND_RAIL
 };
 
 export interface GameMap {
@@ -35,32 +38,24 @@ export interface GameMap {
     "trains": Locatable[],
 };
 
+export interface AnchorStatus {
+    pos: Point, 
+    type: string, 
+    cid: number
+}
+
 export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
     timestamp: number,
-    map: GameMap,
-    menu: MenuStatus,
-    needsFetch: boolean
+    oid: number,
+    menu: MenuStatus
 };
+
 
 export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
-    map: {
-        "companies": [],
-        "gates": [],
-        "humans": [],
-        "line_tasks": [],
-        "platforms": [],
-        "players": [],
-        "rail_edges": [],
-        "rail_lines": [],
-        "rail_nodes": [],
-        "residences": [],
-        "stations": [],
-        "trains": [],
-    },
-    menu: MenuStatus.IDLE,
-    needsFetch: true
+    oid: 1,
+    menu: MenuStatus.IDLE
 };

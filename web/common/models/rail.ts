@@ -16,10 +16,14 @@ const graphicsOpts = {
 
 const rnDefaultValues: {
     pid: number,
-    color: number
+    cid: number,
+    color: number,
+    mul: number
 } = {
     pid: 0,
-    color: 0
+    cid: 0,
+    color: 0,
+    mul: 1
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
@@ -114,13 +118,11 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
 const reDefaultValues: {
     from: number, 
     to: number, 
-    eid: number,
-    mul: number
+    eid: number
 } = {
     from: 0, 
     to: 0, 
-    eid: 0,
-    mul: 1
+    eid: 0
 };
 
 export class RailEdge extends AnimatedSpriteModel implements Monitorable {

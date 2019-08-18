@@ -7,11 +7,9 @@ import { PointModel, PointContainer } from "./point";
  * x, y座標はPointModelで初期化済み
  */
 const defaultValues: {
-    anchor: {x: number, y: number},
     spscale: number,
     alpha: number
 } = { 
-    anchor: { x: 0.5, y: 0.5 }, 
     spscale: 0.5,
     alpha: 1
 };
@@ -32,7 +30,7 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
-            this.sprite.anchor.set(this.props.anchor.x, this.props.anchor.y);
+            this.sprite.anchor.set(0.5, 0.5);
             this.sprite.alpha = this.props.alpha;
             this.sprite.scale.set(this.props.spscale, this.props.spscale)
             this.container.addChild(this.sprite);
@@ -43,7 +41,6 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
         super.setupUpdateCallback();
 
         // 値の更新時、Spriteを更新するように設定
-        this.addUpdateCallback("anchor", (value: {x: number, y: number}) => this.sprite.anchor.set(value.x, value.y));
         this.addUpdateCallback("spscale", (value: number) => this.sprite.scale.set(value, value));
         this.addUpdateCallback("alpha", (value: number) => this.sprite.alpha = value);
     }

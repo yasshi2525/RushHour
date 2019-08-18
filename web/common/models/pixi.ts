@@ -53,6 +53,12 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         this.addDefaultValues(defaultValues);
     }
 
+    setInitialValues(props: {[index: string]: any}) {
+        super.setInitialValues(props);
+        this.updateDestination();
+        this.moveDestination();
+    }
+
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {

@@ -4,11 +4,12 @@ import MonitorContainer from "./models/container";
 import { Coordinates, config, getChunk, Point } from "./interfaces/gamemap";
 import { Monitorable } from "./interfaces/monitor";
 import { GameModelProperty, ResourceAttachable } from "./interfaces/pixi";
-import { GameMap } from "../state";
+import { GameMap, MenuStatus } from "../state";
 import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./models/rail";
 import { StationContainer } from "./models/station";
-import CursorModel from "./models/cursor";
+import { Cursor, Anchor } from "./models/cursor";
 import { WorldBorder, XBorderContainer, YBorderContainer } from "./models/border";
+import { PointModel } from "./models/point";
 
 const forceMove = { forceMove: true };
 const resize = { resize: true };
@@ -21,12 +22,14 @@ export default class implements ResourceAttachable {
     protected world: WorldBorder;
     protected payload: {[index:string]: MonitorContainer<Monitorable>} = {};
     protected changed: boolean = false;
-    cursor: CursorModel;
+    cursor: Cursor;
+    anchor: Anchor;
     timestamp: number;
     textures: {[index: string]: PIXI.Texture};
     coord: Coordinates;
     delegate: number;
     offset: number;
+    menu: MenuStatus;
     debugText: PIXI.Text;
     debugValue: any;
 
@@ -40,13 +43,18 @@ export default class implements ResourceAttachable {
         this.offset = 0;
         this.delegate = this.getDelegate();
 
-        this.cursor = new CursorModel({ model: this, app: this.app, offset: this.offset });
-        this.cursor.setupDefaultValues();
-        this.cursor.setupUpdateCallback();
-        this.cursor.setupBeforeCallback();
-        this.cursor.setupAfterCallback();
-        this.cursor.setInitialValues({});
-        this.cursor.begin();
+        this.menu = MenuStatus.IDLE;
+        this.anchor = new Anchor({ model: this, app: this.app, offset: this.offset });
+        this.cursor = new Cursor({ model: this, app: this.app, offset: this.offset, anchor: this.anchor });
+
+        [this.cursor, this.anchor].forEach((v: Monitorable) => {
+            v.setupDefaultValues();
+            v.setupUpdateCallback();
+            v.setupBeforeCallback();
+            v.setupAfterCallback();
+            v.setInitialValues({});
+            v.begin();
+        });
 
         this.xborder = new XBorderContainer({ model: this, app: this.app, delegate: this.delegate });
         this.yborder = new YBorderContainer({ model: this, app: this.app, delegate: this.delegate });
@@ -66,11 +74,13 @@ export default class implements ResourceAttachable {
             if (this.offset >= config.round) {
                 this.offset = 0;
             }
-            [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.beforeRender() )
+            [this.cursor, this.anchor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => {
+                v.merge("offset", this.offset);
+                v.beforeRender();
+            })
             Object.keys(this.payload).forEach(key => {
                 this.payload[key].merge("offset", this.offset);
                 this.payload[key].endChildren();
-                this.cursor.merge("offset", this.offset);
             });
         });
 
@@ -117,9 +127,16 @@ export default class implements ResourceAttachable {
         return undefined;
     }
 
-    getOnChunk(key: string, pos: Point, oid: number) {
+    getOnChunk(key: string, pos: Point | undefined, oid: number): PointModel | undefined {
+        if (this.payload[key] === undefined || pos === undefined) {
+            return undefined;
+        }
         return this.payload[key].getChildOnChunk(getChunk(pos, this.coord.scale - this.delegate + 1), oid)
-    }  
+    }
+
+    merge(key: string, props: {id: string}) {
+        return this.payload[key].mergeChild(props);
+    }
 
     mergeAll(payload: GameMap) {
         config.zIndices.forEach(key => {
@@ -131,6 +148,7 @@ export default class implements ResourceAttachable {
             }
         });
         this.resolve();
+        this.anchor.updateAnchor();
     }
 
     resolve() {
@@ -250,9 +268,9 @@ export default class implements ResourceAttachable {
     }
 
     protected updateCoord(force: boolean) {
-        [this.cursor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.merge("coord", this.coord));
+        [this.cursor, this.anchor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.merge("coord", this.coord));
         if (force) {
-            [this.cursor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(forceMove));
+            [this.cursor, this.anchor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.mergeAll(forceMove));
         }
         Object.keys(this.payload).forEach(key => {
             this.payload[key].merge("coord", this.coord);
@@ -263,6 +281,15 @@ export default class implements ResourceAttachable {
                 this.changed = true;
             }
         });
+    }
+
+    setMenuState(menu: MenuStatus) {
+        if (this.menu !== menu) {
+            [this.cursor, this.anchor].forEach(v => {
+                v.merge("menu", menu);
+            })
+            this.menu = menu;
+        }
     }
 
     isChanged() {
@@ -279,7 +306,6 @@ export default class implements ResourceAttachable {
 
     unmount() {
         Object.keys(this.payload).reverse().forEach(key => this.payload[key].end());
-        this.cursor.end();
-        [this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.end());
+        [this.cursor, this.anchor, this.xborder, this.yborder, this.world].forEach((v: Monitorable) => v.end());
     }
 }

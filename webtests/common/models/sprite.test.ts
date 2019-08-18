@@ -18,8 +18,6 @@ const expectSprite = (sprite: PIXI.Sprite, testValue: number) => {
     expect(sprite.alpha).toBe(testValue);
     expect(sprite.scale.x).toBe(testValue);
     expect(sprite.scale.y).toBe(testValue);
-    expect(sprite.anchor.x).toBe(testValue);
-    expect(sprite.anchor.y).toBe(testValue);
 }
 
 class SimpleSpriteModel extends SpriteModel {

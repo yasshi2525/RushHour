@@ -3,9 +3,10 @@ import { defaultState } from "@/state";
 import { fetchMap } from "@/actions";
 
 test("fetches map", () => {
+    let time = new Date().getTime();
     const actual = reducer(defaultState, {
         type: fetchMap.success.toString(),
-        payload: {status: true, timestamp: new Date().getTime(), results: {foo: "bar"}}
+        payload: {status: true, timestamp: time, results: {foo: "bar"}}
     });
-    expect(actual.map.foo).toEqual("bar");
+    expect(actual.timestamp).toEqual(time);
 });

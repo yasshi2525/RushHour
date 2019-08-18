@@ -101,9 +101,18 @@ abstract class MonoGenerator extends Generator {
         this.object.filters = this.filters.map(v => v.filter);
     }
 
+    protected getOffset(frame: number) {
+        return getCurveOffset(frame);
+    }
+
+    protected handleObject(_offset: number) {
+        // do-nothing
+    }
+
     record(rect: PIXI.Rectangle) {
         for(let i = 0; i < config.round; i++) {
-            let offset = getCurveOffset(i);
+            let offset = this.getOffset(i);
+            this.handleObject(i);
             this.filters.forEach(v => v.fn(v.filter, offset));
             this.textures.push(this.app.renderer.generateTexture(
                 this.object, PIXI.SCALE_MODES.LINEAR, 
@@ -192,6 +201,27 @@ export class GraphicsAnimationGenerator extends MonoGenerator {
         this.filters.push(generateOutline(app));
         this.filters.push(generateFlash(app));
         this.applyFilter();
+    }
+}
+
+export class RoundAnimationGenerator extends MonoGenerator {
+    protected pivot: PIXI.Point;
+    
+    constructor(app: PIXI.Application, obj: PIXI.DisplayObject, pivot: PIXI.Point) {
+        super(app, obj);
+        this.pivot = pivot;
+        this.filters.push(generateOutline(app));
+        this.filters.push(generateFlash(app));
+        this.applyFilter();
+    }
+
+    protected handleObject(frame: number) {
+        let offset = frame / config.round;
+        let old = this.object.pivot;
+        this.object.pivot = this.pivot;
+        this.object.rotation = offset * Math.PI * 2;
+        this.object.position = this.pivot;
+        this.object.pivot = old;
     }
 }
 

@@ -2,6 +2,7 @@ import GameModel from "../model";
 import BaseModel from "./base";
 import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
 import { Chunk } from "../interfaces/gamemap";
+import { PointModel } from "./point";
 
 const defaultValues: {offset: number} = {offset: 0};
 
@@ -40,9 +41,10 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         return this.children[id];
     }
 
-    getChildOnChunk(chunk: Chunk, oid: number) {
-        return Object.keys(this.children).map(id => this.children[id])
-            .find(c => c.get("oid") === oid && c.standOnChunk(chunk));
+    getChildOnChunk(chunk: Chunk, oid: number): PointModel | undefined {
+        let result = Object.keys(this.children).map(id => this.children[id])
+            .find(c => c.get("oid") === oid && !c.get("outMap") && c.standOnChunk(chunk));
+        return (result instanceof PointModel) ? result : undefined;
     }
 
     addChild(props: {id: string}) {
@@ -51,11 +53,13 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         child.setupUpdateCallback();
         child.setupBeforeCallback();
         child.setupAfterCallback();
-        child.setInitialValues(props);
+        child.setInitialValues({ ...props, coord: this.model.coord });
         child.begin();
 
         this.children[props.id] = child;
         this.change();
+
+        return child;
     }
     
     updateChild(props: {id: string}) {
@@ -66,6 +70,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         if (target.isChanged()) {
             this.change();
         }
+        return target;
     }
 
     endChildren() {
@@ -86,9 +91,9 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
 
     mergeChild(props: {id: string, [propName: string]: any}) {
         if (this.existsChild(props.id)) {
-            this.updateChild(props);
+            return this.updateChild(props);
         } else {
-            this.addChild(props);
+            return this.addChild(props);
         }
     }
 

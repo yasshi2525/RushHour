@@ -69,6 +69,11 @@ func (ch *Chunk) addRailNode(rn *RailNode) {
 	}
 	ch.RailNode.RailNodes[rn.ID] = rn
 	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
+	if ch.RailNode.Multi == 1 {
+		ch.RailNode.ChildID = rn.ID
+	} else {
+		ch.RailNode.ChildID = 0
+	}
 	ch.RailNode.UpdatePos()
 }
 
@@ -110,6 +115,12 @@ func (ch *Chunk) removeRailNode(rn *RailNode) {
 	delete(ch.RailNode.RailNodes, rn.ID)
 	ch.RailNode.UpdatePos()
 	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
+
+	if ch.RailNode.Multi == 1 {
+		ch.RailNode.ChildID = rn.ID
+	} else {
+		ch.RailNode.ChildID = 0
+	}
 
 	if len(ch.RailNode.RailNodes) == 0 {
 		ch.RailNode = nil
