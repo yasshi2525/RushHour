@@ -22,7 +22,7 @@ const cursorDefaultValues: {
 };
 
 export class Cursor extends AnimatedSpriteModel implements Monitorable {
-    selected: PointModel | undefined;
+    selected: Monitorable | undefined;
     anchor: Anchor;
 
     constructor(options: ModelProperty & { offset: number, anchor: Anchor } ) {
@@ -81,18 +81,21 @@ export class Cursor extends AnimatedSpriteModel implements Monitorable {
     }
 
 
-    beforeRender() {
+    updateDisplayInfo() {
         if (!this.isVisible()) {
             this.sprite.visible = false;
             return;
         }
-        if (this.selected !== undefined && this.selected.current !== undefined) {
-            this.sprite.visible = true;
-            this.sprite.x = this.selected.current.x - 2;
-            this.sprite.y = this.selected.current.y - 2;
-            return;
+        if (this.selected !== undefined) {
+            let pos = this.selected.position();
+            if (pos !== undefined) {
+                this.sprite.visible = true;
+                this.sprite.x = pos.x - 2;
+                this.sprite.y = pos.y - 2;
+                return;
+            }
         }
-        super.beforeRender();
+        super.updateDisplayInfo();
     }
 
     selectObject(except: PointModel | undefined = undefined) {
@@ -104,7 +107,7 @@ export class Cursor extends AnimatedSpriteModel implements Monitorable {
         switch(this.props.menu) {
             case MenuStatus.SEEK_DEPARTURE:
             case MenuStatus.EXTEND_RAIL:
-                selected = this.model.getOnChunk("rail_nodes", this.props.pos, 1);
+                selected = this.model.gamemap.getOnChunk("rail_nodes", this.props.pos, 1);
                 break;
         }
         if (selected instanceof PointModel && selected !== this.anchor.object && selected !== except) {
@@ -161,7 +164,7 @@ const anchorDefaultValues: {
 };
 
 export class Anchor extends AnimatedSpriteModel implements Monitorable {
-    object: PointModel | undefined;
+    object: Monitorable | undefined;
 
     constructor(options: ModelProperty & { offset: number } ) { 
         let graphics = new PIXI.Graphics();
@@ -218,19 +221,22 @@ export class Anchor extends AnimatedSpriteModel implements Monitorable {
 
     updateAnchor() {
         if (this.props.anchor !== undefined) {
-            this.object = this.model.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid);
+            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid);
         } else {
             this.object = undefined;
         }
     }
 
-    beforeRender() {
-        if (this.object === undefined || this.object.current === undefined) {
-            this.sprite.visible = false;
-        } else {
-            this.sprite.visible = true;
-            this.sprite.x = this.object.current.x - 5;
-            this.sprite.y = this.object.current.y - 5;
+    updateDisplayInfo() {
+        if (this.object !== undefined) {
+            let pos = this.object.position();
+            if (pos !== undefined) {
+                this.sprite.visible = true;
+                this.sprite.x = pos.x - 5;
+                this.sprite.y = pos.y - 5;
+                return;
+            }
         }
+        this.sprite.visible = false;
     }
 }

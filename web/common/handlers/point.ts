@@ -1,5 +1,5 @@
 import { Point } from "../interfaces/gamemap";
-import GameModel from "../model";
+import GameModel from "../models";
 import BaseHandler from "./base";
 
 /**

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import GameModel from "@/common/model";
+import GameModel from "@/common/models";
 import Base from "@/common/models/base";
 
 const app = new PIXI.Application();

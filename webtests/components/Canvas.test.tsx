@@ -1,7 +1,8 @@
 import * as React from "react";
 import { shallow, mount, ReactWrapper } from "enzyme";
+import { RushHourStatus, GameMap } from "@/state";
+import GameContainer from "@/common";
 import { Canvas } from "@/components/Canvas";
-import { defaultState, RushHourStatus, GameMap } from "@/state";
 
 const testMap: GameMap =  {
     "companies": [],
@@ -18,15 +19,17 @@ const testMap: GameMap =  {
     "trains": [],
 };
 
+const game = new GameContainer();
+
 test("renders canvas", () => {
-    const wrapper = shallow(<Canvas {...defaultState} />);
+    const wrapper = shallow(<Canvas readOnly={true} model={game.model} dispatch={()=>{}} />);
     expect(wrapper.name()).toEqual("div");
 });
 
 describe("updates gamemodel", () => {
     let wrapper: ReactWrapper<RushHourStatus, RushHourStatus, Canvas>;
     beforeEach(() => {
-        wrapper = mount(<Canvas {...defaultState} dispatch={()=>{}} />);
+        wrapper = mount(<Canvas readOnly={true} model={game.model} dispatch={()=>{}} />);
     });
 
     test("renders sprites in first time", () => {

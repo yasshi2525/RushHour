@@ -1,12 +1,12 @@
-import GameModel from "../model";
+import GameModel from ".";
 import BaseModel from "./base";
-import { MonitorContrainer, Monitorable } from "../interfaces/monitor";
+import { MonitorContainer, Monitorable } from "../interfaces/monitor";
 import { Chunk } from "../interfaces/gamemap";
 import { PointModel } from "./point";
 
 const defaultValues: {offset: number} = {offset: 0};
 
-export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContrainer {
+export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContainer {
 
     childOptions: {[index:string]: {}};
     Child: { new (props: {[index:string]: {}}): T };

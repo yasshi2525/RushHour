@@ -1,5 +1,5 @@
 import * as React from "react";
-import GameModel from "../model";
+import GameModel from "../models";
 import { PointHandler } from "./point";
 
 export class PinchHandler extends PointHandler<React.TouchEvent> {

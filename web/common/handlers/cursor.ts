@@ -1,7 +1,7 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
-import { depart, fetchMap, seekDest } from "../../actions";
-import GameModel from "../model";
+import { depart, fetchMap } from "../../actions";
+import GameModel from "../models";
 import { Cursor, Anchor } from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
 import { getZoomPos } from "./point";
@@ -15,8 +15,8 @@ export abstract class CursorHandler<T> {
 
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
-        this.view = model.cursor;
-        this.anchor = model.anchor;
+        this.view = model.controllers.getCursor();
+        this.anchor = model.controllers.getAnchor();
         this.dispatch = dispatch;
     }
 
@@ -51,8 +51,8 @@ export abstract class CursorHandler<T> {
                     }));
                 } else {
                     if (this.view.selected.get("mul") === 1) {
-                        this.model.anchor.merge("anchor", this.view.genAnchorStatus())
-                        this.dispatch(seekDest());
+                        this.anchor.merge("anchor", this.view.genAnchorStatus())
+                        this.model.setMenuState(MenuStatus.EXTEND_RAIL);
                     } else {
                         this.requestZoom(client);
                     }

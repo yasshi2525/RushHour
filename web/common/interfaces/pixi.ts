@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { Coordinates } from "./gamemap";
-import GameModel from "../model"
+import GameModel from "../models"
 
 export interface ApplicationProperty {
     [key: string]: any,
@@ -34,8 +34,4 @@ export interface AnimatedSpriteContainerProperty extends ModelProperty {
 export interface AnimationProperty extends ApplicationProperty {
     filter: PIXI.Filter,
     fn: (filter: PIXI.Filter, offset: number) => void
-}
-
-export interface ResourceAttachable {
-    attach(textures: {[index: string]: PIXI.Texture}): void
 }

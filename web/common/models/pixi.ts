@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { ModelProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
@@ -144,11 +144,11 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
             this.current = this.destination;
             this.latency = 0;
         }
-        this.beforeRender();
+        this.updateDisplayInfo();
     }
 }
 
-export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContrainer {
+export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContainer {
     constructor(
         options: ModelProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 

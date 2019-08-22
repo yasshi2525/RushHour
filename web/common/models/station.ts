@@ -1,5 +1,5 @@
 import { SpriteModel, SpriteContainer } from "./sprite";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { SpriteContainerProperty } from "../interfaces/pixi";
 
 
@@ -14,7 +14,7 @@ export class Station extends SpriteModel implements Monitorable {
     }
 }
 
-export class StationContainer extends SpriteContainer<Station> implements MonitorContrainer {
+export class StationContainer extends SpriteContainer<Station> implements MonitorContainer {
     constructor(options: SpriteContainerProperty) {
         super(options, Station, {});
     }

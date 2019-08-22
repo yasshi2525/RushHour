@@ -44,6 +44,7 @@ export function getChunk(pos: Point, scale: number): Chunk {
 }
 
 export const config = {
+    background: 0x263238,
     /**
      * サーバからマップ情報を取得する間隔 (ms)
      */

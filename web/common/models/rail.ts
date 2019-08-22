@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { AnimatedSpriteProperty, ModelProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
@@ -70,8 +70,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         })
     }
 
-    beforeRender() {
-        super.beforeRender();
+    updateDisplayInfo() {
+        super.updateDisplayInfo();
         this.sprite.x -= graphicsOpts.padding / 2;
         this.sprite.y -= graphicsOpts.padding / 2;
     }
@@ -93,7 +93,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     }
 }
 
-export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContrainer {
+export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContainer {
     constructor(options: ModelProperty) {
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
@@ -156,7 +156,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         }
     }
 
-    beforeRender() {
+    updateDisplayInfo() {
         if (this.from !== undefined && this.to !== undefined 
             && this.from.current !== undefined && this.to.current !== undefined ) {
             let d = { 
@@ -177,7 +177,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             this.sprite.height = Math.min(this.props.mul, graphicsOpts.maxWidth);
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
         }
-        super.beforeRender();
+        super.updateDisplayInfo();
     }
 
     shouldEnd() {
@@ -191,7 +191,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     }
 }
 
-export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContrainer {
+export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContainer {
     constructor(options: ModelProperty) {
         let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
         let animation =  generator.record();

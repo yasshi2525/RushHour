@@ -5,15 +5,16 @@ import { Hidden, Fab, Container } from "@material-ui/core";
 import ExpandIcon from "@material-ui/icons/Add"
 import MinimizeIcon from "@material-ui/icons/Remove"
 import { ThemeProvider } from "@material-ui/styles";
-import { RushHourStatus } from "@/state";
+import { GameComponentProperty } from "../common/interfaces";
+import { RushHourStatus } from "../state";
 import Rail from "./Rail";
 
 interface ToolBardState {
     expandsMenu: boolean
 }
 
-export class ToolBar extends React.Component<any, ToolBardState> {
-    constructor(props: any) {
+export class ToolBar extends React.Component<GameComponentProperty, ToolBardState> {
+    constructor(props: GameComponentProperty) {
         super(props);
         this.state = { expandsMenu: false };
         this.toggleMenu = this.toggleMenu.bind(this);
@@ -25,7 +26,7 @@ export class ToolBar extends React.Component<any, ToolBardState> {
                 {/* PC向け */}
                 <Hidden xsDown>
                     <Container>
-                        <Rail />
+                        <Rail model={this.props.model} />
                     </Container>
                 </Hidden>
                 {/* スマホ向け */}
@@ -41,7 +42,7 @@ export class ToolBar extends React.Component<any, ToolBardState> {
                     </Fab>
                     {this.state.expandsMenu ?
                         <Container hidden={!this.state.expandsMenu}>
-                            <Rail />
+                            <Rail model={this.props.model} />
                         </Container>
                     : null }
                 </Hidden>

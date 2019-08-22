@@ -1,5 +1,5 @@
 import { PIXIModel, PIXIContainer } from "./pixi";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { Chunk, getChunk, Point } from "../interfaces/gamemap";
 import { Cursor } from "./cursor";
 
@@ -41,6 +41,10 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
         return chunk.x === my.x && chunk.y === my.y;
     }
 
+    position(): Point | undefined {
+        return this.current;
+    }
+
     protected unreferCursor() {
         if (this.refferedCursor !== undefined) {
             this.refferedCursor.unlinkSelected();
@@ -49,5 +53,5 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     }
 }
 
-export abstract class PointContainer<T extends PointModel> extends PIXIContainer<T> implements MonitorContrainer {        
+export abstract class PointContainer<T extends PointModel> extends PIXIContainer<T> implements MonitorContainer {        
 }

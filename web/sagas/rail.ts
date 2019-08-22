@@ -1,5 +1,6 @@
 import { put, call } from "redux-saga/effects";
 import * as Action from "../actions";
+import { MenuStatus } from "@/state";
 
 const dept_url = "api/v1/dept";
 
@@ -19,12 +20,15 @@ const deptRequest = (url: string, params: Action.PointRequest) =>
         headers : new Headers({"Content-type" : "application/x-www-form-urlencoded" })
     }).then(response => response.json())
     .then((response) => {
-        let anchorObj = params.model.merge("rail_nodes", response.results.rn);
-        params.model.anchor.merge("anchor", {
-            type: "rail_nodes", 
-            pos: anchorObj.get("pos"), 
-            cid: anchorObj.get("cid")
-        });
+        let anchorObj = params.model.gamemap.mergeChild("rail_nodes", response.results.rn);
+        if (anchorObj !== undefined) {
+            params.model.controllers.getAnchor().merge("anchor", {
+                type: "rail_nodes", 
+                pos: anchorObj.get("pos"), 
+                cid: anchorObj.get("cid")
+            });
+            params.model.setMenuState(MenuStatus.EXTEND_RAIL);
+        }
         return response;
     })
     .catch(error => error);

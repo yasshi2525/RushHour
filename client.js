@@ -1,5 +1,5 @@
+const gl = require("gl")(100, 100, { stencil: true });
 const { createCanvas } = require("canvas");
-const gl = require("gl")(100,100, { stencil: true });
 
 function createCanvasMock() {
     const canvas = createCanvas(100, 100);

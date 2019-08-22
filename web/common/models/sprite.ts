@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { SpriteProperty, SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty } from "../interfaces/pixi";
 import { PointModel, PointContainer } from "./point";
 
@@ -50,8 +50,8 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
         this.addAfterCallback(() => this.container.removeChild(this.sprite));
     }
 
-    beforeRender() {
-        super.beforeRender();
+    updateDisplayInfo() {
+        super.updateDisplayInfo();
         if (this.current === undefined) {
             this.sprite.visible = false;
         } else {
@@ -62,7 +62,7 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
     }
 }
 
-export abstract class SpriteContainer<T extends SpriteModel> extends PointContainer<T> implements MonitorContrainer {
+export abstract class SpriteContainer<T extends SpriteModel> extends PointContainer<T> implements MonitorContainer {
     
     constructor(
         options: SpriteContainerProperty,
@@ -89,7 +89,7 @@ export abstract class AnimatedSpriteModel extends SpriteModel implements Monitor
     }
 }
 
-export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> extends SpriteContainer<T> implements MonitorContrainer {
+export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> extends SpriteContainer<T> implements MonitorContainer {
     constructor(
         options: AnimatedSpriteContainerProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 

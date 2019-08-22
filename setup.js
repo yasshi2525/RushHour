@@ -7,7 +7,7 @@ const os = require("os");
 const DIR = path.join(os.tmpdir(), "jest_puppeteer_global_setup");
 
 module.exports = async function() {
-  const args = puppeteer.defaultArgs().filter((value) => value !== "--disable-gpu");
+  const args = puppeteer.defaultArgs().filter((value) => value != "--disable-gpu");
   args.push("--use-gl=desktop");
   const browser = await puppeteer.launch();
   // store the browser instance so we can teardown it later
