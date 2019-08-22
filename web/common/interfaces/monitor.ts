@@ -1,4 +1,4 @@
-import { Chunk } from "./gamemap";
+import { Chunk, Point } from "./gamemap";
 
 /**
  * 変更監視ができるクラスを表すインタフェース
@@ -34,7 +34,7 @@ export interface Monitorable {
     /**
      * 描画前に呼び出されるコールバック関数を設定します。
      */
-    beforeRender(): void
+    updateDisplayInfo(): void
 
     /**
      * 監視を開始します。
@@ -42,6 +42,7 @@ export interface Monitorable {
     begin(): void;
 
     get(key: string): any;
+    position(): Point | undefined;
 
     /**
      * 引数のチャンク上に存在するか取得します。
@@ -90,18 +91,30 @@ export interface Monitorable {
     reset(): void;
 };
 
-export interface MonitorContrainer extends Monitorable {
+export interface MonitorContainer extends Monitorable {
     existsChild(id: string): boolean;
-    mergeChild(payload: {id: string}): void;
+    getChild(id: string): Monitorable;
+    getChildOnChunk(chunk: Chunk, oid: number): Monitorable | undefined
+    mergeChild(payload: {id: string}): Monitorable;
     /**
      * このなかに存在しない child は outMap 属性が true になります
      * @param payload
      * @param opts 全child共通に設定するプロパティ
      */
     mergeChildren(payload: {id: string}[], opts: {[index: string]: any}): void;
+    forEachChild(func: (c: Monitorable) => any): void;
     /**
      * shouldEndをみたすchildを削除します
      */
     endChildren(): void;
     removeChild(id: string): void;
+}
+
+export function startMonitor(model: Monitorable, props: {[index: string]: any}) {
+    model.setupDefaultValues();
+    model.setupUpdateCallback();
+    model.setupBeforeCallback();
+    model.setupAfterCallback();
+    model.setInitialValues(props);
+    model.begin();
 }

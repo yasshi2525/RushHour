@@ -48,14 +48,12 @@ export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
     timestamp: number,
-    oid: number,
-    menu: MenuStatus
+    oid: number
 };
 
 
 export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
-    oid: 1,
-    menu: MenuStatus.IDLE
+    oid: 1
 };

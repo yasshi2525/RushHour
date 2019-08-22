@@ -1,5 +1,5 @@
 import { GraphicsModel, GraphicsContainer } from "./graphics";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { ModelProperty } from "../interfaces/pixi";
 import { config, Coordinates, Chunk, getChunk } from "../interfaces/gamemap";
 
@@ -24,8 +24,8 @@ export class WorldBorder extends GraphicsModel implements Monitorable {
         this.graphics.zIndex = -1;
     }
 
-    beforeRender() {
-        super.beforeRender();
+    updateDisplayInfo() {
+        super.updateDisplayInfo();
         this.graphics.clear();
         this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.world);
         this.graphics.drawRect(-this.radius/2, -this.radius/2, this.radius, this.radius);
@@ -128,8 +128,8 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
         }
     }
 
-    beforeRender() {
-        super.beforeRender();
+    updateDisplayInfo() {
+        super.updateDisplayInfo();
         if (this.v) {
             this.graphics.y = 0;
         } else {
@@ -172,7 +172,7 @@ const borderContainerDefaultValues: { coord: Coordinates, [index: string]: any }
     delegate: 0
 };
 
-abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> implements MonitorContrainer {
+abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> implements MonitorContainer {
     protected chunk: Chunk;
     protected coord: Coordinates;
     protected v: boolean;
@@ -261,8 +261,8 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
         });
     }
 
-    beforeRender() {
-        super.beforeRender();
+    updateDisplayInfo() {
+        super.updateDisplayInfo();
         if (this.suspends && this.state === BorderContainerState.KEEP) {
             this.changeState(BorderContainerState.DESTROY);
             // 拡大(縮小)による再作成
@@ -288,7 +288,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
         }
         this.forEachChild(c => {
             c.count = this.count;
-            c.beforeRender();
+            c.updateDisplayInfo();
         });
     }
 
@@ -386,7 +386,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
     }
 }
 
-export class XBorderContainer extends NormalBorderContainer implements MonitorContrainer {
+export class XBorderContainer extends NormalBorderContainer implements MonitorContainer {
     constructor(props: ModelProperty & { delegate: number }) {
         super({ ...props, v: false });
     }
@@ -400,7 +400,7 @@ export class XBorderContainer extends NormalBorderContainer implements MonitorCo
     }
 }
 
-export class YBorderContainer extends NormalBorderContainer implements MonitorContrainer {
+export class YBorderContainer extends NormalBorderContainer implements MonitorContainer {
     constructor(props: ModelProperty & { delegate: number }) {
         super({ ...props, v: true });
     }

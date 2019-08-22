@@ -1,5 +1,5 @@
 import { SpriteModel, SpriteContainer } from "./sprite";
-import { Monitorable, MonitorContrainer } from "../interfaces/monitor";
+import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { SpriteContainerProperty } from "../interfaces/pixi";
 
 const defaultValues: {[index:string]: {}} = {
@@ -13,7 +13,7 @@ export class Residence extends SpriteModel implements Monitorable {
     }
 }
 
-export class ResidenceContainer extends SpriteContainer<Residence> implements MonitorContrainer {
+export class ResidenceContainer extends SpriteContainer<Residence> implements MonitorContainer {
     constructor(options: SpriteContainerProperty) {
         super(options, Residence, {});
     }
@@ -26,7 +26,7 @@ export class Company extends SpriteModel implements Monitorable  {
     }
 }
 
-export class CompanyContainer extends SpriteContainer<Company> implements MonitorContrainer {
+export class CompanyContainer extends SpriteContainer<Company> implements MonitorContainer {
     constructor(options: SpriteContainerProperty) {
         super(options, Company, {});
     }

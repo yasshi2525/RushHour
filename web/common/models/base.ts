@@ -1,6 +1,6 @@
 import { Monitorable } from "../interfaces/monitor";
-import { Chunk } from "../interfaces/gamemap";
-import GameModel from "../model";
+import { Chunk, Point } from "../interfaces/gamemap";
+import GameModel from ".";
 
 const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0, outMap: false};
 
@@ -106,7 +106,7 @@ export default class implements Monitorable {
         // do-nothing
     }
 
-    beforeRender() {
+    updateDisplayInfo() {
         // do-nothing
     }
 
@@ -175,6 +175,10 @@ export default class implements Monitorable {
 
     get(key: string): any {
         return this.props[key];
+    }
+
+    position(): Point | undefined {
+        return undefined;
     }
 }
 

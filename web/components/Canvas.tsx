@@ -1,21 +1,16 @@
 import "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
-import * as PIXI from "pixi.js";
-import { config } from "../common/interfaces/gamemap";
-import GameModel from "../common/model";
+import { GameComponentProperty } from "../common/interfaces";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
 import { RushHourStatus } from "../state";
 import { fetchMap } from "../actions";
-import { ClickCursor, TapCursor } from "@/common/handlers/cursor";
-import { store } from "../store";
+import { ClickCursor, TapCursor } from "../common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
-export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
-    app: PIXI.Application;
-    model: GameModel;
+export class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
     ref: React.RefObject<HTMLDivElement>;
     mouse: MouseDragHandler;
     wheel: WheelHandler;
@@ -24,58 +19,20 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
     clickCursor: ClickCursor;
     tapCursor: TapCursor;
 
-    constructor(props: RushHourStatus) {
+    constructor(props: GameComponentProperty) {
         super(props);
-
-        this.app = new PIXI.Application({
-            width: window.innerWidth,
-            height: window.innerHeight,
-            backgroundColor: 0x333333,
-            autoStart: true,
-            antialias: true,
-            resolution: window.devicePixelRatio,
-            autoDensity: true
-        });
-
-        this.model = new GameModel({
-            app: this.app, 
-            cx: config.gamePos.default.x, 
-            cy: config.gamePos.default.y, 
-            scale: config.scale.default,
-            zoom: 0
-        });
-
-        ["residence", "company", "station", "train"].forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
-        this.app.loader.load(() => {
-            this.model.attach({
-                residence: this.app.loader.resources["residence"].texture,
-                company: this.app.loader.resources["company"].texture,
-                station: this.app.loader.resources["station"].texture
-            });
-
-            store.subscribe(() => {
-                let state = store.getState();
-                this.model.setMenuState(state.menu);
-            });
-
-            this.fetchMap();
-        });
 
         this.ref = React.createRef<HTMLDivElement>();
 
-        window.addEventListener("resize", () => {
-            let needsFetch = this.model.resize(window.innerWidth, window.innerHeight);
-            if (needsFetch) {
-                this.fetchMap();
-            }
-        })
+        this.mouse = new MouseDragHandler(this.props.model, this.props.dispatch);
+        this.wheel = new WheelHandler(this.props.model, this.props.dispatch);
+        this.touch = new TouchDragHandler(this.props.model, this.props.dispatch);
+        this.pinch = new PinchHandler(this.props.model, this.props.dispatch);
+        this.clickCursor = new ClickCursor(this.props.model, this.props.dispatch);
+        this.tapCursor = new TapCursor(this.props.model, this.props.dispatch);
 
-        this.mouse = new MouseDragHandler(this.model, this.props.dispatch);
-        this.wheel = new WheelHandler(this.model, this.props.dispatch);
-        this.touch = new TouchDragHandler(this.model, this.props.dispatch);
-        this.pinch = new PinchHandler(this.model, this.props.dispatch);
-        this.clickCursor = new ClickCursor(this.model, this.props.dispatch);
-        this.tapCursor = new TapCursor(this.model, this.props.dispatch);
+        this.props.dispatch(fetchMap.request({ 
+            model: this.props.model, dispatch: this.props.dispatch }));
     }
 
     render() {
@@ -93,27 +50,15 @@ export class Canvas extends React.Component<RushHourStatus, RushHourStatus> {
 
     componentDidMount() {
         if (this.ref.current !== null) {
-            if (this.app.view instanceof Node) { // 単体テスト時、Node非実装のため
+            if (this.props.model.app.view instanceof Node) { // 単体テスト時、Node非実装のため
                 // 一度描画して、canvas要素を子要素にする
-                this.ref.current.appendChild(this.app.view);
+                this.ref.current.appendChild(this.props.model.app.view);
             }
         } 
     }
 
-    componentDidUpdate() {
-        //let beforeFetch = new Date().getTime();
-        //let beforeRender = new Date().getTime();
-        //let afterRender = new Date().getTime();
-        //this.model.debugValue = (beforeRender - beforeFetch) + ", " + (afterRender - beforeRender);
-    }
-
     componentWillUnmount() {
-        this.model.unmount();
-    }
-
-    protected fetchMap() {
-        this.props.dispatch(fetchMap.request({ 
-            model: this.model, dispatch: this.props.dispatch }));
+        this.props.model.unmount();
     }
 }
 

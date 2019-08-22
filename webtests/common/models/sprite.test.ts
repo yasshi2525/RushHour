@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import GameModel from "@/common/model";
+import GameModel from "@/common/models";
 import { SpriteModel } from "@/common/models/sprite";
 
 let instance: SpriteModel;

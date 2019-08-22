@@ -3,13 +3,18 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Fab } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/styles";
-import { seekDept, cancelEditting } from "../actions";
+import GameModel from "../common/models";
+import { MenuStatus } from "@/state";
+
+interface RailProperty {
+    model: GameModel
+}
 
 interface RailState {
     selected: boolean
 }
 
-export class Rail extends React.Component<any, RailState> {
+export class Rail extends React.Component<RailProperty, RailState> {
     constructor(props: any) {
         super(props);
         this.state = { selected: false };
@@ -32,15 +37,15 @@ export class Rail extends React.Component<any, RailState> {
     protected toggleSelection() {
         let newState = !this.state.selected;
         if (newState) {
-            this.props.dispatch(seekDept());
+            this.props.model.setMenuState(MenuStatus.SEEK_DEPARTURE);
         } else {
-            this.props.dispatch(cancelEditting());
+            this.props.model.setMenuState(MenuStatus.IDLE);
         }
         this.setState({ selected: newState })
     }
 
     componentWillUnmount() {
-        this.props.dispatch(cancelEditting());
+        this.props.model.setMenuState(MenuStatus.IDLE);
     }
 }
 

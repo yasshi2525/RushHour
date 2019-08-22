@@ -24,10 +24,10 @@ const request = (url: string, params: Action.GameMapRequest): Promise<any> =>
         if (!response.status) {
             throw Error(response.results);
         }
-        params.model.mergeAll(response.results);
+        params.model.gamemap.mergeAll(response.results);
         params.model.timestamp = response.timestamp;
-        if (params.model.isChanged()) {
-            params.model.render();
+        if (params.model.gamemap.isChanged()) {
+            params.model.gamemap.updateDisplayInfo();
         }
         return response;
     })

@@ -1,8 +1,8 @@
 import * as PIXI from "pixi.js";
-import GameModel from "@/common/model";;
+import GameModel from "@/common/models";;
 import Container from "@/common/models/container";
 import Model from "@/common/models/base";
-import { Monitorable, MonitorContrainer } from "@/common/interfaces/monitor";
+import { Monitorable, MonitorContainer } from "@/common/interfaces/monitor";
 
 const app = new PIXI.Application();
 const model = new GameModel({ app: app, cx: 0, cy: 0, scale: 10, zoom: 0});
@@ -15,7 +15,7 @@ class SimpleModel extends Model implements Monitorable {
     }
 }
 
-class SimpleContainer extends Container<SimpleModel> implements MonitorContrainer {
+class SimpleContainer extends Container<SimpleModel> implements MonitorContainer {
     constructor(
         model: GameModel,
         newInstance: { new (props: {[index:string]: {}}): SimpleModel }, 
