@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { AnimatedSpriteProperty, ModelProperty } from "../interfaces/pixi";
+import { AnimatedSpriteProperty, ModelProperty, ZIndex } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 import { config } from "../interfaces/gamemap";
@@ -44,6 +44,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
+            this.container.zIndex = ZIndex.RAIL_NODE;
             this.sprite.tint = this.props.color;
         });
     }
@@ -130,6 +131,11 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
     protected theta: number = 0;
+
+    setupBeforeCallback() {
+        super.setupBeforeCallback();
+        this.addBeforeCallback(() => this.container.zIndex = ZIndex.RAIL_EDGE);
+    }
 
     setupDefaultValues() {
         super.setupDefaultValues();

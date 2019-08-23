@@ -1,5 +1,4 @@
 import { Monitorable } from "../interfaces/monitor";
-import { config } from "../interfaces/gamemap";
 import { GameMap } from "../../state";
 import GroupModel from "./group";
 import { ResidenceContainer, CompanyContainer } from "./background";
@@ -27,7 +26,7 @@ export default class extends GroupModel {
     }
 
     mergeAll(payload: GameMap) {
-        config.zIndices.forEach(key => {
+        Object.keys(this.containers).forEach(key => {
             if (this.containers[key] !== undefined) {
                 this.containers[key].mergeChildren(payload[key], {coord: this.model.coord});
                 if (this.containers[key].isChanged()) {
