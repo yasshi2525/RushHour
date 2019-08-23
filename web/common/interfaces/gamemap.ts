@@ -33,13 +33,21 @@ export interface Chunk {
     scale: number
 };
 
-export function getChunk(pos: Point, scale: number): Chunk {
+export function getChunkByPos(pos: Point, scale: number): Chunk {
     scale = Math.floor(scale);
     let interval = Math.pow(2, scale);
     return {
         x: Math.floor(pos.x / interval),
         y: Math.floor(pos.y / interval),
         scale: scale
+    }
+}
+
+export function getChunkByScale(chunk: Chunk, offset: number): Chunk {
+    return {
+        x: Math.floor(chunk.x * Math.pow(2, -offset)),
+        y: Math.floor(chunk.y * Math.pow(2, -offset)),
+        scale: chunk.scale + offset
     }
 }
 
