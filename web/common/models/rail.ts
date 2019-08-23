@@ -174,7 +174,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
 
             this.sprite.rotation = theta;
-            this.sprite.height = Math.min(this.props.mul, graphicsOpts.maxWidth);
+            this.sprite.height = graphicsOpts.width;
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
         }
         super.updateDisplayInfo();
