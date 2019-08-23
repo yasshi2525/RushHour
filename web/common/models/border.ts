@@ -1,65 +1,15 @@
 import { GraphicsModel, GraphicsContainer } from "./graphics";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty } from "../interfaces/pixi";
+import { ModelProperty, ZIndex } from "../interfaces/pixi";
 import { config, Coordinates, Chunk, getChunkByPos, getChunkByScale } from "../interfaces/gamemap";
 
 const graphicsOpts = {
-    world: 0xf44336,
-    normal: 0x9e9e9e,
-    width: 1
+    color: 0x9e9e9e,
+    lightWidth: 1,
+    boldWidth: 2
 };
 
-export class WorldBorder extends GraphicsModel implements Monitorable {
-    protected radius: number;
-    protected destRadius: number;
-
-    constructor(props: ModelProperty) {
-        super(props);
-        this.radius = this.calcRadius(config.scale.default);
-        this.destRadius = this.radius;
-    }
-
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.graphics.zIndex = -1;
-    }
-
-    updateDisplayInfo() {
-        super.updateDisplayInfo();
-        this.graphics.clear();
-        this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.world);
-        this.graphics.drawRect(-this.radius/2, -this.radius/2, this.radius, this.radius);
-    }
-
-    updateDestination() {
-        super.updateDestination();
-        this.destRadius = this.calcRadius(this.props.coord.scale);
-    }
-
-    moveDestination() {
-        super.moveDestination();
-        this.radius = this.destRadius;
-    }
-
-    protected smoothMove() {
-        super.smoothMove()
-        if (this.latency > 0) {
-            let ratio = this.latency / config.latency;
-            if (ratio < 0.5) {
-                ratio = 1.0 - ratio;
-            }
-            this.radius = this.radius * ratio + this.destRadius * (1 - ratio);
-        } else {
-            this.radius = this.destRadius;
-        }
-    }
-
-    protected calcRadius(scale: number) {
-        return Math.pow(2, config.scale.max - scale) * Math.max(this.app.renderer.width, this.app.renderer.height); 
-    }
-}
-
-const borderDefaultValues: {
+const defaultValues: {
     index: number,
     pos: number, 
     scale: number,
@@ -85,7 +35,7 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
 
     setupDefaultValues() {
         super.setupDefaultValues();
-        this.addDefaultValues(borderDefaultValues);
+        this.addDefaultValues(defaultValues);
     }
 
     setInitialValues(props: {[index: string]: any}) {
@@ -100,7 +50,7 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(()=> {
-            this.graphics.zIndex = -1;
+            this.graphics.zIndex = ZIndex.NORMAL_BORDER;
             this.shape();
             this.updateDestination();
             this.moveDestination();
@@ -140,8 +90,8 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
 
     protected shape() {
         this.graphics.clear();
-        let width = this.props.index % 2 === 0 ? graphicsOpts.width * 2 : graphicsOpts.width;
-        this.graphics.lineStyle(width, graphicsOpts.normal);
+        let width = this.props.index % 2 === 0 ? graphicsOpts.boldWidth : graphicsOpts.lightWidth;
+        this.graphics.lineStyle(width, graphicsOpts.color);
         this.graphics.moveTo(0, 0);
         if (this.v) {
             this.graphics.lineTo(0, this.app.renderer.height);

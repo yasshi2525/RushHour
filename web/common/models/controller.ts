@@ -1,6 +1,8 @@
 import GroupModel from "./group";
-import { Anchor, Cursor } from "./cursor";
-import { XBorderContainer, YBorderContainer, WorldBorder } from "./border";
+import Anchor from "./anchor";
+import Cursor from "./cursor";
+import WorldBorder from "./world";
+import { XBorderContainer, YBorderContainer } from "./border";
 
 export default class extends GroupModel {
     init() {

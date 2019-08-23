@@ -1,0 +1,108 @@
+import * as PIXI from "pixi.js";
+import { MenuStatus, AnchorStatus } from "../../state";
+import { Monitorable } from "../interfaces/monitor";
+import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { AnimatedSpriteModel } from "./sprite";
+import { RoundAnimationGenerator } from "./animate";
+
+const graphicsOpts = {
+    padding: 20,
+    width: 4,
+    alpha: 1.0,
+    slice: 8,
+    color: 0x607d8B,
+    radius: 20
+};
+
+const defaultValues: {
+    menu: MenuStatus,
+    oid: number,
+    anchor: AnchorStatus | undefined
+} = {
+    menu: MenuStatus.IDLE,
+    oid: 1,
+    anchor: { type: "", pos: {x: 0, y: 0}, cid: 0 }
+};
+
+export default class extends AnimatedSpriteModel implements Monitorable {
+    object: Monitorable | undefined;
+
+    constructor(options: ModelProperty & { offset: number } ) { 
+        let graphics = new PIXI.Graphics();
+        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, graphicsOpts.alpha);
+
+        let offset = graphicsOpts.padding + graphicsOpts.radius;
+
+        for (var i = 0; i < graphicsOpts.slice; i++) {
+            let start = i / graphicsOpts.slice * Math.PI * 2;
+            let end = (i + 0.5) / graphicsOpts.slice * Math.PI * 2;
+            let next = (i + 1) / graphicsOpts.slice * Math.PI * 2;
+
+            graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, graphicsOpts.alpha);
+            graphics.arc(offset, offset, graphicsOpts.radius, start, end);
+            graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, 0);
+            graphics.arc(offset, offset, graphicsOpts.radius, end, next);
+        }
+
+        let generator = new RoundAnimationGenerator(options.app, graphics, new PIXI.Point(offset, offset));
+
+        let rect = graphics.getBounds().clone();
+        rect.x -= graphicsOpts.padding - 1;
+        rect.y -= graphicsOpts.padding - 1;
+        rect.width += graphicsOpts.padding * 2;
+        rect.height += graphicsOpts.padding * 2;
+
+        let animation = generator.record(rect);
+
+        super({ animation, ...options });
+        this.object = undefined;
+    }
+    
+    setupBeforeCallback() {
+        super.setupBeforeCallback();
+        this.addBeforeCallback(() => this.container.zIndex = ZIndex.ANCHOR);
+    }
+
+    setupDefaultValues() {
+        super.setupDefaultValues();
+        this.addDefaultValues(defaultValues);
+    }
+
+    setInitialValues(props: {[index: string]: any}) {
+        super.setInitialValues(props);
+        this.props.anchor = undefined;
+    }
+
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("menu", (v: MenuStatus) => {
+            switch (v) {
+                case MenuStatus.IDLE:
+                    this.merge("anchor", undefined);
+            }
+        })
+        this.addUpdateCallback("coord", () => this.updateAnchor());
+        this.addUpdateCallback("anchor", () => this.updateAnchor());
+    }
+
+    updateAnchor() {
+        if (this.props.anchor !== undefined) {
+            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid);
+        } else {
+            this.object = undefined;
+        }
+    }
+
+    updateDisplayInfo() {
+        if (this.object !== undefined) {
+            let pos = this.object.position();
+            if (pos !== undefined) {
+                this.sprite.visible = true;
+                this.sprite.x = pos.x - 5;
+                this.sprite.y = pos.y - 5;
+                return;
+            }
+        }
+        this.sprite.visible = false;
+    }
+}

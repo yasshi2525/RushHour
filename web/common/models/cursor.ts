@@ -1,13 +1,14 @@
 import * as PIXI from "pixi.js";
 import { AnimatedSpriteModel } from "./sprite";
 import { Monitorable } from "../interfaces/monitor";
-import { MenuStatus, AnchorStatus } from "../../state";
-import { ModelProperty } from "../interfaces/pixi";
-import { GraphicsAnimationGenerator, RoundAnimationGenerator } from "./animate";
+import { MenuStatus } from "../../state";
+import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { GraphicsAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
 import { RailNode } from "./rail";
+import Anchor from "./anchor";
 
-const cursorOpts = {
+const graphicsOpts = {
     padding: 20,
     width: 1,
     alpha: 0.2,
@@ -15,44 +16,49 @@ const cursorOpts = {
     radius: 20
 };
 
-const cursorDefaultValues: {
+const defaultValues: {
     menu: MenuStatus
 } = {
     menu: MenuStatus.IDLE
 };
 
-export class Cursor extends AnimatedSpriteModel implements Monitorable {
+export default class extends AnimatedSpriteModel implements Monitorable {
     selected: Monitorable | undefined;
     anchor: Anchor;
 
     constructor(options: ModelProperty & { offset: number, anchor: Anchor } ) {
         let graphics = new PIXI.Graphics();
-        graphics.lineStyle(cursorOpts.width, cursorOpts.color);
-        graphics.beginFill(cursorOpts.color, cursorOpts.alpha);
+        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
+        graphics.beginFill(graphicsOpts.color, graphicsOpts.alpha);
         graphics.drawCircle(
-            cursorOpts.padding + cursorOpts.radius,
-            cursorOpts.padding + cursorOpts.radius,
-            cursorOpts.radius 
+            graphicsOpts.padding + graphicsOpts.radius,
+            graphicsOpts.padding + graphicsOpts.radius,
+            graphicsOpts.radius 
         );
         graphics.endFill();
 
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
 
         let rect = graphics.getBounds().clone();
-        rect.x -= cursorOpts.padding - 1;
-        rect.y -= cursorOpts.padding - 1;
-        rect.width += cursorOpts.padding * 2;
-        rect.height += cursorOpts.padding * 2;
+        rect.x -= graphicsOpts.padding - 1;
+        rect.y -= graphicsOpts.padding - 1;
+        rect.width += graphicsOpts.padding * 2;
+        rect.height += graphicsOpts.padding * 2;
 
         let animation = generator.record(rect);
 
         super({ animation, ...options });
         this.anchor = options.anchor;
     }
+
+    setupBeforeCallback() {
+        super.setupBeforeCallback();
+        this.addBeforeCallback(() => this.container.zIndex = ZIndex.CURSOR);
+    }
     
     setupDefaultValues() {
         super.setupDefaultValues();
-        this.addDefaultValues(cursorDefaultValues);
+        this.addDefaultValues(defaultValues);
     }
 
     setInitialValues(props: {[index: string]: any}) {
@@ -141,102 +147,5 @@ export class Cursor extends AnimatedSpriteModel implements Monitorable {
 
     protected isVisible() {
         return this.props.menu === MenuStatus.SEEK_DEPARTURE || this.props.menu === MenuStatus.EXTEND_RAIL;
-    }
-}
-
-const anchorOpts = {
-    padding: 20,
-    width: 4,
-    alpha: 1.0,
-    slice: 8,
-    color: 0x607d8B,
-    radius: 20
-};
-
-const anchorDefaultValues: {
-    menu: MenuStatus,
-    oid: number,
-    anchor: AnchorStatus | undefined
-} = {
-    menu: MenuStatus.IDLE,
-    oid: 1,
-    anchor: { type: "", pos: {x: 0, y: 0}, cid: 0 }
-};
-
-export class Anchor extends AnimatedSpriteModel implements Monitorable {
-    object: Monitorable | undefined;
-
-    constructor(options: ModelProperty & { offset: number } ) { 
-        let graphics = new PIXI.Graphics();
-        graphics.lineStyle(anchorOpts.width, anchorOpts.color, anchorOpts.alpha);
-
-        let offset = anchorOpts.padding + anchorOpts.radius;
-
-        for (var i = 0; i < anchorOpts.slice; i++) {
-            let start = i / anchorOpts.slice * Math.PI * 2;
-            let end = (i + 0.5) / anchorOpts.slice * Math.PI * 2;
-            let next = (i + 1) / anchorOpts.slice * Math.PI * 2;
-
-            graphics.lineStyle(anchorOpts.width, anchorOpts.color, anchorOpts.alpha);
-            graphics.arc(offset, offset, anchorOpts.radius, start, end);
-            graphics.lineStyle(anchorOpts.width, anchorOpts.color, 0);
-            graphics.arc(offset, offset, anchorOpts.radius, end, next);
-        }
-
-        let generator = new RoundAnimationGenerator(options.app, graphics, new PIXI.Point(offset, offset));
-
-        let rect = graphics.getBounds().clone();
-        rect.x -= anchorOpts.padding - 1;
-        rect.y -= anchorOpts.padding - 1;
-        rect.width += anchorOpts.padding * 2;
-        rect.height += anchorOpts.padding * 2;
-
-        let animation = generator.record(rect);
-
-        super({ animation, ...options });
-        this.object = undefined;
-    }
-
-    setupDefaultValues() {
-        super.setupDefaultValues();
-        this.addDefaultValues(anchorDefaultValues);
-    }
-
-    setInitialValues(props: {[index: string]: any}) {
-        super.setInitialValues(props);
-        this.props.anchor = undefined;
-    }
-
-    setupUpdateCallback() {
-        super.setupUpdateCallback();
-        this.addUpdateCallback("menu", (v: MenuStatus) => {
-            switch (v) {
-                case MenuStatus.IDLE:
-                    this.merge("anchor", undefined);
-            }
-        })
-        this.addUpdateCallback("coord", () => this.updateAnchor());
-        this.addUpdateCallback("anchor", () => this.updateAnchor());
-    }
-
-    updateAnchor() {
-        if (this.props.anchor !== undefined) {
-            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid);
-        } else {
-            this.object = undefined;
-        }
-    }
-
-    updateDisplayInfo() {
-        if (this.object !== undefined) {
-            let pos = this.object.position();
-            if (pos !== undefined) {
-                this.sprite.visible = true;
-                this.sprite.x = pos.x - 5;
-                this.sprite.y = pos.y - 5;
-                return;
-            }
-        }
-        this.sprite.visible = false;
     }
 }

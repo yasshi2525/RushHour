@@ -35,3 +35,21 @@ export interface AnimationProperty extends ApplicationProperty {
     filter: PIXI.Filter,
     fn: (filter: PIXI.Filter, offset: number) => void
 }
+
+export enum ZIndex {
+    NORMAL_BORDER,
+    WORLD_BORDER,
+    RESIDENCE,
+    COMPANY,
+    RAIL_EDGE,
+    RAIL_NODE,
+    STATION,
+    GATE,
+    PLATFORM,
+    RAIL_LINE,
+    LINE_TASK,
+    HUMAN,
+    PLAYER,
+    ANCHOR,
+    CURSOR
+};

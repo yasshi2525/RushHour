@@ -1,7 +1,7 @@
 import { PIXIModel, PIXIContainer } from "./pixi";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { Chunk, getChunkByPos, Point } from "../interfaces/gamemap";
-import { Cursor } from "./cursor";
+import Cursor from "./cursor";
 
 const defaultValues: {
     pos: Point, cursor: Cursor | undefined

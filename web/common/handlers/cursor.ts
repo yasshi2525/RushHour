@@ -2,7 +2,8 @@ import * as React from "react";
 import { MenuStatus } from "../../state";
 import { depart, fetchMap } from "../../actions";
 import GameModel from "../models";
-import { Cursor, Anchor } from "../models/cursor";
+import Anchor from "../models/anchor";
+import Cursor from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
 import { getZoomPos } from "./point";
 

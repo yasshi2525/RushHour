@@ -17,6 +17,7 @@ export default class {
             resolution: window.devicePixelRatio,
             autoDensity: true
         });
+        this.app.stage.sortableChildren = true;
         this.model = new GameModel({
             app: this.app, 
             cx: config.gamePos.default.x, 
