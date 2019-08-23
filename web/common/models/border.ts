@@ -140,7 +140,8 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
 
     protected shape() {
         this.graphics.clear();
-        this.graphics.lineStyle(graphicsOpts.width, graphicsOpts.normal);
+        let width = this.props.index % 2 === 0 ? graphicsOpts.width * 2 : graphicsOpts.width;
+        this.graphics.lineStyle(width, graphicsOpts.normal);
         this.graphics.moveTo(0, 0);
         if (this.v) {
             this.graphics.lineTo(0, this.app.renderer.height);
@@ -153,10 +154,8 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
         super.updateDisplayInfo();
         if (this.v) {
             this.graphics.y = 0;
-            this.graphics.width = this.currentAlpha * this.model.renderer.resolution;
         } else {
             this.graphics.x = 0;
-            this.graphics.height = this.currentAlpha * this.model.renderer.resolution;
         }
         this.graphics.alpha = this.currentAlpha;
     }
