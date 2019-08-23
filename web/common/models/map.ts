@@ -1,4 +1,4 @@
-import { MonitorContainer, Monitorable } from "../interfaces/monitor";
+import { Monitorable } from "../interfaces/monitor";
 import { config } from "../interfaces/gamemap";
 import { GameMap } from "../../state";
 import GroupModel from "./group";
@@ -17,11 +17,6 @@ export default class extends GroupModel {
         this.containers["rail_edges"] = new RailEdgeContainer({ model: this.model, app: this.model.app});
     
         super.init();
-    }
-
-    tick() {
-        super.tick();
-        this.forEachChild(v => v.endChildren());
     }
 
     mergeChild(type: string, props: {id: string}): undefined | Monitorable {
@@ -59,9 +54,5 @@ export default class extends GroupModel {
                 )
             );
         }
-    }
-
-    protected forEachChild(fn: (v: MonitorContainer) => any) {
-        Object.keys(this.containers).forEach(key => fn(this.containers[key]));
     }
 }

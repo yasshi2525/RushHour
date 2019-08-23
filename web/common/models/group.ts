@@ -1,4 +1,4 @@
-import { Point, getChunk } from "../interfaces/gamemap";
+import { Point, getChunkByPos } from "../interfaces/gamemap";
 import { startMonitor, MonitorContainer, Monitorable } from "../interfaces/monitor";
 import GameModel from ".";
 
@@ -19,6 +19,7 @@ export default abstract class {
 
     tick() {
         this.merge("offset", this.model.offset);
+        this.forEachContainer(v => v.endChildren());
     }
 
     /**
@@ -38,7 +39,7 @@ export default abstract class {
         if (this.containers[key] === undefined || pos === undefined) {
             return undefined;
         }
-        return this.containers[key].getChildOnChunk(getChunk(pos, this.model.coord.scale - this.model.delegate + 1), oid)
+        return this.containers[key].getChildOnChunk(getChunkByPos(pos, this.model.coord.scale - this.model.delegate + 1), oid)
     }
 
     merge(key: string, value: any) {

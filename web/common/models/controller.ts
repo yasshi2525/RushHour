@@ -17,7 +17,6 @@ export default class extends GroupModel {
 
     tick() {
         super.tick();
-        this.forEach(v => v.updateDisplayInfo());
     }
 
     getCursor() {

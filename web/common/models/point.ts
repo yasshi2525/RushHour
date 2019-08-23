@@ -1,6 +1,6 @@
 import { PIXIModel, PIXIContainer } from "./pixi";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { Chunk, getChunk, Point } from "../interfaces/gamemap";
+import { Chunk, getChunkByPos, Point } from "../interfaces/gamemap";
 import { Cursor } from "./cursor";
 
 const defaultValues: {
@@ -37,7 +37,7 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     }
 
     standOnChunk(chunk: Chunk) {
-        let my = getChunk(this.props.pos, chunk.scale);
+        let my = getChunkByPos(this.props.pos, chunk.scale);
         return chunk.x === my.x && chunk.y === my.y;
     }
 
