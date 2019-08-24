@@ -29,6 +29,10 @@ export interface GameMapResponse extends ActionPayload {
     results: GameMap
 };
 
+export interface PlayersResponse extends ActionPayload {
+    results: {[index: string]: any}
+};
+
 export interface DepartResponse extends ActionPayload {
     results: {oid: number, id: number, x: number, y: number}
 };
@@ -36,4 +40,5 @@ export interface DepartResponse extends ActionPayload {
 export const initPIXI = createAsyncAction("INIT_PIXI_REQUESTED", "INIT_PIXI_SUCCEEDED", "INIT_PIXI_FAILED")<GameContainer, GameContainer, Error>();
 export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEEDED", "FETCH_MAP_FAILED")<GameMapRequest, GameMapResponse, Error>();
 export const diffMap = createAsyncAction("DIFF_MAP_REQUESTED", "DIFF_MAP_SUCCEEDED", "DIFF_MAP_FAILED")<GameMapRequest, GameMapResponse, Error>();
+export const players = createAsyncAction("PLAYERS_REQUESTED", "PLAYERS_SUCCEEDED", "PLAYERS_FAILED")<ModelRequest, PlayersResponse, Error>();
 export const depart = createAsyncAction("DEPART_REQUESTED", "DEPART_SUCCEEDED", "DEPART_FAILED")<PointRequest, DepartResponse, Error>();

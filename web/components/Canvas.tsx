@@ -6,7 +6,6 @@ import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
 import { RushHourStatus } from "../state";
-import { fetchMap } from "../actions";
 import { ClickCursor, TapCursor } from "../common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
@@ -30,9 +29,6 @@ export class Canvas extends React.Component<GameComponentProperty, RushHourStatu
         this.pinch = new PinchHandler(this.props.model, this.props.dispatch);
         this.clickCursor = new ClickCursor(this.props.model, this.props.dispatch);
         this.tapCursor = new TapCursor(this.props.model, this.props.dispatch);
-
-        this.props.dispatch(fetchMap.request({ 
-            model: this.props.model, dispatch: this.props.dispatch }));
     }
 
     render() {

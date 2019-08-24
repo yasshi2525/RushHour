@@ -29,7 +29,6 @@ export interface GameMap {
     "humans": Locatable[],
     "line_tasks": Locatable[],
     "platforms": Locatable[],
-    "players": Locatable[],
     "rail_edges": Locatable[],
     "rail_lines": Locatable[],
     "rail_nodes": Locatable[],
@@ -48,12 +47,16 @@ export interface RushHourStatus {
     [key: string]: any,
     readOnly: boolean,
     timestamp: number,
-    oid: number
+    oid: number,
+    isPIXILoaded: boolean,
+    isPlayerFetched: boolean
 };
 
 
 export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
-    oid: 1
+    oid: 2, // TODO
+    isPIXILoaded: false,
+    isPlayerFetched: false
 };

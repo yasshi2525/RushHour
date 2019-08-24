@@ -107,7 +107,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         switch(this.props.menu) {
             case MenuStatus.SEEK_DEPARTURE:
             case MenuStatus.EXTEND_RAIL:
-                selected = this.model.gamemap.getOnChunk("rail_nodes", this.props.pos, 1);
+                selected = this.model.gamemap.getOnChunk("rail_nodes", this.props.pos, 2);
                 break;
         }
         if (selected instanceof PointModel && selected !== this.anchor.object && selected !== except) {

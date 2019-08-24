@@ -6,6 +6,6 @@ import { Canvas } from "@/components/Canvas";
 
 const game = new GameContainer();
 test("renders <Canvas />", () => {
-    const wrapper = shallow(<GameBoard readOnly={true} game={game} dispatch={()=>{}} />);
+    const wrapper = shallow(<GameBoard readOnly={true} game={game} dispatch={()=>{}} isPIXILoaded={false} isPlayersFetched={false} />);
     expect(wrapper.find(Canvas)).toBeDefined();
 });
