@@ -8,7 +8,7 @@ public/fonts/roboto-*
 public/js/bundle.*.js
 docs/_build
 docs/_ext/__pycache__
-logs
+log
 
 # Binaries for programs and plugins
 *.exe

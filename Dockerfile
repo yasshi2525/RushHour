@@ -26,7 +26,7 @@ RUN go get gopkg.in/go-playground/validator.v9 && \
 
 RUN mkdir -p /rushhour && \
     cd /rushhour && \
-    /go/bin/revel build -a github.com/yasshi2525/RushHour
+    /go/bin/revel build -m prod -a github.com/yasshi2525/RushHour
 
 FROM alpine
 
