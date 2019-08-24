@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty, PIXIProperty } from "../interfaces/pixi";
+import { PIXIProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 

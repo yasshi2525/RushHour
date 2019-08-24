@@ -1,6 +1,6 @@
 import { GraphicsModel, GraphicsContainer } from "./graphics";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty, BorderProperty, PIXIProperty } from "../interfaces/pixi";
+import { BorderProperty, PIXIProperty } from "../interfaces/pixi";
 import { config, Coordinates, Chunk, getChunkByPos, getChunkByScale } from "../interfaces/gamemap";
 
 const graphicsOpts = {
