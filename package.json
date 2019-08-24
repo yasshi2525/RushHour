@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "webpack",
-    "build-watch": "webpack --watch"
+    "build": "webpack --config webpack.prod.js",
+    "build-watch": "webpack --watch --config webpack.dev.js"
   },
   "repository": {
     "type": "git",
@@ -74,7 +74,8 @@
     "typesafe-actions": "^4.4.2",
     "typescript": "^3.5.3",
     "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "webpack-cli": "^3.3.6",
+    "webpack-merge": "^4.2.1"
   },
   "dependencies": {}
 }

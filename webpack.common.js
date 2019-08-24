@@ -5,7 +5,6 @@ module.exports = {
     watchOptions: {
         ignored: ["./node_modules", "./app", "./public"]
     },
-    mode: "development",
     entry: {
         index: ["./web/index.js", "./web/game.tsx"]
     },
