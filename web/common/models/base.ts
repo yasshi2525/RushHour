@@ -46,28 +46,22 @@ export default class implements Monitorable {
      * @param props 
      */
     addDefaultValues(props: {[index: string]: {} | undefined }) {
-        Object.keys(props).forEach(key => {
-            if (!(props[key] instanceof Object)) {
-                this.props[key] = props[key]
-            } else {
-                this.props[key] = Object.assign({}, props[key]);
-            }
-        });
+        this.assign(this.props, props);
     }
 
     setupDefaultValues() {
         this.addDefaultValues(defaultValues);
     }
 
-    setInitialValues(initialValues: {[index: string]: {} | undefined }) {
-        Object.keys(initialValues).filter(key => this.props[key] !== undefined)
-            .forEach(key => {
-                if (!(initialValues[key] instanceof Object)) {
-                    this.props[key] = initialValues[key]
-                } else {
-                    this.props[key] = Object.assign({}, initialValues[key]);
-                }
-            });
+    setInitialValues(props: {[index: string]: {} | undefined }) {
+        this.assign(this.props, props);
+    }
+
+    protected assign(target: {[index: string]: any}, source: {[index: string]: any}) {
+        Object.keys(source).forEach(key => {
+            target[key] = (source[key] instanceof Object) ? 
+                Object.assign({}, source[key]) : source[key]
+        });
     }
 
     /**

@@ -51,6 +51,30 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
             this.refferedCursor.selectObject(this);
         }
     }
+
+    protected setDisplayPosition() {
+        let object = this.getPIXIObject();
+        if (this.current !== undefined) {
+            object.visible = true;
+            object.x = this.current.x;
+            object.y = this.current.y;
+        } else {
+            object.visible = false;
+        }
+    }
+
+    protected followPointModel(following: PointModel | undefined, offset: number) {
+        let object = this.getPIXIObject();
+        if (following !== undefined) {
+            object.visible = true;
+            object.x = following.getPIXIObject().x + offset;
+            object.y = following.getPIXIObject().y + offset;
+            return true;
+        } else {
+            object.visible = false;
+            return false;
+        }
+    }
 }
 
 export abstract class PointContainer<T extends PointModel> extends PIXIContainer<T> implements MonitorContainer {        

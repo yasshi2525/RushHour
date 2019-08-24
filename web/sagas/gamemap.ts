@@ -1,5 +1,5 @@
-import { put, call } from "redux-saga/effects";
 import * as Action from "../actions";
+import { requestURL } from ".";
 
 const fetch_url = "api/v1/gamemap";
 const diff_url = "api/v1/gamemap/diff";
@@ -34,19 +34,9 @@ const request = (url: string, params: Action.GameMapRequest): Promise<any> =>
     .catch(error => error);
 
 export function* fetchMap(action: ReturnType<typeof Action.fetchMap.request>) {
-    try {
-        const response = yield call(request, fetch_url, action.payload);
-        return yield put(Action.fetchMap.success(response));
-    } catch (e) {
-        return yield put(Action.fetchMap.failure(e));
-    }
+    return yield requestURL({ request, url: fetch_url, args: action, callbacks: Action.fetchMap });
 }
 
 export function* diffMap(action: ReturnType<typeof Action.diffMap.request>) {
-    try {
-        const response: Action.GameMapResponse = yield call(request, diff_url, action.payload);
-        return yield put(Action.diffMap.success(response));
-    } catch (e) {
-        return yield put(Action.diffMap.failure(e));
-    }
+    return yield requestURL({ request, url: diff_url, args: action, callbacks: Action.diffMap });
 }

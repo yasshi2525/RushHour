@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { AnimatedSpriteProperty, ModelProperty, ZIndex } from "../interfaces/pixi";
+import { AnimatedSpriteProperty, PIXIProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 import { config } from "../interfaces/gamemap";
@@ -44,7 +44,6 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(() => {
-            this.container.zIndex = ZIndex.RAIL_NODE;
             this.sprite.tint = this.props.color;
         });
     }
@@ -95,7 +94,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContainer {
-    constructor(options: ModelProperty) {
+    constructor(options: PIXIProperty) {
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
         graphics.drawCircle(
@@ -131,11 +130,6 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     to: RailNode|undefined;
     protected reverse: RailEdge|undefined;
     protected theta: number = 0;
-
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => this.container.zIndex = ZIndex.RAIL_EDGE);
-    }
 
     setupDefaultValues() {
         super.setupDefaultValues();
@@ -198,7 +192,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContainer {
-    constructor(options: ModelProperty) {
+    constructor(options: PIXIProperty) {
         let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
         let animation =  generator.record();
         super({ animation, ...options}, RailEdge, {});

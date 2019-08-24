@@ -47,8 +47,8 @@ export default class {
         if (this.offset >= config.round) {
             this.offset = 0;
         }
-        this.controllers.tick();
         this.gamemap.tick();
+        this.controllers.tick();
     }
 
     protected initDebugText() {

@@ -4,16 +4,18 @@ import GroupModel from "./group";
 import { ResidenceContainer, CompanyContainer } from "./background";
 import { StationContainer } from "./station";
 import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./rail";
+import { ZIndex } from "../interfaces/pixi";
 
 export default class extends GroupModel {
 
     init() {
         let textures = this.model.app.loader.resources;
-        this.containers["residences"] = new ResidenceContainer({ model: this.model, app: this.model.app, texture: textures["residence"].texture});
-        this.containers["companies"] = new CompanyContainer({ model: this.model, app: this.model.app, texture: textures["company"].texture});
-        this.containers["stations"] = new StationContainer({ model: this.model, app: this.model.app, texture: textures["station"].texture});
-        this.containers["rail_nodes"] = new RailNodeContainer({ model: this.model,app: this.model.app});
-        this.containers["rail_edges"] = new RailEdgeContainer({ model: this.model, app: this.model.app});
+        let base = { model: this.model, app: this.model.app };
+        this.containers["residences"] = new ResidenceContainer({ ...base, zIndex: ZIndex.RESIDENCE, texture: textures["residence"].texture});
+        this.containers["companies"] = new CompanyContainer({ ...base, zIndex: ZIndex.COMPANY, texture: textures["company"].texture});
+        this.containers["stations"] = new StationContainer({ ...base, zIndex: ZIndex.STATION, texture: textures["station"].texture});
+        this.containers["rail_nodes"] = new RailNodeContainer({ ...base, zIndex: ZIndex.RAIL_NODE });
+        this.containers["rail_edges"] = new RailEdgeContainer({  ...base, zIndex: ZIndex.RAIL_EDGE });
     
         super.init();
     }

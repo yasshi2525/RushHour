@@ -7,7 +7,6 @@ import Cursor from "../models/cursor";
 import { Point } from "../interfaces/gamemap";
 import { getZoomPos } from "./point";
 
-const offset = 2;
 export abstract class CursorHandler<T> {
     protected model: GameModel;
     protected view: Cursor;
@@ -36,7 +35,7 @@ export abstract class CursorHandler<T> {
     }
 
     protected handle(client: Point) {
-        let server = this.toServerXY(client, offset);
+        let server = this.view.get("pos");
         if (server === undefined) {
             return;
         }
@@ -73,28 +72,7 @@ export abstract class CursorHandler<T> {
         }
     }
 
-    protected toServerXY(client: Point | undefined, offset: number = 0) {
-        if (client === undefined) {
-            return undefined;
-        }
-        let w = this.model.renderer.width;
-        let h = this.model.renderer.height;
-        let size = Math.max(
-            this.model.renderer.width, 
-            this.model.renderer.height
-        );
-
-        let d = {
-            x: (client.x + offset - w / 2) / size,
-            y: (client.y + offset - h / 2) / size
-        }
-        
-        let zoom = Math.pow(2, this.model.coord.scale);
-        return {
-            x: this.model.coord.cx + d.x * zoom,
-            y: this.model.coord.cy + d.y * zoom
-        }
-    }
+    
 
     protected abstract getClientXY(ev: T): Point | undefined;
 }
@@ -109,12 +87,12 @@ export class ClickCursor extends CursorHandler<React.MouseEvent> {
     }
 
     onMove(ev: React.MouseEvent) {
-        this.view.merge("pos", this.toServerXY(this.getClientXY(ev)));
+        this.view.merge("client", this.getClientXY(ev));
         this.moveCnt++;
     }
 
     onOut(_ev: React.MouseEvent) {
-        this.view.merge("pos", undefined);
+        this.view.merge("client", undefined);
         this.moveCnt = 0;
     }
 
@@ -150,9 +128,9 @@ export class TapCursor extends CursorHandler<React.TouchEvent> {
 
     onEnd(_ev: React.TouchEvent) {
         if (this.pos !== undefined && this.moveCnt <= sensitivity) {
-            this.view.merge("pos", this.toServerXY(this.pos));
+            this.view.merge("client", this.pos);
             this.handle(this.pos);
-            this.view.merge("pos", undefined);
+            this.view.merge("client", undefined);
         }
         this.pos = undefined;
         this.moveCnt = 0;
