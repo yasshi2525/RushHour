@@ -2,6 +2,7 @@ import { PIXIModel, PIXIContainer } from "./pixi";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { Chunk, getChunkByPos, Point } from "../interfaces/gamemap";
 import Cursor from "./cursor";
+import Anchor from "./anchor";
 
 const defaultValues: {
     pos: Point, cursor: Cursor | undefined
@@ -9,6 +10,7 @@ const defaultValues: {
 
 export abstract class PointModel extends PIXIModel implements Monitorable {
     refferedCursor: Cursor | undefined;
+    refferedAnchor: Anchor | undefined;
 
     setInitialValues(initialValues: {[index: string]: {}}) {
         super.setInitialValues(initialValues);
@@ -24,7 +26,7 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("pos", () => this.updateDestination());
-        this.addUpdateCallback("outMap", (v) => {
+        this.addUpdateCallback("visible", (v) => {
             if (v) {
                 this.unreferCursor();
             }
@@ -37,12 +39,25 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     }
 
     standOnChunk(chunk: Chunk) {
+        if (!this.props.visible) {
+            return false;
+        }
         let my = getChunkByPos(this.props.pos, chunk.scale);
         return chunk.x === my.x && chunk.y === my.y;
     }
 
     position(): Point | undefined {
         return this.current;
+    }
+
+    protected smoothMove() { 
+        super.smoothMove();
+        if (this.refferedCursor !== undefined) {
+            this.refferedCursor.updateDisplayInfo();
+        }
+        if (this.refferedAnchor !== undefined) {
+            this.refferedAnchor.updateDisplayInfo();
+        }
     }
 
     protected unreferCursor() {

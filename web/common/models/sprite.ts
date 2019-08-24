@@ -87,6 +87,8 @@ export abstract class AnimatedSpriteModel extends SpriteModel implements Monitor
     }
 }
 
+const animateDefaultValues: {offset: number} = {offset: 0};
+
 export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> extends SpriteContainer<T> implements MonitorContainer {
     constructor(
         options: AnimatedSpriteContainerProperty,
@@ -97,5 +99,14 @@ export abstract class AnimatedSpriteContainer<T extends AnimatedSpriteModel> ext
             { texture: PIXI.Texture.EMPTY, ...options }, 
             newInstance,
             { ...newInstanceOptions, animation: options.animation});
+    }
+
+    setupDefaultValues() {
+        super.setupDefaultValues();
+        this.addDefaultValues(animateDefaultValues);
+    }
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("offset", v => this.childOptions.offset = v);
     }
 }

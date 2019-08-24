@@ -40,7 +40,7 @@ export interface AnimationProperty extends ApplicationProperty {
     fn: (filter: PIXI.Filter, offset: number) => void
 }
 
-export interface BorderProperty extends ModelProperty {
+export interface BorderProperty extends PIXIProperty {
     delegate: number
 }
 

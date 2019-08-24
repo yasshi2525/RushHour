@@ -4,8 +4,6 @@ import { MonitorContainer, Monitorable } from "../interfaces/monitor";
 import { Chunk } from "../interfaces/gamemap";
 import { PointModel } from "./point";
 
-const defaultValues: {offset: number} = {offset: 0};
-
 export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContainer {
 
     childOptions: {[index:string]: {}};
@@ -23,16 +21,6 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         this.children = {};
     }
 
-    setupDefaultValues() {
-        super.setupDefaultValues();
-        this.addDefaultValues(defaultValues);
-    }
-
-    setupUpdateCallback() {
-        super.setupUpdateCallback();
-        this.addUpdateCallback("offset", v => this.childOptions.offset = v);
-    }
-
     existsChild(id: string) {
         return this.children[id] !== undefined;
     }
@@ -43,7 +31,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
 
     getChildOnChunk(chunk: Chunk, oid: number): PointModel | undefined {
         let result = Object.keys(this.children).map(id => this.children[id])
-            .find(c => c.get("oid") === oid && !c.get("outMap") && c.standOnChunk(chunk));
+            .find(c => c.get("oid") === oid  && c.standOnChunk(chunk));
         return (result instanceof PointModel) ? result : undefined;
     }
 
