@@ -18,12 +18,10 @@ const graphicsOpts = {
 const rnDefaultValues: {
     pid: number,
     cid: number,
-    color: number,
     mul: number
 } = {
     pid: 0,
     cid: 0,
-    color: 0,
     mul: 1
 };
 
@@ -44,7 +42,6 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
         this.addUpdateCallback("visible", () => {
             Object.keys(this.edges).forEach(eid => {
                 let re = this.edges[eid];
@@ -72,7 +69,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 
     resolve(owner: any | Player, parent: any | RailNode) {
         if (owner !== undefined) {
-            this.merge("color", owner.get("color"));
+            this.merge("tint", owner.get("color"));
         }
         if (parent !== undefined) {
             this.parentRailNode = parent;
@@ -141,7 +138,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
                 if (this.props.coord.zoom == -1) {
                     this.merge("visible", from.get("visible") && to.get("visible"))
                 }
-                this.sprite.tint = from.get("color");
+                this.sprite.tint = from.get("tint");
                 from.edges[this.props.id] = this;
                 to.edges[this.props.id] = this;
                 this.updateDestination();

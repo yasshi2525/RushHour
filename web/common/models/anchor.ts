@@ -5,6 +5,7 @@ import { PIXIProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel } from "./sprite";
 import { RoundAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
+import Cursor from "./cursor";
 
 const graphicsOpts = {
     padding: 20,
@@ -27,6 +28,7 @@ const defaultValues: {
 
 export default class extends AnimatedSpriteModel implements Monitorable {
     object: PointModel | undefined;
+    cursor: Cursor | undefined;
 
     constructor(options: PIXIProperty & { offset: number } ) { 
         let graphics = new PIXI.Graphics();
@@ -92,6 +94,11 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             }
             this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid) as PointModel;
             this.object.refferedAnchor = this;
+            
+            if (this.cursor !== undefined) {
+                this.cursor.selectObject();
+                this.cursor.moveDestination();
+            }
         } else {
             this.object = undefined;
         }

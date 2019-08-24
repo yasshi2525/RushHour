@@ -14,6 +14,10 @@ const graphicsOpts = {
     width: 1,
     alpha: 0.2,
     color: 0x607d8B,
+    tint: {
+        info: 0xffffff,
+        error: 0xf44336,
+    },
     radius: 20
 };
 
@@ -39,6 +43,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             graphicsOpts.radius 
         );
         graphics.endFill();
+        graphics.tint = graphicsOpts.tint.info;
 
         let generator = new GraphicsAnimationGenerator(options.app, graphics);
 
@@ -52,6 +57,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
         super({ animation, ...options });
         this.anchor = options.anchor;
+        this.anchor.cursor = this;
     }
     
     setupDefaultValues() {
@@ -99,24 +105,41 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     selectObject(except: PointModel | undefined = undefined) {
-        if (this.props.pos === undefined) {
+        let objOnChunk = this.getObjectOnChunk(except);
+        let tint = this.getTint(objOnChunk);
+        this.merge("tint", tint);
+
+        if (objOnChunk === undefined) {
             this.unlinkSelected();
-            return;
+        } else if (objOnChunk !== this.anchor.object) {
+            this.selected = objOnChunk;
+            objOnChunk.refferedCursor = this;
+            this.updateDestination();
+        } else {
+            this.unlinkSelected();
         }
-        var selected;
+    }
+
+    protected getObjectOnChunk(except: Monitorable | undefined = undefined) {
+        let selected;
         switch(this.props.menu) {
             case MenuStatus.SEEK_DEPARTURE:
             case MenuStatus.EXTEND_RAIL:
                 selected = this.model.gamemap.getOnChunk("rail_nodes", this.props.pos, 2);
                 break;
         }
-        if (selected instanceof PointModel && selected !== this.anchor.object && selected !== except) {
-            this.selected = selected;
-            selected.refferedCursor = this;
-            this.updateDestination();
-        } else {
-            this.unlinkSelected();
+        return selected === except ? undefined : selected as PointModel;
+    }
+
+    protected getTint(objOnChunk: Monitorable | undefined) {
+        switch(this.props.menu) {
+            case MenuStatus.EXTEND_RAIL:
+                if (this.anchor.object === objOnChunk) {
+                    return graphicsOpts.tint.error
+                }
+                break;
         }
+        return graphicsOpts.tint.info;
     }
 
     unlinkSelected() {
