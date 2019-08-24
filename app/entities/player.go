@@ -3,7 +3,6 @@ package entities
 import (
 	"fmt"
 	"math"
-	"math/rand"
 )
 
 // PlayerType represents authenticate level
@@ -47,7 +46,7 @@ func (m *Model) NewPlayer() *Player {
 		Persistence: NewPersistence(),
 		Shape:       NewShapeGroup(),
 	}
-	h := rand.Float64() * 360
+	h := (int(o.ID)%6)*60 + (int(o.ID)/6)*15
 	var r, g, b int
 	h0 := int(math.Floor(float64(h) / 60))
 
