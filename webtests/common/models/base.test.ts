@@ -35,9 +35,9 @@ describe("calls handler", () => {
 });
 
 describe("setInitialValues", () => {
-    test("don't set value when unregistered key is specified", () => {
+    test("set value when unregistered key is specified", () => {
         instance.setInitialValues({ unregistered: 100 });
-        expect(instance.get("unregistered")).toBeUndefined();
+        expect(instance.get("unregistered")).toBe(100);
     }); 
     test("update value when registered key is specified", () => {
         instance.setInitialValues({ id: "changed" });

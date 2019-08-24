@@ -1,6 +1,6 @@
 import * as React from "react";
 import GameModel from "../models";
-import { PointHandler } from "./point";
+import { PointHandler, getCenterXY } from "./point";
 
 export class PinchHandler extends PointHandler<React.TouchEvent> {
     dist: {from: number, to: number};
@@ -12,15 +12,7 @@ export class PinchHandler extends PointHandler<React.TouchEvent> {
     }
 
     protected getClientXY(ev: React.TouchEvent) {
-        let ts = ev.targetTouches;
-        let pos = {x: 0, y: 0};
-
-        for (let i = 0; i < ts.length; i++) {
-            pos.x += ts.item(i).clientX / ts.length * this.model.renderer.resolution;
-            pos.y += ts.item(i).clientY / ts.length * this.model.renderer.resolution;
-        }
-
-        return pos;
+        return getCenterXY(ev, this.model.renderer.resolution);
     }
 
     protected getDistance(ev: React.TouchEvent) {

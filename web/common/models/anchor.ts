@@ -1,9 +1,10 @@
 import * as PIXI from "pixi.js";
 import { MenuStatus, AnchorStatus } from "../../state";
 import { Monitorable } from "../interfaces/monitor";
-import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { PIXIProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel } from "./sprite";
 import { RoundAnimationGenerator } from "./animate";
+import { PointModel } from "./point";
 
 const graphicsOpts = {
     padding: 20,
@@ -25,9 +26,9 @@ const defaultValues: {
 };
 
 export default class extends AnimatedSpriteModel implements Monitorable {
-    object: Monitorable | undefined;
+    object: PointModel | undefined;
 
-    constructor(options: ModelProperty & { offset: number } ) { 
+    constructor(options: PIXIProperty & { offset: number } ) { 
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, graphicsOpts.alpha);
 
@@ -57,11 +58,6 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         super({ animation, ...options });
         this.object = undefined;
     }
-    
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => this.container.zIndex = ZIndex.ANCHOR);
-    }
 
     setupDefaultValues() {
         super.setupDefaultValues();
@@ -87,22 +83,13 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     updateAnchor() {
         if (this.props.anchor !== undefined) {
-            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid);
+            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid) as PointModel;
         } else {
             this.object = undefined;
         }
     }
 
     updateDisplayInfo() {
-        if (this.object !== undefined) {
-            let pos = this.object.position();
-            if (pos !== undefined) {
-                this.sprite.visible = true;
-                this.sprite.x = pos.x - 5;
-                this.sprite.y = pos.y - 5;
-                return;
-            }
-        }
-        this.sprite.visible = false;
+        this.followPointModel(this.object, 0);
     }
 }

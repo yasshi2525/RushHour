@@ -1,5 +1,5 @@
 import { Monitorable } from "../interfaces/monitor";
-import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { PIXIProperty } from "../interfaces/pixi";
 import { config } from "../interfaces/gamemap";
 import { GraphicsModel } from "./graphics";
 
@@ -12,15 +12,10 @@ export default class WorldBorder extends GraphicsModel implements Monitorable {
     protected radius: number;
     protected destRadius: number;
 
-    constructor(props: ModelProperty) {
+    constructor(props: PIXIProperty) {
         super(props);
         this.radius = this.calcRadius(config.scale.default);
         this.destRadius = this.radius;
-    }
-
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => this.container.zIndex = ZIndex.WORLD_BORDER);
     }
 
     updateDisplayInfo() {
@@ -40,17 +35,9 @@ export default class WorldBorder extends GraphicsModel implements Monitorable {
         this.radius = this.destRadius;
     }
 
-    protected smoothMove() {
-        super.smoothMove()
-        if (this.latency > 0) {
-            let ratio = this.latency / config.latency;
-            if (ratio < 0.5) {
-                ratio = 1.0 - ratio;
-            }
-            this.radius = this.radius * ratio + this.destRadius * (1 - ratio);
-        } else {
-            this.radius = this.destRadius;
-        }
+    protected mapRatioToVariable(ratio: number) {
+        super.mapRatioToVariable(ratio)
+        this.radius = this.radius * ratio + this.destRadius * (1 - ratio);
     }
 
     protected calcRadius(scale: number) {

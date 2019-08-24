@@ -1,8 +1,8 @@
-import { put, call } from "redux-saga/effects";
+import { MenuStatus } from "../state";
 import * as Action from "../actions";
-import { MenuStatus } from "@/state";
+import { requestURL } from ".";
 
-const dept_url = "api/v1/dept";
+const url = "api/v1/dept";
 
 function buildQuery(params: Action.PointRequest): string {
     let res = new URLSearchParams();
@@ -13,7 +13,7 @@ function buildQuery(params: Action.PointRequest): string {
     return res.toString();
 }
 
-const deptRequest = (url: string, params: Action.PointRequest) => 
+const request = (url: string, params: Action.PointRequest) => 
     fetch(url, {
         method: "POST",
         body: buildQuery(params),
@@ -35,10 +35,5 @@ const deptRequest = (url: string, params: Action.PointRequest) =>
 
 
 export function* depart(action: ReturnType<typeof Action.depart.request>) {
-    try {
-        const response = yield call(deptRequest, dept_url, action.payload)
-        return yield put(Action.depart.success(response));
-    } catch (e) {
-        return yield put(Action.depart.failure(e));
-    }
+    return yield requestURL({ request, url, args: action, callbacks: Action.depart });
 }

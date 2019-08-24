@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { SpriteProperty, SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty } from "../interfaces/pixi";
+import { SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty, PIXIProperty } from "../interfaces/pixi";
 import { PointModel, PointContainer } from "./point";
 
 /**
@@ -17,7 +17,7 @@ const defaultValues: {
 export abstract class SpriteModel extends PointModel implements Monitorable {
     sprite: PIXI.Sprite;
       
-    constructor(options: SpriteProperty) {
+    constructor(options: PIXIProperty) {
         super(options);
         this.sprite = new PIXI.Sprite(options.texture);
     }
@@ -52,13 +52,11 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
 
     updateDisplayInfo() {
         super.updateDisplayInfo();
-        if (this.current === undefined) {
-            this.sprite.visible = false;
-        } else {
-            this.sprite.visible = true;
-            this.sprite.x = this.current.x;
-            this.sprite.y = this.current.y;
-        }
+        this.setDisplayPosition();
+    }
+
+    protected getPIXIObject() {
+        return this.sprite;
     }
 }
 

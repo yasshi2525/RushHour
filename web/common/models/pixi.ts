@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty } from "../interfaces/pixi";
+import { ModelProperty, PIXIProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 
@@ -37,7 +37,9 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 
     protected smoothMoveFn: () => void;
 
-    constructor(options: ModelProperty) {
+    protected zIndex: number;
+
+    constructor(options: PIXIProperty) {
         super(options);
         this.app = options.app;
         this.parent = options.container;
@@ -45,6 +47,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         this.destination = {x: 0, y: 0};
         this.current = {x: 0, y: 0};
         this.latency = 0;
+        this.zIndex = options.zIndex;
         this.smoothMoveFn = () => this.smoothMove();
     }
 
@@ -65,6 +68,7 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
             this.app.stage.addChild(this.container);
             this.app.ticker.add(this.smoothMoveFn);
             this.container.visible = this.props.visible;
+            this.container.zIndex = this.zIndex;
         })
     }
     
@@ -110,6 +114,29 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
         }
     }
 
+    toServer(client: Point | undefined, offset: number = 0) {
+        if (client === undefined) {
+            return undefined;
+        }
+        let w = this.model.renderer.width;
+        let h = this.model.renderer.height;
+        let size = Math.max(
+            this.model.renderer.width, 
+            this.model.renderer.height
+        );
+
+        let d = {
+            x: (client.x + offset - w / 2) / size,
+            y: (client.y + offset - h / 2) / size
+        }
+        
+        let zoom = Math.pow(2, this.model.coord.scale);
+        return {
+            x: this.model.coord.cx + d.x * zoom,
+            y: this.model.coord.cy + d.y * zoom
+        }
+    }
+
     shouldEnd() {
         return this.props.outMap && this.current == this.destination;
     }
@@ -135,17 +162,22 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
             if (ratio < 0.5) {
                 ratio = 1.0 - ratio;
             }
-            if (this.current !== undefined && this.destination !== undefined) {
-                this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
-                this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
-            }
+            this.mapRatioToVariable(ratio);
             this.latency--;
         } else {
-            this.current = this.destination;
-            this.latency = 0;
+            this.moveDestination();
         }
         this.updateDisplayInfo();
     }
+
+    protected mapRatioToVariable(ratio: number) {
+        if (this.current !== undefined && this.destination !== undefined) {
+            this.current.x = this.current.x * ratio + this.destination.x * (1 - ratio);
+            this.current.y = this.current.y * ratio + this.destination.y * (1 - ratio);
+        }
+    }
+
+    protected abstract getPIXIObject(): PIXI.DisplayObject;
 }
 
 export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContainer {

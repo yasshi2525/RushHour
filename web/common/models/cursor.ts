@@ -2,11 +2,12 @@ import * as PIXI from "pixi.js";
 import { AnimatedSpriteModel } from "./sprite";
 import { Monitorable } from "../interfaces/monitor";
 import { MenuStatus } from "../../state";
-import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { PIXIProperty } from "../interfaces/pixi";
 import { GraphicsAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
 import { RailNode } from "./rail";
 import Anchor from "./anchor";
+import { Point } from "../interfaces/gamemap";
 
 const graphicsOpts = {
     padding: 20,
@@ -17,16 +18,18 @@ const graphicsOpts = {
 };
 
 const defaultValues: {
-    menu: MenuStatus
+    menu: MenuStatus,
+    client: Point
 } = {
-    menu: MenuStatus.IDLE
+    menu: MenuStatus.IDLE,
+    client: {x: 0, y: 0}
 };
 
 export default class extends AnimatedSpriteModel implements Monitorable {
-    selected: Monitorable | undefined;
+    selected: PointModel | undefined;
     anchor: Anchor;
 
-    constructor(options: ModelProperty & { offset: number, anchor: Anchor } ) {
+    constructor(options: PIXIProperty & { offset: number, anchor: Anchor } ) {
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
         graphics.beginFill(graphicsOpts.color, graphicsOpts.alpha);
@@ -50,11 +53,6 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         super({ animation, ...options });
         this.anchor = options.anchor;
     }
-
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => this.container.zIndex = ZIndex.CURSOR);
-    }
     
     setupDefaultValues() {
         super.setupDefaultValues();
@@ -63,6 +61,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     setInitialValues(props: {[index: string]: any}) {
         super.setInitialValues(props);
+        this.props.client = undefined;
         this.props.pos = undefined;
         this.updateDestination();
         this.moveDestination();
@@ -70,11 +69,13 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        this.addUpdateCallback("pos", () => {
+        this.addUpdateCallback("client", (v) => {
+            this.merge("pos", this.toServer(v, 2))
             this.selectObject();
             this.moveDestination();
         });
         this.addUpdateCallback("coord", () => {
+            this.merge("pos", this.toServer(this.props.client, 2))
             this.selectObject();
             this.updateDestination();
         });
@@ -82,7 +83,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     protected calcDestination() {
         return (this.selected === undefined) 
-        ? this.toView(this.props.pos)
+        ? this.toView(this.toServer(this.props.client, 2))
         : this.toView(this.selected.get("pos"));
     }
 
@@ -92,16 +93,9 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             this.sprite.visible = false;
             return;
         }
-        if (this.selected !== undefined) {
-            let pos = this.selected.position();
-            if (pos !== undefined) {
-                this.sprite.visible = true;
-                this.sprite.x = pos.x - 2;
-                this.sprite.y = pos.y - 2;
-                return;
-            }
+        if (!this.followPointModel(this.selected, 3)) {
+            super.updateDisplayInfo();
         }
-        super.updateDisplayInfo();
     }
 
     selectObject(except: PointModel | undefined = undefined) {

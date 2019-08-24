@@ -11,11 +11,15 @@ export interface ModelProperty extends ApplicationProperty {
     model: GameModel
 }
 
-export interface SpriteProperty extends ModelProperty {
+export interface PIXIProperty extends ModelProperty {
+    zIndex: number
+}
+
+export interface SpriteProperty extends PIXIProperty {
     texture: PIXI.Texture
 };
 
-export interface AnimatedSpriteProperty extends ModelProperty {
+export interface AnimatedSpriteProperty extends PIXIProperty {
     animation: PIXI.Texture[],
     offset: number
 }
@@ -23,17 +27,21 @@ export interface AnimatedSpriteProperty extends ModelProperty {
 export interface GameModelProperty extends ApplicationProperty, Coordinates {
 };
 
-export interface SpriteContainerProperty extends ModelProperty {
+export interface SpriteContainerProperty extends PIXIProperty {
     texture: PIXI.Texture
 }
 
-export interface AnimatedSpriteContainerProperty extends ModelProperty {
+export interface AnimatedSpriteContainerProperty extends PIXIProperty {
     animation: PIXI.Texture[]
 }
 
 export interface AnimationProperty extends ApplicationProperty {
     filter: PIXI.Filter,
     fn: (filter: PIXI.Filter, offset: number) => void
+}
+
+export interface BorderProperty extends ModelProperty {
+    delegate: number
 }
 
 export enum ZIndex {

@@ -43,6 +43,18 @@ export function getZoomPos(model: GameModel, from: Point, fromScale: number, to:
     };
 }
 
+export function getCenterXY(ev: React.TouchEvent, resolution: number) {
+    let ts = ev.targetTouches;
+    let pos = {x: 0, y: 0};
+
+    for (let i = 0; i < ts.length; i++) {
+        pos.x += ts.item(i).clientX / ts.length * resolution;
+        pos.y += ts.item(i).clientY / ts.length * resolution;
+    }
+
+    return pos;
+}
+
 export abstract class PointHandler <T> extends BaseHandler<T> {
     /**
      * イベントが発生した画面上の座標を取得します。

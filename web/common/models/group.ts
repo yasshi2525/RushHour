@@ -19,6 +19,7 @@ export default abstract class {
 
     tick() {
         this.merge("offset", this.model.offset);
+        this.forEach(v => v.updateDisplayInfo());
         this.forEachContainer(v => v.endChildren());
     }
 

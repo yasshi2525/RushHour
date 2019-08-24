@@ -1,6 +1,6 @@
 import * as styles from "./style.css";
 import * as React from "react";
-import { PointHandler } from "./point";
+import { PointHandler, getCenterXY } from "./point";
 import GameModel from "../models";
 
 abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<T> {
@@ -61,15 +61,7 @@ export class TouchDragHandler extends DragHandler<React.TouchEvent> {
     }
 
     protected getClientXY(ev: React.TouchEvent) {
-        let ts = ev.targetTouches;
-        let pos = {x: 0, y: 0};
-
-        for (let i = 0; i < ts.length; i++) {
-            pos.x += ts.item(i).clientX / ts.length * this.model.renderer.resolution;
-            pos.y += ts.item(i).clientY / ts.length * this.model.renderer.resolution;
-        }
-
-        return pos;
+        return getCenterXY(ev, this.model.renderer.resolution);
     }
 
     protected shouldEnd(ev: React.TouchEvent) {

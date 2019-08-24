@@ -1,6 +1,6 @@
 import { GraphicsModel, GraphicsContainer } from "./graphics";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty, ZIndex } from "../interfaces/pixi";
+import { ModelProperty, BorderProperty, PIXIProperty } from "../interfaces/pixi";
 import { config, Coordinates, Chunk, getChunkByPos, getChunkByScale } from "../interfaces/gamemap";
 
 const graphicsOpts = {
@@ -26,7 +26,7 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     protected currentAlpha: number;
     protected destinationAlpha: number;
 
-    constructor(props: ModelProperty & { v: boolean }) {
+    constructor(props: PIXIProperty & { v: boolean }) {
         super(props);
         this.v = props.v;
         this.currentAlpha = 1;
@@ -50,7 +50,6 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
     setupBeforeCallback() {
         super.setupBeforeCallback();
         this.addBeforeCallback(()=> {
-            this.graphics.zIndex = ZIndex.NORMAL_BORDER;
             this.shape();
             this.updateDestination();
             this.moveDestination();
@@ -74,18 +73,9 @@ export class NormalBorder extends GraphicsModel implements Monitorable {
         this.currentAlpha = this.destinationAlpha;
     }
 
-    smoothMove() {
-        super.smoothMove();
-        if (this.latency > 0) {
-            let ratio = this.latency / config.latency;
-            if (ratio < 0.5) {
-                ratio = 1.0 - ratio;
-            }
-            this.currentAlpha = this.currentAlpha * ratio + this.destinationAlpha * (1 - ratio);
-        } else {
-            this.currentAlpha = this.destinationAlpha;
-        }
-        this.updateDisplayInfo();
+    protected mapRatioToVariable(ratio: number) {
+        super.mapRatioToVariable(ratio)
+        this.currentAlpha = this.currentAlpha * ratio + this.destinationAlpha * (1 - ratio);
     }
 
     protected shape() {
@@ -278,7 +268,7 @@ abstract class NormalBorderContainer extends GraphicsContainer<NormalBorder> imp
 }
 
 export class XBorderContainer extends NormalBorderContainer implements MonitorContainer {
-    constructor(props: ModelProperty & { delegate: number }) {
+    constructor(props: BorderProperty) {
         super({ ...props, v: false });
     }
 
@@ -292,7 +282,7 @@ export class XBorderContainer extends NormalBorderContainer implements MonitorCo
 }
 
 export class YBorderContainer extends NormalBorderContainer implements MonitorContainer {
-    constructor(props: ModelProperty & { delegate: number }) {
+    constructor(props: BorderProperty) {
         super({ ...props, v: true });
     }
 

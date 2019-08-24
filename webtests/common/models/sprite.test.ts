@@ -29,7 +29,7 @@ beforeEach(() => {
         model: model,
         texture: PIXI.Texture.EMPTY, 
         container: new PIXI.Container(), 
-        app: app, cx: 0, cy: 0, scale: 10});
+        app: app, cx: 0, cy: 0, scale: 10, zIndex: 0});
     instance.setupUpdateCallback();
     instance.setupAfterCallback();
     instance.setupDefaultValues();
