@@ -30,6 +30,7 @@ RUN mkdir -p /rushhour && \
 
 FROM alpine
 
+ENV APP_SECRET kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
 RUN apk update && apk --no-cache add tzdata
 
 WORKDIR /rushhour
