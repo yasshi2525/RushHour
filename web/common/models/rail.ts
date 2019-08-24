@@ -1,12 +1,14 @@
 import * as PIXI from "pixi.js"
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { AnimatedSpriteProperty, PIXIProperty } from "../interfaces/pixi";
+import { AnimatedSpriteProperty, PIXIProperty, cursorOpts } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
-import { config, ResolveError } from "../interfaces/gamemap";
+import { config, ResolveError, Point } from "../interfaces/gamemap";
+import { MenuStatus } from "@/state";
 
 const graphicsOpts = {
     padding: 10,
+    offset: 1,
     width: 4,
     maxWidth: 10,
     color: 0x9e9e9e,
@@ -62,8 +64,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 
     updateDisplayInfo() {
         super.updateDisplayInfo();
-        this.sprite.x -= graphicsOpts.padding / 2;
-        this.sprite.y -= graphicsOpts.padding / 2;
+        this.sprite.x -= graphicsOpts.offset;
+        this.sprite.y -= graphicsOpts.offset;
     }
 
     resolve(error: ResolveError) {
@@ -92,6 +94,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContainer {
+    cursor: RailNode;
+
     constructor(options: PIXIProperty) {
         let graphics = new PIXI.Graphics();
         graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
@@ -110,6 +114,35 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
 
         let animation = generator.record(rect);
         super({ animation, ...options}, RailNode, {});
+        this.cursor = this.addChild(cursorOpts);
+    }
+
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("menu", v => {
+            switch(v) {
+                case MenuStatus.IDLE:
+                    this.cursor.merge("visible", false);
+                    break;
+            }
+
+        });
+        this.addUpdateCallback("cursorClient", (v: Point | undefined) => {
+            switch(this.props.menu) {
+                case MenuStatus.SEEK_DEPARTURE:
+                case MenuStatus.EXTEND_RAIL:
+                    if (v !== undefined && this.model.controllers.getCursor().selected === undefined) {
+                        this.cursor.merge("visible", true);
+                        this.cursor.destination = v;
+                        this.cursor.moveDestination();
+                    } else {
+                        this.cursor.merge("visible", false);
+                    }
+                    break;
+                default:
+                    this.cursor.merge("visible", false);
+            }
+        });
     }
 }
 
@@ -195,9 +228,14 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContainer {
+    cursorFrom: RailEdge;
+    cursorTo: RailEdge;
+
     constructor(options: PIXIProperty) {
         let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
         let animation =  generator.record();
         super({ animation, ...options}, RailEdge, {});
+        this.cursorFrom = this.addChild({ ...cursorOpts, id: "cursorFrom" });
+        this.cursorTo = this.addChild({ ...cursorOpts, id: "cursorTo" });
     }
 }

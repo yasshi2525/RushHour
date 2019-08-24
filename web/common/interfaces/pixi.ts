@@ -61,3 +61,11 @@ export enum ZIndex {
     ANCHOR,
     CURSOR
 };
+
+export const cursorOpts = {
+    id: "cursor",
+    deamon: true,
+    visible: false,
+    alpha: 0.5,
+    oid: 2 // TODO
+}

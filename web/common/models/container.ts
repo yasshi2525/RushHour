@@ -15,7 +15,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         model: GameModel,
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: { [index:string]: {}}) {
-        super({ model: model});
+        super({ model });
         this.Child = newInstance;
         this.childOptions = { ...newInstanceOptions, model };
         this.children = {};
@@ -35,7 +35,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         return (result instanceof PointModel) ? result : undefined;
     }
 
-    addChild(props: {id: string}) {
+    addChild(props: {id: string, [propName: string]: any}): T {
         let child = new this.Child(this.childOptions);
         child.setupDefaultValues();
         child.setupUpdateCallback();
@@ -50,7 +50,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         return child;
     }
     
-    updateChild(props: {id: string}) {
+    updateChild(props: {id: string, [propName: string]: any}): T {
         let target = this.children[props.id];
 
         target.mergeAll(props);
@@ -77,7 +77,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         }
     }
 
-    mergeChild(props: {id: string, [propName: string]: any}) {
+    mergeChild(props: {id: string, [propName: string]: any}): T {
         if (this.existsChild(props.id)) {
             return this.updateChild(props);
         } else {
@@ -98,6 +98,7 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
         let aliveIds = payload.map(props => props.id);
         Object.keys(this.children)
             .filter(myId => !aliveIds.find(id => myId == id))
+            .filter(id => !this.children[id].get("deamon"))
             .forEach(id => this.getChild(id).merge("outMap", true));
     }
 

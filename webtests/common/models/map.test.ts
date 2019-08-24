@@ -24,6 +24,7 @@ beforeEach(() => {
     let game = new GameContainer();
     game.model.init();
     instance = game.model.gamemap;
+    instance.updateDisplayInfo();
 });
 
 describe("get", () => {

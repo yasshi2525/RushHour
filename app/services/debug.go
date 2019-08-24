@@ -70,8 +70,12 @@ func StartSimulation() {
 				UpdateModel(rmOp(src, tar))
 			})
 		}
-
 	}
+
+	op := mkOp("user2", entities.RAILNODE)
+	op.X, op.Y = 0, 0
+	UpdateModel(op)
+
 	simWg.Wait()
 	revel.AppLog.Info("simulation was successfully started.")
 }

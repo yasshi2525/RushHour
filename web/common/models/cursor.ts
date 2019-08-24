@@ -1,19 +1,20 @@
 import * as PIXI from "pixi.js";
-import { AnimatedSpriteModel } from "./sprite";
-import { Monitorable } from "../interfaces/monitor";
 import { MenuStatus } from "../../state";
+import { Monitorable } from "../interfaces/monitor";
+import { Point } from "../interfaces/gamemap";
 import { PIXIProperty } from "../interfaces/pixi";
+import { AnimatedSpriteModel } from "./sprite";
 import { GraphicsAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
 import { RailNode } from "./rail";
 import Anchor from "./anchor";
-import { Point } from "../interfaces/gamemap";
 
 const graphicsOpts = {
     padding: 20,
     width: 1,
     alpha: 0.2,
     color: 0x607d8B,
+    offset: { server: 3, client: 2 },
     tint: {
         info: 0xffffff,
         error: 0xf44336,
@@ -76,21 +77,26 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("client", (v) => {
-            this.merge("pos", this.toServer(v, 2))
+            this.merge("pos", this.toServer(v, graphicsOpts.offset.client))
             this.selectObject();
             this.moveDestination();
+            let view = v !== undefined ? {
+                x: v.x / this.app.renderer.resolution,
+                y: v.y / this.app.renderer.resolution
+            } : undefined;
+            this.model.gamemap.merge("cursorClient", view);
         });
         this.addUpdateCallback("coord", () => {
-            this.merge("pos", this.toServer(this.props.client, 2))
+            this.merge("pos", this.toServer(this.props.client, graphicsOpts.offset.client))
             this.selectObject();
             this.updateDestination();
         });
     }
 
     protected calcDestination() {
-        return (this.selected === undefined) 
-        ? this.toView(this.toServer(this.props.client, 2))
-        : this.toView(this.selected.get("pos"));
+        return (this.selected !== undefined) 
+        ? this.toView(this.selected.get("pos"))
+        : this.toView(this.toServer(this.props.client, graphicsOpts.offset.client));
     }
 
 
@@ -99,7 +105,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             this.sprite.visible = false;
             return;
         }
-        if (!this.followPointModel(this.selected, 3)) {
+        if (!this.followPointModel(this.selected, graphicsOpts.offset.server)) {
             super.updateDisplayInfo();
         }
     }
@@ -118,6 +124,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         } else {
             this.unlinkSelected();
         }
+        this.selectObjectCursor();
     }
 
     protected getObjectOnChunk(except: Monitorable | undefined = undefined) {
@@ -140,6 +147,13 @@ export default class extends AnimatedSpriteModel implements Monitorable {
                 break;
         }
         return graphicsOpts.tint.info;
+    }
+
+    protected selectObjectCursor() {
+        switch(this.props.menu) {
+            case MenuStatus.IDLE:
+                this.model.gamemap.merge("cursor", false);
+        }
     }
 
     unlinkSelected() {

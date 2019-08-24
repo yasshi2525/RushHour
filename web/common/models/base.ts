@@ -1,9 +1,11 @@
+import { MenuStatus } from "../../state";
 import { Monitorable } from "../interfaces/monitor";
 import { Chunk, Point, ResolveError } from "../interfaces/gamemap";
 import GameModel from ".";
 import { Player } from "./player";
 
-const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0, outMap: false};
+const defaultValues: {id: number, oid: number, outMap: boolean, deamon: boolean, menu: MenuStatus} 
+= {id: 0, oid: 0, outMap: false, deamon: false, menu: MenuStatus.IDLE};
 
 /**
  * 変更監視ができるオブジェクト
