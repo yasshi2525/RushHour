@@ -62,7 +62,6 @@ func (ch *Chunk) addRailNode(rn *RailNode) {
 		ch.RailNode = &DelegateRailNode{
 			Base:     ch.M.NewBase(RAILNODE, rn.O),
 			Pos:      &rn.Point,
-			Color:    rn.O.Color,
 			ParentID: pid,
 		}
 		ch.RailNode.RailNodes = make(map[uint]*RailNode)
@@ -88,7 +87,6 @@ func (ch *Chunk) addRailEdge(re *RailEdge) {
 			To:        target.RailNode,
 			ToID:      target.RailNode.ID,
 			RailEdges: make(map[uint]*RailEdge),
-			Color:     re.O.Color,
 		}
 		ch.OutRailEdges[target.ID] = dre
 		target.InRailEdges[ch.ID] = dre

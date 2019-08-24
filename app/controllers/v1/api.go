@@ -30,6 +30,11 @@ func (c APIv1Game) Index() revel.Result {
 		genResponse(true, services.ViewDelegateMap(params["cx"], params["cy"], params["scale"], params["delegate"])))
 }
 
+// Players returns list of player
+func (c APIv1Game) Players() revel.Result {
+	return c.RenderJSON(genResponse(true, entities.JsonPlayer(services.Model.Players)))
+}
+
 // Diff returns only diff
 func (c APIv1Game) Diff() revel.Result {
 	return c.RenderJSON(
@@ -38,6 +43,7 @@ func (c APIv1Game) Diff() revel.Result {
 			services.ViewMap(500, 500, 10, time.Now().Add(time.Duration(-1)*time.Minute))))
 }
 
+// Departure returns result of rail node creation
 func (c APIv1Game) Departure() revel.Result {
 	x, err := strconv.ParseFloat(c.Params.Form.Get("x"), 64)
 	if err != nil {

@@ -4,7 +4,9 @@ import GameModel from "../models";
 export interface GameBoardProperty {
     [key: string]: any,
     readOnly: boolean,
-    game: GameContainer
+    game: GameContainer,
+    isPIXILoaded: boolean,
+    isPlayersFetched: boolean
 }
 
 export interface GameComponentProperty {

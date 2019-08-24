@@ -1,5 +1,5 @@
 import * as Action from "../actions";
-import { requestURL } from ".";
+import { requestURL, isOK } from ".";
 
 const fetch_url = "api/v1/gamemap";
 const diff_url = "api/v1/gamemap/diff";
@@ -14,22 +14,19 @@ function buildQuery(opts: Action.GameMapRequest): string {
 }
 
 const request = (url: string, params: Action.GameMapRequest): Promise<any> => 
-    fetch(url + "?" + buildQuery(params)).then(response => {
-        if (!response.ok) {
-            throw Error(response.statusText);
-        }
-        return response;
-    }).then(response => response.json())
+    fetch(url + "?" + buildQuery(params))
+    .then(isOK)
+    .then(response => response.json())
     .then(response => {
         if (!response.status) {
             throw Error(response.results);
         }
-        params.model.gamemap.mergeAll(response.results);
+        let error = params.model.gamemap.mergeAll(response.results);
         params.model.timestamp = response.timestamp;
         if (params.model.gamemap.isChanged()) {
             params.model.gamemap.updateDisplayInfo();
         }
-        return response;
+        return { ...response, ...error };
     })
     .catch(error => error);
 

@@ -45,7 +45,7 @@ export abstract class CursorHandler<T> {
                     this.dispatch(depart.request({
                         model: this.model,
                         dispatch: this.dispatch,
-                        oid: 1, // TODO
+                        oid: 2, // TODO
                         x: server.x, y: server.y,
                         scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                     }));

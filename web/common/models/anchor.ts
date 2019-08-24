@@ -21,7 +21,7 @@ const defaultValues: {
     anchor: AnchorStatus | undefined
 } = {
     menu: MenuStatus.IDLE,
-    oid: 1,
+    oid: 2, // TODO
     anchor: { type: "", pos: {x: 0, y: 0}, cid: 0 }
 };
 

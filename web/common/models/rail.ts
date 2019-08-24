@@ -4,6 +4,7 @@ import { AnimatedSpriteProperty, PIXIProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 import { config } from "../interfaces/gamemap";
+import { Player } from "./player";
 
 const graphicsOpts = {
     padding: 10,
@@ -41,13 +42,6 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         this.addDefaultValues(rnDefaultValues);
     }
 
-    setupBeforeCallback() {
-        super.setupBeforeCallback();
-        this.addBeforeCallback(() => {
-            this.sprite.tint = this.props.color;
-        });
-    }
-
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
@@ -76,7 +70,10 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         this.sprite.y -= graphicsOpts.padding / 2;
     }
 
-    resolve(parent: any | undefined) {
+    resolve(owner: any | Player, parent: any | RailNode) {
+        if (owner !== undefined) {
+            this.merge("color", owner.get("color"));
+        }
         if (parent !== undefined) {
             this.parentRailNode = parent;
             // 拡大時、派生元の座標から移動を開始する

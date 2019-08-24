@@ -7,20 +7,18 @@ import (
 )
 
 type DelegateMap struct {
-	Players   jsonPlayer           `json:"players"`
 	RailNodes jsonDelegateRailNode `json:"rail_nodes"`
 	RailEdges jsonDelegateRailEdge `json:"rail_edges"`
 }
 
 func (dm *DelegateMap) Init(m *Model) {
-	dm.Players = m.Players
 	dm.RailNodes = make(map[uint]*DelegateRailNode)
 	dm.RailEdges = make(map[uint]*DelegateRailEdge)
 }
 
-type jsonPlayer map[uint]*Player
+type JsonPlayer map[uint]*Player
 
-func (jp jsonPlayer) MarshalJSON() ([]byte, error) {
+func (jp JsonPlayer) MarshalJSON() ([]byte, error) {
 	os := []*Player{}
 	for _, o := range jp {
 		os = append(os, o)
@@ -34,7 +32,6 @@ type DelegateRailNode struct {
 	RailNodes map[uint]*RailNode `json:"-"`
 	Pos       *Point             `json:"pos"`
 	Multi     int                `json:"mul"`
-	Color     int                `json:"color"`
 	ParentID  uint               `json:"pid,omitempty"`
 	ChildID   uint               `json:"cid,omitempty"`
 }
@@ -78,7 +75,6 @@ type DelegateRailEdge struct {
 
 	RailEdges map[uint]*RailEdge `json:"-"`
 	Multi     int                `json:"mul"`
-	Color     int                `json:"color"`
 
 	FromID    uint `json:"from"`
 	ToID      uint `json:"to"`
