@@ -12,7 +12,6 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
     protected handleStart(ev: T) {
         this.client.from = this.getClientXY(ev);
         this.client.to = this.getClientXY(ev);
-        ev.currentTarget.classList.add(styles.dragging);
     }
 
     protected handleMove(ev: T) {
@@ -30,6 +29,7 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
             x: this.server.from.x - dx / size * zoom,
             y: this.server.from.y - dy / size * zoom
         };
+        ev.currentTarget.classList.add(styles.dragging);
     }
 
     protected handleEnd(ev: T) {

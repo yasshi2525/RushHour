@@ -13,7 +13,8 @@ const graphicsOpts = {
     alpha: 1.0,
     slice: 8,
     color: 0x607d8B,
-    radius: 20
+    radius: 20,
+    offset: -0.5
 };
 
 const defaultValues: {
@@ -105,6 +106,6 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     updateDisplayInfo() {
-        this.followPointModel(this.object, 0);
+        this.followPointModel(this.object, graphicsOpts.offset);
     }
 }

@@ -182,6 +182,7 @@ export default class {
     setMenuState(menu: MenuStatus) {
         if (this.menu !== menu) {
             this.controllers.merge("menu", menu);
+            this.gamemap.merge("menu", menu);
             this.menu = menu;
         }
     }

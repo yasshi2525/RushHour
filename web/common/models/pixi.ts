@@ -74,7 +74,11 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
     
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        this.addUpdateCallback("coord", () => this.updateDestination());
+        this.addUpdateCallback("coord", () => {
+            if (!this.props.deamon) {
+                this.updateDestination();
+            }
+        });
         this.addUpdateCallback("forceMove", (v: boolean) => {
             if (v) {
                 this.moveDestination();
