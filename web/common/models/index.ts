@@ -189,6 +189,6 @@ export default class {
 
     unmount() {
         this.gamemap.end();
-        this.gamemap.end();
+        this.controllers.end();
     }
 }
