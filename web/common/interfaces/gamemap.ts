@@ -33,6 +33,10 @@ export interface Chunk {
     scale: number
 };
 
+export interface ResolveError {
+    hasUnresolvedOwner?: boolean
+}
+
 export function getChunkByPos(pos: Point, scale: number): Chunk {
     scale = Math.floor(scale);
     let interval = Math.pow(2, scale);

@@ -1,4 +1,4 @@
-import { Chunk, Point } from "./gamemap";
+import { Chunk, Point, ResolveError } from "./gamemap";
 
 /**
  * 変更監視ができるクラスを表すインタフェース
@@ -89,6 +89,8 @@ export interface Monitorable {
      * 変更フラグをおろします
      */
     reset(): void;
+
+    resolve(error: ResolveError): ResolveError;
 };
 
 export interface MonitorContainer extends Monitorable {

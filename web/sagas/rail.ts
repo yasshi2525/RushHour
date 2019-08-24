@@ -23,6 +23,7 @@ const request = (url: string, params: Action.PointRequest) =>
         let model = params.model;
         let anchorObj = model.gamemap.mergeChild("rail_nodes", response.results.rn);
         if (anchorObj !== undefined) {
+            anchorObj.resolve({});
             model.setMenuState(MenuStatus.EXTEND_RAIL);
             model.controllers.getAnchor().merge("anchor", {
                 type: "rail_nodes", 

@@ -3,9 +3,10 @@ import { GameMap, Identifiable } from "../../state";
 import GroupModel from "./group";
 import { ResidenceContainer, CompanyContainer } from "./background";
 import { StationContainer } from "./station";
-import { RailEdge, RailNodeContainer, RailEdgeContainer, RailNode } from "./rail";
+import { RailNodeContainer, RailEdgeContainer } from "./rail";
 import { ZIndex } from "../interfaces/pixi";
-import { PlayerContainer, Player } from "./player";
+import { PlayerContainer } from "./player";
+import { ResolveError } from "../interfaces/gamemap";
 
 export default class extends GroupModel {
     init() {
@@ -43,29 +44,12 @@ export default class extends GroupModel {
         });
         let error = this.resolve();
         this.model.controllers.updateAnchor();
-        return error
+        return error;
     }
 
     resolve() {
-        let hasUnresolvedOwner = false;
-        if (this.containers["rail_nodes"] !== undefined) {
-            this.containers["rail_nodes"].forEachChild((rn : RailNode) => {
-                let owner = this.get("players", rn.get("oid")) as (Player | undefined);
-                rn.resolve(owner, this.get("rail_nodes", rn.get("pid")) as (RailNode | undefined));
-                if (owner === undefined) {
-                    hasUnresolvedOwner = true;
-                }
-            });
-        }
-        if (this.containers["rail_edges"] !== undefined) {
-            this.containers["rail_edges"].forEachChild((re: RailEdge) => 
-                re.resolve(
-                    this.get("rail_nodes", re.get("from")),
-                    this.get("rail_nodes", re.get("to")),
-                    this.get("rail_edges", re.get("eid"))
-                )
-            );
-        }
-        return { hasUnresolvedOwner };
+        let error: ResolveError = {};
+        this.forEach(v => v.resolve(error));
+        return error;
     }
 }
