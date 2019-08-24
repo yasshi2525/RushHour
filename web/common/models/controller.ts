@@ -27,6 +27,6 @@ export default class extends GroupModel {
     }
 
     updateAnchor() {
-        (this.objects.anchor as Anchor).updateAnchor();
+        (this.objects.anchor as Anchor).updateAnchor(false);
     }
 }

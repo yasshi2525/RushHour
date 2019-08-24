@@ -77,11 +77,15 @@ export default class extends AnimatedSpriteModel implements Monitorable {
                     this.merge("anchor", undefined);
             }
         })
-        this.addUpdateCallback("coord", () => this.updateAnchor());
-        this.addUpdateCallback("anchor", () => this.updateAnchor());
+        this.addUpdateCallback("coord", () => this.updateAnchor(false));
+        this.addUpdateCallback("anchor", () => this.updateAnchor(true));
     }
 
-    updateAnchor() {
+    updateAnchor(force: boolean) {
+        if (!force && this.object !== undefined) {
+            return
+        } 
+
         if (this.props.anchor !== undefined) {
             if (this.object !== undefined) {
                 this.object.refferedAnchor = undefined;

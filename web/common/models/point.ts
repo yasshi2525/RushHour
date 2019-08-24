@@ -27,7 +27,7 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
         super.setupUpdateCallback();
         this.addUpdateCallback("pos", () => this.updateDestination());
         this.addUpdateCallback("visible", (v) => {
-            if (v) {
+            if (!v) {
                 this.unreferCursor();
             }
         })
@@ -64,6 +64,9 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
         if (this.refferedCursor !== undefined) {
             this.refferedCursor.unlinkSelected();
             this.refferedCursor.selectObject(this);
+        }
+        if (this.refferedAnchor !== undefined) {
+            this.refferedAnchor.updateAnchor(true);
         }
     }
 
