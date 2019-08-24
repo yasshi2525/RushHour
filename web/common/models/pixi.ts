@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { config, Coordinates, Point } from "../interfaces/gamemap";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { ModelProperty, PIXIProperty } from "../interfaces/pixi";
+import { PIXIProperty } from "../interfaces/pixi";
 import BaseContainer from "./container";
 import BaseModel from "./base";
 
@@ -182,10 +182,10 @@ export abstract class PIXIModel extends BaseModel implements Monitorable {
 
 export abstract class PIXIContainer<T extends PIXIModel> extends BaseContainer<T> implements MonitorContainer {
     constructor(
-        options: ModelProperty,
+        options: PIXIProperty,
         newInstance: { new (props: {[index:string]: {}}): T }, 
         newInstanceOptions: {[index:string]: {}}) {
-        super(options.model, newInstance, { ...newInstanceOptions, app: options.app });
+        super(options.model, newInstance, { ...newInstanceOptions, app: options.app, zIndex: options.zIndex });
     }
 
     setupDefaultValues() {

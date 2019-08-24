@@ -18,10 +18,6 @@ export default class extends GroupModel {
         super.init();
     }
 
-    tick() {
-        super.tick();
-    }
-
     getCursor() {
         return (this.objects.cursor as Cursor);
     }
@@ -31,6 +27,6 @@ export default class extends GroupModel {
     }
 
     updateAnchor() {
-        (this.objects.anchor as Anchor).updateAnchor();
+        (this.objects.anchor as Anchor).updateAnchor(false);
     }
 }
