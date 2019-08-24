@@ -1,7 +1,7 @@
 import GameModel from ".";
 import BaseModel from "./base";
 import { MonitorContainer, Monitorable } from "../interfaces/monitor";
-import { Chunk } from "../interfaces/gamemap";
+import { Chunk, ResolveError } from "../interfaces/gamemap";
 import { PointModel } from "./point";
 
 export default abstract class <T extends Monitorable> extends BaseModel implements MonitorContainer {
@@ -124,6 +124,11 @@ export default abstract class <T extends Monitorable> extends BaseModel implemen
     end() {
         this.forEachChild(c => c.end());
         super.end();
+    }
+
+    resolve(error: ResolveError) {
+        this.forEachChild(v => v.resolve(error));
+        return error;
     }
 
     forEachChild(func: (c: T) => any) {

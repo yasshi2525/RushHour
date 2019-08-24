@@ -37,7 +37,11 @@ abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
     }
 
     protected shouldFetch(ev: T) {
-        return ev.type != "mouseout"
+        return ev.type != "mouseout" && (
+            this.server.from.x !== this.server.to.x
+            || this.server.from.y !== this.server.to.y
+            || this.scale.from !== this.scale.to
+        )
     }
 }
 

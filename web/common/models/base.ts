@@ -1,6 +1,7 @@
 import { Monitorable } from "../interfaces/monitor";
-import { Chunk, Point } from "../interfaces/gamemap";
+import { Chunk, Point, ResolveError } from "../interfaces/gamemap";
 import GameModel from ".";
+import { Player } from "./player";
 
 const defaultValues: {id: number, oid: number, outMap: boolean} = {id: 0, oid: 0, outMap: false};
 
@@ -173,6 +174,14 @@ export default class implements Monitorable {
 
     position(): Point | undefined {
         return undefined;
+    }
+
+    resolve(error: ResolveError) {
+        return error;
+    }
+
+    protected resolveOwner(id: string) {
+        return this.model.gamemap.get("players", id) as (Player | undefined);
     }
 }
 

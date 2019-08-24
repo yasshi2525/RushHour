@@ -3,8 +3,7 @@ import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { AnimatedSpriteProperty, PIXIProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
-import { config } from "../interfaces/gamemap";
-import { Player } from "./player";
+import { config, ResolveError } from "../interfaces/gamemap";
 
 const graphicsOpts = {
     padding: 10,
@@ -18,18 +17,16 @@ const graphicsOpts = {
 const rnDefaultValues: {
     pid: number,
     cid: number,
-    color: number,
     mul: number
 } = {
     pid: 0,
     cid: 0,
-    color: 0,
     mul: 1
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
     parentRailNode: RailNode | undefined;
-    protected edges: {[index: string]: RailEdge};
+    edges: {[index: string]: RailEdge};
 
     constructor(options: AnimatedSpriteProperty) {
         super(options);
@@ -44,7 +41,6 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
-        this.addUpdateCallback("color", (color: number) => this.sprite.tint = color);
         this.addUpdateCallback("visible", () => {
             Object.keys(this.edges).forEach(eid => {
                 let re = this.edges[eid];
@@ -70,10 +66,12 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         this.sprite.y -= graphicsOpts.padding / 2;
     }
 
-    resolve(owner: any | Player, parent: any | RailNode) {
+    resolve(error: ResolveError) {
+        let owner = this.resolveOwner(this.props.oid);
         if (owner !== undefined) {
-            this.merge("color", owner.get("color"));
+            this.merge("tint", owner.get("color"));
         }
+        let parent = this.model.gamemap.get("rail_nodes", this.props.pid) as RailNode | undefined;
         if (parent !== undefined) {
             this.parentRailNode = parent;
             // 拡大時、派生元の座標から移動を開始する
@@ -87,6 +85,9 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
             }
             parent.merge("visible", false);
         }
+        let hasUnresolvedOwner = error.hasUnresolvedOwner || owner === undefined
+        error.hasUnresolvedOwner = hasUnresolvedOwner;
+        return error;
     }
 }
 
@@ -133,7 +134,11 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         this.addDefaultValues(reDefaultValues);
     }
 
-    resolve(from: any | undefined, to: any | undefined, reverse: any | undefined) {
+    resolve(error: ResolveError) {
+        let from = this.model.gamemap.get("rail_nodes", this.props.from) as RailNode | undefined;
+        let to = this.model.gamemap.get("rail_nodes", this.props.to) as RailNode | undefined;
+        let reverse = this.model.gamemap.get("rail_edges", this.props.eid) as RailEdge | undefined;
+
         if (from !== undefined && to !== undefined) {
             if (this.from !== from && this.to !== to) {
                 this.from = from;
@@ -141,7 +146,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
                 if (this.props.coord.zoom == -1) {
                     this.merge("visible", from.get("visible") && to.get("visible"))
                 }
-                this.sprite.tint = from.get("color");
+                this.sprite.tint = from.get("tint");
                 from.edges[this.props.id] = this;
                 to.edges[this.props.id] = this;
                 this.updateDestination();
@@ -151,6 +156,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         if (reverse !== undefined) {
             this.reverse = reverse;
         }
+        return error;
     }
 
     updateDisplayInfo() {

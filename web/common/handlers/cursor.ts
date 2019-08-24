@@ -51,8 +51,8 @@ export abstract class CursorHandler<T> {
                     }));
                 } else {
                     if (this.view.selected.get("mul") === 1) {
-                        this.anchor.merge("anchor", this.view.genAnchorStatus())
                         this.model.setMenuState(MenuStatus.EXTEND_RAIL);
+                        this.anchor.merge("anchor", this.view.genAnchorStatus())
                     } else {
                         this.requestZoom(client);
                     }

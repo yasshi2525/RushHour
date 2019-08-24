@@ -8,10 +8,12 @@ import { PointModel, PointContainer } from "./point";
  */
 const defaultValues: {
     spscale: number,
-    alpha: number
+    alpha: number,
+    tint: number
 } = { 
     spscale: 0.5,
-    alpha: 1
+    alpha: 1,
+    tint: 0xffffff
 };
 
 export abstract class SpriteModel extends PointModel implements Monitorable {
@@ -41,6 +43,7 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
         super.setupUpdateCallback();
 
         // 値の更新時、Spriteを更新するように設定
+        this.addUpdateCallback("tint", (tint: number) => this.sprite.tint = tint);
         this.addUpdateCallback("spscale", (value: number) => this.sprite.scale.set(value, value));
         this.addUpdateCallback("alpha", (value: number) => this.sprite.alpha = value);
     }
