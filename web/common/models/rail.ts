@@ -117,6 +117,12 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         this.cursor = this.addChild(cursorOpts);
     }
 
+    setInitialValues(props: {[index: string]: any}) {
+        super.setInitialValues(props);
+        this.cursor.current = undefined;
+        this.cursor.destination = undefined;
+    }
+
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("menu", v => {
@@ -124,24 +130,15 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
                 case MenuStatus.IDLE:
                     this.cursor.merge("visible", false);
                     break;
-            }
-
-        });
-        this.addUpdateCallback("cursorClient", (v: Point | undefined) => {
-            switch(this.props.menu) {
                 case MenuStatus.SEEK_DEPARTURE:
                 case MenuStatus.EXTEND_RAIL:
-                    if (v !== undefined && this.model.controllers.getCursor().selected === undefined) {
-                        this.cursor.merge("visible", true);
-                        this.cursor.destination = v;
-                        this.cursor.moveDestination();
-                    } else {
-                        this.cursor.merge("visible", false);
-                    }
+                    this.cursor.merge("visible", true);
                     break;
-                default:
-                    this.cursor.merge("visible", false);
             }
+        });
+        this.addUpdateCallback("cursorClient", (v: Point | undefined) => {
+            this.cursor.destination = v;
+            this.cursor.moveDestination();
         });
     }
 }
@@ -205,8 +202,8 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
             let theta = Math.atan2(d.y, d.x);
             this.current = {
-                x: avg.x + graphicsOpts.slide * Math.cos(theta + Math.PI / 2) - graphicsOpts.width,
-                y: avg.y + graphicsOpts.slide * Math.sin(theta + Math.PI / 2) - graphicsOpts.width
+                x: avg.x + graphicsOpts.slide * Math.cos(theta + Math.PI / 2),
+                y: avg.y + graphicsOpts.slide * Math.sin(theta + Math.PI / 2)
             };
 
             this.sprite.rotation = theta;
