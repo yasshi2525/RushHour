@@ -95,7 +95,7 @@ export interface Monitorable {
 
 export interface MonitorContainer extends Monitorable {
     existsChild(id: string): boolean;
-    getChild(id: string): Monitorable;
+    getChild(id: string | undefined): Monitorable;
     getChildOnChunk(chunk: Chunk, oid: number): Monitorable | undefined
     mergeChild(payload: {id: string}): Monitorable;
     /**

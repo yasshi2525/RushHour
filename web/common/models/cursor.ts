@@ -115,6 +115,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         } else if (objOnChunk !== this.anchor.object) {
             this.selected = objOnChunk;
             objOnChunk.refferedCursor = this;
+            this.model.gamemap.merge("cursorObj", objOnChunk);
             this.updateDestination();
         } else {
             this.unlinkSelected();
@@ -145,7 +146,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     protected selectObjectCursor() {
-        if (this.model.controllers.getCursor().selected === undefined) {
+        if (this.selected === undefined) {
             let pos = this.props.client !== undefined ? {
                 x: this.props.client.x / this.model.renderer.resolution,
                 y: this.props.client.y / this.model.renderer.resolution
@@ -159,6 +160,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     unlinkSelected() {
         if (this.selected !== undefined) {
             this.selected = undefined;
+            this.model.gamemap.merge("cursorObj", undefined);
             this.updateDestination();
         }
     }

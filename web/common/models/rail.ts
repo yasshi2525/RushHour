@@ -1,10 +1,11 @@
 import * as PIXI from "pixi.js"
+import { MenuStatus } from "../../state";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { AnimatedSpriteProperty, PIXIProperty, cursorOpts } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 import { config, ResolveError, Point } from "../interfaces/gamemap";
-import { MenuStatus } from "@/state";
+import { PointModel } from "./point";
 
 const graphicsOpts = {
     padding: 10,
@@ -167,26 +168,82 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
     resolve(error: ResolveError) {
         let from = this.model.gamemap.get("rail_nodes", this.props.from) as RailNode | undefined;
         let to = this.model.gamemap.get("rail_nodes", this.props.to) as RailNode | undefined;
-        let reverse = this.model.gamemap.get("rail_edges", this.props.eid) as RailEdge | undefined;
 
-        if (from !== undefined && to !== undefined) {
-            if (this.from !== from && this.to !== to) {
-                this.from = from;
-                this.to = to;
-                if (this.props.coord.zoom == -1) {
-                    this.merge("visible", from.get("visible") && to.get("visible"))
-                }
-                this.sprite.tint = from.get("tint");
-                from.edges[this.props.id] = this;
-                to.edges[this.props.id] = this;
-                this.updateDestination();
-                this.moveDestination();
-            }
-        }
+        this.resolveFrom(from);
+        this.resolveTo(to);      
+
+        this.updateVisible();
+
+        this.updateDestination();
+        this.moveDestination();
+
+        let reverse = this.model.gamemap.get("rail_edges", this.props.eid) as RailEdge | undefined;
         if (reverse !== undefined) {
             this.reverse = reverse;
         }
         return error;
+    }
+
+    resolveFrom(from: RailNode | undefined) {
+        if (this.from !== from) {
+            this.unlinkFrom();
+        }
+        this.linkFrom(from);
+    }
+
+    resolveTo(to: RailNode | undefined) {
+        if (this.to !== to) {
+            this.unlinkTo();
+        }
+        this.linkTo(to);
+    }
+
+    protected unlinkFrom() {
+        if (this.from !== undefined) {
+            delete this.from.edges[this.props.id];
+        }
+        this.from = undefined;
+    }
+
+    protected unlinkTo() {
+        if (this.to !== undefined) {
+            delete this.to.edges[this.props.id];
+        }
+        this.to = undefined;
+    }
+
+    protected linkFrom(from: RailNode | undefined) {
+        if (this.from !== from) {
+            this.from = from;
+            if (from !== undefined) {
+                from.edges[this.props.id] = this;
+                this.sprite.tint = from.get("tint");
+                this.merge("from", from.get("id"));
+            } else {
+                this.merge("from", undefined);
+            }
+        }
+    }
+
+    protected linkTo(to: RailNode | undefined) {
+        if (this.to !== to) {
+            this.to = to;
+            if (to !== undefined) {
+                to.edges[this.props.id] = this;
+                this.sprite.tint = to.get("tint");
+                this.merge("to", to.get("id"));
+            } else {
+                this.merge("to", undefined);
+            }
+        }
+    }
+
+    updateVisible() {
+        if (this.from !== undefined && this.to !== undefined) {
+            this.merge("visible", this.from.get("visible") && this.to.get("visible"))
+        } else {
+            this.merge("visible", false);
+        }
     }
 
     updateDisplayInfo() {
@@ -225,14 +282,54 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContainer {
-    cursorFrom: RailEdge;
-    cursorTo: RailEdge;
+    deamon: RailNode;
+    cursorOut: RailEdge;
+    cursorIn: RailEdge;
 
     constructor(options: PIXIProperty) {
         let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
         let animation =  generator.record();
         super({ animation, ...options}, RailEdge, {});
-        this.cursorFrom = this.addChild({ ...cursorOpts, id: "cursorFrom" });
-        this.cursorTo = this.addChild({ ...cursorOpts, id: "cursorTo" });
+        this.cursorOut = this.addChild({ ...cursorOpts, id: "cursorOut", from: "cursor", reverse: "cursorIn" });
+        this.cursorIn = this.addChild({ ...cursorOpts, id: "cursorIn", to: "cursor", reverse: "cursorOut" });
+        this.cursorOut.resolve({});
+        this.cursorIn.resolve({});
+        this.deamon = this.cursorOut.from as RailNode
+    }
+
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("anchorObj", (v: PointModel | undefined) => {
+            if (v instanceof RailNode || v === undefined) {
+                this.setAnchor(v)
+            }
+        });
+        this.addUpdateCallback("cursorObj", (v: PointModel | undefined) => {
+            if (v instanceof RailNode) {
+                this.setCursor(v);
+            } else {
+                this.setCursor(this.deamon);
+            }
+        });
+    }
+
+    protected setAnchor(anchor: RailNode | undefined) {
+        this.cursorOut.resolveTo(anchor);
+        this.cursorIn.resolveFrom(anchor);
+        this.updateDeamon();
+    }
+
+    protected setCursor(cursor: RailNode) {
+        this.cursorOut.resolveFrom(cursor);
+        this.cursorIn.resolveTo(cursor);
+        this.updateDeamon();
+    }
+
+    protected updateDeamon() {
+        [ this.cursorOut, this.cursorIn ].forEach(e => {
+            e.updateVisible();
+            e.updateDestination();
+            e.moveDestination();
+        });
     }
 }
