@@ -45,12 +45,7 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("visible", () => {
-            Object.keys(this.edges).forEach(eid => {
-                let re = this.edges[eid];
-                if (re.from !== undefined && re.to !== undefined) {
-                    re.merge("visible", re.from.get("visible") && re.to.get("visible"));
-                }
-            });
+            Object.keys(this.edges).forEach(eid => this.edges[eid].updateVisible());
         });
     }
 
@@ -138,8 +133,13 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
             }
         });
         this.addUpdateCallback("cursorClient", (v: Point | undefined) => {
-            this.cursor.destination = v;
-            this.cursor.moveDestination();
+            switch(this.props.menu) {
+                case MenuStatus.SEEK_DEPARTURE:
+                case MenuStatus.EXTEND_RAIL:
+                    this.cursor.merge("visible", v !== undefined);
+                    this.cursor.destination = v;
+                    this.cursor.moveDestination();
+            }
         });
     }
 }
@@ -299,6 +299,7 @@ export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> impleme
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
+
         this.addUpdateCallback("anchorObj", (v: PointModel | undefined) => {
             if (v instanceof RailNode || v === undefined) {
                 this.setAnchor(v)
