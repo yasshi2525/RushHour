@@ -29,12 +29,14 @@ const rnDefaultValues: {
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
     parentRailNode: RailNode | undefined;
-    edges: {[index: string]: RailEdge};
+    out: {[index: string]: RailEdge};
+    in: {[index: string]: RailEdge};
 
     constructor(options: AnimatedSpriteProperty) {
         super(options);
         this.parentRailNode = undefined;
-        this.edges = {};
+        this.out = {};
+        this.in = {};
     }
 
     setupDefaultValues() {
@@ -45,7 +47,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("visible", () => {
-            Object.keys(this.edges).forEach(eid => this.edges[eid].updateVisible());
+            Object.keys(this.out).forEach(eid => this.out[eid].updateVisible());
+            Object.keys(this.in).forEach(eid => this.in[eid].updateVisible());
         });
     }
 
@@ -55,6 +58,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
             if (this.parentRailNode !== undefined) {
                 this.parentRailNode.merge("visible", true);
             }
+            Object.keys(this.out).forEach(eid => this.out[eid].merge("from", undefined));
+            Object.keys(this.in).forEach(eid => this.in[eid].merge("to", undefined));
         })
     }
 
@@ -165,18 +170,25 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         this.addDefaultValues(reDefaultValues);
     }
 
+    setupUpdateCallback() {
+        super.setupUpdateCallback();
+        this.addUpdateCallback("from", (fromID: string | undefined) => {
+            let from = this.model.gamemap.get("rail_nodes", fromID) as RailNode | undefined;
+            this.resolveFrom(from);
+        });
+        this.addUpdateCallback("to", (toID: string | undefined) => {
+            let to = this.model.gamemap.get("rail_nodes", toID) as RailNode | undefined;
+            this.resolveTo(to);
+        });
+    }
+
     resolve(error: ResolveError) {
         let from = this.model.gamemap.get("rail_nodes", this.props.from) as RailNode | undefined;
         let to = this.model.gamemap.get("rail_nodes", this.props.to) as RailNode | undefined;
 
         this.resolveFrom(from);
-        this.resolveTo(to);      
-
-        this.updateVisible();
-
-        this.updateDestination();
-        this.moveDestination();
-
+        this.resolveTo(to);
+        
         let reverse = this.model.gamemap.get("rail_edges", this.props.eid) as RailEdge | undefined;
         if (reverse !== undefined) {
             this.reverse = reverse;
@@ -184,30 +196,32 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         return error;
     }
 
-    resolveFrom(from: RailNode | undefined) {
+    protected resolveFrom(from: RailNode | undefined) {
         if (this.from !== from) {
             this.unlinkFrom();
         }
         this.linkFrom(from);
+        this.updateVisible();
     }
 
-    resolveTo(to: RailNode | undefined) {
+    protected resolveTo(to: RailNode | undefined) {
         if (this.to !== to) {
             this.unlinkTo();
         }
         this.linkTo(to);
+        this.updateVisible();
     }
 
     protected unlinkFrom() {
         if (this.from !== undefined) {
-            delete this.from.edges[this.props.id];
+            delete this.from.out[this.props.id];
         }
         this.from = undefined;
     }
 
     protected unlinkTo() {
         if (this.to !== undefined) {
-            delete this.to.edges[this.props.id];
+            delete this.to.in[this.props.id];
         }
         this.to = undefined;
     }
@@ -216,11 +230,8 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         if (this.from !== from) {
             this.from = from;
             if (from !== undefined) {
-                from.edges[this.props.id] = this;
+                from.out[this.props.id] = this;
                 this.sprite.tint = from.get("tint");
-                this.merge("from", from.get("id"));
-            } else {
-                this.merge("from", undefined);
             }
         }
     }
@@ -229,11 +240,8 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         if (this.to !== to) {
             this.to = to;
             if (to !== undefined) {
-                to.edges[this.props.id] = this;
+                to.in[this.props.id] = this;
                 this.sprite.tint = to.get("tint");
-                this.merge("to", to.get("id"));
-            } else {
-                this.merge("to", undefined);
             }
         }
     }
@@ -244,6 +252,7 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
         } else {
             this.merge("visible", false);
         }
+        this.updateDisplayInfo();
     }
 
     updateDisplayInfo() {
@@ -266,6 +275,9 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             this.sprite.rotation = theta;
             this.sprite.height = graphicsOpts.width;
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
+            this.sprite.visible = true;
+        } else {
+            this.sprite.visible = false;
         }
         super.updateDisplayInfo();
     }
@@ -315,22 +327,14 @@ export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> impleme
     }
 
     protected setAnchor(anchor: RailNode | undefined) {
-        this.cursorOut.resolveTo(anchor);
-        this.cursorIn.resolveFrom(anchor);
-        this.updateDeamon();
+        let id = anchor !== undefined ? anchor.get("id") : undefined;
+        this.cursorOut.merge("to", id);
+        this.cursorIn.merge("from", id);
     }
 
     protected setCursor(cursor: RailNode) {
-        this.cursorOut.resolveFrom(cursor);
-        this.cursorIn.resolveTo(cursor);
-        this.updateDeamon();
-    }
-
-    protected updateDeamon() {
-        [ this.cursorOut, this.cursorIn ].forEach(e => {
-            e.updateVisible();
-            e.updateDestination();
-            e.moveDestination();
-        });
+        let id = cursor !== undefined ? cursor.get("id") : undefined;
+        this.cursorOut.merge("from", id);
+        this.cursorIn.merge("to", id);
     }
 }
