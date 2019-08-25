@@ -50,6 +50,10 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
         return this.current;
     }
 
+    shouldEnd() {
+        return super.shouldEnd() && this.refferedAnchor === undefined;
+    }
+
     protected smoothMove() { 
         super.smoothMove();
         if (this.refferedCursor !== undefined) {

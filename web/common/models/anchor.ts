@@ -93,9 +93,11 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             if (this.object !== undefined) {
                 this.object.refferedAnchor = undefined;
             }
-            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid) as PointModel;
-            this.object.refferedAnchor = this;
-
+            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid) as PointModel | undefined;
+            
+            if (this.object !== undefined) {
+                this.object.refferedAnchor = this;
+            }
             if (this.cursor !== undefined) {
                 this.cursor.selectObject();
                 this.cursor.moveDestination();
