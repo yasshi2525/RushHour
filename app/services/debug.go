@@ -72,7 +72,7 @@ func StartSimulation() {
 		}
 	}
 
-	op := mkOp("user2", entities.RAILNODE)
+	op := mkOp("user0", entities.RAILNODE)
 	op.X, op.Y = 0, 0
 	UpdateModel(op)
 
