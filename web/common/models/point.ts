@@ -95,7 +95,15 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     }
 }
 
-const containerOpts: { cursorClient: Point | undefined } = { cursorClient: {x: 0, y: 0} };
+const containerOpts: { 
+    cursorClient: Point | undefined,
+    anchorObj: PointModel | undefined,
+    cursorObj: PointModel | undefined,
+} = { 
+    cursorClient: {x: 0, y: 0},
+    anchorObj: undefined,
+    cursorObj: undefined
+};
 export abstract class PointContainer<T extends PointModel> extends PIXIContainer<T> implements MonitorContainer {        
     setupDefaultValues() {
         super.setupDefaultValues();

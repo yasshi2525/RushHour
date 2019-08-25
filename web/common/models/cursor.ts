@@ -80,11 +80,6 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             this.merge("pos", this.toServer(v, graphicsOpts.offset.client))
             this.selectObject();
             this.moveDestination();
-            let view = v !== undefined ? {
-                x: v.x / this.app.renderer.resolution,
-                y: v.y / this.app.renderer.resolution
-            } : undefined;
-            this.model.gamemap.merge("cursorClient", view);
         });
         this.addUpdateCallback("coord", () => {
             this.merge("pos", this.toServer(this.props.client, graphicsOpts.offset.client))
@@ -120,6 +115,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
         } else if (objOnChunk !== this.anchor.object) {
             this.selected = objOnChunk;
             objOnChunk.refferedCursor = this;
+            this.model.gamemap.merge("cursorObj", objOnChunk);
             this.updateDestination();
         } else {
             this.unlinkSelected();
@@ -150,15 +146,21 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     protected selectObjectCursor() {
-        switch(this.props.menu) {
-            case MenuStatus.IDLE:
-                this.model.gamemap.merge("cursor", false);
+        if (this.selected === undefined) {
+            let pos = this.props.client !== undefined ? {
+                x: this.props.client.x / this.model.renderer.resolution,
+                y: this.props.client.y / this.model.renderer.resolution
+            } : undefined;
+            this.model.gamemap.merge("cursorClient", pos);
+        } else {
+            this.model.gamemap.merge("cursorClient", undefined);
         }
     }
 
     unlinkSelected() {
         if (this.selected !== undefined) {
             this.selected = undefined;
+            this.model.gamemap.merge("cursorObj", undefined);
             this.updateDestination();
         }
     }

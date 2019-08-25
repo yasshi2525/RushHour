@@ -27,7 +27,7 @@ export default abstract class {
      * @param key リソース型
      * @param id id
      */
-    get(key: string, id: string) {
+    get(key: string, id: string | undefined) {
         let container = this.containers[key];
         if (container !== undefined) {
             return container.getChild(id);
