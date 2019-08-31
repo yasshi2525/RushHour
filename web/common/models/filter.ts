@@ -28,6 +28,7 @@ export function generateFlash(app: PIXI.Application): AnimationProperty {
 
 const outlineOpts = {
     width: 1,
+    padding: 2,
     color: 0xffffff,
     quality: 1
 };
@@ -36,7 +37,7 @@ export function generateOutline(app: PIXI.Application) {
     let filter = new OutlineFilter(
         outlineOpts.width, outlineOpts.color, outlineOpts.quality
     );
-    filter.padding = outlineOpts.width;
+    filter.padding = outlineOpts.padding;
     filter.resolution = app.renderer.resolution;
     return { app, filter, fn: () => {}};
 }

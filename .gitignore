@@ -5,10 +5,14 @@ node_modules/
 .vscode/
 coverage/
 public/fonts/roboto-*
+public/spritesheet/*
 public/js/bundle.*.js
 docs/_build
 docs/_ext/__pycache__
+resources/img/*
+resources/js/*
 log
+!.gitkeep
 
 # Binaries for programs and plugins
 *.exe

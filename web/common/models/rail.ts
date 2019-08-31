@@ -1,20 +1,14 @@
-import * as PIXI from "pixi.js"
 import { MenuStatus } from "../../state";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { AnimatedSpriteProperty, PIXIProperty, cursorOpts } from "../interfaces/pixi";
+import { AnimatedSpriteProperty, cursorOpts, AnimatedSpriteContainerProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
-import { GraphicsAnimationGenerator, GradientAnimationGenerator } from "./animate";
 import { config, ResolveError, Point } from "../interfaces/gamemap";
 import { PointModel } from "./point";
 
 const graphicsOpts = {
-    padding: 10,
-    offset: 1,
     width: 4,
-    maxWidth: 10,
     color: 0x9e9e9e,
-    radius: 10,
-    slide: 10
+    slide: 12
 };
 
 const rnDefaultValues: {
@@ -63,12 +57,6 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         })
     }
 
-    updateDisplayInfo() {
-        super.updateDisplayInfo();
-        this.sprite.x -= graphicsOpts.offset;
-        this.sprite.y -= graphicsOpts.offset;
-    }
-
     resolve(error: ResolveError) {
         let owner = this.resolveOwner(this.props.oid);
         if (owner !== undefined) {
@@ -97,24 +85,8 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContainer {
     cursor: RailNode;
 
-    constructor(options: PIXIProperty) {
-        let graphics = new PIXI.Graphics();
-        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
-        graphics.drawCircle(
-            graphicsOpts.padding + graphicsOpts.radius, 
-            graphicsOpts.padding + graphicsOpts.radius,
-            graphicsOpts.radius);
-
-        let generator = new GraphicsAnimationGenerator(options.app, graphics);
-        
-        let rect = graphics.getBounds().clone();
-        rect.x -= graphicsOpts.padding - 1;
-        rect.y -= graphicsOpts.padding - 1;
-        rect.width += graphicsOpts.padding * 2;
-        rect.height += graphicsOpts.padding * 2;
-
-        let animation = generator.record(rect);
-        super({ animation, ...options}, RailNode, {});
+    constructor(options: AnimatedSpriteContainerProperty) {
+        super(options, RailNode, {});
         this.cursor = this.addChild(cursorOpts);
     }
 
@@ -273,7 +245,6 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
             };
 
             this.sprite.rotation = theta;
-            this.sprite.height = graphicsOpts.width;
             this.sprite.width = Math.sqrt(d.x * d.x + d.y * d.y);
             this.sprite.visible = true;
         } else {
@@ -298,10 +269,8 @@ export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> impleme
     cursorOut: RailEdge;
     cursorIn: RailEdge;
 
-    constructor(options: PIXIProperty) {
-        let generator = new GradientAnimationGenerator(options.app, graphicsOpts.color, 0.25);
-        let animation =  generator.record();
-        super({ animation, ...options}, RailEdge, {});
+    constructor(options: AnimatedSpriteContainerProperty) {
+        super(options, RailEdge, {});
         this.cursorOut = this.addChild({ ...cursorOpts, id: "cursorOut", from: "cursor", reverse: "cursorIn" });
         this.cursorIn = this.addChild({ ...cursorOpts, id: "cursorIn", to: "cursor", reverse: "cursorOut" });
         this.cursorOut.resolve({});

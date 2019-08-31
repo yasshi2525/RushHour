@@ -1,25 +1,17 @@
-import * as PIXI from "pixi.js";
 import { MenuStatus } from "../../state";
 import { Monitorable } from "../interfaces/monitor";
 import { Point } from "../interfaces/gamemap";
-import { PIXIProperty } from "../interfaces/pixi";
+import { AnimatedSpriteProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel } from "./sprite";
-import { GraphicsAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
 import { RailNode } from "./rail";
 import Anchor from "./anchor";
 
 const graphicsOpts = {
-    padding: 20,
-    width: 1,
-    alpha: 0.2,
-    color: 0x607d8B,
-    offset: { server: 3, client: 2 },
     tint: {
         info: 0xffffff,
         error: 0xf44336,
-    },
-    radius: 20
+    }
 };
 
 const defaultValues: {
@@ -34,29 +26,8 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     selected: PointModel | undefined;
     anchor: Anchor;
 
-    constructor(options: PIXIProperty & { offset: number, anchor: Anchor } ) {
-        let graphics = new PIXI.Graphics();
-        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color);
-        graphics.beginFill(graphicsOpts.color, graphicsOpts.alpha);
-        graphics.drawCircle(
-            graphicsOpts.padding + graphicsOpts.radius,
-            graphicsOpts.padding + graphicsOpts.radius,
-            graphicsOpts.radius 
-        );
-        graphics.endFill();
-        graphics.tint = graphicsOpts.tint.info;
-
-        let generator = new GraphicsAnimationGenerator(options.app, graphics);
-
-        let rect = graphics.getBounds().clone();
-        rect.x -= graphicsOpts.padding - 1;
-        rect.y -= graphicsOpts.padding - 1;
-        rect.width += graphicsOpts.padding * 2;
-        rect.height += graphicsOpts.padding * 2;
-
-        let animation = generator.record(rect);
-
-        super({ animation, ...options });
+    constructor(options: AnimatedSpriteProperty & { offset: number, anchor: Anchor } ) {
+        super(options);
         this.anchor = options.anchor;
         this.anchor.cursor = this;
     }
@@ -77,12 +48,12 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("client", (v) => {
-            this.merge("pos", this.toServer(v, graphicsOpts.offset.client))
+            this.merge("pos", this.toServer(v))
             this.selectObject();
             this.moveDestination();
         });
         this.addUpdateCallback("coord", () => {
-            this.merge("pos", this.toServer(this.props.client, graphicsOpts.offset.client))
+            this.merge("pos", this.toServer(this.props.client))
             this.selectObject();
             this.updateDestination();
         });
@@ -91,7 +62,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     protected calcDestination() {
         return (this.selected !== undefined) 
         ? this.toView(this.selected.get("pos"))
-        : this.toView(this.toServer(this.props.client, graphicsOpts.offset.client));
+        : this.toView(this.toServer(this.props.client));
     }
 
 
@@ -100,7 +71,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             this.sprite.visible = false;
             return;
         }
-        if (!this.followPointModel(this.selected, graphicsOpts.offset.server)) {
+        if (!this.followPointModel(this.selected)) {
             super.updateDisplayInfo();
         }
     }

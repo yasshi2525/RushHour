@@ -109,14 +109,12 @@ abstract class MonoGenerator extends Generator {
         // do-nothing
     }
 
-    record(rect: PIXI.Rectangle) {
+    record() {
         for(let i = 0; i < config.round; i++) {
             let offset = this.getOffset(i);
             this.handleObject(i);
             this.filters.forEach(v => v.fn(v.filter, offset));
-            this.textures.push(this.app.renderer.generateTexture(
-                this.object, PIXI.SCALE_MODES.LINEAR, 
-                this.app.renderer.resolution, rect));
+            this.textures.push(PIXI.Texture.from(this.app.renderer.plugins.extract.canvas(this.object)));
         }
         return this.textures;
     }

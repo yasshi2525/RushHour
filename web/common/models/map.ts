@@ -1,3 +1,4 @@
+import * as PIXI from "pixi.js";
 import { Monitorable } from "../interfaces/monitor";
 import { GameMap, Identifiable } from "../../state";
 import GroupModel from "./group";
@@ -16,8 +17,21 @@ export default class extends GroupModel {
         this.containers["residences"] = new ResidenceContainer({ ...base, zIndex: ZIndex.RESIDENCE, texture: textures["residence"].texture});
         this.containers["companies"] = new CompanyContainer({ ...base, zIndex: ZIndex.COMPANY, texture: textures["company"].texture});
         this.containers["stations"] = new StationContainer({ ...base, zIndex: ZIndex.STATION, texture: textures["station"].texture});
-        this.containers["rail_nodes"] = new RailNodeContainer({ ...base, zIndex: ZIndex.RAIL_NODE });
-        this.containers["rail_edges"] = new RailEdgeContainer({  ...base, zIndex: ZIndex.RAIL_EDGE });
+        
+        let rail_node_ss = textures["rail_node"].spritesheet;
+        let rail_edge_ss = textures["rail_edge"].spritesheet;
+
+        let rail_node_anim, rail_edge_anim: PIXI.Texture[];
+        
+        if (rail_node_ss !== undefined && rail_edge_ss !== undefined) {
+            rail_node_anim = rail_node_ss.animations["rail_node"];
+            rail_edge_anim = rail_node_ss.animations["rail_edge"];
+        } else {
+            rail_node_anim = [PIXI.Texture.EMPTY];
+            rail_edge_anim = [PIXI.Texture.EMPTY];
+        }
+        this.containers["rail_nodes"] = new RailNodeContainer({ ...base, zIndex: ZIndex.RAIL_NODE, animation: rail_node_anim });
+        this.containers["rail_edges"] = new RailEdgeContainer({  ...base, zIndex: ZIndex.RAIL_EDGE, animation: rail_edge_anim });
     
         super.init();
     }
