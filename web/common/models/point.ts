@@ -85,7 +85,7 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
         }
     }
 
-    protected followPointModel(following: PointModel | undefined, offset: number) {
+    protected followPointModel(following: PointModel | undefined, offset: number = 0) {
         let object = this.getPIXIObject();
         if (following !== undefined) {
             object.visible = true;

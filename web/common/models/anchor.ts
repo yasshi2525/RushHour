@@ -1,21 +1,9 @@
-import * as PIXI from "pixi.js";
 import { MenuStatus, AnchorStatus } from "../../state";
 import { Monitorable } from "../interfaces/monitor";
-import { PIXIProperty } from "../interfaces/pixi";
+import {  AnimatedSpriteProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel } from "./sprite";
-import { RoundAnimationGenerator } from "./animate";
 import { PointModel } from "./point";
 import Cursor from "./cursor";
-
-const graphicsOpts = {
-    padding: 20,
-    width: 4,
-    alpha: 1.0,
-    slice: 8,
-    color: 0x607d8B,
-    radius: 20,
-    offset: -0.5
-};
 
 const defaultValues: {
     menu: MenuStatus,
@@ -31,34 +19,8 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     object: PointModel | undefined;
     cursor: Cursor | undefined;
 
-    constructor(options: PIXIProperty & { offset: number } ) { 
-        let graphics = new PIXI.Graphics();
-        graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, graphicsOpts.alpha);
-
-        let offset = graphicsOpts.padding + graphicsOpts.radius;
-
-        for (var i = 0; i < graphicsOpts.slice; i++) {
-            let start = i / graphicsOpts.slice * Math.PI * 2;
-            let end = (i + 0.5) / graphicsOpts.slice * Math.PI * 2;
-            let next = (i + 1) / graphicsOpts.slice * Math.PI * 2;
-
-            graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, graphicsOpts.alpha);
-            graphics.arc(offset, offset, graphicsOpts.radius, start, end);
-            graphics.lineStyle(graphicsOpts.width, graphicsOpts.color, 0);
-            graphics.arc(offset, offset, graphicsOpts.radius, end, next);
-        }
-
-        let generator = new RoundAnimationGenerator(options.app, graphics, new PIXI.Point(offset, offset));
-
-        let rect = graphics.getBounds().clone();
-        rect.x -= graphicsOpts.padding - 1;
-        rect.y -= graphicsOpts.padding - 1;
-        rect.width += graphicsOpts.padding * 2;
-        rect.height += graphicsOpts.padding * 2;
-
-        let animation = generator.record(rect);
-
-        super({ animation, ...options });
+    constructor(options: AnimatedSpriteProperty & { offset: number } ) { 
+        super(options);
         this.object = undefined;
     }
 
@@ -109,6 +71,6 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     updateDisplayInfo() {
-        this.followPointModel(this.object, graphicsOpts.offset);
+        this.followPointModel(this.object);
     }
 }

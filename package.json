@@ -8,6 +8,9 @@
   },
   "scripts": {
     "test": "jest",
+    "resource-build": "webpack --config webpack.resources.js",
+    "resource-build-watch": "webpack --watch --config webpack.resources.js" ,
+    "resource-run": "node resources/download.js",
     "build": "webpack --config webpack.prod.js",
     "build-watch": "webpack --watch --config webpack.dev.js"
   },
@@ -30,10 +33,10 @@
     "@types/expect-puppeteer": "^3.3.1",
     "@types/jest": "^24.0.15",
     "@types/jsdom": "^12.2.4",
-    "@types/puppeteer": "^1.12.4",
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.4",
     "@types/react-redux": "^7.1.1",
+    "@types/ws": "^6.0.3",
     "bootstrap": "^4.3.1",
     "canvas": "^2.5.0",
     "css-loader": "^3.1.0",
@@ -58,7 +61,7 @@
     "pixi.js": "^5.0.4",
     "popper.js": "^1.15.0",
     "prop-types": "^15.7.2",
-    "puppeteer": "^1.18.1",
+    "puppeteer": "^1.19.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-redux": "^7.1.0",
@@ -75,7 +78,8 @@
     "typescript": "^3.5.3",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
-    "webpack-merge": "^4.2.1"
+    "webpack-merge": "^4.2.1",
+    "ws": "^7.1.2"
   },
   "dependencies": {}
 }
