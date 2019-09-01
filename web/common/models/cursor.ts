@@ -115,6 +115,14 @@ export default class extends AnimatedSpriteModel implements Monitorable {
                 if (this.anchor.object === objOnChunk) {
                     activation = false;
                 }
+                if (this.anchor.object instanceof RailNode && this.selected instanceof RailNode) {
+                    let anchor = this.anchor.object;
+                    let selected = this.selected;
+                    let link = Object.keys(anchor.out).find(eid => eid != "cursorIn" && anchor.out[eid].to == selected);
+                    if (link !== undefined) {
+                        activation = false;
+                    }
+                }
                 break;
         }
         this.merge("activation", activation);

@@ -90,6 +90,35 @@ func (c APIv1Game) Extend() revel.Result {
 	}{to, re, re.Reverse}))
 }
 
+// Connect returns result of rail connection
+func (c APIv1Game) Connect() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
+	o := &OwnerRequest{}
+	errs := o.Parse(c.Params.Form)
+	e1, err1 := validateEntity(entities.RAILNODE, c.Params.Form.Get("from"))
+	e2, err2 := validateEntity(entities.RAILNODE, c.Params.Form.Get("to"))
+	if err1 != nil {
+		errs = append(errs, err1.Error())
+	}
+	if err2 != nil {
+		errs = append(errs, err2.Error())
+	}
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+	from := e1.(*entities.RailNode)
+	to := e2.(*entities.RailNode)
+	re, err := services.ConnectRailNode(o.O, from, to, o.Scale)
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+	return c.RenderJSON(genResponse(true, &struct {
+		In  *entities.DelegateRailEdge `json:"e1"`
+		Out *entities.DelegateRailEdge `json:"e2"`
+	}{re, re.Reverse}))
+}
+
 func genResponse(status bool, results interface{}) interface{} {
 	return &struct {
 		Status    bool        `json:"status"`

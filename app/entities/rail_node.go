@@ -41,6 +41,11 @@ func (m *Model) NewRailNode(o *Player, x float64, y float64) *RailNode {
 // Extend returns new RailNode which position is (x, y)
 func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 	to := rn.M.NewRailNode(rn.O, x, y)
+	return to, rn.Connect(to)
+}
+
+// Connect returns new RailEdge from rn to to
+func (rn *RailNode) Connect(to *RailNode) *RailEdge {
 	e1 := rn.M.NewRailEdge(rn, to)
 	e2 := rn.M.NewRailEdge(to, rn)
 
@@ -52,7 +57,7 @@ func (rn *RailNode) Extend(x float64, y float64) (*RailNode, *RailEdge) {
 			lt.InsertRailEdge(e1)
 		}
 	})
-	return to, e1
+	return e1
 }
 
 // B returns base information of this elements.

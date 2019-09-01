@@ -13,6 +13,7 @@ GET     /api/v1/gamemap/diff                    ApiV1Game.Diff
 GET     /api/v1/players                         ApiV1Game.Players
 POST    /api/v1/dept                            ApiV1Game.Departure
 POST    /api/v1/extend                          ApiV1Game.Extend
+POST    /api/v1/connect                         ApiV1Game.Connect
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

@@ -111,12 +111,14 @@ func processMsg(msg *Operation) time.Time {
 				reflect.ValueOf(msg.Y),
 			})
 		case entities.RAILNODE:
-			rv.Call([]reflect.Value{
-				reflect.ValueOf(owner),
-				reflect.ValueOf(msg.X),
-				reflect.ValueOf(msg.Y),
-				reflect.ValueOf(10.0),
-			})
+			if rand.Float64() < 0.1 {
+				rv.Call([]reflect.Value{
+					reflect.ValueOf(owner),
+					reflect.ValueOf(msg.X),
+					reflect.ValueOf(msg.Y),
+					reflect.ValueOf(10.0),
+				})
+			}
 		case entities.RAILEDGE:
 			if raw := randEntity(owner, entities.RAILNODE); raw != nil {
 				rn := raw.(*entities.RailNode)
@@ -145,6 +147,23 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(p.Y),
 					reflect.ValueOf(10.0),
 				})
+
+				if oth := randEntity(owner, entities.RAILNODE); oth != nil {
+					to := oth.(*entities.RailNode)
+					if rn != to {
+						var connected bool
+						for _, e := range rn.OutEdges {
+							if e.ToNode == to {
+								connected = true
+								break
+							}
+						}
+
+						if !connected {
+							rn.Connect(to)
+						}
+					}
+				}
 			}
 			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
 				re := raw.(*entities.RailEdge)

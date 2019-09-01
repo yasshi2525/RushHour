@@ -2,7 +2,7 @@ import { takeLatest, put, call } from "redux-saga/effects";
 import * as Action from "../actions";
 import { initPIXI } from "./model";
 import { fetchMap, diffMap } from "./gamemap";
-import { depart, extend } from "./rail";
+import { depart, extend, connect } from "./rail";
 import { players } from "./player";
 
 export interface requestPayload {
@@ -38,5 +38,6 @@ export function* rushHourSaga() {
     yield takeLatest(Action.diffMap.request, diffMap);
     yield takeLatest(Action.players.request, players);
     yield takeLatest(Action.depart.request, depart);
-    yield takeLatest(Action.extend.request, extend)
+    yield takeLatest(Action.extend.request, extend);
+    yield takeLatest(Action.connect.request, connect);
 };

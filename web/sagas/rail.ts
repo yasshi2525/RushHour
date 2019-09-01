@@ -3,7 +3,8 @@ import * as Action from "../actions";
 import { requestURL } from ".";
 
 const departUrl = "api/v1/dept";
-const extendUrl = "api/v1/extend"
+const extendUrl = "api/v1/extend";
+const connectUrl = "api/v1/connect";
 
 function buildDepartQuery(params: Action.PointRequest): string {
     let res = new URLSearchParams();
@@ -21,6 +22,15 @@ function buildExtendQuery(params: Action.ExtendRequest): string {
     res.set("y", params.y.toString());
     res.set("scale", params.scale.toString());
     res.set("rnid", params.rnid.toString());
+    return res.toString();
+}
+
+function buildConnectQuery(params: Action.ConnectRequest): string {
+    let res = new URLSearchParams();
+    res.set("oid", params.oid.toString());
+    res.set("scale", params.scale.toString());
+    res.set("from", params.from.toString());
+    res.set("to", params.to.toString());
     return res.toString();
 }
 
@@ -72,10 +82,38 @@ const requestExtend = (url: string, params: Action.ExtendRequest) =>
     })
     .catch(error => error);
 
+const requestConnect = (url: string, params: Action.ConnectRequest) =>
+    fetch(url, {
+        method: "POST",
+        body: buildConnectQuery(params),
+        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
+    }).then(response => response.json())
+    .then(response => {
+        let model = params.model;
+        let anchorObj = model.gamemap.get("rail_nodes", response.results.e1.to);
+        let e1 = model.gamemap.mergeChild("rail_edges", response.results.e1);
+        let e2 = model.gamemap.mergeChild("rail_edges", response.results.e2);
+        if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
+            e1.resolve({});
+            e2.resolve({});
+            model.controllers.getAnchor().merge("anchor", {
+                type: "rail_nodes", 
+                pos: anchorObj.get("pos"), 
+                cid: anchorObj.get("cid")
+            });
+        }
+        return response;
+    })
+    .catch(error => error);
+
 export function* depart(action: ReturnType<typeof Action.depart.request>) {
     return yield requestURL({ request: requestDepart, url: departUrl, args: action, callbacks: Action.depart });
 }
 
 export function* extend(action: ReturnType<typeof Action.extend.request>) {
     return yield requestURL({ request: requestExtend, url: extendUrl, args: action, callbacks: Action.extend });
+}
+
+export function* connect(action: ReturnType<typeof Action.connect.request>) {
+    return yield requestURL({ request: requestConnect, url: connectUrl, args: action, callbacks: Action.connect });
 }

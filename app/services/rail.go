@@ -66,6 +66,34 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	return tch.RailNode, fch.OutRailEdges[tch.ID], nil
 }
 
+// ConnectRailNode connects Rail
+func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.RailNode, scale float64) (*entities.DelegateRailEdge, error) {
+	if err := CheckAuth(o, from); err != nil {
+		return nil, err
+	}
+	if err := CheckAuth(o, to); err != nil {
+		return nil, err
+	}
+	if from == to {
+		return nil, fmt.Errorf("self-loop is forbidden")
+	}
+	for _, e := range from.OutEdges {
+		if e.ToNode == to {
+			return nil, fmt.Errorf("already conntected")
+		}
+	}
+	e1 := from.Connect(to)
+	route.RefreshTracks(o, Const.Routing.Worker)
+	AddOpLog("ConnectRailNode", o, from, to, e1, e1.Reverse)
+
+	fch := Model.RootCluster.FindChunk(from, scale)
+	tch := Model.RootCluster.FindChunk(to, scale)
+	if fch == nil || tch == nil {
+		return nil, fmt.Errorf("invalid scale=%f", scale)
+	}
+	return fch.OutRailEdges[tch.ID], nil
+}
+
 // RemoveRailEdge remove RailEdge
 func RemoveRailEdge(o *entities.Player, id uint) error {
 	if re, err := Model.DeleteIf(o, entities.RAILEDGE, id); err != nil {
