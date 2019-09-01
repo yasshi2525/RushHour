@@ -30,7 +30,7 @@ export default class {
         this.images.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         
         this.sheets.forEach(key => {
-            this.app.loader.add(key, `public/spritesheet/${key}@${this.model.renderer.resolution}x.json`);
+            this.app.loader.add(key, `public/spritesheet/${key}@${Math.floor(this.model.renderer.resolution)}x.json`);
         });
     }
 
