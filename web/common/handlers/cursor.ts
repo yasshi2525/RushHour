@@ -1,6 +1,6 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
-import { depart, extend, fetchMap } from "../../actions";
+import { depart, extend, connect, fetchMap } from "../../actions";
 import GameModel from "../models";
 import Anchor from "../models/anchor";
 import Cursor from "../models/cursor";
@@ -72,7 +72,16 @@ export abstract class CursorHandler<T> {
                     }
                 } else {
                     if (this.view.selected.get("mul") === 1) {
-                        console.log("TODO: connect");
+                        if (this.anchor.object !== undefined && this.view.get("activation")) {
+                            this.dispatch(connect.request({
+                                model: this.model,
+                                dispatch: this.dispatch,
+                                oid: 2, // TODO
+                                from: this.anchor.object.get("cid"),
+                                to: this.view.selected.get("cid"),
+                                scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
+                            }));
+                        }
                     } else {
                         this.requestZoom(client);
                     }

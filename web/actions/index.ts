@@ -11,15 +11,23 @@ export interface ModelRequest {
 export interface GameMapRequest extends ModelRequest {
 }
 
-export interface PointRequest extends ModelRequest {
+export interface UserActionRequest extends ModelRequest {
     oid: number,
-    x: number,
-    y: number,
     scale: number
+}
+
+export interface PointRequest extends UserActionRequest {
+    x: number,
+    y: number
 };
 
 export interface ExtendRequest extends PointRequest {
     rnid: number
+}
+
+export interface ConnectRequest extends UserActionRequest {
+    from: number,
+    to: number
 }
 
 export interface ActionPayload {
@@ -43,3 +51,4 @@ export const diffMap = createAsyncAction("DIFF_MAP_REQUESTED", "DIFF_MAP_SUCCEED
 export const players = createAsyncAction("PLAYERS_REQUESTED", "PLAYERS_SUCCEEDED", "PLAYERS_FAILED")<ModelRequest, GameResponse, Error>();
 export const depart = createAsyncAction("DEPART_REQUESTED", "DEPART_SUCCEEDED", "DEPART_FAILED")<PointRequest, GameResponse, Error>();
 export const extend = createAsyncAction("EXTEND_REQUESTED", "EXTEND_SUCCEEDED", "EXTEND_FAILED")<ExtendRequest, GameResponse, Error>();
+export const connect = createAsyncAction("CONNECT_REQUESTED", "CONNECT_SUCCEEDED", "CONNECT_FAILED")<ConnectRequest, GameResponse, Error>();
