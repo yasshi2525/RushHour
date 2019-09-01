@@ -142,7 +142,9 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(owner),
 					reflect.ValueOf(raw),
 					reflect.ValueOf(p.X),
-					reflect.ValueOf(p.Y)})
+					reflect.ValueOf(p.Y),
+					reflect.ValueOf(10.0),
+				})
 			}
 			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
 				re := raw.(*entities.RailEdge)

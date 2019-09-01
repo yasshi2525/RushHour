@@ -42,12 +42,12 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 
 // ExtendRailNode extends Rail
 func ExtendRailNode(o *entities.Player, from *entities.RailNode,
-	x float64, y float64) (*entities.RailNode, *entities.RailEdge, *entities.RailEdge, error) {
+	x float64, y float64, scale float64) (*entities.DelegateRailNode, *entities.DelegateRailEdge, error) {
 	if err := CheckAuth(o, from); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	if err := CheckArea(x, y); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	to, e1 := from.Extend(x, y)
 	route.RefreshTracks(o, Const.Routing.Worker)
@@ -57,7 +57,13 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 		}
 	}
 	AddOpLog("ExtendRailNode", o, from, to, e1, e1.Reverse)
-	return to, e1, e1.Reverse, nil
+
+	fch := Model.RootCluster.FindChunk(from, scale)
+	tch := Model.RootCluster.FindChunk(to, scale)
+	if fch == nil || tch == nil {
+		return nil, nil, fmt.Errorf("invalid scale=%f", scale)
+	}
+	return tch.RailNode, fch.OutRailEdges[tch.ID], nil
 }
 
 // RemoveRailEdge remove RailEdge

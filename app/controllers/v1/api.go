@@ -1,7 +1,6 @@
-package controllers
+package v1
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -18,6 +17,8 @@ type APIv1Game struct {
 
 // Index returns gamemap
 func (c APIv1Game) Index() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
 	var params = make(map[string]float64)
 
 	for _, p := range []string{"cx", "cy", "scale", "delegate"} {
@@ -32,11 +33,15 @@ func (c APIv1Game) Index() revel.Result {
 
 // Players returns list of player
 func (c APIv1Game) Players() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
 	return c.RenderJSON(genResponse(true, entities.JsonPlayer(services.Model.Players)))
 }
 
 // Diff returns only diff
 func (c APIv1Game) Diff() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
 	return c.RenderJSON(
 		genResponse(
 			true,
@@ -45,33 +50,44 @@ func (c APIv1Game) Diff() revel.Result {
 
 // Departure returns result of rail node creation
 func (c APIv1Game) Departure() revel.Result {
-	x, err := strconv.ParseFloat(c.Params.Form.Get("x"), 64)
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
+	p := &PointRequest{}
+	if errs := p.Parse(c.Params.Form); len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+	rn, err := services.CreateRailNode(p.O, p.X, p.Y, p.Scale)
 	if err != nil {
-		return c.RenderJSON(genResponse(false, err.Error()))
+		return c.RenderJSON(genResponse(false, []error{err}))
 	}
-	y, err := strconv.ParseFloat(c.Params.Form.Get("y"), 64)
+	return c.RenderJSON(genResponse(true, &struct {
+		RailNode *entities.DelegateRailNode `json:"rn"`
+	}{rn}))
+}
+
+// Extend returns result of rail node extension
+func (c APIv1Game) Extend() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
+	p := &PointRequest{}
+	errs := p.Parse(c.Params.Form)
+	e, err := validateEntity(entities.RAILNODE, c.Params.Form.Get("rnid"))
 	if err != nil {
-		return c.RenderJSON(genResponse(false, err.Error()))
+		errs = append(errs, err.Error())
 	}
-	scale, err := strconv.ParseFloat(c.Params.Form.Get("scale"), 64)
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+	from := e.(*entities.RailNode)
+	to, re, err := services.ExtendRailNode(p.O, from, p.X, p.Y, p.Scale)
 	if err != nil {
-		return c.RenderJSON(genResponse(false, err.Error()))
+		return c.RenderJSON(genResponse(false, []error{err}))
 	}
-	oid, err := strconv.ParseUint(c.Params.Form.Get("oid"), 10, 64)
-	if err != nil {
-		return c.RenderJSON(genResponse(false, err.Error()))
-	}
-	if o, ok := services.Model.Players[uint(oid)]; !ok {
-		return c.RenderJSON(genResponse(false, fmt.Sprintf("%d not exists", oid)))
-	} else {
-		rn, err := services.CreateRailNode(o, x, y, scale)
-		if err != nil {
-			return c.RenderJSON(genResponse(false, err.Error()))
-		}
-		return c.RenderJSON(genResponse(true, &struct {
-			RailNode *entities.DelegateRailNode `json:"rn"`
-		}{rn}))
-	}
+	return c.RenderJSON(genResponse(true, &struct {
+		RailNode *entities.DelegateRailNode `json:"rn"`
+		In       *entities.DelegateRailEdge `json:"e1"`
+		Out      *entities.DelegateRailEdge `json:"e2"`
+	}{to, re, re.Reverse}))
 }
 
 func genResponse(status bool, results interface{}) interface{} {
