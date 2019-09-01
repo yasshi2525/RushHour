@@ -3,38 +3,12 @@ FROM node AS client
 WORKDIR /data
 COPY . .
 
-RUN apt-get update && \
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    (dpkg -i google-chrome*.deb || apt-get -y -f install) && \
-    npm install && \
-    npm run resource-build && \
-    npm run resource-run && \
-    npm run build
-
-FROM ubuntu AS resource
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && \
-    apt-get install -y wget libgl1 libglib2.0-0 expect && \
-    wget https://www.codeandweb.com/download/texturepacker/5.1.0/TexturePacker-5.1.0-ubuntu64.deb && \
-    dpkg -i TexturePacker-5.1.0-ubuntu64.deb && \
-    expect -c "\
-        set timeout 20;\
-        spawn TexturePacker --version;\
-        expect \"Please type 'agree' if you agree with the terms above:\";\
-        send \"agree\n\";\
-        expect eof;\
-    "
-
-WORKDIR /data
-
-COPY --from=client /data/resources/ ./resources/
-
-RUN mkdir -p public/spritesheet && \
-    chmod u+x resources/pack.sh && \
-    ls -la && ls -la resources && \
-    resources/pack.sh
+RUN apt-get update && apt-get install -y git && \
+    npm ci && \
+    npm run build && \
+    git clone https://github.com/yasshi2525/RushHourResource.git && \
+    mkdir -p public/spritesheet && \
+    cp -r RushHourResource/dist/* public/spritesheet/
 
 FROM golang:alpine as server
 
@@ -67,7 +41,6 @@ WORKDIR /rushhour
 
 COPY --from=server /rushhour/ ./
 COPY --from=client /data/public/ src/github.com/yasshi2525/RushHour/public/
-COPY --from=resource /data/public/spritesheet/ src/github.com/yasshi2525/RushHour/public/spritesheet/
 
 EXPOSE 9000
 

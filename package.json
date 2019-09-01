@@ -8,9 +8,6 @@
   },
   "scripts": {
     "test": "jest",
-    "resource-build": "webpack --config webpack.resources.js",
-    "resource-build-watch": "webpack --watch --config webpack.resources.js" ,
-    "resource-run": "node resources/download.js",
     "build": "webpack --config webpack.prod.js",
     "build-watch": "webpack --watch --config webpack.dev.js"
   },
