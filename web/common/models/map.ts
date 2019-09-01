@@ -25,7 +25,7 @@ export default class extends GroupModel {
         
         if (rail_node_ss !== undefined && rail_edge_ss !== undefined) {
             rail_node_anim = rail_node_ss.animations["rail_node"];
-            rail_edge_anim = rail_node_ss.animations["rail_edge"];
+            rail_edge_anim = rail_edge_ss.animations["rail_edge"];
         } else {
             rail_node_anim = [PIXI.Texture.EMPTY];
             rail_edge_anim = [PIXI.Texture.EMPTY];
