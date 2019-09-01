@@ -70,8 +70,9 @@ func (jrn jsonDelegateRailNode) MarshalJSON() ([]byte, error) {
 type DelegateRailEdge struct {
 	Base
 
-	From *DelegateRailNode `json:"-"`
-	To   *DelegateRailNode `json:"-"`
+	From    *DelegateRailNode `json:"-"`
+	To      *DelegateRailNode `json:"-"`
+	Reverse *DelegateRailEdge `json:"-"`
 
 	RailEdges map[uint]*RailEdge `json:"-"`
 	Multi     int                `json:"mul"`

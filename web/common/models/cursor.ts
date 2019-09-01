@@ -16,10 +16,12 @@ const graphicsOpts = {
 
 const defaultValues: {
     menu: MenuStatus,
-    client: Point
+    client: Point,
+    activation: boolean
 } = {
     menu: MenuStatus.IDLE,
-    client: {x: 0, y: 0}
+    client: {x: 0, y: 0},
+    activation: true
 };
 
 export default class extends AnimatedSpriteModel implements Monitorable {
@@ -78,7 +80,8 @@ export default class extends AnimatedSpriteModel implements Monitorable {
 
     selectObject(except: PointModel | undefined = undefined) {
         let objOnChunk = this.getObjectOnChunk(except);
-        let tint = this.getTint(objOnChunk);
+        this.activate(objOnChunk);
+        let tint = this.getTint();
         this.merge("tint", tint);
 
         if (objOnChunk === undefined) {
@@ -103,17 +106,22 @@ export default class extends AnimatedSpriteModel implements Monitorable {
                 break;
         }
         return selected === except ? undefined : selected as PointModel;
+        
     }
-
-    protected getTint(objOnChunk: Monitorable | undefined) {
+    protected activate(objOnChunk: Monitorable | undefined) {
+        let activation = true;
         switch(this.props.menu) {
             case MenuStatus.EXTEND_RAIL:
                 if (this.anchor.object === objOnChunk) {
-                    return graphicsOpts.tint.error
+                    activation = false;
                 }
                 break;
         }
-        return graphicsOpts.tint.info;
+        this.merge("activation", activation);
+    }
+
+    protected getTint() {
+        return this.props.activation ? graphicsOpts.tint.info : graphicsOpts.tint.error
     }
 
     protected selectObjectCursor() {

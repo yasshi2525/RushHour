@@ -1,6 +1,6 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
-import { depart, fetchMap } from "../../actions";
+import { depart, extend, fetchMap } from "../../actions";
 import GameModel from "../models";
 import Anchor from "../models/anchor";
 import Cursor from "../models/cursor";
@@ -60,7 +60,16 @@ export abstract class CursorHandler<T> {
                 break;
             case MenuStatus.EXTEND_RAIL:
                 if (this.view.selected === undefined) {
-                    console.log("TODO: send extend request");
+                    if (this.anchor.object !== undefined && this.view.get("activation")) {
+                        this.dispatch(extend.request({
+                            model: this.model,
+                            dispatch: this.dispatch,
+                            oid: 2, // TODO
+                            x: server.x, y: server.y,
+                            rnid: this.anchor.object.get("cid"),
+                            scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
+                        }));
+                    }
                 } else {
                     if (this.view.selected.get("mul") === 1) {
                         console.log("TODO: connect");

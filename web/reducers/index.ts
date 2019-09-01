@@ -13,8 +13,6 @@ export default (state: RushHourStatus, action: {type: string, payload: Actions.A
             });
         case Actions.players.success.toString():
             return Object.assign({}, state, { isPlayerFetched: true });
-        case Actions.depart.success.toString():
-            return state;
         default:
             return state;
     }

@@ -91,7 +91,9 @@ func (ch *Chunk) addRailEdge(re *RailEdge) {
 		ch.OutRailEdges[target.ID] = dre
 		target.InRailEdges[ch.ID] = dre
 		if reverse, ok := target.OutRailEdges[ch.ID]; ok {
+			dre.Reverse = reverse
 			dre.ReverseID = reverse.ID
+			reverse.Reverse = dre
 			reverse.ReverseID = dre.ID
 		}
 	}
