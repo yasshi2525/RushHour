@@ -166,7 +166,7 @@ export default class {
         this.renderer.resize(width, height);
         this.updateDelegate();
         this.controllers.merge("resize", true);
-        this.gamemap.merge("reize", true);
+        this.gamemap.merge("resize", true);
         return this.delegate !== oldDelegate;
     }
 
