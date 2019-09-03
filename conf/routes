@@ -4,6 +4,7 @@
 #
 
 module:testrunner
+module:pprof
 # module:jobs
 
 
