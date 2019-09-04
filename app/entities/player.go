@@ -137,7 +137,6 @@ func (o *Player) Resolve(args ...Entity) {
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
-		o.Shape.Append(raw.S())
 	}
 }
 
@@ -166,7 +165,6 @@ func (o *Player) UnResolve(args ...Entity) {
 		default:
 			panic(fmt.Errorf("invalid type %v %+v", obj, obj))
 		}
-		o.Shape.Delete(raw.S())
 	}
 }
 
