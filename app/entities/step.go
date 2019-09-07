@@ -8,7 +8,6 @@ import (
 // Step is out of target for persistence because it can derived by other resources.
 type Step struct {
 	Base
-	Shape
 	FromNode Relayable
 	ToNode   Relayable
 }
@@ -17,7 +16,6 @@ type Step struct {
 func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 	s := &Step{
 		Base:     m.NewBase(STEP),
-		Shape:    NewShapeEdge(f.S().Pos(), t.S().Pos()),
 		FromNode: f,
 		ToNode:   t,
 	}
@@ -31,11 +29,6 @@ func (m *Model) NewStep(f Relayable, t Relayable) *Step {
 // B returns base information of this elements.
 func (s *Step) B() *Base {
 	return &s.Base
-}
-
-// S returns entities' position.
-func (s *Step) S() *Shape {
-	return &s.Shape
 }
 
 // Init do nothing
@@ -55,7 +48,7 @@ func (s *Step) To() Entity {
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	return s.Shape.Dist() / Const.Human.Speed
+	return s.FromNode.Pos().Dist(s.ToNode.Pos()) / Const.Human.Speed
 }
 
 // Resolve set reference from id.

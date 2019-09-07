@@ -9,16 +9,19 @@ import (
 )
 
 const (
+	// N represents North
 	N = 0
+	// S represents South
 	S = 1
+	// W represents West
 	W = 0
+	// E represents East
 	E = 1
 )
 
 // Cluster summarize entities of each owner.
 type Cluster struct {
 	Base
-	Shape
 	Point
 	Scale  float64
 	Parent *Cluster
@@ -28,6 +31,7 @@ type Cluster struct {
 	Children [2][2]*Cluster
 }
 
+// NewCluster creates Cluster on specified point.
 func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 	cl := &Cluster{
 		Base: m.NewBase(CLUSTER),
@@ -49,18 +53,14 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 	return cl
 }
 
+// B returns base information of this elements.
 func (cl *Cluster) B() *Base {
 	return &cl.Base
 }
 
-func (cl *Cluster) S() *Shape {
-	return &cl.Shape
-}
-
+// Init creates map.
 func (cl *Cluster) Init(m *Model) {
 	cl.Base.Init(CLUSTER, m)
-
-	cl.Shape.P1 = &cl.Point
 
 	cl.Data = make(map[uint]*Chunk)
 
@@ -74,6 +74,7 @@ func (cl *Cluster) Init(m *Model) {
 	}
 }
 
+// FindChunk returns specific scale's Chunk which has specified Entity.
 func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	if cl.Scale == scale {
 		data := cl.Data[obj.B().OwnerID]
@@ -94,12 +95,14 @@ func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	return nil
 }
 
+// FindChild returns child Cluster on specified point.
 func (cl *Cluster) FindChild(dx int, dy int) (*Cluster, *Point) {
 	x := int(math.Ceil(float64(dx) / 2))
 	y := int(math.Ceil(float64(dy) / 2))
 	return cl.Children[y][x], cl.ChPos[y][x]
 }
 
+// FindOrCreateChild must returns child Cluster on specified point.
 func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
 	if c, _ := cl.FindChild(dx, dy); c != nil {
 		return c
@@ -107,57 +110,51 @@ func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
 	return cl.M.NewCluster(cl, dx, dy)
 }
 
+// Add deploy Entity over related Chunk.
 func (cl *Cluster) Add(raw Entity) {
 	switch obj := raw.(type) {
-	case *Cluster:
-	case *Chunk:
-	case *Player:
-	case *RailLine:
-	case *LineTask:
-	case *Step:
-	case *Track:
-	case *Transport:
-	default:
-		var p *Point
+	case *RailEdge:
+		cl.addEntity(obj, obj.FromNode.Pos())
+	}
 
-		switch obj := obj.(type) {
-		case *RailEdge:
-			p = obj.FromNode.S().P1
-		default:
-			p = obj.S().P1
-		}
-
-		if p == nil {
-			return
-		}
-
-		if !cl.Point.IsIn(p.X, p.Y, cl.Scale) {
-			revel.AppLog.Warnf("%v(%v) is out of bounds for %v", obj, p, cl)
-		}
-
-		oid := obj.B().OwnerID
-		if _, ok := cl.Data[oid]; !ok {
-			cl.Data[oid] = cl.M.NewChunk(cl, obj.B().O)
-		}
-
-		cl.Data[oid].Add(obj)
-
-		cl.EachChildren(func(dx int, dy int, c *Cluster, pos *Point) {
-			if pos.IsIn(p.X, p.Y, cl.Scale-1) {
-				if c == nil {
-					c = cl.M.NewCluster(cl, dx, dy)
-				}
-				c.Add(obj)
-			}
-		})
+	if obj, ok := raw.(Localable); ok {
+		cl.addEntity(raw, obj.Pos())
 	}
 }
 
+func (cl *Cluster) addEntity(obj Entity, p *Point) {
+	if p == nil {
+		return
+	}
+
+	if !cl.Point.IsIn(p.X, p.Y, cl.Scale) {
+		revel.AppLog.Warnf("%v(%v) is out of bounds for %v", obj, p, cl)
+	}
+
+	oid := obj.B().OwnerID
+	if _, ok := cl.Data[oid]; !ok {
+		cl.Data[oid] = cl.M.NewChunk(cl, obj.B().O)
+	}
+
+	cl.Data[oid].Add(obj)
+
+	cl.eachChildren(func(dx int, dy int, c *Cluster, pos *Point) {
+		if pos.IsIn(p.X, p.Y, cl.Scale-1) {
+			if c == nil {
+				c = cl.M.NewCluster(cl, dx, dy)
+			}
+			c.Add(obj)
+		}
+	})
+}
+
+// Update changes Chunk of specified Entity
 func (cl *Cluster) Update(obj Entity) {
 	cl.Remove(obj)
 	cl.Add(obj)
 }
 
+// Remove undeploy specified Entity over related Chunk.
 func (cl *Cluster) Remove(raw Entity) {
 	switch obj := raw.(type) {
 	case *Cluster:
@@ -172,7 +169,7 @@ func (cl *Cluster) Remove(raw Entity) {
 		oid := obj.B().OwnerID
 		if chunk := cl.Data[oid]; chunk != nil {
 			chunk.Remove(obj)
-			cl.EachChildren(func(dx int, dy int, c *Cluster, p *Point) {
+			cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
 				if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
 					c.Data[oid].Remove(obj)
 				}
@@ -187,14 +184,15 @@ func (cl *Cluster) Remove(raw Entity) {
 	}
 }
 
+// ViewMap set delegate Entity to DelegateMap.
 func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float64, span float64) {
-	if cl.IntersectsWith(cx, cy, scale) {
+	if cl.intersectsWith(cx, cy, scale) {
 		if cl.Scale <= scale-span {
 			for _, d := range cl.Data {
 				d.Export(dm)
 			}
 		} else {
-			cl.EachChildren(func(dx int, dy int, c *Cluster, p *Point) {
+			cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
 				if c != nil {
 					c.ViewMap(dm, cx, cy, scale, span)
 				}
@@ -203,7 +201,7 @@ func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float6
 	}
 }
 
-func (cl *Cluster) EachChildren(callback func(int, int, *Cluster, *Point)) {
+func (cl *Cluster) eachChildren(callback func(int, int, *Cluster, *Point)) {
 	if cl.Scale > Const.MinScale {
 		for _, dy := range []int{-1, +1} {
 			for _, dx := range []int{-1, +1} {
@@ -214,12 +212,14 @@ func (cl *Cluster) EachChildren(callback func(int, int, *Cluster, *Point)) {
 	}
 }
 
+// BeforeDelete remove reference of related entity
 func (cl *Cluster) BeforeDelete() {
 	if cl.Parent != nil {
 		cl.Parent.UnResolve(cl)
 	}
 }
 
+// UnResolve unregisters specified refernce.
 func (cl *Cluster) UnResolve(args ...interface{}) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -239,6 +239,7 @@ func (cl *Cluster) UnResolve(args ...interface{}) {
 	}
 }
 
+// Resolve set reference.
 func (cl *Cluster) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -250,6 +251,7 @@ func (cl *Cluster) Resolve(args ...Entity) {
 	}
 }
 
+// CheckDelete check remain relation.
 func (cl *Cluster) CheckDelete() error {
 	if len(cl.Data) > 0 {
 		return fmt.Errorf("data exists")
@@ -266,6 +268,7 @@ func (cl *Cluster) CheckDelete() error {
 	return nil
 }
 
+// Delete removes this entity with related ones.
 func (cl *Cluster) Delete() {
 	for _, list := range cl.Children {
 		for _, child := range list {
@@ -280,7 +283,7 @@ func (cl *Cluster) Delete() {
 	cl.M.Delete(cl)
 }
 
-func (cl *Cluster) IntersectsWith(cx float64, cy float64, scale float64) bool {
+func (cl *Cluster) intersectsWith(cx float64, cy float64, scale float64) bool {
 	myL := math.Pow(2, cl.Scale) / 2
 	othL := math.Pow(2, scale) / 2
 

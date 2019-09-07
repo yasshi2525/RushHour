@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
+// Chunk represents square area. Many Entities are deployed over Chunk.
 type Chunk struct {
 	Base
-	Shape
 	Point
 
 	RailNode *DelegateRailNode
@@ -17,6 +17,7 @@ type Chunk struct {
 	OutRailEdges map[uint]*DelegateRailEdge
 }
 
+// NewChunk create Chunk on specified Cluster
 func (m *Model) NewChunk(p *Cluster, o *Player) *Chunk {
 	ch := &Chunk{
 		Base:  m.NewBase(CHUNK, o),
@@ -28,21 +29,19 @@ func (m *Model) NewChunk(p *Cluster, o *Player) *Chunk {
 	return ch
 }
 
+// B returns base information of this elements.
 func (ch *Chunk) B() *Base {
 	return &ch.Base
 }
 
-func (ch *Chunk) S() *Shape {
-	return &ch.Shape
-}
-
+// Init creates map.
 func (ch *Chunk) Init(m *Model) {
 	ch.Base.Init(CHUNK, m)
-	ch.Shape.P1 = &ch.Point
 	ch.InRailEdges = make(map[uint]*DelegateRailEdge)
 	ch.OutRailEdges = make(map[uint]*DelegateRailEdge)
 }
 
+// Add deploy Entity over Chunk
 func (ch *Chunk) Add(raw Entity) {
 	switch obj := raw.(type) {
 	case *RailNode:
@@ -102,6 +101,7 @@ func (ch *Chunk) addRailEdge(re *RailEdge) {
 	dre.Multi = len(dre.RailEdges)
 }
 
+// Remove undeploy Entity over Chunk
 func (ch *Chunk) Remove(raw Entity) {
 	switch obj := raw.(type) {
 	case *RailNode:
@@ -138,6 +138,7 @@ func (ch *Chunk) removeRailEdge(re *RailEdge) {
 	}
 }
 
+// Has returns whether specified Entity is deployed over Chunk or not.
 func (ch *Chunk) Has(raw Entity) bool {
 	switch obj := raw.(type) {
 	case *RailNode:
@@ -153,22 +154,27 @@ func (ch *Chunk) Has(raw Entity) bool {
 	return false
 }
 
+// IsEmpty returns whether any Entity is deployed over Chunk or not.
 func (ch *Chunk) IsEmpty() bool {
 	return ch.RailNode == nil
 }
 
+// CheckDelete check remaining reference.
 func (ch *Chunk) CheckDelete() error {
 	return nil
 }
 
+// BeforeDelete remove reference of related entity
 func (ch *Chunk) BeforeDelete() {
 	ch.Parent.UnResolve(ch)
 }
 
+// Delete removes this entity with related ones.
 func (ch *Chunk) Delete() {
 	ch.M.Delete(ch)
 }
 
+// Resolve set reference
 func (ch *Chunk) Resolve(args ...Entity) {
 	for _, raw := range args {
 		switch obj := raw.(type) {
@@ -180,6 +186,7 @@ func (ch *Chunk) Resolve(args ...Entity) {
 	}
 }
 
+// Export set delegate Entity to DelegateMap
 func (ch *Chunk) Export(dm *DelegateMap) {
 	if rn := ch.RailNode; rn != nil {
 		dm.RailNodes[rn.ID] = rn

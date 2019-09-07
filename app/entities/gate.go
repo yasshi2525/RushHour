@@ -9,7 +9,6 @@ import (
 type Gate struct {
 	Base
 	Persistence
-	Shape
 
 	// Num represents how many Human can pass at the same time
 	Num int `gorm:"not null" json:"num"`
@@ -55,9 +54,12 @@ func (g *Gate) P() *Persistence {
 	return &g.Persistence
 }
 
-// S returns entities' position.
-func (g *Gate) S() *Shape {
-	return &g.Shape
+// Pos returns entities' position.
+func (g *Gate) Pos() *Point {
+	if g.WithPlatform == nil {
+		return nil
+	}
+	return g.WithPlatform.Pos()
 }
 
 // GenOutSteps generates Steps from this Gate.
@@ -107,7 +109,6 @@ func (g *Gate) Resolve(args ...Entity) {
 			obj.Resolve(g)
 		case *Platform:
 			g.WithPlatform = obj
-			g.Shape = obj.Shape
 			g.M.RootCluster.Add(g)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))

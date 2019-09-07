@@ -57,10 +57,8 @@ func TestRailEdge(t *testing.T) {
 			TestCases{
 				{"n1.In", len(n1.InEdges), 0},
 				{"n1.Out", len(n1.OutEdges), 0},
-				{"n1.S.Ref", len(n1.S().Referred), 0},
 				{"n2.In", len(n2.InEdges), 0},
 				{"n2.Out", len(n2.OutEdges), 0},
-				{"n2.S.Ref", len(n2.S().Referred), 0},
 				{"o.re", len(o.RailEdges), 0},
 				{"reroute", o.ReRouting, true},
 				{"m.re", len(m.RailEdges), 0},

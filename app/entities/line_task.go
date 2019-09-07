@@ -24,7 +24,6 @@ const (
 type LineTask struct {
 	Base
 	Persistence
-	Shape
 
 	TaskType LineTaskType `gorm:"not null" json:"type"`
 
@@ -52,7 +51,6 @@ func (m *Model) NewLineTaskDept(l *RailLine, p *Platform, tail ...*LineTask) *Li
 	lt := &LineTask{
 		Base:        m.NewBase(LINETASK, l.O),
 		Persistence: NewPersistence(),
-		Shape:       p.Shape,
 		TaskType:    OnDeparture,
 	}
 	lt.Init(m)
@@ -71,7 +69,6 @@ func (m *Model) NewLineTask(l *RailLine, re *RailEdge, tail ...*LineTask) *LineT
 	lt := &LineTask{
 		Base:        m.NewBase(LINETASK, l.O),
 		Persistence: NewPersistence(),
-		Shape:       re.Shape,
 	}
 	lt.Init(m)
 	lt.Resolve(l.O, l, re)
@@ -105,11 +102,6 @@ func (lt *LineTask) P() *Persistence {
 	return &lt.Persistence
 }
 
-// S returns entities' position.
-func (lt *LineTask) S() *Shape {
-	return &lt.Shape
-}
-
 // Init initializes map
 func (lt *LineTask) Init(m *Model) {
 	lt.Base.Init(LINETASK, m)
@@ -132,9 +124,12 @@ func (lt *LineTask) Step(prog *float64, sec *float64) {
 
 // Loc returns Point which devides progress ratio to it.
 func (lt *LineTask) Loc(prog float64) *Point {
+	if lt.TaskType == OnDeparture {
+		return lt.Stay.Pos()
+	}
 	if prog < 0.5 && lt.before.TaskType == OnDeparture {
 		return lt.Moving.Div(2 * prog * prog)
-	} else if prog > 0.5 && lt.TaskType == OnDeparture {
+	} else if prog > 0.5 && lt.TaskType == OnStopping {
 		return lt.Moving.Div(-2*prog*prog + 4*prog - 1)
 	}
 	return lt.Moving.Div(prog)
@@ -149,7 +144,6 @@ func (lt *LineTask) Resolve(args ...Entity) {
 			obj.Resolve(lt)
 		case *Platform:
 			lt.Stay = obj
-			lt.Shape = obj.Shape
 			lt.Dept = obj
 			lt.Dest = obj
 			lt.RailLine.Resolve(obj)
@@ -158,7 +152,6 @@ func (lt *LineTask) Resolve(args ...Entity) {
 			obj.OnRailNode.InTasks[lt.ID] = lt
 		case *RailEdge:
 			lt.Moving = obj
-			lt.Shape = obj.Shape
 			lt.RailLine.Resolve(obj)
 			obj.Resolve(lt)
 			if p := obj.FromNode.OverPlatform; p != nil {
@@ -341,12 +334,12 @@ func (lt *LineTask) Cost() float64 {
 		if lt.before.TaskType == OnDeparture {
 			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.S().Angle(lt.Moving.S()) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.Angle(lt.Moving) / math.Pi
 		}
 		if lt.TaskType == OnStopping {
 			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.S().Angle(lt.next.Moving.S()) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.Angle(lt.next.Moving) / math.Pi
 		}
 		return cost
 	}
@@ -445,17 +438,12 @@ func (lt *LineTask) String() string {
 	if lt.Dest != nil {
 		dest = fmt.Sprintf(",dest=%d", lt.Dest.ID)
 	}
-	posstr := ""
-	if lt.Pos() != nil {
-		posstr = fmt.Sprintf(":%s", lt.Pos())
-	}
 	nmstr := ""
 	if lt.RailLine != nil {
 		nmstr = fmt.Sprintf(":%s", lt.RailLine.Name)
 	}
-	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s%s%s%s", lt.Type().Short(),
-		lt.ID, lt.TaskType, lt.RailLineID, before, next, stay, dept, moving, dest,
-		posstr, ostr, nmstr)
+	return fmt.Sprintf("%s(%d):%v,l=%d%s%s%s%s%s%s%s%s", lt.Type().Short(),
+		lt.ID, lt.TaskType, lt.RailLineID, before, next, stay, dept, moving, dest, ostr, nmstr)
 }
 
 func (ltt LineTaskType) String() string {

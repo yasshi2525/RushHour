@@ -8,7 +8,6 @@ import (
 type Station struct {
 	Base
 	Persistence
-	Shape
 
 	Name string `gorm:"not null" json:"name"`
 
@@ -42,9 +41,12 @@ func (st *Station) P() *Persistence {
 	return &st.Persistence
 }
 
-// S returns entities' position.
-func (st *Station) S() *Shape {
-	return &st.Shape
+// Pos returns entities' position.
+func (st *Station) Pos() *Point {
+	if st.Platform == nil {
+		return nil
+	}
+	return st.Platform.Pos()
 }
 
 // Init creates map.
@@ -63,7 +65,6 @@ func (st *Station) Resolve(args ...Entity) {
 			st.Gate = obj
 		case *Platform:
 			st.Platform = obj
-			st.Shape = obj.Shape
 			st.M.RootCluster.Add(st)
 			obj.Resolve(st.Gate)
 		default:
@@ -126,8 +127,8 @@ func (st *Station) String() string {
 		ostr = fmt.Sprintf(":%s", st.O.Short())
 	}
 	posstr := ""
-	if st.Pos() != nil {
-		posstr = fmt.Sprintf(":%s", st.Pos())
+	if st.Platform != nil {
+		posstr = fmt.Sprintf(":%s", st.Platform.Pos())
 	}
 	return fmt.Sprintf("%s(%d):g=%d,p=%d%s%s:%s", st.Type().Short(),
 		st.ID, st.PlatformID, st.GateID, posstr, ostr, st.Name)

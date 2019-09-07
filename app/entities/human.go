@@ -21,7 +21,6 @@ const (
 type Human struct {
 	Base
 	Persistence
-	Shape
 	Point
 
 	// Avaialble represents how many seconds Human is able to use for moving or staying.
@@ -105,15 +104,14 @@ func (h *Human) P() *Persistence {
 	return &h.Persistence
 }
 
-// S returns entities' position.
-func (h *Human) S() *Shape {
-	return &h.Shape
+// Pos returns entities' position.
+func (h *Human) Pos() *Point {
+	return &h.Point
 }
 
 // Init creates map.
 func (h *Human) Init(m *Model) {
 	h.Base.Init(HUMAN, m)
-	h.Shape.P1 = &h.Point
 	h.M = m
 	h.out = make(map[uint]*Step)
 }
@@ -213,8 +211,8 @@ func (h *Human) Delete() {
 }
 
 // TurnTo make Human turn head to dest.
-func (h *Human) turnTo(dest Entity) *Human {
-	h.Angle = math.Atan2(dest.S().Pos().Y-h.Y, dest.S().Pos().X-h.X)
+func (h *Human) turnTo(dest Relayable) *Human {
+	h.Angle = math.Atan2(dest.Pos().Y-h.Y, dest.Pos().X-h.X)
 	return h
 }
 
@@ -237,8 +235,8 @@ func (h *Human) move(dist float64) *Human {
 
 // WalkTo make Human walk to dest point.
 // If Human cannot reach it, proceed forward as possible.
-func (h *Human) WalkTo(dest Entity) *Human {
-	h.turnTo(dest).move(h.S().Pos().Dist(dest.S().Pos()))
+func (h *Human) WalkTo(dest Relayable) *Human {
+	h.turnTo(dest).move(h.Pos().Dist(dest.Pos()))
 	return h
 }
 

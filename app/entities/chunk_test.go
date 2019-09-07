@@ -1,6 +1,8 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestChunk(t *testing.T) {
 	t.Run("Add", func(t *testing.T) {

@@ -5,7 +5,6 @@ import "fmt"
 // Transport has minimum distance route on line which connects two Platform.
 type Transport struct {
 	Base
-	Shape
 	FromPlatform *Platform
 	ToPlatform   *Platform
 	Via          *LineTask
@@ -16,7 +15,6 @@ type Transport struct {
 func (m *Model) NewTransport(f *Platform, t *Platform, via *LineTask, v float64) *Transport {
 	x := &Transport{
 		Base:         m.NewBase(TRANSPORT),
-		Shape:        NewShapeEdge(&f.OnRailNode.Point, &t.OnRailNode.Point),
 		FromPlatform: f,
 		ToPlatform:   t,
 		Via:          via,
@@ -31,11 +29,6 @@ func (m *Model) NewTransport(f *Platform, t *Platform, via *LineTask, v float64)
 // B returns base information of this elements.
 func (x *Transport) B() *Base {
 	return &x.Base
-}
-
-// S returns entities' position.
-func (x *Transport) S() *Shape {
-	return &x.Shape
 }
 
 // Init do nothing

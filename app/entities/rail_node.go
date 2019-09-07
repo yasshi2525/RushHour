@@ -9,7 +9,6 @@ import (
 type RailNode struct {
 	Base
 	Persistence
-	Shape
 	Point
 
 	InEdges      map[uint]*RailEdge `gorm:"-" json:"-"`
@@ -70,15 +69,14 @@ func (rn *RailNode) P() *Persistence {
 	return &rn.Persistence
 }
 
-// S returns entities' position.
-func (rn *RailNode) S() *Shape {
-	return &rn.Shape
+// Pos returns entities' position.
+func (rn *RailNode) Pos() *Point {
+	return &rn.Point
 }
 
 // Init makes map
 func (rn *RailNode) Init(m *Model) {
 	rn.Base.Init(RAILNODE, m)
-	rn.Shape.P1 = &rn.Point
 	rn.InEdges = make(map[uint]*RailEdge)
 	rn.OutEdges = make(map[uint]*RailEdge)
 	rn.InTasks = make(map[uint]*LineTask)
@@ -177,5 +175,5 @@ func (rn *RailNode) String() string {
 		pstr = fmt.Sprintf(",p=%d", rn.OverPlatform.ID)
 	}
 	return fmt.Sprintf("%s(%d):i=%d,o=%d%s:%v%s", rn.Type().Short(),
-		rn.ID, len(rn.InEdges), len(rn.OutEdges), pstr, rn.Pos(), ostr)
+		rn.ID, len(rn.InEdges), len(rn.OutEdges), pstr, rn.Point, ostr)
 }

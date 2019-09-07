@@ -6,19 +6,23 @@ import (
 	"strings"
 )
 
+// DelegateMap represents Map for client view.
 type DelegateMap struct {
 	RailNodes jsonDelegateRailNode `json:"rail_nodes"`
 	RailEdges jsonDelegateRailEdge `json:"rail_edges"`
 }
 
+// Init creates maps.
 func (dm *DelegateMap) Init(m *Model) {
 	dm.RailNodes = make(map[uint]*DelegateRailNode)
 	dm.RailEdges = make(map[uint]*DelegateRailEdge)
 }
 
-type JsonPlayer map[uint]*Player
+// JSONPlayer is collection of Player.
+type JSONPlayer map[uint]*Player
 
-func (jp JsonPlayer) MarshalJSON() ([]byte, error) {
+// MarshalJSON serializes collection of Player.
+func (jp JSONPlayer) MarshalJSON() ([]byte, error) {
 	os := []*Player{}
 	for _, o := range jp {
 		os = append(os, o)
@@ -26,6 +30,7 @@ func (jp JsonPlayer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(os)
 }
 
+// DelegateRailNode is delegate RailNode.
 type DelegateRailNode struct {
 	Base
 
@@ -36,6 +41,7 @@ type DelegateRailNode struct {
 	ChildID   uint               `json:"cid,omitempty"`
 }
 
+// UpdatePos update center point.
 func (rn *DelegateRailNode) UpdatePos() {
 	rn.Pos = &Point{}
 
@@ -67,6 +73,7 @@ func (jrn jsonDelegateRailNode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(rns)
 }
 
+// DelegateRailEdge is delegate of RailEdge
 type DelegateRailEdge struct {
 	Base
 
