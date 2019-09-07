@@ -118,12 +118,13 @@ func (t *Train) SetTask(lt *LineTask) {
 	if lt != nil {
 		t.TaskID = lt.ID
 		lt.Resolve(t)
+		t.Point = *t.task.Loc(t.Progress)
 	} else {
 		t.UnLoad()
 		t.TaskID = ZERO
+		t.Point = Point{}
 	}
 
-	t.Point = *t.task.Loc(t.Progress)
 	t.Change()
 	t.Marshal()
 }
