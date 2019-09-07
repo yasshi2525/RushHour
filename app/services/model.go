@@ -159,7 +159,7 @@ func processMsg(msg *Operation) time.Time {
 							}
 						}
 
-						if !connected {
+						if !connected && rn.Point.Dist(&to.Point) < math.Pow(2, 8) {
 							rn.Connect(to)
 						}
 					}

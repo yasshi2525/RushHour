@@ -12,7 +12,6 @@ type Train struct {
 	Base
 	Persistence
 	Point
-	Shape
 
 	Capacity int `json:"capacity"`
 	// Mobility represents how many Human can get off at the same time.
@@ -59,15 +58,10 @@ func (t *Train) P() *Persistence {
 	return &t.Persistence
 }
 
-// S returns entities' position.
-func (t *Train) S() *Shape {
-	return &t.Shape
-}
-
 // UnLoad unregisters all Human ride on it forcefully.
 func (t *Train) UnLoad() {
 	for _, h := range t.Passengers {
-		h.Point = *t.Pos().Rand(Const.Train.Randomize)
+		h.Point = *t.Point.Rand(Const.Train.Randomize)
 		h.onTrain = nil
 		h.TrainID = ZERO
 		t.Occupied--
@@ -108,7 +102,6 @@ func (t *Train) Type() ModelType {
 // Init makes map
 func (t *Train) Init(m *Model) {
 	t.Base.Init(TRAIN, m)
-	t.Shape.P1 = &t.Point
 	t.Passengers = make(map[uint]*Human)
 }
 
@@ -130,7 +123,7 @@ func (t *Train) SetTask(lt *LineTask) {
 		t.TaskID = ZERO
 	}
 
-	t.Point = *t.Shape.Div(t.Progress)
+	t.Point = *t.task.Loc(t.Progress)
 	t.Change()
 	t.Marshal()
 }
@@ -232,10 +225,6 @@ func (t *Train) String() string {
 	if t.task != nil {
 		ltstr = fmt.Sprintf(",lt=%d", t.task.ID)
 	}
-	posstr := ""
-	if t.Pos() != nil {
-		posstr = fmt.Sprintf(":%s", t.Pos())
-	}
-	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f%s%s:%s", t.Type().Short(),
-		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, posstr, ostr, t.Name)
+	return fmt.Sprintf("%s(%v):h=%d/%d%s,%%=%.2f:%s%s:%s", t.Type().Short(),
+		t.ID, len(t.Passengers), t.Capacity, ltstr, t.Progress, &t.Point, ostr, t.Name)
 }

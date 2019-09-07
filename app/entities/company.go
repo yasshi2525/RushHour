@@ -9,7 +9,6 @@ type Company struct {
 	Base
 	Persistence
 	Point
-	Shape
 
 	// Attract : if Attract is bigger, more Human destinate Company
 	Attract float64 `gorm:"not null" json:"attract"`
@@ -46,9 +45,9 @@ func (c *Company) P() *Persistence {
 	return &c.Persistence
 }
 
-// S returns entities' position.
-func (c *Company) S() *Shape {
-	return &c.Shape
+// Pos returns entities' position.
+func (c *Company) Pos() *Point {
+	return &c.Point
 }
 
 // GenInSteps generates and registers Step for this Company.
@@ -66,7 +65,6 @@ func (c *Company) GenInSteps() {
 // Init creates map.
 func (c *Company) Init(m *Model) {
 	c.Base.Init(COMPANY, m)
-	c.Shape.P1 = &c.Point
 	c.in = make(map[uint]*Step)
 	c.Targets = make(map[uint]*Human)
 }

@@ -19,7 +19,6 @@ const (
 type Player struct {
 	Base
 	Persistence
-	Shape
 
 	Level       PlayerType `gorm:"not null"       json:"lv"`
 	DisplayName string     `gorm:"not null"       json:"name"`
@@ -44,7 +43,6 @@ func (m *Model) NewPlayer() *Player {
 	o := &Player{
 		Base:        m.NewBase(PLAYER),
 		Persistence: NewPersistence(),
-		Shape:       NewShapeGroup(),
 	}
 	h := float64((int(o.ID)%6)*60 + (int(o.ID)/6)*15)
 	var r, g, b int
@@ -85,11 +83,6 @@ func (o *Player) P() *Persistence {
 	return &o.Persistence
 }
 
-// S returns entities' position.
-func (o *Player) S() *Shape {
-	return &o.Shape
-}
-
 // ClearTracks eraces track infomation.
 func (o *Player) ClearTracks() {
 	for _, tr := range o.Tracks {
@@ -100,7 +93,6 @@ func (o *Player) ClearTracks() {
 // Init do nothing
 func (o *Player) Init(m *Model) {
 	o.Base.Init(PLAYER, m)
-	o.Shape.Children = []*Shape{}
 	o.RailNodes = make(map[uint]*RailNode)
 	o.RailEdges = make(map[uint]*RailEdge)
 	o.Stations = make(map[uint]*Station)

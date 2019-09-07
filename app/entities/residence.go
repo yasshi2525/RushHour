@@ -9,7 +9,6 @@ import (
 type Residence struct {
 	Base
 	Persistence
-	Shape
 	Point
 
 	Capacity int `json:"capacity"`
@@ -49,9 +48,9 @@ func (r *Residence) P() *Persistence {
 	return &r.Persistence
 }
 
-// S returns entities' position.
-func (r *Residence) S() *Shape {
-	return &r.Shape
+// Pos returns entities' position.
+func (r *Residence) Pos() *Point {
+	return &r.Point
 }
 
 // GenOutSteps generates Steps from this Residence.
@@ -69,7 +68,6 @@ func (r *Residence) GenOutSteps() {
 // Init creates map.
 func (r *Residence) Init(m *Model) {
 	r.Base.Init(RESIDENCE, m)
-	r.Shape.P1 = &r.Point
 	r.out = make(map[uint]*Step)
 	r.Targets = make(map[uint]*Human)
 }

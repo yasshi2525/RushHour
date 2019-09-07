@@ -3,7 +3,6 @@ package entities
 // Entity represents that it is CRUD object.
 type Entity interface {
 	B() *Base
-	S() *Shape
 	CheckDelete() error
 	BeforeDelete()
 	Delete()
@@ -16,6 +15,11 @@ type Initializable interface {
 	Init(*Model)
 }
 
+// Localable represents that exists geographically and can be specified by point.
+type Localable interface {
+	Pos() *Point
+}
+
 // Relayable represents connectable for Human moving
 type Relayable interface {
 	// In represents how other can reach itself.
@@ -24,7 +28,7 @@ type Relayable interface {
 	OutSteps() map[uint]*Step
 
 	B() *Base
-	S() *Shape
+	Pos() *Point
 	CheckDelete() error
 	BeforeDelete()
 	Delete()

@@ -8,7 +8,6 @@ import (
 type RailLine struct {
 	Base
 	Persistence
-	Shape
 
 	Name      string `json:"name"`
 	AutoExt   bool   `json:"auto_ext"`
@@ -27,7 +26,6 @@ func (m *Model) NewRailLine(o *Player) *RailLine {
 	l := &RailLine{
 		Base:        m.NewBase(RAILLINE, o),
 		Persistence: NewPersistence(),
-		Shape:       NewShapeGroup(),
 	}
 	l.Init(m)
 	l.Resolve(o)
@@ -45,11 +43,6 @@ func (l *RailLine) B() *Base {
 // P returns time information for database.
 func (l *RailLine) P() *Persistence {
 	return &l.Persistence
-}
-
-// S returns entities' position.
-func (l *RailLine) S() *Shape {
-	return &l.Shape
 }
 
 // StartPlatform creates LineTask which depart from specified Platform.
@@ -123,7 +116,6 @@ func (l *RailLine) ClearTransports() {
 // Init makes map
 func (l *RailLine) Init(m *Model) {
 	l.Base.Init(RAILLINE, m)
-	l.Shape.Children = []*Shape{}
 	l.RailEdges = make(map[uint]*RailEdge)
 	l.Stops = make(map[uint]*Platform)
 	l.Tasks = make(map[uint]*LineTask)
@@ -144,7 +136,6 @@ func (l *RailLine) Resolve(args ...Entity) {
 			l.Stops[obj.ID] = obj
 		case *LineTask:
 			l.Tasks[obj.ID] = obj
-			l.Shape.Append(obj.S())
 		case *Train:
 			l.Trains[obj.ID] = obj
 		case *Step:
@@ -173,7 +164,6 @@ func (l *RailLine) UnResolve(args ...Entity) {
 			delete(l.RailEdges, obj.ID)
 		case *LineTask:
 			delete(l.Tasks, obj.ID)
-			l.Shape.Delete(obj.S())
 		case *Train:
 			delete(l.Trains, obj.ID)
 		default:
@@ -266,10 +256,6 @@ func (l *RailLine) String() string {
 	if l.O != nil {
 		ostr = fmt.Sprintf(":%s", l.O.Short())
 	}
-	posstr := ""
-	if l.Pos() != nil {
-		posstr = fmt.Sprintf(":%s", l.Pos())
-	}
-	return fmt.Sprintf("%s(%d):lt=%d%s%s:%s", l.Type().Short(),
-		l.ID, len(l.Tasks), posstr, ostr, l.Name)
+	return fmt.Sprintf("%s(%d):lt=%d%s:%s", l.Type().Short(),
+		l.ID, len(l.Tasks), ostr, l.Name)
 }

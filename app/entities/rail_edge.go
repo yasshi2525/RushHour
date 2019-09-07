@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math"
 )
 
 // RailEdge connects from RailNode to RailNode.
@@ -9,7 +10,6 @@ import (
 type RailEdge struct {
 	Base
 	Persistence
-	Shape
 
 	FromNode  *RailNode          `gorm:"-" json:"-"`
 	ToNode    *RailNode          `gorm:"-" json:"-"`
@@ -27,7 +27,6 @@ func (m *Model) NewRailEdge(f *RailNode, t *RailNode) *RailEdge {
 	re := &RailEdge{
 		Base:        m.NewBase(RAILEDGE, f.O),
 		Persistence: NewPersistence(),
-		Shape:       NewShapeEdge(&f.Point, &t.Point),
 	}
 	re.Init(m)
 	re.Resolve(f.O, f, t)
@@ -45,11 +44,6 @@ func (re *RailEdge) B() *Base {
 // P returns time information for database.
 func (re *RailEdge) P() *Persistence {
 	return &re.Persistence
-}
-
-// S returns entities' position.
-func (re *RailEdge) S() *Shape {
-	return &re.Shape
 }
 
 // Init do nothing
@@ -71,7 +65,23 @@ func (re *RailEdge) To() Entity {
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.Shape.Dist() / Const.Train.Speed
+	return re.FromNode.Point.Dist(&re.ToNode.Point) / Const.Train.Speed
+}
+
+// Div returns dividing point to certain ratio.
+func (re *RailEdge) Div(progress float64) *Point {
+	return re.FromNode.Point.Div(&re.ToNode.Point, progress)
+}
+
+// Angle returns angle with 'to' object.
+func (re *RailEdge) Angle(to *RailEdge) float64 {
+	v := re.ToNode.Point.Sub(&re.FromNode.Point).Unit()
+	u := to.ToNode.Point.Sub(&to.FromNode.Point).Unit()
+	theta := math.Acos(v.InnerProduct(u))
+	if math.IsNaN(theta) {
+		return math.Pi
+	}
+	return theta
 }
 
 // CheckDelete check remain relation.
@@ -91,8 +101,6 @@ func (re *RailEdge) CheckDelete() error {
 func (re *RailEdge) BeforeDelete() {
 	delete(re.FromNode.OutEdges, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
-	re.FromNode.Shape.UnRefer(re.S())
-	re.ToNode.Shape.UnRefer(re.S())
 	re.O.UnResolve(re)
 }
 
@@ -119,14 +127,12 @@ func (re *RailEdge) Resolve(args ...Entity) {
 			obj.Resolve(re)
 		case *RailNode:
 			if !doneFrom {
-				re.O, re.FromNode, re.Shape.P1 = obj.O, obj, &obj.Point
+				re.O, re.FromNode = obj.O, obj
 				doneFrom = true
 				obj.OutEdges[re.ID] = re
-				obj.Shape.Refer(re.S())
 			} else {
-				re.ToNode, re.Shape.P2 = obj, &obj.Point
+				re.ToNode = obj
 				obj.InEdges[re.ID] = re
-				obj.Shape.Refer(re.S())
 			}
 		case *RailEdge:
 			re.Reverse = obj
@@ -188,8 +194,8 @@ func (re *RailEdge) String() string {
 		ostr = fmt.Sprintf(":%s", re.O.Short())
 	}
 	posstr := ""
-	if re.Pos() != nil {
-		posstr = fmt.Sprintf(":%s", re.Pos())
+	if re.FromNode != nil && re.ToNode != nil {
+		posstr = fmt.Sprintf(":%s", re.FromNode.Center(&re.ToNode.Point))
 	}
 	return fmt.Sprintf("%s(%d):f=%d,t=%d,r=%d%s%s", re.Type().Short(),
 		re.ID, re.FromID, re.ToID, re.ReverseID, posstr, ostr)

@@ -9,7 +9,6 @@ import (
 type Platform struct {
 	Base
 	Persistence
-	Shape
 
 	Capacity int `gorm:"not null" json:"cap"`
 	Occupied int `gorm:"-"        json:"used"`
@@ -37,7 +36,6 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	p := &Platform{
 		Base:        m.NewBase(PLATFORM, rn.O),
 		Persistence: NewPersistence(),
-		Shape:       rn.Shape,
 		Capacity:    Const.Platform.Capacity,
 	}
 	p.Init(m)
@@ -69,9 +67,9 @@ func (p *Platform) P() *Persistence {
 	return &p.Persistence
 }
 
-// S returns entities' position.
-func (p *Platform) S() *Shape {
-	return &p.Shape
+// Pos returns entities' position.
+func (p *Platform) Pos() *Point {
+	return p.OnRailNode.Pos()
 }
 
 // GenOutSteps generates Steps from this Platform.
@@ -118,7 +116,6 @@ func (p *Platform) Resolve(args ...Entity) {
 			obj.Resolve(p)
 		case *RailNode:
 			p.OnRailNode = obj
-			p.Shape = obj.Shape
 			obj.Resolve(p)
 		case *Station:
 			p.InStation = obj

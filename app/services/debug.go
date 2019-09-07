@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	numUser        = 5
+	numUser        = 10
 	viewInterval   = 1 * time.Second
-	updateInterval = 120 * time.Second
-	removeInterval = 120 * time.Second
+	updateInterval = 30 * time.Second
+	removeInterval = 30 * time.Second
 )
 
 type opCallback func(source string, target entities.ModelType)

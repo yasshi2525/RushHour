@@ -35,17 +35,7 @@ func (c APIv1Game) Index() revel.Result {
 func (c APIv1Game) Players() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
-	return c.RenderJSON(genResponse(true, entities.JsonPlayer(services.Model.Players)))
-}
-
-// Diff returns only diff
-func (c APIv1Game) Diff() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
-	return c.RenderJSON(
-		genResponse(
-			true,
-			services.ViewMap(500, 500, 10, time.Now().Add(time.Duration(-1)*time.Minute))))
+	return c.RenderJSON(genResponse(true, entities.JSONPlayer(services.Model.Players)))
 }
 
 // Departure returns result of rail node creation

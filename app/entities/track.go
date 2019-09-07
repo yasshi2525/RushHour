@@ -5,7 +5,6 @@ import "fmt"
 // Track has minimum distance route which destinates two RailNode.
 type Track struct {
 	Base
-	Shape
 	FromNode *RailNode
 	ToNode   *RailNode
 	Via      *RailEdge
@@ -16,7 +15,6 @@ type Track struct {
 func (m *Model) NewTrack(f *RailNode, t *RailNode, via *RailEdge, v float64) *Track {
 	tk := &Track{
 		Base:     m.NewBase(TRACK, f.O),
-		Shape:    NewShapeEdge(&f.Point, &t.Point),
 		FromNode: f,
 		ToNode:   t,
 		Via:      via,
@@ -32,11 +30,6 @@ func (m *Model) NewTrack(f *RailNode, t *RailNode, via *RailEdge, v float64) *Tr
 // B returns base information of this elements.
 func (tk *Track) B() *Base {
 	return &tk.Base
-}
-
-// S returns entities' position.
-func (tk *Track) S() *Shape {
-	return &tk.Shape
 }
 
 // Init do nothing
