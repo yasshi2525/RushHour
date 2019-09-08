@@ -90,6 +90,7 @@ func (l *RailLine) Complement() {
 	if len(l.Tasks) == 0 || l.IsRing() {
 		panic(fmt.Errorf("try to complement empty or ring RailLine: %v", l))
 	}
+	var finds bool
 	head, tail := l.Borders()
 	to := head.FromNode()
 	for len(tail.ToNode().Tracks) > 0 && !l.CanRing() {
@@ -98,8 +99,12 @@ func (l *RailLine) Complement() {
 		for reid, tracks := range from.Tracks {
 			if tracks[to.ID] {
 				tail = tail.Stretch(from.OutEdges[reid])
+				finds = true
 				break
 			}
+		}
+		if !finds {
+			panic(fmt.Errorf("no route from %v to %v", tail, head))
 		}
 	}
 }

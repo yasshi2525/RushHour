@@ -84,8 +84,8 @@ func (o *Player) P() *Persistence {
 
 // ClearTracks eraces track infomation.
 func (o *Player) ClearTracks() {
-	for _, re := range o.RailNodes {
-		re.Tracks = make(map[uint]map[uint]bool)
+	for _, rn := range o.RailNodes {
+		rn.Tracks = make(map[uint]map[uint]bool)
 	}
 }
 

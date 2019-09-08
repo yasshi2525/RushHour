@@ -80,6 +80,6 @@ func (p *Point) InnerProduct(to *Point) float64 {
 	return p.X*to.X + p.Y*to.Y
 }
 
-func (p *Point) String() string {
+func (p Point) String() string {
 	return fmt.Sprintf("(%.2f,%.2f)", p.X, p.Y)
 }

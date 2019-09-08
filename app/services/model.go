@@ -160,7 +160,7 @@ func processMsg(msg *Operation) time.Time {
 						}
 
 						if !connected && rn.Point.Dist(&to.Point) < math.Pow(2, 8) {
-							rn.Connect(to)
+							ConnectRailNode(owner, rn, to, 10)
 						}
 					}
 				}
@@ -186,7 +186,7 @@ func processMsg(msg *Operation) time.Time {
 					}
 				}
 
-				_, re = re.ToNode.Extend(p.X, p.Y)
+				ExtendRailNode(owner, re.ToNode, p.X, p.Y, 10)
 			}
 		case entities.STATION:
 			if rn := randEntity(owner, entities.RAILNODE); rn != nil {
@@ -260,7 +260,7 @@ func UpdateModel(msg *Operation) {
 	select {
 	case modelChannel <- msg:
 	default:
-		revel.AppLog.Errorf("モデル変更キュー溢れ %+v", *msg)
+		revel.AppLog.Errorf("out of queue %+v", *msg)
 	}
 }
 

@@ -57,6 +57,8 @@ func (rn *RailNode) Connect(to *RailNode) *RailEdge {
 			lt.InsertRailEdge(e1)
 		}
 	})
+
+	rn.O.ReRouting = true
 	return e1
 }
 
