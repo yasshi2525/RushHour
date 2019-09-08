@@ -163,7 +163,6 @@ func (cl *Cluster) Remove(raw Entity) {
 	case *RailLine:
 	case *LineTask:
 	case *Step:
-	case *Track:
 	case *Transport:
 	default:
 		oid := obj.B().OwnerID

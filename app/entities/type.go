@@ -19,7 +19,6 @@ const (
 	LINETASK
 	TRAIN
 	HUMAN
-	TRACK
 	TRANSPORT
 	STEP
 	CLUSTER
@@ -115,7 +114,6 @@ func InitType() {
 		LINETASK,
 		TRAIN,
 		HUMAN,
-		TRACK,
 		TRANSPORT,
 		STEP,
 		CLUSTER,
@@ -138,7 +136,6 @@ func InitType() {
 	attr[TRAIN] = &attribute{"Train", "t", "trains", "trains"}
 	attr[HUMAN] = &attribute{"Human", "h", "humen", "humans"}
 
-	attr[TRACK] = &attribute{"Track", "tk", "", ""}
 	attr[TRANSPORT] = &attribute{"Transport", "x", "", ""}
 	attr[STEP] = &attribute{"Step", "s", "", ""}
 	attr[CLUSTER] = &attribute{"Cluster", "cl", "", ""}

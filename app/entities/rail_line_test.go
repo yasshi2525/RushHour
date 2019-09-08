@@ -22,7 +22,8 @@ func TestRailLine(t *testing.T) {
 			from := m.NewRailNode(o, 0, 0)
 			_, re := from.Extend(10, 0)
 
-			m.NewTrack(from, from, re, 1)
+			from.Tracks[re.ID] = make(map[uint]bool)
+			from.Tracks[re.ID][from.ID] = true
 
 			st := m.NewStation(o)
 			g := m.NewGate(st)
@@ -79,8 +80,10 @@ func TestRailLine(t *testing.T) {
 		from := m.NewRailNode(o, 0, 0)
 		to, re := from.Extend(10, 0)
 
-		m.NewTrack(from, from, re, 2)
-		m.NewTrack(to, from, re.Reverse, 1)
+		from.Tracks[re.ID] = make(map[uint]bool)
+		from.Tracks[re.ID][from.ID] = true
+		to.Tracks[re.Reverse.ID] = make(map[uint]bool)
+		to.Tracks[re.Reverse.ID][from.ID] = true
 
 		st := m.NewStation(o)
 		g := m.NewGate(st)

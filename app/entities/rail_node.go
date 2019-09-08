@@ -11,13 +11,14 @@ type RailNode struct {
 	Persistence
 	Point
 
-	InEdges      map[uint]*RailEdge `gorm:"-" json:"-"`
-	OutEdges     map[uint]*RailEdge `gorm:"-" json:"-"`
+	InEdges  map[uint]*RailEdge `gorm:"-" json:"-"`
+	OutEdges map[uint]*RailEdge `gorm:"-" json:"-"`
+	// Tracks represents list of RailNode can be arrived at via specified OutEdge. key is id of RailEdge
+	Tracks map[uint]map[uint]bool `gorm:"-" json:"-"`
+
 	OverPlatform *Platform          `gorm:"-" json:"-"`
 	InTasks      map[uint]*LineTask `gorm:"-" json:"-"`
 	OutTasks     map[uint]*LineTask `gorm:"-" json:"-"`
-	// key is id of RailNode
-	Tracks map[uint]*Track `gorm:"-" json:"-"`
 
 	PlatformID uint `gorm:"-" json:"pid,omitempty"`
 }
@@ -81,7 +82,7 @@ func (rn *RailNode) Init(m *Model) {
 	rn.OutEdges = make(map[uint]*RailEdge)
 	rn.InTasks = make(map[uint]*LineTask)
 	rn.OutTasks = make(map[uint]*LineTask)
-	rn.Tracks = make(map[uint]*Track)
+	rn.Tracks = make(map[uint]map[uint]bool)
 }
 
 // Resolve set reference
@@ -93,8 +94,6 @@ func (rn *RailNode) Resolve(args ...Entity) {
 			obj.Resolve(rn)
 		case *Platform:
 			rn.OverPlatform = obj
-		case *Track:
-			rn.Tracks[obj.ToNode.ID] = obj
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}
@@ -129,8 +128,6 @@ func (rn *RailNode) UnResolve(args ...interface{}) {
 		case *Platform:
 			rn.OverPlatform = nil
 			rn.PlatformID = ZERO
-		case *Track:
-			delete(rn.Tracks, obj.ID)
 		default:
 			panic(fmt.Errorf("invalid type: %T %+v", obj, obj))
 		}

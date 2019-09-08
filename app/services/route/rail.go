@@ -16,11 +16,13 @@ func RefreshTracks(o *entities.Player, parallel int) map[uint]*Model {
 	for destID, model := range payload.Route {
 		for deptID, dept := range model.Nodes[entities.RAILNODE] {
 			if dept.ViaEdge != nil {
-				o.M.NewTrack(
-					o.RailNodes[deptID],          // from
-					o.RailNodes[destID],          // to
-					o.RailEdges[dept.ViaEdge.ID], // via
-					dept.Value)                   // cost
+				eid := dept.ViaEdge.ID
+				tracks := o.RailNodes[deptID].Tracks
+
+				if _, ok := tracks[eid]; !ok {
+					tracks[eid] = make(map[uint]bool)
+				}
+				tracks[eid][destID] = true
 			}
 		}
 	}
