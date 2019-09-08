@@ -23,7 +23,6 @@ type Model struct {
 	LineTasks  map[uint]*LineTask
 	Trains     map[uint]*Train
 	Humans     map[uint]*Human
-	Tracks     map[uint]*Track
 	Transports map[uint]*Transport
 	Steps      map[uint]*Step
 	Cluster    map[uint]*Cluster

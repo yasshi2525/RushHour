@@ -100,6 +100,7 @@ func (re *RailEdge) CheckDelete() error {
 // BeforeDelete delete relations to RailNode
 func (re *RailEdge) BeforeDelete() {
 	delete(re.FromNode.OutEdges, re.ID)
+	delete(re.FromNode.Tracks, re.ID)
 	delete(re.ToNode.InEdges, re.ID)
 	re.O.UnResolve(re)
 }

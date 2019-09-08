@@ -52,8 +52,10 @@ func (l *RailLine) StartPlatform(p *Platform) (*LineTask, *LineTask) {
 	}
 	if l.AutoExt {
 		rn := p.OnRailNode
-		if tk := rn.Tracks[rn.ID]; tk != nil {
-			return l.StartEdge(tk.Via)
+		for reid, tracks := range rn.Tracks {
+			if tracks[rn.ID] {
+				return l.StartEdge(rn.OutEdges[reid])
+			}
 		}
 	}
 	if l.AutoPass {
@@ -89,10 +91,16 @@ func (l *RailLine) Complement() {
 		panic(fmt.Errorf("try to complement empty or ring RailLine: %v", l))
 	}
 	head, tail := l.Borders()
-	tk := tail.ToNode().Tracks[head.FromNode().ID]
-	for tk != nil && !l.CanRing() {
-		tail = tail.Stretch(tk.Via)
-		tk = tail.ToNode().Tracks[head.FromNode().ID]
+	to := head.FromNode()
+	for len(tail.ToNode().Tracks) > 0 && !l.CanRing() {
+		from := tail.ToNode()
+
+		for reid, tracks := range from.Tracks {
+			if tracks[to.ID] {
+				tail = tail.Stretch(from.OutEdges[reid])
+				break
+			}
+		}
 	}
 }
 
