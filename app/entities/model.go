@@ -102,7 +102,9 @@ func (m *Model) Delete(args ...Entity) {
 		m.Values[obj.B().Type()].SetMapIndex(
 			reflect.ValueOf(obj.B().Idx()),
 			reflect.Value{})
-		m.Deletes[obj.B().Type()] = append(m.Deletes[obj.B().Type()], obj.B().Idx())
+		if _, ok := obj.(Persistable); ok {
+			m.Deletes[obj.B().Type()] = append(m.Deletes[obj.B().Type()], obj.B().Idx())
+		}
 		m.RootCluster.Remove(obj)
 	}
 }
