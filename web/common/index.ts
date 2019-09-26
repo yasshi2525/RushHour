@@ -8,7 +8,7 @@ export default class {
     sheets = ["cursor", "anchor", "rail_node", "rail_edge"];
     model: GameModel;
 
-    constructor() {
+    constructor(myid: number) {
         this.app = new PIXI.Application({
             width: window.innerWidth,
             height: window.innerHeight,
@@ -24,7 +24,8 @@ export default class {
             cx: config.gamePos.default.x, 
             cy: config.gamePos.default.y, 
             scale: config.scale.default,
-            zoom: 0
+            zoom: 0,
+            myid
         });
 
         this.images.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));

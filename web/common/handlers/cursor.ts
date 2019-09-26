@@ -45,7 +45,6 @@ export abstract class CursorHandler<T> {
                     this.dispatch(depart.request({
                         model: this.model,
                         dispatch: this.dispatch,
-                        oid: 2, // TODO
                         x: server.x, y: server.y,
                         scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                     }));
@@ -64,7 +63,6 @@ export abstract class CursorHandler<T> {
                         this.dispatch(extend.request({
                             model: this.model,
                             dispatch: this.dispatch,
-                            oid: 2, // TODO
                             x: server.x, y: server.y,
                             rnid: this.anchor.object.get("cid"),
                             scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
@@ -76,7 +74,6 @@ export abstract class CursorHandler<T> {
                             this.dispatch(connect.request({
                                 model: this.model,
                                 dispatch: this.dispatch,
-                                oid: 2, // TODO
                                 from: this.anchor.object.get("cid"),
                                 to: this.view.selected.get("cid"),
                                 scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)

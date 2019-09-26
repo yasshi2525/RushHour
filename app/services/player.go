@@ -7,6 +7,7 @@ import (
 	"github.com/revel/revel"
 
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 // CreatePlayer creates player.
@@ -29,6 +30,28 @@ func CreatePlayer(loginid string, displayname string, password string, level ent
 	return player, nil
 }
 
+// OAuthSignIn find or create Player by OAuth
+func OAuthSignIn(authType entities.AuthType, info *auth.UserInfo) (*entities.Player, error) {
+	return Model.OAuthSignIn(authType, info)
+}
+
+// SignOut delete Player's token value
+func SignOut(token string) {
+	if o, found := Model.Tokens[token]; found {
+		o.SignOut()
+	}
+}
+
+// PasswordSignIn finds Player by loginid and password
+func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
+	return Model.PasswordSignIn(auth.Digest(loginid), auth.Encrypt(password))
+}
+
+// PasswordSignUp creates Player with loginid and password
+func PasswordSignUp(loginid string, password string) (*entities.Player, error) {
+	return Model.PasswordSignUp(auth.Digest(loginid), auth.Encrypt(password))
+}
+
 // FetchOwner fetch loginid Player.
 func FetchOwner(loginid string) (*entities.Player, error) {
 	for _, oth := range Model.Players {
@@ -37,4 +60,9 @@ func FetchOwner(loginid string) (*entities.Player, error) {
 		}
 	}
 	return nil, fmt.Errorf("login ID \"%s\" was not found", loginid)
+}
+
+// FindOwner returns Player by token
+func FindOwner(token string) *entities.Player {
+	return Model.Tokens[token]
 }

@@ -42,14 +42,22 @@ func (c APIv1Game) Players() revel.Result {
 func (c APIv1Game) Departure() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
 	p := &PointRequest{}
-	if errs := p.Parse(c.Params.Form); len(errs) > 0 {
+	if errs := p.Parse(token, c.Params.Form); len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
+
 	rn, err := services.CreateRailNode(p.O, p.X, p.Y, p.Scale)
 	if err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
+
 	return c.RenderJSON(genResponse(true, &struct {
 		RailNode *entities.DelegateRailNode `json:"rn"`
 	}{rn}))
@@ -59,8 +67,14 @@ func (c APIv1Game) Departure() revel.Result {
 func (c APIv1Game) Extend() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
 	p := &PointRequest{}
-	errs := p.Parse(c.Params.Form)
+	errs := p.Parse(token, c.Params.Form)
 	e, err := validateEntity(entities.RAILNODE, c.Params.Form.Get("rnid"))
 	if err != nil {
 		errs = append(errs, err.Error())
@@ -68,11 +82,13 @@ func (c APIv1Game) Extend() revel.Result {
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
+
 	from := e.(*entities.RailNode)
 	to, re, err := services.ExtendRailNode(p.O, from, p.X, p.Y, p.Scale)
 	if err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
+
 	return c.RenderJSON(genResponse(true, &struct {
 		RailNode *entities.DelegateRailNode `json:"rn"`
 		In       *entities.DelegateRailEdge `json:"e1"`
@@ -84,8 +100,14 @@ func (c APIv1Game) Extend() revel.Result {
 func (c APIv1Game) Connect() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
 	o := &OwnerRequest{}
-	errs := o.Parse(c.Params.Form)
+	errs := o.Parse(token, c.Params.Form)
 	e1, err1 := validateEntity(entities.RAILNODE, c.Params.Form.Get("from"))
 	e2, err2 := validateEntity(entities.RAILNODE, c.Params.Form.Get("to"))
 	if err1 != nil {
@@ -97,12 +119,14 @@ func (c APIv1Game) Connect() revel.Result {
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
+
 	from := e1.(*entities.RailNode)
 	to := e2.(*entities.RailNode)
 	re, err := services.ConnectRailNode(o.O, from, to, o.Scale)
 	if err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
+
 	return c.RenderJSON(genResponse(true, &struct {
 		In  *entities.DelegateRailEdge `json:"e1"`
 		Out *entities.DelegateRailEdge `json:"e2"`
@@ -118,5 +142,14 @@ func genResponse(status bool, results interface{}) interface{} {
 		Status:    true,
 		Timestamp: time.Now().Unix(),
 		Results:   results,
+	}
+}
+
+// GetToken returns auth token from session.
+func (c APIv1Game) getToken() (string, error) {
+	if token, err := c.Session.Get("token"); err != nil {
+		return "", err
+	} else {
+		return token.(string), nil
 	}
 }

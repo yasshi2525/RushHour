@@ -9,7 +9,12 @@ import { XBorderContainer, YBorderContainer } from "./border";
 export default class extends GroupModel {
     init() {
         let textures = this.model.app.loader.resources;
-        let props = { model: this.model, app: this.model.app, offset: this.model.offset, delegate: this.model.delegate };
+        let props = { 
+            model: this.model, 
+            app: this.model.app, 
+            offset: this.model.offset, 
+            delegate: this.model.delegate
+        };
         
         let anchor_ss = textures["anchor"].spritesheet;
         let cursor_ss = textures["cursor"].spritesheet;

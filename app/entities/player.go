@@ -3,6 +3,10 @@ package entities
 import (
 	"fmt"
 	"math"
+	"strings"
+	"time"
+
+	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 // PlayerType represents authenticate level
@@ -15,17 +19,53 @@ const (
 	Guest
 )
 
+// AuthType represents which SNS account player sigin in
+type AuthType uint
+
+// AuthType represents which SNS account player sigin in
+const (
+	Local AuthType = iota + 1
+	Twitter
+	Google
+)
+
+// AuthList is list of all AuthType
+var AuthList []AuthType
+
+// InitAuthList instanciate AuthList
+func InitAuthList() {
+	AuthList = []AuthType{
+		Local,
+		Twitter,
+		Google,
+	}
+}
+
 // Player represents user information
 type Player struct {
 	Base
 	Persistence
 
-	Level       PlayerType `gorm:"not null"       json:"lv"`
-	DisplayName string     `gorm:"not null"       json:"name"`
-	LoginID     string     `gorm:"not null;index" json:"-"`
-	Password    string     `gorm:"not null"       json:"-"`
-	ReRouting   bool       `gorm:"-"              json:"-"`
-	Color       int        `gorm:"not null"       json:"color"`
+	Level PlayerType `gorm:"not null" json:"lv"`
+	// DisplayName is public attribute and shown to everyone. Owner can change it.
+	DisplayName string `gorm:"not null" sql:"type:text" json:"-"`
+	// Image is public attribute and shown to everyone. Owner can change it.
+	Image string `gorm:"not null" sql:"type:text" json:"-"`
+	// LoginID is hidden attribute and used for identification in OAuth App.
+	LoginID string `gorm:"not null" sql:"type:text" json:"-"`
+	// Password is hidden attribute, but owner can change it.
+	// Password is empty in OAuth authentication.
+	Password string   `gorm:"not null" sql:"type:text" json:"-"`
+	Auth     AuthType `gorm:"not null;index" json:"-"`
+	// OAuthToken is hidden attribute and used for OAuth authentication (access token).
+	OAuthToken string `gorm:"not null" sql:"type:text" json:"-"`
+	// OAuthSecret is hidden attribute and used for OAuth authentication (access token secret).
+	OAuthSecret string `gorm:"not null" sql:"type:text" json:"-"`
+	// Token is hidden attribute and used for authentication in RushHour
+	Token string `gorm:"not null;index" json:"-"`
+
+	ReRouting bool `gorm:"-"              json:"-"`
+	Color     int  `gorm:"not null"       json:"color"`
 
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
@@ -37,7 +77,7 @@ type Player struct {
 	Trains    map[uint]*Train    `gorm:"-" json:"-"`
 }
 
-// NewPlayer create instance
+// NewPlayer creates instance.
 func (m *Model) NewPlayer() *Player {
 	o := &Player{
 		Base:        m.NewBase(PLAYER),
@@ -72,6 +112,61 @@ func (m *Model) NewPlayer() *Player {
 	return o
 }
 
+// OAuthSignIn finds or create Player by auth and loginid, then refresh token value.
+func (m *Model) OAuthSignIn(authType AuthType, info *auth.UserInfo) (*Player, error) {
+	if !info.IsValid() {
+		return nil, fmt.Errorf("token is empty")
+	}
+	loginhash := auth.Digest(info.LoginID)
+	if o, found := m.Logins[authType][loginhash]; found {
+		enc := info.Enc()
+		o.OAuthToken = enc.OAuthToken
+		o.OAuthSecret = enc.OAuthSecret
+		o.Token = info.Token()
+		m.Tokens[o.Token] = o
+		return o, nil
+	}
+	o := m.NewPlayer()
+	o.Level = Normal
+	o.ImportInfo(authType, info)
+	return o, nil
+}
+
+// SignOut deletes token value.
+func (o *Player) SignOut() {
+	delete(o.M.Tokens, o.Token)
+	o.OAuthToken = ""
+	o.OAuthSecret = ""
+	o.Token = ""
+}
+
+// PasswordSignIn finds Player by loginid and password, then refresh token value.
+func (m *Model) PasswordSignIn(loginhash string, password string) (*Player, error) {
+	if o, found := m.Logins[Local][loginhash]; found {
+		if strings.Compare(o.Password, password) == 0 {
+			delete(m.Tokens, o.Token)
+			o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
+			m.Tokens[o.Token] = o
+			return o, nil
+		}
+	}
+	return nil, fmt.Errorf("invalid user name or password %s", loginhash)
+}
+
+// PasswordSignUp creates Player with loginid and password, then register token value.
+func (m *Model) PasswordSignUp(loginhash string, password string) (*Player, error) {
+	if _, found := m.Logins[Local][loginhash]; found {
+		return nil, fmt.Errorf("id %s already exists", loginhash)
+	}
+	o := m.NewPlayer()
+	o.Level = Normal
+	o.Auth = Local
+	o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
+	o.M.Logins[Local][loginhash] = o
+	o.M.Tokens[o.Token] = o
+	return o, nil
+}
+
 // B returns base information of this elements.
 func (o *Player) B() *Base {
 	return &o.Base
@@ -100,6 +195,35 @@ func (o *Player) Init(m *Model) {
 	o.RailLines = make(map[uint]*RailLine)
 	o.LineTasks = make(map[uint]*LineTask)
 	o.Trains = make(map[uint]*Train)
+}
+
+// ImportInfo encrypts user information
+func (o *Player) ImportInfo(authType AuthType, info *auth.UserInfo) {
+	enc := info.Enc()
+	delete(o.M.Tokens, o.Token)
+
+	o.DisplayName = enc.DisplayName
+	o.Image = enc.Image
+	o.LoginID = enc.LoginID
+	o.Auth = authType
+	o.OAuthToken = enc.OAuthToken
+	o.OAuthSecret = enc.OAuthSecret
+	o.Token = info.Token()
+
+	o.M.Logins[authType][auth.Digest(info.LoginID)] = o
+	o.M.Tokens[o.Token] = o
+}
+
+// ExportInfo decrypts user information
+func (o *Player) ExportInfo() *auth.UserInfo {
+	return (&auth.UserInfo{
+		DisplayName: o.DisplayName,
+		Image:       o.Image,
+		LoginID:     o.LoginID,
+		OAuthToken:  o.OAuthToken,
+		OAuthSecret: o.OAuthSecret,
+		IsEnc:       true,
+	}).Dec()
 }
 
 // Resolve set reference.

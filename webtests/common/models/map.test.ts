@@ -21,7 +21,7 @@ const testmap = {
 };
 
 beforeEach(() => {
-    let game = new GameContainer();
+    let game = new GameContainer(0);
     game.model.init();
     instance = game.model.gamemap;
     instance.updateDisplayInfo();

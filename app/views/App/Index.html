@@ -2,7 +2,17 @@
 {{append . "moreStyles" "css/debug.css"}}
 {{template "header.html" .}}
 
-<div id="rushhourContainer"></div>
+{{ if .loggedin }}
+  <div 
+    id="rushhourContainer"
+    data-loggedin="{{ .loggedin }}" 
+    data-oid="{{ .oid }}"
+    data-displayname="{{ .name }}"
+    data-image="{{ .image }}">
+  </div>
+{{ else }}
+  <div id="rushhourContainer"></div>
+{{ end }}
 
 <div class="container">
   <div class="row">

@@ -83,22 +83,32 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> implements MonitorContainer {
-    cursor: RailNode;
+    cursor: RailNode | undefined;
 
     constructor(options: AnimatedSpriteContainerProperty) {
         super(options, RailNode, {});
-        this.cursor = this.addChild(cursorOpts);
+        if (!this.model.isReadOnly()) {
+            this.cursor = this.addChild({ oid: this.model.myid, ...cursorOpts });
+        }
     }
 
     setInitialValues(props: {[index: string]: any}) {
         super.setInitialValues(props);
-        this.cursor.current = undefined;
-        this.cursor.destination = undefined;
+        if (this.cursor !== undefined) {
+            this.cursor.current = undefined;
+            this.cursor.destination = undefined;
+        }
     }
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
+        if (this.cursor === undefined) {
+            return
+        }
         this.addUpdateCallback("menu", v => {
+            if (this.cursor === undefined) {
+                return
+            }
             switch(v) {
                 case MenuStatus.IDLE:
                     this.cursor.merge("visible", false);
@@ -110,6 +120,9 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
             }
         });
         this.addUpdateCallback("cursorClient", (v: Point | undefined) => {
+            if (this.cursor === undefined) {
+                return
+            }
             switch(this.props.menu) {
                 case MenuStatus.SEEK_DEPARTURE:
                 case MenuStatus.EXTEND_RAIL:
@@ -265,21 +278,26 @@ export class RailEdge extends AnimatedSpriteModel implements Monitorable {
 }
 
 export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> implements MonitorContainer {
-    deamon: RailNode;
-    cursorOut: RailEdge;
-    cursorIn: RailEdge;
+    deamon: RailNode | undefined;
+    cursorOut: RailEdge | undefined;
+    cursorIn: RailEdge | undefined;
 
     constructor(options: AnimatedSpriteContainerProperty) {
         super(options, RailEdge, {});
-        this.cursorOut = this.addChild({ ...cursorOpts, id: "cursorOut", from: "cursor", reverse: "cursorIn" });
-        this.cursorIn = this.addChild({ ...cursorOpts, id: "cursorIn", to: "cursor", reverse: "cursorOut" });
-        this.cursorOut.resolve({});
-        this.cursorIn.resolve({});
-        this.deamon = this.cursorOut.from as RailNode
+        if (!this.model.isReadOnly()) {
+            this.cursorOut = this.addChild({ ...cursorOpts, oid: this.model.myid, id: "cursorOut", from: "cursor", reverse: "cursorIn" });
+            this.cursorIn = this.addChild({ ...cursorOpts, oid: this.model.myid, id: "cursorIn", to: "cursor", reverse: "cursorOut" });
+            this.cursorOut.resolve({});
+            this.cursorIn.resolve({});
+            this.deamon = this.cursorOut.from as RailNode
+        }
     }
 
     setupUpdateCallback() {
         super.setupUpdateCallback();
+        if (this.model.isReadOnly()) {
+            return
+        }
 
         this.addUpdateCallback("anchorObj", (v: PointModel | undefined) => {
             if (v instanceof RailNode || v === undefined) {
@@ -297,13 +315,17 @@ export class RailEdgeContainer extends AnimatedSpriteContainer<RailEdge> impleme
 
     protected setAnchor(anchor: RailNode | undefined) {
         let id = anchor !== undefined ? anchor.get("id") : undefined;
-        this.cursorOut.merge("to", id);
-        this.cursorIn.merge("from", id);
+        if (this.cursorOut !== undefined && this.cursorIn !== undefined) {
+            this.cursorOut.merge("to", id);
+            this.cursorIn.merge("from", id);
+        }
     }
 
-    protected setCursor(cursor: RailNode) {
+    protected setCursor(cursor: RailNode | undefined) {
         let id = cursor !== undefined ? cursor.get("id") : undefined;
-        this.cursorOut.merge("from", id);
-        this.cursorIn.merge("to", id);
+        if (this.cursorOut !== undefined && this.cursorIn !== undefined) {
+            this.cursorOut.merge("from", id);
+            this.cursorIn.merge("to", id);
+        }
     }
 }
