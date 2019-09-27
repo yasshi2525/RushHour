@@ -81,6 +81,9 @@ jobs:
       - run: go get github.com/go-sql-driver/mysql
       - run: go get github.com/revel/revel
       - run: go get github.com/revel/cmd/revel
+      - run: go get github.com/gomodule/oauth1/oauth
+      - run: go get golang.org/x/oauth2
+      - run: go get google.golang.org/api/oauth2/v2
 
       - run: ./cc-test-reporter before-build
       - run: go test -coverprofile c.out ./...
