@@ -1,10 +1,8 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import RushHourTheme from ".";
 import { Hidden, Fab, Container } from "@material-ui/core";
 import ExpandIcon from "@material-ui/icons/Add"
 import MinimizeIcon from "@material-ui/icons/Remove"
-import { ThemeProvider } from "@material-ui/styles";
 import { GameComponentProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
 import Rail from "./Rail";
@@ -21,8 +19,11 @@ export class ToolBar extends React.Component<GameComponentProperty, ToolBardStat
     }
 
     render() {
-        return (
-            <ThemeProvider theme={RushHourTheme}>
+        if (this.props.readOnly) {
+            return ""
+        }
+        return ( 
+            <Container>
                 {/* PC向け */}
                 <Hidden xsDown>
                     <Container>
@@ -46,8 +47,7 @@ export class ToolBar extends React.Component<GameComponentProperty, ToolBardStat
                         </Container>
                     : null }
                 </Hidden>
-            </ThemeProvider>
-        );
+            </Container>);
     }
 
     toggleMenu() {

@@ -12,7 +12,10 @@ import { ResolveError } from "../interfaces/gamemap";
 export default class extends GroupModel {
     init() {
         let textures = this.model.app.loader.resources;
-        let base = { model: this.model, app: this.model.app };
+        let base = { 
+            model: this.model, 
+            app: this.model.app
+        };
         this.containers["players"] = new PlayerContainer(base);
         this.containers["residences"] = new ResidenceContainer({ ...base, zIndex: ZIndex.RESIDENCE, texture: textures["residence"].texture});
         this.containers["companies"] = new CompanyContainer({ ...base, zIndex: ZIndex.COMPANY, texture: textures["company"].texture});

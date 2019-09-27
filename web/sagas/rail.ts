@@ -8,7 +8,6 @@ const connectUrl = "api/v1/connect";
 
 function buildDepartQuery(params: Action.PointRequest): string {
     let res = new URLSearchParams();
-    res.set("oid", params.oid.toString());
     res.set("x", params.x.toString());
     res.set("y", params.y.toString());
     res.set("scale", params.scale.toString());
@@ -17,7 +16,6 @@ function buildDepartQuery(params: Action.PointRequest): string {
 
 function buildExtendQuery(params: Action.ExtendRequest): string {
     let res = new URLSearchParams();
-    res.set("oid", params.oid.toString());
     res.set("x", params.x.toString());
     res.set("y", params.y.toString());
     res.set("scale", params.scale.toString());
@@ -27,7 +25,6 @@ function buildExtendQuery(params: Action.ExtendRequest): string {
 
 function buildConnectQuery(params: Action.ConnectRequest): string {
     let res = new URLSearchParams();
-    res.set("oid", params.oid.toString());
     res.set("scale", params.scale.toString());
     res.set("from", params.from.toString());
     res.set("to", params.to.toString());

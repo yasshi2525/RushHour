@@ -17,12 +17,11 @@ type OwnerRequest struct {
 }
 
 // Parse validates and insert value from response.
-func (o *OwnerRequest) Parse(v url.Values) []string {
+func (o *OwnerRequest) Parse(token string, v url.Values) []string {
 	errs := []string{}
-	if e, err := validateEntity(entities.PLAYER, v.Get("oid")); err != nil {
-		errs = append(errs, err.Error())
-	} else {
-		o.O = e.(*entities.Player)
+
+	if o.O = services.FindOwner(token); o.O == nil {
+		errs = append(errs, "user not found")
 	}
 	if scale, err := strconv.ParseFloat(v.Get("scale"), 64); err != nil {
 		errs = append(errs, err.Error())
@@ -40,8 +39,8 @@ type PointRequest struct {
 }
 
 // Parse validates and insert value from response.
-func (p *PointRequest) Parse(v url.Values) []string {
-	errs := p.OwnerRequest.Parse(v)
+func (p *PointRequest) Parse(token string, v url.Values) []string {
+	errs := p.OwnerRequest.Parse(token, v)
 	if x, err := strconv.ParseFloat(v.Get("x"), 64); err != nil {
 		errs = append(errs, err.Error())
 	} else {

@@ -13,6 +13,7 @@ resources/img/*
 resources/js/*
 log
 !.gitkeep
+conf/secret.conf
 
 # Binaries for programs and plugins
 *.exe

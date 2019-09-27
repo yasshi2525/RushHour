@@ -1,8 +1,14 @@
 package services
 
 import (
+	crand "crypto/rand"
 	"fmt"
+	"math"
+	"math/big"
+	"math/rand"
 	"time"
+
+	"github.com/yasshi2525/RushHour/app/services/auth"
 
 	"github.com/jinzhu/gorm"
 	"github.com/revel/revel"
@@ -16,7 +22,12 @@ func Init() {
 	defer revel.AppLog.Info("end preparation for game")
 
 	start := time.Now()
+
+	seed, _ := crand.Int(crand.Reader, big.NewInt(math.MaxInt64))
+	rand.Seed(seed.Int64())
+
 	InitLock()
+	LoadSecret()
 	LoadConf()
 	defer WarnLongExec(start, start, Const.Perf.Init.D, "initialization", true)
 	InitRepository()
@@ -25,6 +36,7 @@ func Init() {
 	MigrateDB()
 	Restore()
 	StartRouting()
+	auth.Init(Secret.Auth)
 }
 
 // Terminate finalizes after stopping game
@@ -52,17 +64,11 @@ func Stop() {
 
 func connectDB() *gorm.DB {
 	var (
-		database     *gorm.DB
-		driver, spec string
-		found        bool
-		err          error
+		database *gorm.DB
+		err      error
 	)
-	if driver, found = revel.Config.String("db.driver"); !found {
-		panic("db.drvier is not defined")
-	}
-	if spec, found = revel.Config.String("db.spec"); !found {
-		panic("db.spec is not defined")
-	}
+	driver := getConfig("db.driver")
+	spec := getConfig("db.spec")
 
 	for i := 1; i <= 60; i++ {
 		database, err = gorm.Open(driver, spec)
@@ -85,4 +91,11 @@ func closeDB() {
 		panic(err)
 	}
 	revel.AppLog.Info("disconnect database successfully")
+}
+
+func getConfig(key string) string {
+	if value, found := revel.Config.String(key); found {
+		return value
+	}
+	panic(fmt.Errorf("%s is not defined", key))
 }

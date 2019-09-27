@@ -19,7 +19,7 @@ const testMap: GameMap =  {
     "trains": [],
 };
 
-const game = new GameContainer();
+const game = new GameContainer(0);
 
 test("renders canvas", () => {
     const wrapper = shallow(<Canvas readOnly={true} model={game.model} dispatch={()=>{}} />);

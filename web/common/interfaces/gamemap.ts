@@ -75,7 +75,7 @@ export const config = {
         default: {x: 0, y: 0}
     },
     scale: { 
-        min: 0, 
+        min: 5, 
         max: 16, 
         default: 10
     }

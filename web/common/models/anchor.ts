@@ -7,11 +7,9 @@ import Cursor from "./cursor";
 
 const defaultValues: {
     menu: MenuStatus,
-    oid: number,
     anchor: AnchorStatus | undefined
 } = {
     menu: MenuStatus.IDLE,
-    oid: 2, // TODO
     anchor: { type: "", pos: {x: 0, y: 0}, cid: 0 }
 };
 
@@ -55,7 +53,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
             if (this.object !== undefined) {
                 this.object.refferedAnchor = undefined;
             }
-            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.props.oid) as PointModel | undefined;
+            this.object = this.model.gamemap.getOnChunk(this.props.anchor.type, this.props.anchor.pos, this.model.myid) as PointModel | undefined;
             
             if (this.object !== undefined) {
                 this.object.refferedAnchor = this;

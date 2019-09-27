@@ -17,6 +17,7 @@ WORKDIR /go
 RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
 RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
+    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go && \
     sed -i -e "s/&loc=Asia%2FTokyo//" src/github.com/yasshi2525/RushHour/conf/app.conf
 
 RUN apk update && apk add --no-cache git
@@ -26,7 +27,10 @@ RUN go get gopkg.in/go-playground/validator.v9 && \
     go get github.com/jinzhu/gorm && \
     go get github.com/go-sql-driver/mysql && \
     go get github.com/revel/revel && \
-    go get github.com/revel/cmd/revel
+    go get github.com/revel/cmd/revel && \
+    go get github.com/gomodule/oauth1/oauth && \
+    go get golang.org/x/oauth2 && \
+    go get google.golang.org/api/oauth2/v2
 
 RUN mkdir -p /rushhour && \
     cd /rushhour && \

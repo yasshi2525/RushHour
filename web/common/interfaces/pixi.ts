@@ -67,5 +67,4 @@ export const cursorOpts = {
     deamon: true,
     visible: false,
     alpha: 0.5,
-    oid: 2 // TODO
 }

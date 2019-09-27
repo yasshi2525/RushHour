@@ -28,6 +28,10 @@ type Model struct {
 	Cluster    map[uint]*Cluster
 	Chunks     map[uint]*Chunk
 
+	// Tokens is quick access to Player by session attribute.
+	Tokens map[string]*Player
+	// Logins is quick access to Player by user id attribute.
+	Logins      map[AuthType]map[string]*Player
 	RootCluster *Cluster
 
 	NextIDs map[ModelType]*uint64
@@ -166,6 +170,9 @@ func NewModel() *Model {
 	if TypeList == nil {
 		InitType()
 	}
+	if AuthList == nil {
+		InitAuthList()
+	}
 	modelType := reflect.TypeOf(&Model{}).Elem()
 	model := reflect.New(modelType).Elem()
 
@@ -193,6 +200,11 @@ func NewModel() *Model {
 		obj.Values[res] = model.Field(idx)
 	}
 
+	obj.Tokens = make(map[string]*Player)
+	obj.Logins = make(map[AuthType]map[string]*Player)
+	for _, auth := range AuthList {
+		obj.Logins[auth] = make(map[string]*Player)
+	}
 	obj.RootCluster = obj.NewCluster(nil, 0, 0)
 	return obj
 }

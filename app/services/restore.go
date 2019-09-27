@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/services/auth"
 	"github.com/yasshi2525/RushHour/app/services/route"
 
 	"github.com/revel/revel"
@@ -96,6 +97,9 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	for _, o := range Model.Players {
+		Model.Tokens[o.Token] = o
+		hash := auth.Digest(auth.Decrypt(o.LoginID))
+		Model.Logins[o.Auth][hash] = o
 		route.RefreshTracks(o, Const.Routing.Worker)
 	}
 	for _, r := range Model.Residences {

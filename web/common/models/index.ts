@@ -17,6 +17,7 @@ export default class {
     menu: MenuStatus;
     debugText: PIXI.Text | undefined;
     debugValue: any;
+    myid: number
 
     constructor(options: GameModelProperty) {
         this.app = options.app;
@@ -26,6 +27,7 @@ export default class {
         this.timestamp = 0;
         this.offset = 0;
         this.delegate = this.getDelegate();
+        this.myid = options.myid
 
         this.menu = MenuStatus.IDLE;
 
@@ -190,5 +192,9 @@ export default class {
     unmount() {
         this.gamemap.end();
         this.controllers.end();
+    }
+    
+    isReadOnly() {
+        return this.myid === 0;
     }
 }

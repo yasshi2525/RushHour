@@ -12,7 +12,6 @@ export interface GameMapRequest extends ModelRequest {
 }
 
 export interface UserActionRequest extends ModelRequest {
-    oid: number,
     scale: number
 }
 
