@@ -14,28 +14,17 @@ FROM golang:alpine as server
 
 WORKDIR /go
 
-ARG baseurl
-ARG salt
-ARG key
-ARG state
-ARG twitter_token
-ARG twitter_secret
-ARG google_client
-ARG google_secret
+ENV baseurl "https://localhost:9000/"
+ENV salt ""
+ENV key "1234567890123456"
+ENV state ""
+ENV twitter_token ""
+ENV twitter_secret ""
+ENV google_client ""
+ENV google_secret ""
 
 RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
-RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
-    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go && \
-    sed -i -e "s/&loc=Asia%2FTokyo//" src/github.com/yasshi2525/RushHour/conf/app.conf && \
-    sed -i -e "s|^baseurl = .*$|baseurl = \"${baseurl}\"|" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__SALT__/${salt}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/______KEY_______/${key}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__STATE__/${state}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__TWITTER_TOKEN__/${twitter_token}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__TWITTER_SECRET__/${twitter_secret}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__GOOGLE_CLIENT__/${google_client}/" src/github.com/yasshi2525/RushHour/conf/secret.conf && \
-    sed -i -e "s/__GOOGLE_SECRET__/${google_secret}/" src/github.com/yasshi2525/RushHour/conf/secret.conf
 
 RUN apk update && apk add --no-cache git
 
@@ -62,7 +51,9 @@ WORKDIR /rushhour
 
 COPY --from=server /rushhour/ ./
 COPY --from=client /data/public/ src/github.com/yasshi2525/RushHour/public/
+COPY docker-entrypoint.sh .
+RUN chmod u+x docker-entrypoint.sh
 
 EXPOSE 9000
 
-ENTRYPOINT [ "./run.sh" ]
+ENTRYPOINT [ "./docker-entrypoint.sh" ]
