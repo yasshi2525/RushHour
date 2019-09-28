@@ -1,6 +1,6 @@
 import { MenuStatus, AnchorStatus } from "../../state";
 import { Monitorable } from "../interfaces/monitor";
-import {  AnimatedSpriteProperty } from "../interfaces/pixi";
+import { AnimatedSpriteProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel } from "./sprite";
 import { PointModel } from "./point";
 import Cursor from "./cursor";

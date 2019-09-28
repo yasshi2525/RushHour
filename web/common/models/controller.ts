@@ -19,16 +19,17 @@ export default class extends GroupModel {
         let anchor_ss = textures["anchor"].spritesheet;
         let cursor_ss = textures["cursor"].spritesheet;
 
-        let anchor_anim, cursor_anim: PIXI.Texture[];
+        let anchor_anim: PIXI.Texture[];
+        let cursor_anim: PIXI.Texture[];
 
         if (anchor_ss !== undefined && cursor_ss !== undefined) {
             anchor_anim = anchor_ss.animations["anchor"]
             cursor_anim = cursor_ss.animations["cursor"];
         } else {
-            anchor_anim = [PIXI.Texture.EMPTY]
+            anchor_anim = [PIXI.Texture.EMPTY];
             cursor_anim = [PIXI.Texture.EMPTY];
         }
-        
+
         let anchor = new Anchor({ ...props, zIndex: ZIndex.ANCHOR, animation: anchor_anim });
         this.objects.anchor = anchor;
         this.objects.cursor = new Cursor({ ...props, anchor, zIndex: ZIndex.CURSOR, animation: cursor_anim });
