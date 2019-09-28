@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 func TestCreateResidence(t *testing.T) {
@@ -14,7 +15,9 @@ func TestCreateResidence(t *testing.T) {
 	os.Chdir("../../")
 
 	LoadConf()
+	LoadSecret()
 	InitRepository()
+	auth.Init(Secret.Auth)
 
 	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
 
@@ -34,7 +37,9 @@ func TestCreateCompany(t *testing.T) {
 	os.Chdir("../../")
 
 	LoadConf()
+	LoadSecret()
 	InitRepository()
+	auth.Init(Secret.Auth)
 	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
 
 	company, err := CreateCompany(admin, 1, 1)
@@ -53,7 +58,9 @@ func TestCreateStep(t *testing.T) {
 	os.Chdir("../../")
 
 	LoadConf()
+	LoadSecret()
 	InitRepository()
+	auth.Init(Secret.Auth)
 	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
 
 	r, err := CreateResidence(admin, 1, 1)
