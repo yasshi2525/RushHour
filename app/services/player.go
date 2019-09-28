@@ -13,7 +13,7 @@ func CreatePlayer(loginid string, displayname string, password string, level ent
 		return nil, err
 	} else {
 		o.Level = level
-		o.DisplayName = displayname
+		o.DisplayName = auth.Encrypt(displayname)
 		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
 		o.Image = auth.Encrypt(url)
 		AddOpLog("CreatePlayer", o)
