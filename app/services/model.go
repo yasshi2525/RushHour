@@ -90,7 +90,7 @@ func processMsg(msg *Operation) time.Time {
 	defer MuModel.Unlock()
 	lock := time.Now()
 
-	owner, _ := FetchOwner(msg.OName)
+	owner, _ := PasswordSignIn(msg.OName, msg.OName)
 
 	switch msg.Op {
 	case "create":

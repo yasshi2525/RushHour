@@ -141,25 +141,31 @@ func (o *Player) SignOut() {
 }
 
 // PasswordSignIn finds Player by loginid and password, then refresh token value.
-func (m *Model) PasswordSignIn(loginhash string, password string) (*Player, error) {
-	if o, found := m.Logins[Local][loginhash]; found {
-		if strings.Compare(o.Password, password) == 0 {
+// arg must be plain text
+func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error) {
+	if o, found := m.Logins[Local][auth.Digest(loginid)]; found {
+		if encPassword := auth.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
 			delete(m.Tokens, o.Token)
-			o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
+			o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), encPassword))
 			m.Tokens[o.Token] = o
 			return o, nil
 		}
 	}
-	return nil, fmt.Errorf("invalid user name or password %s", loginhash)
+	return nil, fmt.Errorf("invalid user name or password")
 }
 
 // PasswordSignUp creates Player with loginid and password, then register token value.
-func (m *Model) PasswordSignUp(loginhash string, password string) (*Player, error) {
+// arg must be plain text
+func (m *Model) PasswordSignUp(loginid string, password string) (*Player, error) {
+	loginhash := auth.Digest(loginid)
 	if _, found := m.Logins[Local][loginhash]; found {
-		return nil, fmt.Errorf("id %s already exists", loginhash)
+		return nil, fmt.Errorf("id is already exists")
 	}
 	o := m.NewPlayer()
 	o.Level = Normal
+	o.LoginID = auth.Encrypt(loginid)
+	o.Password = auth.Digest(password)
+	o.DisplayName = loginid
 	o.Auth = Local
 	o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
 	o.M.Logins[Local][loginhash] = o
