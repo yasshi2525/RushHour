@@ -27,6 +27,8 @@ RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
 
 RUN apk update && apk add --no-cache git
+RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
+    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go
 
 RUN go get gopkg.in/go-playground/validator.v9 && \
     go get github.com/BurntSushi/toml && \
