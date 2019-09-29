@@ -1,6 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { AppBar, Toolbar, Typography, Button, Fade, Dialog, Link } from "@material-ui/core";
+import * as styles from "./style.css";
 import { GameBarProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
 
@@ -49,7 +50,7 @@ class GameBar extends React.Component<GameBarProperty, GameBarState> {
                             </Dialog>
                         </> :
                         <>
-                            <img src={this.props.image} />
+                            <img className={styles.profile} src={this.props.image} />
                             <div>{this.props.displayName}</div>
                             <Button variant="contained">
                                 <Link href="/signout">サインアウト</Link>
