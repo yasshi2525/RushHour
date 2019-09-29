@@ -17,6 +17,7 @@ type Initializable interface {
 
 // Localable represents that exists geographically and can be specified by point.
 type Localable interface {
+	B() *Base
 	Pos() *Point
 }
 

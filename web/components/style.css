@@ -4,3 +4,8 @@ canvas {
     top: 0px;
     z-index: -1;
 }
+
+img.profile {
+    width: 48px;
+    height: 48px;
+}

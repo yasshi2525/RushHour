@@ -29,6 +29,7 @@ func Init() {
 	InitLock()
 	LoadSecret()
 	LoadConf()
+	auth.Init(Secret.Auth)
 	defer WarnLongExec(start, start, Const.Perf.Init.D, "initialization", true)
 	InitRepository()
 	db = connectDB()
@@ -36,7 +37,6 @@ func Init() {
 	MigrateDB()
 	Restore()
 	StartRouting()
-	auth.Init(Secret.Auth)
 }
 
 // Terminate finalizes after stopping game

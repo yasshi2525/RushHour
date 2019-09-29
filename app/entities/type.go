@@ -45,6 +45,7 @@ var attr map[ModelType]*attribute
 var types map[ModelType]reflect.Type
 var nodes map[ModelType]bool
 var edges map[ModelType]bool
+var delegateTypes map[ModelType]reflect.Type
 
 // String returns identificable name
 func (t ModelType) String() string {
@@ -155,4 +156,10 @@ func InitType() {
 		nodes[res] = types[res].Implements(n)
 		edges[res] = types[res].Implements(e)
 	}
+
+	delegateTypes = make(map[ModelType]reflect.Type)
+	delegateTypes[RESIDENCE] = reflect.TypeOf(DelegateResidence{})
+	delegateTypes[COMPANY] = reflect.TypeOf(DelegateCompany{})
+	delegateTypes[RAILNODE] = reflect.TypeOf(DelegateRailNode{})
+	delegateTypes[RAILEDGE] = reflect.TypeOf(DelegateRailEdge{})
 }

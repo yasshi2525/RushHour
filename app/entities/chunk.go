@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"reflect"
 )
 
 // Chunk represents square area. Many Entities are deployed over Chunk.
@@ -9,7 +10,9 @@ type Chunk struct {
 	Base
 	Point
 
-	RailNode *DelegateRailNode
+	Residence *DelegateResidence
+	Company   *DelegateCompany
+	RailNode  *DelegateRailNode
 
 	Parent *Cluster
 
@@ -44,112 +47,146 @@ func (ch *Chunk) Init(m *Model) {
 // Add deploy Entity over Chunk
 func (ch *Chunk) Add(raw Entity) {
 	switch obj := raw.(type) {
-	case *RailNode:
-		ch.addRailNode(obj)
-	case *RailEdge:
-		ch.addRailEdge(obj)
+	case Localable:
+		ch.addLocalable(obj)
+	case Connectable:
+		ch.addConnectable(obj)
 	}
 }
 
-func (ch *Chunk) addRailNode(rn *RailNode) {
-	if ch.RailNode == nil {
+func (ch *Chunk) addLocalable(obj Localable) {
+	fieldName := obj.B().T.String()
+	oid := obj.B().OwnerID
+	delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
+
+	if !delegateField.IsValid() {
+		return
+	}
+
+	if delegateField.IsNil() {
 		var pid uint
-		if parent := ch.Parent.Parent; parent != nil && parent.Data[rn.OwnerID] != nil {
-			p := parent.Data[rn.OwnerID].RailNode
-			pid = p.ID
+		if parent := ch.Parent.Parent; parent != nil && parent.Data[oid] != nil {
+			parentTarget := reflect.ValueOf(parent.Data[oid]).Elem().FieldByName(fieldName)
+			pid = uint(parentTarget.Elem().FieldByName("ID").Uint())
 		}
-		ch.RailNode = &DelegateRailNode{
-			Base:     ch.M.NewBase(RAILNODE, rn.O),
-			Pos:      &rn.Point,
-			ParentID: pid,
-		}
-		ch.RailNode.RailNodes = make(map[uint]*RailNode)
+		delegate := reflect.New(delegateTypes[obj.B().T])
+		delegate.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pid)))
+		delegateField.Set(delegate)
 	}
-	ch.RailNode.RailNodes[rn.ID] = rn
-	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
-	if ch.RailNode.Multi == 1 {
-		ch.RailNode.ChildID = rn.ID
-	} else {
-		ch.RailNode.ChildID = 0
-	}
-	ch.RailNode.UpdatePos()
+	delegateField.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
 }
 
-func (ch *Chunk) addRailEdge(re *RailEdge) {
-	target := ch.M.RootCluster.FindChunk(re.ToNode, ch.Parent.Scale)
+func (ch *Chunk) addConnectable(obj Connectable) {
+	chID := reflect.ValueOf(ch.ID)
+	target := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
+	if target == nil {
+		return
+	}
+	targetID := reflect.ValueOf(target.ID)
+	outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 
-	if ch.OutRailEdges[target.ID] == nil {
-		dre := &DelegateRailEdge{
-			Base:      ch.M.NewBase(RAILEDGE, re.O),
-			From:      ch.RailNode,
-			FromID:    ch.RailNode.ID,
-			To:        target.RailNode,
-			ToID:      target.RailNode.ID,
-			RailEdges: make(map[uint]*RailEdge),
-		}
-		ch.OutRailEdges[target.ID] = dre
-		target.InRailEdges[ch.ID] = dre
-		if reverse, ok := target.OutRailEdges[ch.ID]; ok {
-			dre.Reverse = reverse
-			dre.ReverseID = reverse.ID
-			reverse.Reverse = dre
-			reverse.ReverseID = dre.ID
+	if !outMap.IsValid() {
+		return
+	}
+
+	if !outMap.MapIndex(targetID).IsValid() {
+		delegate := reflect.New(delegateTypes[obj.B().T])
+		delegate.Elem().FieldByName("DelegateEdge").Set(reflect.ValueOf(ch.NewDelegateEdge(obj, ch, target)))
+
+		outMap.SetMapIndex(targetID, delegate)
+
+		inMapName := fmt.Sprintf("In%ss", obj.B().Type().String())
+		inMap := reflect.ValueOf(target).Elem().FieldByName(inMapName)
+		inMap.SetMapIndex(chID, delegate)
+
+		if _, ok := obj.(*RailEdge); ok {
+			ch.setReverse(delegate.Interface().(*DelegateRailEdge), target)
 		}
 	}
-	dre := ch.OutRailEdges[target.ID]
-	dre.RailEdges[re.ID] = re
-	dre.Multi = len(dre.RailEdges)
+	delegate := outMap.MapIndex(targetID)
+	delegate.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
+
+}
+
+func (ch *Chunk) setReverse(dre *DelegateRailEdge, target *Chunk) {
+	if reverse, ok := target.OutRailEdges[ch.ID]; ok {
+		dre.Reverse = reverse
+		dre.ReverseID = reverse.ID
+		reverse.Reverse = dre
+		reverse.ReverseID = dre.ID
+	}
 }
 
 // Remove undeploy Entity over Chunk
 func (ch *Chunk) Remove(raw Entity) {
 	switch obj := raw.(type) {
-	case *RailNode:
-		ch.removeRailNode(obj)
-	case *RailEdge:
-		ch.removeRailEdge(obj)
+	case Localable:
+		ch.removeLocalable(obj)
+	case Connectable:
+		ch.removeConnectable(obj)
 	}
 }
 
-func (ch *Chunk) removeRailNode(rn *RailNode) {
-	delete(ch.RailNode.RailNodes, rn.ID)
-	ch.RailNode.UpdatePos()
-	ch.RailNode.Multi = len(ch.RailNode.RailNodes)
+func (ch *Chunk) removeLocalable(obj Localable) {
+	fieldName := obj.B().T.String()
+	delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
 
-	if ch.RailNode.Multi == 1 {
-		ch.RailNode.ChildID = rn.ID
-	} else {
-		ch.RailNode.ChildID = 0
+	if !delegateField.IsValid() {
+		return
 	}
 
-	if len(ch.RailNode.RailNodes) == 0 {
-		ch.RailNode = nil
+	delegateField.MethodByName("Remove").Call([]reflect.Value{reflect.ValueOf(obj)})
+
+	if delegateField.Elem().FieldByName("List").Len() == 0 {
+		delegateField.Set(reflect.Zero(delegateField.Type()))
 	}
 }
 
-func (ch *Chunk) removeRailEdge(re *RailEdge) {
-	target := ch.M.RootCluster.FindChunk(re.ToNode, ch.Parent.Scale)
-	dre := ch.OutRailEdges[target.ID]
-	delete(dre.RailEdges, re.ID)
-	dre.Multi = len(dre.RailEdges)
-	if len(dre.RailEdges) == 0 {
-		delete(ch.OutRailEdges, dre.ID)
-		delete(target.InRailEdges, dre.ID)
+func (ch *Chunk) removeConnectable(obj Connectable) {
+	chID := reflect.ValueOf(ch.ID)
+	target := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
+	if target == nil {
+		return
+	}
+	targetID := reflect.ValueOf(target.ID)
+	outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
+
+	if !outMap.IsValid() {
+		return
+	}
+
+	delegate := outMap.MapIndex(targetID)
+	delegate.MethodByName("Remove").Call([]reflect.Value{reflect.ValueOf(obj)})
+
+	if delegate.Elem().FieldByName("List").Len() == 0 {
+		outMap.SetMapIndex(targetID, reflect.ValueOf(nil))
+		inMapName := fmt.Sprintf("In%ss", obj.B().Type().String())
+		inMap := reflect.ValueOf(target).Elem().FieldByName(inMapName)
+		inMap.SetMapIndex(chID, reflect.ValueOf(nil))
 	}
 }
 
 // Has returns whether specified Entity is deployed over Chunk or not.
 func (ch *Chunk) Has(raw Entity) bool {
+	id := reflect.ValueOf(raw.B().ID)
 	switch obj := raw.(type) {
-	case *RailNode:
-		if ch.RailNode == nil {
+	case Localable:
+		fieldName := obj.B().T.String()
+		delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
+		if !delegateField.IsValid() || !delegateField.Elem().IsValid() {
 			return false
 		}
-		_, ok := ch.RailNode.RailNodes[obj.ID]
-		return ok
-	case *RailEdge:
-		_, ok := ch.OutRailEdges[obj.ID]
-		return ok
+		return delegateField.Elem().FieldByName("List").MapIndex(id).IsValid()
+
+	case Connectable:
+		outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+		outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
+		if !outMap.IsValid() {
+			return false
+		}
+		return outMap.MapIndex(id).IsValid()
 	}
 	return false
 }
@@ -203,6 +240,8 @@ func (ch *Chunk) Export(dm *DelegateMap) {
 
 // String represents status
 func (ch *Chunk) String() string {
-	return fmt.Sprintf("%s(%.1f:%d):u=%d,%v,i=%d,o=%d:%v", ch.Type().Short(),
-		ch.Parent.Scale, ch.ID, ch.OwnerID, ch.RailNode, len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)
+	return fmt.Sprintf("%s(%.1f:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.Type().Short(),
+		ch.Parent.Scale, ch.ID, ch.OwnerID,
+		ch.Residence, ch.Company, ch.RailNode,
+		len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)
 }
