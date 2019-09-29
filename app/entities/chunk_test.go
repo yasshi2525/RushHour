@@ -18,8 +18,8 @@ func TestChunk(t *testing.T) {
 
 			TestCases{
 				{"RailNode", ch.RailNode != nil, true},
-				{"n1", ch.RailNode.RailNodes[n1.ID], n1},
-				{"n2", ch.RailNode.RailNodes[n2.ID], n2},
+				{"n1", ch.RailNode.List[n1.ID], n1},
+				{"n2", ch.RailNode.List[n2.ID], n2},
 			}.Assert(t)
 		})
 

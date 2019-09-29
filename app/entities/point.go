@@ -80,6 +80,11 @@ func (p *Point) InnerProduct(to *Point) float64 {
 	return p.X*to.X + p.Y*to.Y
 }
 
+// Clone returns same value but referrence is different value object.
+func (p *Point) Clone() *Point {
+	return &Point{p.X, p.Y}
+}
+
 func (p Point) String() string {
 	return fmt.Sprintf("(%.2f,%.2f)", p.X, p.Y)
 }

@@ -112,11 +112,9 @@ func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
 
 // Add deploy Entity over related Chunk.
 func (cl *Cluster) Add(raw Entity) {
-	switch obj := raw.(type) {
-	case *RailEdge:
-		cl.addEntity(obj, obj.FromNode.Pos())
+	if obj, ok := raw.(Connectable); ok {
+		cl.addEntity(raw, obj.From().(Localable).Pos())
 	}
-
 	if obj, ok := raw.(Localable); ok {
 		cl.addEntity(raw, obj.Pos())
 	}
@@ -155,31 +153,30 @@ func (cl *Cluster) Update(obj Entity) {
 }
 
 // Remove undeploy specified Entity over related Chunk.
-func (cl *Cluster) Remove(raw Entity) {
-	switch obj := raw.(type) {
-	case *Cluster:
-	case *Chunk:
-	case *Player:
-	case *RailLine:
-	case *LineTask:
-	case *Step:
-	case *Transport:
-	default:
-		oid := obj.B().OwnerID
-		if chunk := cl.Data[oid]; chunk != nil {
-			chunk.Remove(obj)
-			cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
-				if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
-					c.Data[oid].Remove(obj)
-				}
-			})
-			if chunk.IsEmpty() {
-				chunk.Delete()
+func (cl *Cluster) Remove(obj Entity) {
+	if _, ok := obj.(Localable); ok {
+		cl.removeEntity(obj)
+	}
+	if _, ok := obj.(Connectable); ok {
+		cl.removeEntity(obj)
+	}
+}
+
+func (cl *Cluster) removeEntity(obj Entity) {
+	oid := obj.B().OwnerID
+	if chunk := cl.Data[oid]; chunk != nil {
+		chunk.Remove(obj)
+		cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
+			if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
+				c.Data[oid].Remove(obj)
 			}
+		})
+		if chunk.IsEmpty() {
+			chunk.Delete()
 		}
-		if len(cl.Data) == 0 {
-			cl.Delete()
-		}
+	}
+	if len(cl.Data) == 0 {
+		cl.Delete()
 	}
 }
 
