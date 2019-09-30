@@ -57,60 +57,65 @@ func (ch *Chunk) Add(raw Entity) {
 func (ch *Chunk) addLocalable(obj Localable) {
 	fieldName := obj.B().T.String()
 	oid := obj.B().OwnerID
-	delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
+	nodeField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
 
-	if !delegateField.IsValid() {
+	if !nodeField.IsValid() {
 		return
 	}
 
-	if delegateField.IsNil() {
+	if nodeField.IsNil() {
 		var pid uint
 		if parent := ch.Parent.Parent; parent != nil && parent.Data[oid] != nil {
 			parentTarget := reflect.ValueOf(parent.Data[oid]).Elem().FieldByName(fieldName)
 			pid = uint(parentTarget.Elem().FieldByName("ID").Uint())
 		}
-		delegate := reflect.New(delegateTypes[obj.B().T])
-		delegate.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pid)))
-		delegateField.Set(delegate)
+		node := reflect.New(delegateTypes[obj.B().T])
+		node.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pid)))
+		nodeField.Set(node)
 	}
-	delegateField.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
+	nodeField.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
 }
 
 func (ch *Chunk) addConnectable(obj Connectable) {
-	chID := reflect.ValueOf(ch.ID)
-	target := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
-	if target == nil {
+	fromID := reflect.ValueOf(ch.ID)
+	toCh := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
+	if toCh == nil {
 		return
 	}
-	targetID := reflect.ValueOf(target.ID)
-	outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+	toID := reflect.ValueOf(toCh.ID)
+	outMapName := fmt.Sprintf("Out%ss", obj.B().T.String())
 	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 
 	if !outMap.IsValid() {
 		return
 	}
 
-	if !outMap.MapIndex(targetID).IsValid() {
-		delegate := reflect.New(delegateTypes[obj.B().T])
-		delegate.Elem().FieldByName("DelegateEdge").Set(reflect.ValueOf(ch.NewDelegateEdge(obj, ch, target)))
+	if !outMap.MapIndex(toID).IsValid() {
+		nodeFieldName := connectTypes[obj.B().T].String()
+		from := reflect.ValueOf(ch).Elem().FieldByName(nodeFieldName)
+		to := reflect.ValueOf(toCh).Elem().FieldByName(nodeFieldName)
 
-		outMap.SetMapIndex(targetID, delegate)
+		edge := reflect.New(delegateTypes[obj.B().T])
+		edge.Elem().FieldByName("DelegateEdge").Set(reflect.ValueOf(ch.NewDelegateEdge(
+			obj, from.Interface().(delegateLocalable), to.Interface().(delegateLocalable))))
 
-		inMapName := fmt.Sprintf("In%ss", obj.B().Type().String())
-		inMap := reflect.ValueOf(target).Elem().FieldByName(inMapName)
-		inMap.SetMapIndex(chID, delegate)
+		outMap.SetMapIndex(toID, edge)
+
+		inMapName := fmt.Sprintf("In%ss", obj.B().T.String())
+		inMap := reflect.ValueOf(toCh).Elem().FieldByName(inMapName)
+		inMap.SetMapIndex(fromID, edge)
 
 		if _, ok := obj.(*RailEdge); ok {
-			ch.setReverse(delegate.Interface().(*DelegateRailEdge), target)
+			ch.setReverse(edge.Interface().(*DelegateRailEdge), toCh)
 		}
 	}
-	delegate := outMap.MapIndex(targetID)
-	delegate.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
+	edge := outMap.MapIndex(toID)
+	edge.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
 
 }
 
-func (ch *Chunk) setReverse(dre *DelegateRailEdge, target *Chunk) {
-	if reverse, ok := target.OutRailEdges[ch.ID]; ok {
+func (ch *Chunk) setReverse(dre *DelegateRailEdge, toCh *Chunk) {
+	if reverse, ok := toCh.OutRailEdges[ch.ID]; ok {
 		dre.Reverse = reverse
 		dre.ReverseID = reverse.ID
 		reverse.Reverse = dre
@@ -130,41 +135,41 @@ func (ch *Chunk) Remove(raw Entity) {
 
 func (ch *Chunk) removeLocalable(obj Localable) {
 	fieldName := obj.B().T.String()
-	delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
+	nodeField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
 
-	if !delegateField.IsValid() {
+	if !nodeField.IsValid() {
 		return
 	}
 
-	delegateField.MethodByName("Remove").Call([]reflect.Value{reflect.ValueOf(obj)})
+	nodeField.MethodByName("Remove").Call([]reflect.Value{reflect.ValueOf(obj)})
 
-	if delegateField.Elem().FieldByName("List").Len() == 0 {
-		delegateField.Set(reflect.Zero(delegateField.Type()))
+	if nodeField.Elem().FieldByName("List").Len() == 0 {
+		nodeField.Set(reflect.Zero(nodeField.Type()))
 	}
 }
 
 func (ch *Chunk) removeConnectable(obj Connectable) {
-	chID := reflect.ValueOf(ch.ID)
-	target := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
-	if target == nil {
+	fromID := reflect.ValueOf(ch.ID)
+	toCh := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
+	if toCh == nil {
 		return
 	}
-	targetID := reflect.ValueOf(target.ID)
-	outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+	toID := reflect.ValueOf(toCh.ID)
+	outMapName := fmt.Sprintf("Out%ss", obj.B().T.String())
 	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 
 	if !outMap.IsValid() {
 		return
 	}
 
-	delegate := outMap.MapIndex(targetID)
+	delegate := outMap.MapIndex(toID)
 	delegate.MethodByName("Remove").Call([]reflect.Value{reflect.ValueOf(obj)})
 
 	if delegate.Elem().FieldByName("List").Len() == 0 {
-		outMap.SetMapIndex(targetID, reflect.ValueOf(nil))
-		inMapName := fmt.Sprintf("In%ss", obj.B().Type().String())
-		inMap := reflect.ValueOf(target).Elem().FieldByName(inMapName)
-		inMap.SetMapIndex(chID, reflect.ValueOf(nil))
+		outMap.SetMapIndex(toID, reflect.ValueOf(nil))
+		inMapName := fmt.Sprintf("In%ss", obj.B().T.String())
+		inMap := reflect.ValueOf(toCh).Elem().FieldByName(inMapName)
+		inMap.SetMapIndex(fromID, reflect.ValueOf(nil))
 	}
 }
 
@@ -174,14 +179,14 @@ func (ch *Chunk) Has(raw Entity) bool {
 	switch obj := raw.(type) {
 	case Localable:
 		fieldName := obj.B().T.String()
-		delegateField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
-		if !delegateField.IsValid() || !delegateField.Elem().IsValid() {
+		nodeField := reflect.ValueOf(ch).Elem().FieldByName(fieldName)
+		if !nodeField.IsValid() || !nodeField.Elem().IsValid() {
 			return false
 		}
-		return delegateField.Elem().FieldByName("List").MapIndex(id).IsValid()
+		return nodeField.Elem().FieldByName("List").MapIndex(id).IsValid()
 
 	case Connectable:
-		outMapName := fmt.Sprintf("Out%ss", obj.B().Type().String())
+		outMapName := fmt.Sprintf("Out%ss", obj.B().T.String())
 		outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 		if !outMap.IsValid() {
 			return false
@@ -225,22 +230,28 @@ func (ch *Chunk) Resolve(args ...Entity) {
 
 // Export set delegate Entity to DelegateMap
 func (ch *Chunk) Export(dm *DelegateMap) {
+	if r := ch.Residence; r != nil {
+		dm.Residences[r.ID] = r
+	}
+	if c := ch.Company; c != nil {
+		dm.Companies[c.ID] = c
+	}
 	if rn := ch.RailNode; rn != nil {
 		dm.RailNodes[rn.ID] = rn
 	}
 	for _, re := range ch.InRailEdges {
 		dm.RailEdges[re.ID] = re
-		dm.RailNodes[re.FromID] = re.From
+		dm.RailNodes[re.FromID] = re.From.(*DelegateRailNode)
 	}
 	for _, re := range ch.OutRailEdges {
 		dm.RailEdges[re.ID] = re
-		dm.RailNodes[re.ToID] = re.To
+		dm.RailNodes[re.ToID] = re.To.(*DelegateRailNode)
 	}
 }
 
 // String represents status
 func (ch *Chunk) String() string {
-	return fmt.Sprintf("%s(%.1f:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.Type().Short(),
+	return fmt.Sprintf("%s(%.1f:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.T.Short(),
 		ch.Parent.Scale, ch.ID, ch.OwnerID,
 		ch.Residence, ch.Company, ch.RailNode,
 		len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)

@@ -1,6 +1,8 @@
 package entities
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // ModelType represents type of resources
 type ModelType uint
@@ -46,6 +48,7 @@ var types map[ModelType]reflect.Type
 var nodes map[ModelType]bool
 var edges map[ModelType]bool
 var delegateTypes map[ModelType]reflect.Type
+var connectTypes map[ModelType]ModelType
 
 // String returns identificable name
 func (t ModelType) String() string {
@@ -162,4 +165,7 @@ func InitType() {
 	delegateTypes[COMPANY] = reflect.TypeOf(DelegateCompany{})
 	delegateTypes[RAILNODE] = reflect.TypeOf(DelegateRailNode{})
 	delegateTypes[RAILEDGE] = reflect.TypeOf(DelegateRailEdge{})
+
+	connectTypes = make(map[ModelType]ModelType)
+	connectTypes[RAILEDGE] = RAILNODE
 }
