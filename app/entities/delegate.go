@@ -9,7 +9,7 @@ import (
 // DelegateMap represents Map for client view.
 type DelegateMap struct {
 	Residences jsonDelegateResidence `json:"residences"`
-	Compannies jsonDelegateCompany   `json:"companies"`
+	Companies  jsonDelegateCompany   `json:"companies"`
 	RailNodes  jsonDelegateRailNode  `json:"rail_nodes"`
 	RailEdges  jsonDelegateRailEdge  `json:"rail_edges"`
 }
@@ -17,7 +17,7 @@ type DelegateMap struct {
 // Init creates maps.
 func (dm *DelegateMap) Init(m *Model) {
 	dm.Residences = make(map[uint]*DelegateResidence)
-	dm.Compannies = make(map[uint]*DelegateCompany)
+	dm.Companies = make(map[uint]*DelegateCompany)
 	dm.RailNodes = make(map[uint]*DelegateRailNode)
 	dm.RailEdges = make(map[uint]*DelegateRailEdge)
 }
@@ -217,13 +217,8 @@ func (jrn jsonDelegateRailNode) MarshalJSON() ([]byte, error) {
 type DelegateRailEdge struct {
 	DelegateEdge
 
-	From    *DelegateRailNode `json:"-"`
-	To      *DelegateRailNode `json:"-"`
-	Reverse *DelegateRailEdge `json:"-"`
-
-	FromID    uint `json:"from"`
-	ToID      uint `json:"to"`
-	ReverseID uint `json:"eid"`
+	Reverse   *DelegateRailEdge `json:"-"`
+	ReverseID uint              `json:"eid"`
 }
 
 type jsonDelegateRailEdge map[uint]*DelegateRailEdge
