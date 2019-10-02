@@ -1,33 +1,36 @@
-import { SpriteModel, SpriteContainer } from "./sprite";
+import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { SpriteContainerProperty } from "../interfaces/pixi";
+import { AnimatedSpriteContainerProperty } from "../interfaces/pixi";
 
 const defaultValues: {[index:string]: {}} = {
     alpha: 1
 };
 
-export class Residence extends SpriteModel implements Monitorable {   
+export class Residence extends AnimatedSpriteModel implements Monitorable {
+    getResourceName() {
+        return "residences";
+    }
     setupDefaultValues() {
         super.setupDefaultValues();
         this.addDefaultValues(defaultValues);
     }
 }
 
-export class ResidenceContainer extends SpriteContainer<Residence> implements MonitorContainer {
-    constructor(options: SpriteContainerProperty) {
+export class ResidenceContainer extends AnimatedSpriteContainer<Residence> implements MonitorContainer {
+    constructor(options: AnimatedSpriteContainerProperty) {
         super(options, Residence, {});
     }
 }
 
-export class Company extends SpriteModel implements Monitorable  {
+export class Company extends AnimatedSpriteModel implements Monitorable  {
     setupDefaultValues() {
         super.setupDefaultValues();
         this.addDefaultValues(defaultValues);
     }
 }
 
-export class CompanyContainer extends SpriteContainer<Company> implements MonitorContainer {
-    constructor(options: SpriteContainerProperty) {
+export class CompanyContainer extends AnimatedSpriteContainer<Company> implements MonitorContainer {
+    constructor(options: AnimatedSpriteContainerProperty) {
         super(options, Company, {});
     }
 }

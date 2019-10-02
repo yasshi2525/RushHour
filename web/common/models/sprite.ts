@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
-import { SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty, PIXIProperty } from "../interfaces/pixi";
-import { PointModel, PointContainer } from "./point";
+import { SpriteContainerProperty, AnimatedSpriteProperty, AnimatedSpriteContainerProperty, SpriteProperty } from "../interfaces/pixi";
+import { ZoomablePointModel, ZoomablePointModelContainer } from "./zoom";
 
 /**
  * x, y座標はPointModelで初期化済み
@@ -16,10 +16,10 @@ const defaultValues: {
     tint: 0xffffff
 };
 
-export abstract class SpriteModel extends PointModel implements Monitorable {
+export abstract class SpriteModel extends ZoomablePointModel implements Monitorable {
     sprite: PIXI.Sprite;
       
-    constructor(options: PIXIProperty) {
+    constructor(options: SpriteProperty) {
         super(options);
         this.sprite = new PIXI.Sprite(options.texture);
     }
@@ -63,7 +63,7 @@ export abstract class SpriteModel extends PointModel implements Monitorable {
     }
 }
 
-export abstract class SpriteContainer<T extends SpriteModel> extends PointContainer<T> implements MonitorContainer {
+export abstract class SpriteContainer<T extends SpriteModel> extends ZoomablePointModelContainer<T> implements MonitorContainer {
     
     constructor(
         options: SpriteContainerProperty,
