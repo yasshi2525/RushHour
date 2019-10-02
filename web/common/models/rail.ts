@@ -2,7 +2,7 @@ import { MenuStatus } from "../../state";
 import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { AnimatedSpriteProperty, cursorOpts, AnimatedSpriteContainerProperty } from "../interfaces/pixi";
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
-import { config, ResolveError, Point } from "../interfaces/gamemap";
+import { ResolveError, Point } from "../interfaces/gamemap";
 import { PointModel } from "./point";
 
 const graphicsOpts = {
@@ -22,13 +22,11 @@ const rnDefaultValues: {
 };
 
 export class RailNode extends AnimatedSpriteModel implements Monitorable {
-    parentRailNode: RailNode | undefined;
     out: {[index: string]: RailEdge};
     in: {[index: string]: RailEdge};
 
     constructor(options: AnimatedSpriteProperty) {
         super(options);
-        this.parentRailNode = undefined;
         this.out = {};
         this.in = {};
     }
@@ -46,35 +44,23 @@ export class RailNode extends AnimatedSpriteModel implements Monitorable {
         });
     }
 
+    getResourceName() {
+        return "rail_nodes";
+    }
+
     setupAfterCallback() {
         super.setupAfterCallback();
         this.addAfterCallback(() => {
-            if (this.parentRailNode !== undefined) {
-                this.parentRailNode.merge("visible", true);
-            }
             Object.keys(this.out).forEach(eid => this.out[eid].merge("from", undefined));
             Object.keys(this.in).forEach(eid => this.in[eid].merge("to", undefined));
         })
     }
 
     resolve(error: ResolveError) {
+        error = super.resolve(error);
         let owner = this.resolveOwner(this.props.oid);
         if (owner !== undefined) {
             this.merge("tint", owner.get("color"));
-        }
-        let parent = this.model.gamemap.get("rail_nodes", this.props.pid) as RailNode | undefined;
-        if (parent !== undefined) {
-            this.parentRailNode = parent;
-            // 拡大時、派生元の座標から移動を開始する
-            if (this.props.coord.zoom == 1) {
-                this.current = Object.assign({}, parent.current)
-                this.latency = config.latency;
-            }
-            // 縮小時、集約先の座標に向かって移動する
-            if (this.props.coord.zoom == -1) {
-                this.merge("pos", parent.get("pos"));
-            }
-            parent.merge("visible", false);
         }
         let hasUnresolvedOwner = error.hasUnresolvedOwner || owner === undefined
         error.hasUnresolvedOwner = hasUnresolvedOwner;
