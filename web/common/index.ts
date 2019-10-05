@@ -4,8 +4,8 @@ import { config } from "./interfaces/gamemap";
 
 export default class {
     app: PIXI.Application;
-    protected images = ["company", "station", "train"];
-    sheets = ["cursor", "anchor", "residence", "rail_node", "rail_edge"];
+    protected images = ["station", "train"];
+    sheets = ["cursor", "anchor", "residence", "company", "rail_node", "rail_edge"];
     model: GameModel;
 
     constructor(myid: number) {

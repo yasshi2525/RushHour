@@ -23,6 +23,9 @@ export class ResidenceContainer extends AnimatedSpriteContainer<Residence> imple
 }
 
 export class Company extends AnimatedSpriteModel implements Monitorable  {
+    getResourceName() {
+        return "companies";
+    }
     setupDefaultValues() {
         super.setupDefaultValues();
         this.addDefaultValues(defaultValues);
