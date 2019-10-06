@@ -1,6 +1,13 @@
 import GameContainer from "..";
 import GameModel from "../models";
 
+export interface ActionPayload {
+    [index: string]: any,
+    status: boolean,
+    timestamp: number,
+    results: any
+};
+
 export interface GameBoardProperty {
     [key: string]: any,
     readOnly: boolean,
@@ -21,5 +28,10 @@ export interface GameBarProperty {
 export interface GameComponentProperty {
     [key: string]: any,
     readOnly: boolean,
+    model: GameModel
+}
+
+export interface ToolBarProperty {
+    [key: string]: any,
     model: GameModel
 }

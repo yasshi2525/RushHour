@@ -35,7 +35,7 @@ export default class {
         });
     }
 
-    initModel() {
+    init() {
         this.model.init();
     }
 }

@@ -1,15 +1,17 @@
-import "./style.css";
+import * as style from "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
 import { GameComponentProperty } from "../common/interfaces";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
+import ResizeHandler from "../common/handlers/window";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
+import { players } from "../actions";
 import { RushHourStatus } from "../state";
 import { ClickCursor, TapCursor } from "../common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
-export class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
+class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
     ref: React.RefObject<HTMLDivElement>;
     mouse: MouseDragHandler;
     wheel: WheelHandler;
@@ -17,6 +19,7 @@ export class Canvas extends React.Component<GameComponentProperty, RushHourStatu
     pinch: PinchHandler;
     clickCursor: ClickCursor;
     tapCursor: TapCursor;
+    resize: ResizeHandler;
 
     constructor(props: GameComponentProperty) {
         super(props);
@@ -29,10 +32,11 @@ export class Canvas extends React.Component<GameComponentProperty, RushHourStatu
         this.pinch = new PinchHandler(this.props.model, this.props.dispatch);
         this.clickCursor = new ClickCursor(this.props.model, this.props.dispatch);
         this.tapCursor = new TapCursor(this.props.model, this.props.dispatch);
+        this.resize = new ResizeHandler(this.props.model, this.props.dispatch);
     }
 
     render() {
-        return (<div ref={this.ref} 
+        return (<div ref={this.ref} className={style.canvasContainer}
             onMouseDown={(e) => {this.clickCursor.onStart(e); this.mouse.onStart(e);}}
             onMouseMove={(e) => {this.clickCursor.onMove(e); this.mouse.onMove(e);} }
             onMouseUp={(e) => {this.clickCursor.onEnd(e); this.mouse.onEnd(e)}}
@@ -50,6 +54,12 @@ export class Canvas extends React.Component<GameComponentProperty, RushHourStatu
                 // 一度描画して、canvas要素を子要素にする
                 this.ref.current.appendChild(this.props.model.app.view);
             }
+        } 
+    }
+
+    componentDidUpdate() {
+        if (!this.props.isPlayerFetched) {
+            this.props.dispatch(players.request({ model: this.props.game.model }));
         } 
     }
 

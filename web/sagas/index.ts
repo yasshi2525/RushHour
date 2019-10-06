@@ -1,31 +1,54 @@
 import { takeLatest, put, call } from "redux-saga/effects";
 import * as Action from "../actions";
-import { initPIXI } from "./model";
-import { fetchMap, diffMap } from "./gamemap";
-import { depart, extend, connect } from "./rail";
-import { players } from "./player";
+import { generatePIXI } from "./model";
+import { generateMap } from "./map";
+import { generateDepart, generateExtend, generateConnect } from "./rail";
+import { generatePlayers } from "./player";
 
-export interface requestPayload {
-    request: any,
-    url: string,
+export function* generateRequest(
+    request: any, 
     args: { [index:string]: any, payload: any },
-    callbacks: { success: any, failure: any }
-}
-
-export function* requestURL(params: requestPayload) {
+    callbacks: { success: any, failure: any }) {
     try {
-        const response = yield call(params.request, params.url, params.args.payload);
-        return yield put(params.callbacks.success(response));
+        const response = yield call(request, args.payload);
+        return yield put(callbacks.success(response));
     } catch (e) {
-        return yield put(params.callbacks.failure(e));
+        return yield put(callbacks.failure(e));
     }
 }
 
-export const isOK = (response: Response) => {
+async function isResponseOK(response: Response) {
     if (!response.ok) {
         throw Error(response.statusText);
     }
     return response;
+}
+
+async function isStatusOK(json: Action.ActionPayload) {
+    if (!json.status) {
+        throw Error(json.results);
+    }
+    return json;
+};
+
+async function validateResponse(rawRes: Response) {
+    let res = await isResponseOK(rawRes);
+    let rawJson = await res.json();
+    return await isStatusOK(rawJson);
+}
+
+export async function httpGET(url: string) {
+    let rawRes = await fetch(url);
+    return await validateResponse(rawRes);
+}
+
+export async function httpPOST(url: string, params: string) {
+    let rawRes = await fetch(url, { 
+        method: "POST", 
+        body: params, 
+        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
+    });
+    return await validateResponse(rawRes);
 }
 
 /**
@@ -33,11 +56,10 @@ export const isOK = (response: Response) => {
  * ここで定義した ActionTypeをキャッチした際、個々のtsで定義した非同期メソッドが呼び出される
  */
 export function* rushHourSaga() {
-    yield takeLatest(Action.initPIXI.request, initPIXI);
-    yield takeLatest(Action.fetchMap.request, fetchMap);
-    yield takeLatest(Action.diffMap.request, diffMap);
-    yield takeLatest(Action.players.request, players);
-    yield takeLatest(Action.depart.request, depart);
-    yield takeLatest(Action.extend.request, extend);
-    yield takeLatest(Action.connect.request, connect);
+    yield takeLatest(Action.initPIXI.request, generatePIXI);
+    yield takeLatest(Action.fetchMap.request, generateMap);
+    yield takeLatest(Action.players.request, generatePlayers);
+    yield takeLatest(Action.depart.request, generateDepart);
+    yield takeLatest(Action.extend.request, generateExtend);
+    yield takeLatest(Action.connect.request, generateConnect);
 };

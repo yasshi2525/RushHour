@@ -1,18 +1,27 @@
-{{set . "title" "Home"}}
-{{append . "moreStyles" "css/debug.css"}}
+{{set . "title" "RushHour"}}
+{{append . "moreStyles" "css/index.css"}}
+{{if .DevMode}}
+  {{append . "moreStyles" "css/debug.css"}}
+{{end}}
 {{template "header.html" .}}
 
 {{ if .loggedin }}
-  <div 
-    id="rushhourContainer"
+  <input type="hidden"
+    id="properties"
     data-loggedin="{{ .loggedin }}" 
     data-oid="{{ .oid }}"
     data-displayname="{{ .name }}"
-    data-image="{{ .image }}">
-  </div>
+    data-image="{{ .image }}"/>
 {{ else }}
-  <div id="rushhourContainer"></div>
+  <input type="hidden"
+    id="properties"
+    data-loggedin="{{ .loggedin }}" 
+  />
 {{ end }}
+
+<div id="canvas"></div>
+<div id="gamebar"></div>
+<div id="toolbar"></div>
 
 <div class="container">
   <div class="row">

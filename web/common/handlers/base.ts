@@ -65,10 +65,7 @@ export default abstract class <T> {
             this.isExec = false;
             this.handleEnd(ev);
             if (this.shouldFetch(ev)) {
-                this.dispatch(fetchMap.request({
-                    model: this.model,
-                    dispatch: this.dispatch
-                }));
+                this.dispatch(fetchMap.request({ model: this.model }));
             }
         }
     }

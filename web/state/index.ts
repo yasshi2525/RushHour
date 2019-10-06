@@ -46,7 +46,6 @@ export interface AnchorStatus {
 export interface RushHourStatus {
     [key: string]: any,
     timestamp: number,
-    isPIXILoaded: boolean,
     isPlayerFetched: boolean
 };
 
@@ -54,6 +53,5 @@ export interface RushHourStatus {
 export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
-    isPIXILoaded: false,
     isPlayerFetched: false
 };
