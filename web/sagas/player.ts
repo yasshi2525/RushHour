@@ -1,23 +1,16 @@
+import GameMap from "../common/models/map";
 import * as Action from "../actions";
-import { requestURL, isOK as validateCode } from ".";
+import { generateRequest, httpGET } from ".";
 
-const url = "api/v1/players";
+const playersURL = "api/v1/players";
 
-const request = (url: string, params: Action.GameMapRequest): Promise<any> => 
+export async function fetchPlayers(map: GameMap) {
+    let json = await httpGET(playersURL)
+    map.mergeChildren("players", json.results);
+    map.resolve();
+    return json;
+}
 
-    fetch(url)
-    .then(validateCode)
-    .then(response => response.json())
-    .then(response => {
-        if (!response.status) {
-            throw Error(response.results);
-        }
-        params.model.gamemap.mergeChildren("players", response.results);
-        params.model.gamemap.resolve();
-        return response;
-    })
-    .catch(error => error);
-
-export function* players(action: ReturnType<typeof Action.players.request>) {
-    return yield requestURL({ request, url, args: action, callbacks: Action.players });
+export function* generatePlayers(action: ReturnType<typeof Action.players.request>) {
+    return yield generateRequest(() => fetchPlayers(action.payload.model.gamemap), action, Action.players);
 }

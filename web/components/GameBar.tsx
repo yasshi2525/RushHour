@@ -19,7 +19,7 @@ class GameBar extends React.Component<GameBarProperty, GameBarState> {
     }
     render () {
         return (
-            <AppBar position="static">
+            <AppBar position="sticky">
                 <Toolbar>
                     <Typography variant="h3">
                         RushHour

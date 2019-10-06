@@ -14,8 +14,7 @@ export default class {
     onResize() {
         let needsFetch = this.model.resize(window.innerWidth, window.innerHeight);
         if (needsFetch) {
-            this.dispatch(fetchMap.request({ 
-                model: this.model, dispatch: this.dispatch }));
+            this.dispatch(fetchMap.request({ model: this.model }));
         }
     }
 }

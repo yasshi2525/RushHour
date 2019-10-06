@@ -28,10 +28,7 @@ export abstract class CursorHandler<T> {
             this.model, {x: this.model.coord.cx, y: this.model.coord.cy}, 
             this.model.coord.scale, client, -1)
         this.model.setCoord(center.x, center.y, this.model.coord.scale - 1);
-        this.dispatch(fetchMap.request({
-            model: this.model,
-            dispatch: this.dispatch
-        }));
+        this.dispatch(fetchMap.request({ model: this.model }));
     }
 
     protected handle(client: Point) {
@@ -44,7 +41,6 @@ export abstract class CursorHandler<T> {
                 if (this.view.selected === undefined) {
                     this.dispatch(depart.request({
                         model: this.model,
-                        dispatch: this.dispatch,
                         x: server.x, y: server.y,
                         scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                     }));
@@ -62,7 +58,6 @@ export abstract class CursorHandler<T> {
                     if (this.anchor.object !== undefined && this.view.get("activation")) {
                         this.dispatch(extend.request({
                             model: this.model,
-                            dispatch: this.dispatch,
                             x: server.x, y: server.y,
                             rnid: this.anchor.object.get("cid"),
                             scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
@@ -73,7 +68,6 @@ export abstract class CursorHandler<T> {
                         if (this.anchor.object !== undefined && this.view.get("activation")) {
                             this.dispatch(connect.request({
                                 model: this.model,
-                                dispatch: this.dispatch,
                                 from: this.anchor.object.get("cid"),
                                 to: this.view.selected.get("cid"),
                                 scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)

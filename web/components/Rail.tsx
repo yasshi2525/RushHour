@@ -1,8 +1,6 @@
-import RushHourTheme from ".";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Fab } from "@material-ui/core";
-import { ThemeProvider } from "@material-ui/styles";
 import GameModel from "../common/models";
 import { MenuStatus } from "@/state";
 
@@ -23,14 +21,14 @@ export class Rail extends React.Component<RailProperty, RailState> {
 
     render() {
         return (
-            <ThemeProvider theme={RushHourTheme}>
+            <>
                 <Fab color="primary" hidden={!this.state.selected} onClick={this.toggleSelection}>
                         Rail
                 </Fab>
                 <Fab hidden={this.state.selected} onClick={this.toggleSelection}>
                         Rail
                 </Fab>
-            </ThemeProvider>
+            </>
         );
     }
 

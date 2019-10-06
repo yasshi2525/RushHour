@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { Hidden, Fab, Container } from "@material-ui/core";
 import ExpandIcon from "@material-ui/icons/Add"
 import MinimizeIcon from "@material-ui/icons/Remove"
-import { GameComponentProperty } from "../common/interfaces";
+import { ToolBarProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
 import Rail from "./Rail";
 
@@ -11,24 +11,19 @@ interface ToolBardState {
     expandsMenu: boolean
 }
 
-export class ToolBar extends React.Component<GameComponentProperty, ToolBardState> {
-    constructor(props: GameComponentProperty) {
+class ToolBar extends React.Component<ToolBarProperty, ToolBardState> {
+    constructor(props: ToolBarProperty) {
         super(props);
         this.state = { expandsMenu: false };
         this.toggleMenu = this.toggleMenu.bind(this);
     }
 
     render() {
-        if (this.props.readOnly) {
-            return ""
-        }
         return ( 
-            <Container>
+            <>
                 {/* PC向け */}
                 <Hidden xsDown>
-                    <Container>
-                        <Rail model={this.props.model} />
-                    </Container>
+                    <Rail model={this.props.model} />
                 </Hidden>
                 {/* スマホ向け */}
                 <Hidden smUp>
@@ -47,7 +42,7 @@ export class ToolBar extends React.Component<GameComponentProperty, ToolBardStat
                         </Container>
                     : null }
                 </Hidden>
-            </Container>);
+            </>);
     }
 
     toggleMenu() {

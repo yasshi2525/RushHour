@@ -1,10 +1,10 @@
 import { MenuStatus } from "../state";
 import * as Action from "../actions";
-import { requestURL } from ".";
+import { generateRequest, httpPOST } from ".";
 
-const departUrl = "api/v1/dept";
-const extendUrl = "api/v1/extend";
-const connectUrl = "api/v1/connect";
+const departURL = "api/v1/dept";
+const extendURL = "api/v1/extend";
+const connectURL = "api/v1/connect";
 
 function buildDepartQuery(params: Action.PointRequest): string {
     let res = new URLSearchParams();
@@ -31,86 +31,67 @@ function buildConnectQuery(params: Action.ConnectRequest): string {
     return res.toString();
 }
 
-
-const requestDepart = (url: string, params: Action.PointRequest) => 
-    fetch(url, {
-        method: "POST",
-        body: buildDepartQuery(params),
-        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
-    }).then(response => response.json())
-    .then(response => {
-        let model = params.model;
-        let anchorObj = model.gamemap.mergeChild("rail_nodes", response.results.rn);
-        if (anchorObj !== undefined) {
-            anchorObj.resolve({});
-            model.setMenuState(MenuStatus.EXTEND_RAIL);
-            model.controllers.getAnchor().merge("anchor", {
-                type: "rail_nodes", 
-                pos: anchorObj.get("pos"), 
-                cid: anchorObj.get("cid")
-            });
-        }
-        return response;
-    })
-    .catch(error => error);
-
-const requestExtend = (url: string, params: Action.ExtendRequest) =>
-    fetch(url, {
-        method: "POST",
-        body: buildExtendQuery(params),
-        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
-    }).then(response => response.json())
-    .then(response => {
-        let model = params.model;
-        let anchorObj = model.gamemap.mergeChild("rail_nodes", response.results.rn);
-        let e1 = model.gamemap.mergeChild("rail_edges", response.results.e1);
-        let e2 = model.gamemap.mergeChild("rail_edges", response.results.e2);
-        if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
-            anchorObj.resolve({});
-            e1.resolve({});
-            e2.resolve({});
-            model.controllers.getAnchor().merge("anchor", {
-                type: "rail_nodes", 
-                pos: anchorObj.get("pos"), 
-                cid: anchorObj.get("cid")
-            });
-        }
-        return response;
-    })
-    .catch(error => error);
-
-const requestConnect = (url: string, params: Action.ConnectRequest) =>
-    fetch(url, {
-        method: "POST",
-        body: buildConnectQuery(params),
-        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
-    }).then(response => response.json())
-    .then(response => {
-        let model = params.model;
-        let anchorObj = model.gamemap.get("rail_nodes", response.results.e1.to);
-        let e1 = model.gamemap.mergeChild("rail_edges", response.results.e1);
-        let e2 = model.gamemap.mergeChild("rail_edges", response.results.e2);
-        if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
-            e1.resolve({});
-            e2.resolve({});
-            model.controllers.getAnchor().merge("anchor", {
-                type: "rail_nodes", 
-                pos: anchorObj.get("pos"), 
-                cid: anchorObj.get("cid")
-            });
-        }
-        return response;
-    })
-    .catch(error => error);
-
-export function* depart(action: ReturnType<typeof Action.depart.request>) {
-    return yield requestURL({ request: requestDepart, url: departUrl, args: action, callbacks: Action.depart });
+export async function postDepart(params: Action.PointRequest) {
+    let json = await httpPOST(departURL, buildDepartQuery(params));
+    let model = params.model;
+    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
+    if (anchorObj !== undefined) {
+        anchorObj.resolve({});
+        model.setMenuState(MenuStatus.EXTEND_RAIL);
+        model.controllers.getAnchor().merge("anchor", {
+            type: "rail_nodes", 
+            pos: anchorObj.get("pos"), 
+            cid: anchorObj.get("cid")
+        });
+    }
+    return json;
 }
 
-export function* extend(action: ReturnType<typeof Action.extend.request>) {
-    return yield requestURL({ request: requestExtend, url: extendUrl, args: action, callbacks: Action.extend });
+export async function postExtend(params: Action.ExtendRequest) {
+    let json = await httpPOST(extendURL, buildExtendQuery(params));
+    let model = params.model;
+    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
+    let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
+    let e2 = model.gamemap.mergeChild("rail_edges", json.results.e2);
+    if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
+        anchorObj.resolve({});
+        e1.resolve({});
+        e2.resolve({});
+        model.controllers.getAnchor().merge("anchor", {
+            type: "rail_nodes", 
+            pos: anchorObj.get("pos"), 
+            cid: anchorObj.get("cid")
+        });
+    }
+    return json;
 }
 
-export function* connect(action: ReturnType<typeof Action.connect.request>) {
-    return yield requestURL({ request: requestConnect, url: connectUrl, args: action, callbacks: Action.connect });
+export async function postConnect(params: Action.ConnectRequest) {
+    let json = await httpPOST(connectURL, buildConnectQuery(params));
+    let model = params.model;
+    let anchorObj = model.gamemap.get("rail_nodes", json.results.e1.to);
+    let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
+    let e2 = model.gamemap.mergeChild("rail_edges", json.results.e2);
+    if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
+        e1.resolve({});
+        e2.resolve({});
+        model.controllers.getAnchor().merge("anchor", {
+            type: "rail_nodes", 
+            pos: anchorObj.get("pos"), 
+            cid: anchorObj.get("cid")
+        });
+    }
+    return json;
+}
+
+export function* generateDepart(action: ReturnType<typeof Action.depart.request>) {
+    return yield generateRequest(() => postDepart(action.payload), action, Action.depart);
+}
+
+export function* generateExtend(action: ReturnType<typeof Action.extend.request>) {
+    return yield generateRequest(() => postExtend(action.payload), action, Action.extend);
+}
+
+export function* generateConnect(action: ReturnType<typeof Action.connect.request>) {
+    return yield generateRequest(() => postConnect(action.payload), action, Action.connect);
 }
