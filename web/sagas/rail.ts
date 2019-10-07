@@ -6,33 +6,8 @@ const departURL = "api/v1/dept";
 const extendURL = "api/v1/extend";
 const connectURL = "api/v1/connect";
 
-function buildDepartQuery(params: Action.PointRequest): string {
-    let res = new URLSearchParams();
-    res.set("x", params.x.toString());
-    res.set("y", params.y.toString());
-    res.set("scale", params.scale.toString());
-    return res.toString();
-}
-
-function buildExtendQuery(params: Action.ExtendRequest): string {
-    let res = new URLSearchParams();
-    res.set("x", params.x.toString());
-    res.set("y", params.y.toString());
-    res.set("scale", params.scale.toString());
-    res.set("rnid", params.rnid.toString());
-    return res.toString();
-}
-
-function buildConnectQuery(params: Action.ConnectRequest): string {
-    let res = new URLSearchParams();
-    res.set("scale", params.scale.toString());
-    res.set("from", params.from.toString());
-    res.set("to", params.to.toString());
-    return res.toString();
-}
-
 export async function postDepart(params: Action.PointRequest) {
-    let json = await httpPOST(departURL, buildDepartQuery(params));
+    let json = await httpPOST(departURL, params);
     let model = params.model;
     let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
     if (anchorObj !== undefined) {
@@ -48,7 +23,7 @@ export async function postDepart(params: Action.PointRequest) {
 }
 
 export async function postExtend(params: Action.ExtendRequest) {
-    let json = await httpPOST(extendURL, buildExtendQuery(params));
+    let json = await httpPOST(extendURL, params);
     let model = params.model;
     let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
     let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
@@ -67,7 +42,7 @@ export async function postExtend(params: Action.ExtendRequest) {
 }
 
 export async function postConnect(params: Action.ConnectRequest) {
-    let json = await httpPOST(connectURL, buildConnectQuery(params));
+    let json = await httpPOST(connectURL, params);
     let model = params.model;
     let anchorObj = model.gamemap.get("rail_nodes", json.results.e1.to);
     let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
