@@ -29,7 +29,7 @@ function wrap(props: any){
 }
 
 if (props !== null && gamebar !== null && toolbar !== null && canvas !== null) {
-    let opts = props.dataset.readOnly ? { readOnly: true } : {
+    let opts = !props.dataset.loggedin ? { readOnly: true } : {
         readOnly: false,
         displayName: props.dataset.displayname,
         image: props.dataset.image,

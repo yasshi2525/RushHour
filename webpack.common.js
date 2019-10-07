@@ -6,7 +6,7 @@ module.exports = {
         ignored: ["./node_modules", "./app", "./public"]
     },
     entry: {
-        index: ["./web/index.js", "./web/game.tsx"]
+        index: ["./web/index.js", "./web/index.tsx"]
     },
     output: {
         path: path.join(__dirname, "public/js"),
