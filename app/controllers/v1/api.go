@@ -133,6 +133,31 @@ func (c APIv1Game) Connect() revel.Result {
 	}{re, re.Reverse}))
 }
 
+// RemoveRailNode returns result of rail deletion.
+func (c APIv1Game) RemoveRailNode() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+	o := &OwnerRequest{}
+	errs := o.Parse(token, c.Params.Form)
+
+	id, err := strconv.ParseUint(c.Params.Form.Get("rnid"), 10, 64)
+	if err != nil {
+		errs = append(errs, err.Error())
+	}
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+	if err := services.RemoveRailNode(o.O, uint(id)); err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+	return c.RenderJSON(genResponse(true, nil))
+}
+
 func genResponse(status bool, results interface{}) interface{} {
 	return &struct {
 		Status    bool        `json:"status"`
