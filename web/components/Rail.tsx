@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Fab } from "@material-ui/core";
+import { Fab, Avatar } from "@material-ui/core";
 import GameModel from "../common/models";
 import { MenuStatus } from "@/state";
 
@@ -23,10 +23,10 @@ export class Rail extends React.Component<RailProperty, RailState> {
         return (
             <>
                 <Fab color="primary" hidden={!this.state.selected} onClick={this.toggleSelection}>
-                        Rail
+                    <Avatar alt="rail" src="/public/img/rail.png" />
                 </Fab>
                 <Fab hidden={this.state.selected} onClick={this.toggleSelection}>
-                        Rail
+                    <Avatar alt="rail" src="/public/img/rail.png" />
                 </Fab>
             </>
         );
