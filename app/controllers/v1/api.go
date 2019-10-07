@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -48,8 +49,11 @@ func (c APIv1Game) Departure() revel.Result {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
 
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
 	p := &PointRequest{}
-	if errs := p.Parse(token, c.Params.Form); len(errs) > 0 {
+	if errs := p.Parse(token, json); len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
 
@@ -73,9 +77,12 @@ func (c APIv1Game) Extend() revel.Result {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
 
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
 	p := &PointRequest{}
-	errs := p.Parse(token, c.Params.Form)
-	e, err := validateEntity(entities.RAILNODE, c.Params.Form.Get("rnid"))
+	errs := p.Parse(token, json)
+	e, err := validateEntity(entities.RAILNODE, json["rnid"])
 	if err != nil {
 		errs = append(errs, err.Error())
 	}
@@ -106,10 +113,13 @@ func (c APIv1Game) Connect() revel.Result {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
 
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
 	o := &OwnerRequest{}
-	errs := o.Parse(token, c.Params.Form)
-	e1, err1 := validateEntity(entities.RAILNODE, c.Params.Form.Get("from"))
-	e2, err2 := validateEntity(entities.RAILNODE, c.Params.Form.Get("to"))
+	errs := o.Parse(token, json)
+	e1, err1 := validateEntity(entities.RAILNODE, json["from"])
+	e2, err2 := validateEntity(entities.RAILNODE, json["to"])
 	if err1 != nil {
 		errs = append(errs, err1.Error())
 	}
@@ -142,12 +152,16 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 	if err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
-	o := &OwnerRequest{}
-	errs := o.Parse(token, c.Params.Form)
 
-	id, err := strconv.ParseUint(c.Params.Form.Get("rnid"), 10, 64)
-	if err != nil {
-		errs = append(errs, err.Error())
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token, json)
+
+	id, ok := json["rnid"].(float64)
+	if !ok {
+		errs = append(errs, fmt.Sprintf("parse rnid failed: %v", json["rnid"]))
 	}
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))

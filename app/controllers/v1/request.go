@@ -2,9 +2,7 @@ package v1
 
 import (
 	"fmt"
-	"net/url"
 	"reflect"
-	"strconv"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
@@ -17,14 +15,14 @@ type OwnerRequest struct {
 }
 
 // Parse validates and insert value from response.
-func (o *OwnerRequest) Parse(token string, v url.Values) []string {
+func (o *OwnerRequest) Parse(token string, v map[string]interface{}) []string {
 	errs := []string{}
 
 	if o.O = services.FindOwner(token); o.O == nil {
 		errs = append(errs, "user not found")
 	}
-	if scale, err := strconv.ParseFloat(v.Get("scale"), 64); err != nil {
-		errs = append(errs, err.Error())
+	if scale, ok := v["scale"].(float64); !ok {
+		errs = append(errs, fmt.Sprintf("parse scale failed: %v", v["scale"]))
 	} else {
 		o.Scale = scale
 	}
@@ -39,27 +37,28 @@ type PointRequest struct {
 }
 
 // Parse validates and insert value from response.
-func (p *PointRequest) Parse(token string, v url.Values) []string {
+func (p *PointRequest) Parse(token string, v map[string]interface{}) []string {
 	errs := p.OwnerRequest.Parse(token, v)
-	if x, err := strconv.ParseFloat(v.Get("x"), 64); err != nil {
-		errs = append(errs, err.Error())
+	if x, ok := v["x"].(float64); !ok {
+		errs = append(errs, fmt.Sprintf("parse x failed: %v", v["x"]))
 	} else {
 		p.X = x
 	}
-	if y, err := strconv.ParseFloat(v.Get("y"), 64); err != nil {
-		errs = append(errs, err.Error())
+	if y, ok := v["y"].(float64); !ok {
+		errs = append(errs, fmt.Sprintf("parse y failed: %v", v["y"]))
 	} else {
 		p.Y = y
 	}
 	return errs
 }
 
-func validateEntity(res entities.ModelType, idstr string) (entities.Entity, error) {
-	id, err := strconv.ParseUint(idstr, 10, 64)
-	if err != nil {
-		return nil, err
+func validateEntity(res entities.ModelType, raw interface{}) (entities.Entity, error) {
+	idnum, ok := raw.(float64)
+	if !ok {
+		return nil, fmt.Errorf("%s[%v] doesn't exist", res.String(), raw)
 	}
-	val := services.Model.Values[res].MapIndex(reflect.ValueOf(uint(id)))
+	id := uint(idnum)
+	val := services.Model.Values[res].MapIndex(reflect.ValueOf(id))
 	if !val.IsValid() {
 		return nil, fmt.Errorf("%s[%d] doesn't exist", res.String(), id)
 	}

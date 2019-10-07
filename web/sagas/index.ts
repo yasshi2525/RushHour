@@ -42,11 +42,13 @@ export async function httpGET(url: string) {
     return await validateResponse(rawRes);
 }
 
-export async function httpPOST(url: string, params: string) {
+export async function httpPOST(url: string, params: {[index: string]: any}) {
     let rawRes = await fetch(url, { 
         method: "POST", 
-        body: params, 
-        headers: new Headers({ "Content-type" : "application/x-www-form-urlencoded" })
+        body: JSON.stringify(params, (key, value) => {
+            return (key == "model") ? undefined : value
+        }), 
+        headers: new Headers({ "Content-type" : "application/json" })
     });
     return await validateResponse(rawRes);
 }
