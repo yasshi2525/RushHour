@@ -4,7 +4,6 @@ import { config } from "./interfaces/gamemap";
 
 export default class {
     app: PIXI.Application;
-    protected images = ["station", "train"];
     sheets = ["cursor", "anchor", "residence", "company", "rail_node", "rail_edge"];
     model: GameModel;
 
@@ -28,7 +27,7 @@ export default class {
             myid
         });
 
-        this.images.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
+        //this.images.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
         
         this.sheets.forEach(key => {
             this.app.loader.add(key, `public/spritesheet/${key}@${Math.floor(this.model.renderer.resolution)}x.json`);
