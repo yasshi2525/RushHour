@@ -21,7 +21,7 @@ class GameBar extends React.Component<GameBarProperty, GameBarState> {
         return (
             <AppBar position="sticky">
                 <Toolbar>
-                    <Typography variant="h3">
+                    <Typography variant="h4">
                         RushHour
                     </Typography>
                     { this.props.readOnly ?

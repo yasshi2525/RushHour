@@ -12,11 +12,13 @@ import Canvas from "./components/Canvas";
 import { loadImages } from "./sagas/model";
 import { fetchMap } from "./sagas/map";
 import { fetchPlayers } from "./sagas/player";
+import { CircularProgress } from "@material-ui/core";
 
 let props = document.getElementById("properties")
 let gamebar = document.getElementById("gamebar")
 let toolbar = document.getElementById("toolbar")
 let canvas = document.getElementById("canvas")
+let loading = document.getElementById("loading")
 
 function wrap(props: any){
     return function(Component: React.ComponentType){
@@ -28,12 +30,18 @@ function wrap(props: any){
     }
 }
 
-if (props !== null && gamebar !== null && toolbar !== null && canvas !== null) {
+if (props !== null && gamebar !== null && toolbar !== null && canvas !== null && loading !== null) {
     let opts = !props.dataset.loggedin ? { readOnly: true } : {
         readOnly: false,
         displayName: props.dataset.displayname,
         image: props.dataset.image,
     };
+    
+    ReactDOM.render(
+        <ThemeProvider theme={RushHourTheme}>
+            <CircularProgress />
+        </ThemeProvider>, loading)
+
     ReactDOM.render(wrap(opts)(GameBar), gamebar);
 
     let myid = (props.dataset.oid !== undefined) ? parseInt(props.dataset.oid) : 0
@@ -41,6 +49,9 @@ if (props !== null && gamebar !== null && toolbar !== null && canvas !== null) {
     
     loadImages(game)
     .then(() => {
+        if (loading !== null) {
+            loading.remove();
+        }
         if (!opts.readOnly) {
             ReactDOM.render(wrap({ model: game.model })(ToolBar), toolbar);
         }
