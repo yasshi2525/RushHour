@@ -1,9 +1,10 @@
-import { takeLatest, put, call } from "redux-saga/effects";
+import { takeEvery, takeLatest, put, call } from "redux-saga/effects";
 import * as Action from "../actions";
 import { generatePIXI } from "./model";
 import { generateMap } from "./map";
 import { generateDepart, generateExtend, generateConnect } from "./rail";
 import { generatePlayers } from "./player";
+import { generateSetMenu } from "./menu";
 
 export function* generateRequest(
     request: any, 
@@ -64,4 +65,5 @@ export function* rushHourSaga() {
     yield takeLatest(Action.depart.request, generateDepart);
     yield takeLatest(Action.extend.request, generateExtend);
     yield takeLatest(Action.connect.request, generateConnect);
+    yield takeEvery(Action.setMenu.request, generateSetMenu);
 };

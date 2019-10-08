@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { AppBar, Toolbar, Typography, Button, Fade, Dialog, Link } from "@material-ui/core";
+import { AppBar as AppBarOrg, Toolbar, Typography, Button, Fade, Dialog, Link } from "@material-ui/core";
 import * as styles from "./style.css";
 import { GameBarProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
@@ -10,7 +10,7 @@ interface GameBarState {
     openModal: boolean
 }
 
-class GameBar extends React.Component<GameBarProperty, GameBarState> {
+class AppBar extends React.Component<GameBarProperty, GameBarState> {
     constructor(props: any) {
         super(props);
         this.state = { openModal: false };
@@ -19,7 +19,7 @@ class GameBar extends React.Component<GameBarProperty, GameBarState> {
     }
     render () {
         return (
-            <AppBar position="sticky">
+            <AppBarOrg position="sticky">
                 <Toolbar>
                     <Typography variant="h4">
                         RushHour
@@ -57,7 +57,7 @@ class GameBar extends React.Component<GameBarProperty, GameBarState> {
                             </Button>
                         </> }
                 </Toolbar>
-            </AppBar>
+            </AppBarOrg>
         );
     }
 
@@ -74,4 +74,4 @@ function mapStateToProps(_: RushHourStatus) {
     return {};
 }
 
-export default connect(mapStateToProps)(GameBar);
+export default connect(mapStateToProps)(AppBar);

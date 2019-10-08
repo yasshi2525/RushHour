@@ -187,6 +187,7 @@ export default class {
             this.gamemap.merge("menu", menu);
             this.menu = menu;
         }
+        return menu;
     }
 
     unmount() {
