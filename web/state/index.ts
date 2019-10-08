@@ -19,7 +19,8 @@ export interface Locatable extends Identifiable {
 export enum MenuStatus {
     IDLE,
     SEEK_DEPARTURE,
-    EXTEND_RAIL
+    EXTEND_RAIL,
+    DESTROY
 };
 
 export interface GameMap {
@@ -46,6 +47,7 @@ export interface AnchorStatus {
 export interface RushHourStatus {
     [key: string]: any,
     timestamp: number,
+    menu: MenuStatus,
     isPlayerFetched: boolean
 };
 
@@ -53,5 +55,6 @@ export interface RushHourStatus {
 export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
+    menu: MenuStatus.IDLE,
     isPlayerFetched: false
 };

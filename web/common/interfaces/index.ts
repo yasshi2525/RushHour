@@ -1,5 +1,5 @@
-import GameContainer from "..";
 import GameModel from "../models";
+import { MenuStatus } from "../../state";
 
 export interface ActionPayload {
     [index: string]: any,
@@ -8,30 +8,26 @@ export interface ActionPayload {
     results: any
 };
 
-export interface GameBoardProperty {
-    [key: string]: any,
-    readOnly: boolean,
-    displayName: string | undefined,
-    image: string | undefined,
-    game: GameContainer,
-    isPIXILoaded: boolean,
-    isPlayersFetched: boolean
-}
-
 export interface GameBarProperty {
     [key: string]: any,
     readOnly: boolean,
     displayName: string | undefined,
     image: string | undefined
-}
+};
 
 export interface GameComponentProperty {
-    [key: string]: any,
-    readOnly: boolean,
-    model: GameModel
-}
+    model: GameModel,
+};
 
-export interface ToolBarProperty {
+export interface CanvasProperty extends GameComponentProperty {
     [key: string]: any,
-    model: GameModel
-}
+    isPlayerFetched: boolean,
+    dispatch: any
+};
+
+export interface MenuProperty {
+    [key: string]: any,
+    model: GameModel,
+    menu: MenuStatus,
+    setMenu: (opts: {model: GameModel, menu: MenuStatus}) => void
+};

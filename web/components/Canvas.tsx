@@ -1,7 +1,7 @@
 import * as style from "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
-import { GameComponentProperty } from "../common/interfaces";
+import { CanvasProperty } from "../common/interfaces";
 import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import ResizeHandler from "../common/handlers/window";
 import { WheelHandler } from "../common/handlers/wheel";
@@ -11,7 +11,7 @@ import { RushHourStatus } from "../state";
 import { ClickCursor, TapCursor } from "../common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
-class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
+class Canvas extends React.Component<CanvasProperty, RushHourStatus> {
     ref: React.RefObject<HTMLDivElement>;
     mouse: MouseDragHandler;
     wheel: WheelHandler;
@@ -21,7 +21,7 @@ class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
     tapCursor: TapCursor;
     resize: ResizeHandler;
 
-    constructor(props: GameComponentProperty) {
+    constructor(props: CanvasProperty) {
         super(props);
 
         this.ref = React.createRef<HTMLDivElement>();
@@ -59,7 +59,7 @@ class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
 
     componentDidUpdate() {
         if (!this.props.isPlayerFetched) {
-            this.props.dispatch(players.request({ model: this.props.game.model }));
+            this.props.dispatch(players.request({ model: this.props.model }));
         } 
     }
 
@@ -68,8 +68,8 @@ class Canvas extends React.Component<GameComponentProperty, RushHourStatus> {
     }
 }
 
-function mapStateToProps(_: RushHourStatus) {
-    return {};
+function mapStateToProps(state: RushHourStatus) {
+    return { isPlayerFetched: state.isPlayerFetched };
 }
 
 export default connect(mapStateToProps)(Canvas);
