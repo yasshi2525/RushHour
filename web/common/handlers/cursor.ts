@@ -1,21 +1,22 @@
 import * as React from "react";
 import { MenuStatus } from "../../state";
-import { depart, extend, connect, fetchMap } from "../../actions";
+import { depart, extend, connect, fetchMap, destroy } from "../../actions";
 import GameModel from "../models";
 import Anchor from "../models/anchor";
 import Cursor from "../models/cursor";
+import { RailNode } from "../models/rail";
 import { Point } from "../interfaces/gamemap";
 import { getZoomPos } from "./point";
 
 export abstract class CursorHandler<T> {
     protected model: GameModel;
-    protected view: Cursor;
+    protected cursor: Cursor;
     protected anchor: Anchor;
     protected dispatch: any;
 
     constructor(model: GameModel, dispatch: any) {
         this.model = model;
-        this.view = model.controllers.getCursor();
+        this.cursor = model.controllers.getCursor();
         this.anchor = model.controllers.getAnchor();
         this.dispatch = dispatch;
     }
@@ -32,30 +33,30 @@ export abstract class CursorHandler<T> {
     }
 
     protected handle(client: Point) {
-        let server = this.view.get("pos");
+        let server = this.cursor.get("pos");
         if (server === undefined) {
             return;
         }
         switch(this.model.menu) {
             case MenuStatus.SEEK_DEPARTURE:
-                if (this.view.selected === undefined) {
+                if (this.cursor.selected === undefined) {
                     this.dispatch(depart.request({
                         model: this.model,
                         x: server.x, y: server.y,
                         scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                     }));
                 } else {
-                    if (this.view.selected.get("mul") === 1) {
+                    if (this.cursor.selected.get("mul") === 1) {
                         this.model.setMenuState(MenuStatus.EXTEND_RAIL);
-                        this.anchor.merge("anchor", this.view.genAnchorStatus());
+                        this.anchor.merge("anchor", this.cursor.genAnchorStatus());
                     } else {
                         this.requestZoom(client);
                     }
                 }
                 break;
             case MenuStatus.EXTEND_RAIL:
-                if (this.view.selected === undefined) {
-                    if (this.anchor.object !== undefined && this.view.get("activation")) {
+                if (this.cursor.selected === undefined) {
+                    if (this.anchor.object !== undefined && this.cursor.get("activation")) {
                         this.dispatch(extend.request({
                             model: this.model,
                             x: server.x, y: server.y,
@@ -64,12 +65,12 @@ export abstract class CursorHandler<T> {
                         }));
                     }
                 } else {
-                    if (this.view.selected.get("mul") === 1) {
-                        if (this.anchor.object !== undefined && this.view.get("activation")) {
+                    if (this.cursor.selected.get("mul") === 1) {
+                        if (this.anchor.object !== undefined && this.cursor.get("activation")) {
                             this.dispatch(connect.request({
                                 model: this.model,
                                 from: this.anchor.object.get("cid"),
-                                to: this.view.selected.get("cid"),
+                                to: this.cursor.selected.get("cid"),
                                 scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
                             }));
                         }
@@ -78,6 +79,26 @@ export abstract class CursorHandler<T> {
                     }
                 }
                 break;
+            case MenuStatus.DESTROY:
+                if (this.cursor.destroyer.selected !== undefined) {
+                    if (this.cursor.destroyer.selected.get("mul") === 1) {
+                        let type: string = "";
+
+                        if (this.cursor.destroyer.selected instanceof RailNode) {
+                            type = "rail_nodes"
+                        }
+
+                        this.dispatch(destroy.request({
+                            model: this.model,
+                            resource: type,
+                            id: this.cursor.destroyer.selected.get("id"),
+                            cid: this.cursor.destroyer.selected.get("cid"),
+                            scale: Math.floor(this.model.coord.scale - this.model.delegate + 1)
+                        }))
+                    } else {
+                        this.requestZoom(client);
+                    }
+                }
         }
     }
 
@@ -94,12 +115,12 @@ export class ClickCursor extends CursorHandler<React.MouseEvent> {
     }
 
     onMove(ev: React.MouseEvent) {
-        this.view.merge("client", this.getClientXY(ev));
+        this.cursor.merge("client", this.getClientXY(ev));
         this.moveCnt++;
     }
 
     onOut(_ev: React.MouseEvent) {
-        this.view.merge("client", undefined);
+        this.cursor.merge("client", undefined);
         this.moveCnt = 0;
     }
 
@@ -135,9 +156,9 @@ export class TapCursor extends CursorHandler<React.TouchEvent> {
 
     onEnd(_ev: React.TouchEvent) {
         if (this.pos !== undefined && this.moveCnt <= sensitivity) {
-            this.view.merge("client", this.pos);
+            this.cursor.merge("client", this.pos);
             this.handle(this.pos);
-            this.view.merge("client", undefined);
+            this.cursor.merge("client", undefined);
         }
         this.pos = undefined;
         this.moveCnt = 0;

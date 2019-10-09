@@ -1,11 +1,11 @@
 import GameMap from "../common/models/map";
 import * as Action from "../actions";
-import { generateRequest, httpGET } from ".";
+import { generateRequest, http } from ".";
 
 const playersURL = "api/v1/players";
 
 export async function fetchPlayers(map: GameMap) {
-    let json = await httpGET(playersURL)
+    let json = await http(playersURL)
     map.mergeChildren("players", json.results);
     map.resolve();
     return json;

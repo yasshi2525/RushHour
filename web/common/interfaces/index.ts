@@ -21,6 +21,7 @@ export interface GameComponentProperty {
 
 export interface CanvasProperty extends GameComponentProperty {
     [key: string]: any,
+    isFetchRequired: boolean,
     isPlayerFetched: boolean,
     dispatch: any
 };

@@ -168,7 +168,7 @@ func (cl *Cluster) removeEntity(obj Entity) {
 		chunk.Remove(obj)
 		cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
 			if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
-				c.Data[oid].Remove(obj)
+				c.Remove(obj)
 			}
 		})
 		if chunk.IsEmpty() {

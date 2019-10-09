@@ -6,7 +6,7 @@ import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
 import ResizeHandler from "../common/handlers/window";
 import { WheelHandler } from "../common/handlers/wheel";
 import { PinchHandler } from "../common/handlers/pinch";
-import { players } from "../actions";
+import { fetchMap, players } from "../actions";
 import { RushHourStatus } from "../state";
 import { ClickCursor, TapCursor } from "../common/handlers/cursor";
 
@@ -60,7 +60,10 @@ class Canvas extends React.Component<CanvasProperty, RushHourStatus> {
     componentDidUpdate() {
         if (!this.props.isPlayerFetched) {
             this.props.dispatch(players.request({ model: this.props.model }));
-        } 
+        }
+        if (this.props.isFetchRequired) {
+            this.props.dispatch(fetchMap.request({ model: this.props.model }))
+        }
     }
 
     componentWillUnmount() {
@@ -69,7 +72,10 @@ class Canvas extends React.Component<CanvasProperty, RushHourStatus> {
 }
 
 function mapStateToProps(state: RushHourStatus) {
-    return { isPlayerFetched: state.isPlayerFetched };
+    return { 
+        isFetchRequired: state.isFetchRequired,
+        isPlayerFetched: state.isPlayerFetched
+    };
 }
 
 export default connect(mapStateToProps)(Canvas);

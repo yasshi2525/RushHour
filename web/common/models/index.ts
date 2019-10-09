@@ -167,24 +167,25 @@ export default class {
         let oldDelegate = this.delegate;
         this.renderer.resize(width, height);
         this.updateDelegate();
-        this.controllers.merge("resize", true);
-        this.gamemap.merge("resize", true);
+        this.merge("resize", true);
         return this.delegate !== oldDelegate;
     }
 
     protected updateCoord(force: boolean) {
-        this.controllers.merge("coord", this.coord);
-        this.gamemap.merge("coord", this.coord);
+        this.merge("coord", this.coord);
         if (force) {
-            this.controllers.merge("forceMove", true);
-            this.gamemap.merge("forceMove", true);
+            this.merge("forceMove", true);
         }
+    }
+
+    merge(key: string, value: any) {
+        this.controllers.merge(key, value);
+        this.gamemap.merge(key, value);
     }
 
     setMenuState(menu: MenuStatus) {
         if (this.menu !== menu) {
-            this.controllers.merge("menu", menu);
-            this.gamemap.merge("menu", menu);
+            this.merge("menu", menu);
             this.menu = menu;
         }
         return menu;

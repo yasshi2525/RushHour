@@ -6,6 +6,7 @@ import { AnimatedSpriteModel } from "./sprite";
 import { PointModel } from "./point";
 import { RailNode } from "./rail";
 import Anchor from "./anchor";
+import Destroyer from "./destroy";
 
 const graphicsOpts = {
     tint: {
@@ -27,11 +28,13 @@ const defaultValues: {
 export default class extends AnimatedSpriteModel implements Monitorable {
     selected: PointModel | undefined;
     anchor: Anchor;
+    destroyer: Destroyer;
 
-    constructor(options: AnimatedSpriteProperty & { offset: number, anchor: Anchor } ) {
+    constructor(options: AnimatedSpriteProperty & { offset: number, anchor: Anchor, destroyer: Destroyer } ) {
         super(options);
         this.anchor = options.anchor;
         this.anchor.cursor = this;
+        this.destroyer = options.destroyer;
     }
     
     setupDefaultValues() {
@@ -50,7 +53,8 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     setupUpdateCallback() {
         super.setupUpdateCallback();
         this.addUpdateCallback("client", (v) => {
-            this.merge("pos", this.toServer(v))
+            this.destroyer.merge("client", v);
+            this.merge("pos", this.toServer(v));
             this.selectObject();
             this.moveDestination();
         });
@@ -105,7 +109,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
                 selected = this.model.gamemap.getOnChunk("rail_nodes", this.props.pos, this.model.myid);
                 break;
         }
-        return selected === except ? undefined : selected as PointModel;
+        return selected === except ? undefined : selected as PointModel | undefined;
         
     }
     protected activate(objOnChunk: Monitorable | undefined) {
@@ -129,7 +133,7 @@ export default class extends AnimatedSpriteModel implements Monitorable {
     }
 
     protected getTint() {
-        return this.props.activation ? graphicsOpts.tint.info : graphicsOpts.tint.error
+        return this.props.activation ? graphicsOpts.tint.info : graphicsOpts.tint.error;
     }
 
     protected selectObjectCursor() {

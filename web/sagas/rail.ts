@@ -1,13 +1,13 @@
 import { MenuStatus } from "../state";
 import * as Action from "../actions";
-import { generateRequest, httpPOST } from ".";
+import { generateRequest, http, Method } from ".";
 
 const departURL = "api/v1/dept";
 const extendURL = "api/v1/extend";
 const connectURL = "api/v1/connect";
 
 export async function postDepart(params: Action.PointRequest) {
-    let json = await httpPOST(departURL, params);
+    let json = await http(departURL, Method.POST, params);
     let model = params.model;
     let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
     if (anchorObj !== undefined) {
@@ -23,7 +23,7 @@ export async function postDepart(params: Action.PointRequest) {
 }
 
 export async function postExtend(params: Action.ExtendRequest) {
-    let json = await httpPOST(extendURL, params);
+    let json = await http(extendURL, Method.POST, params);
     let model = params.model;
     let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
     let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
@@ -42,7 +42,7 @@ export async function postExtend(params: Action.ExtendRequest) {
 }
 
 export async function postConnect(params: Action.ConnectRequest) {
-    let json = await httpPOST(connectURL, params);
+    let json = await http(connectURL, Method.POST, params);
     let model = params.model;
     let anchorObj = model.gamemap.get("rail_nodes", json.results.e1.to);
     let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);

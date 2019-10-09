@@ -41,8 +41,8 @@ func (c APIv1Game) Players() revel.Result {
 
 // Departure returns result of rail node creation
 func (c APIv1Game) Departure() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
 
 	token, err := c.getToken()
 	if err != nil {
@@ -69,8 +69,8 @@ func (c APIv1Game) Departure() revel.Result {
 
 // Extend returns result of rail node extension
 func (c APIv1Game) Extend() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
 
 	token, err := c.getToken()
 	if err != nil {
@@ -105,8 +105,8 @@ func (c APIv1Game) Extend() revel.Result {
 
 // Connect returns result of rail connection
 func (c APIv1Game) Connect() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
 
 	token, err := c.getToken()
 	if err != nil {
@@ -116,8 +116,8 @@ func (c APIv1Game) Connect() revel.Result {
 	json := make(map[string]interface{})
 	c.Params.BindJSON(&json)
 
-	o := &OwnerRequest{}
-	errs := o.Parse(token, json)
+	s := &ScaleRequest{}
+	errs := s.Parse(token, json)
 	e1, err1 := validateEntity(entities.RAILNODE, json["from"])
 	e2, err2 := validateEntity(entities.RAILNODE, json["to"])
 	if err1 != nil {
@@ -132,7 +132,7 @@ func (c APIv1Game) Connect() revel.Result {
 
 	from := e1.(*entities.RailNode)
 	to := e2.(*entities.RailNode)
-	re, err := services.ConnectRailNode(o.O, from, to, o.Scale)
+	re, err := services.ConnectRailNode(s.O, from, to, s.Scale)
 	if err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
@@ -145,8 +145,8 @@ func (c APIv1Game) Connect() revel.Result {
 
 // RemoveRailNode returns result of rail deletion.
 func (c APIv1Game) RemoveRailNode() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
 
 	token, err := c.getToken()
 	if err != nil {
@@ -159,9 +159,9 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 	o := &OwnerRequest{}
 	errs := o.Parse(token, json)
 
-	id, ok := json["rnid"].(float64)
+	id, ok := json["id"].(float64)
 	if !ok {
-		errs = append(errs, fmt.Sprintf("parse rnid failed: %v", json["rnid"]))
+		errs = append(errs, fmt.Sprintf("parse id failed: %v", json["id"]))
 	}
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
@@ -169,7 +169,9 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 	if err := services.RemoveRailNode(o.O, uint(id)); err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
-	return c.RenderJSON(genResponse(true, nil))
+	return c.RenderJSON(genResponse(true, &struct {
+		DeleteID uint `json:"id"`
+	}{uint(id)}))
 }
 
 func genResponse(status bool, results interface{}) interface{} {

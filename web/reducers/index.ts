@@ -9,8 +9,15 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
         case Actions.fetchMap.success.toString():
             return Object.assign({}, state, { 
                 timestamp: action.payload.timestamp,
-                isPlayerFetched: !action.payload.hasUnresolvedOwner
+                isPlayerFetched: !action.payload.hasUnresolvedOwner,
+                isFetchRequired: false
             });
+        case Actions.destroy.success.toString(): {
+            return Object.assign({}, state, {
+                timestamp: action.payload.timestamp,
+                isFetchRequired: true
+            });
+        }
         default:
             return state;
     }
