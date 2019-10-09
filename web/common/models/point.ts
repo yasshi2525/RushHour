@@ -3,6 +3,7 @@ import { Monitorable, MonitorContainer } from "../interfaces/monitor";
 import { Chunk, getChunkByPos, Point } from "../interfaces/gamemap";
 import Cursor from "./cursor";
 import Anchor from "./anchor";
+import Destroyer from "./destroy";
 
 const defaultValues: {
     pos: Point, cursor: Cursor | undefined
@@ -11,6 +12,7 @@ const defaultValues: {
 export abstract class PointModel extends PIXIModel implements Monitorable {
     refferedCursor: Cursor | undefined;
     refferedAnchor: Anchor | undefined;
+    refferedDestroyer: Destroyer | undefined;
 
     setInitialValues(initialValues: {[index: string]: {}}) {
         super.setInitialValues(initialValues);
@@ -56,19 +58,21 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
 
     protected smoothMove() { 
         super.smoothMove();
-        if (this.refferedCursor !== undefined) {
-            this.refferedCursor.updateDisplayInfo();
-        }
-        if (this.refferedAnchor !== undefined) {
-            this.refferedAnchor.updateDisplayInfo();
-        }
+
+        [this.refferedCursor, this.refferedAnchor, this.refferedDestroyer].forEach(v => {
+            if (v !== undefined) {
+                v.updateDisplayInfo();
+            }
+        });
     }
 
     protected unreferCursor() {
-        if (this.refferedCursor !== undefined) {
-            this.refferedCursor.unlinkSelected();
-            this.refferedCursor.selectObject(this);
-        }
+        [this.refferedCursor, this.refferedDestroyer].forEach(v => {
+            if (v !== undefined) {
+                v.unlinkSelected();
+                v.selectObject(this);
+            }
+        });
         if (this.refferedAnchor !== undefined) {
             this.refferedAnchor.updateAnchor(true);
         }

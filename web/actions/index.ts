@@ -27,7 +27,8 @@ export interface ConnectRequest extends UserActionRequest {
 
 export interface DestroyRequest extends UserActionRequest{
     resource: string,
-    id: number
+    id: number,
+    cid: number
 }
 
 export interface MenuRequest extends ModelRequest {

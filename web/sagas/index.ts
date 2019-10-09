@@ -5,6 +5,7 @@ import { generateMap } from "./map";
 import { generateDepart, generateExtend, generateConnect } from "./rail";
 import { generatePlayers } from "./player";
 import { generateSetMenu } from "./menu";
+import { generateDestroy } from "./destroy";
 
 export function* generateRequest(
     request: any, 
@@ -38,19 +39,23 @@ async function validateResponse(rawRes: Response) {
     return await isStatusOK(rawJson);
 }
 
-export async function httpGET(url: string) {
-    let rawRes = await fetch(url);
-    return await validateResponse(rawRes);
+export enum Method {
+    GET = "GET",
+    PUT = "PUT",
+    POST = "POST",
+    DELETE = "DELETE"
 }
 
-export async function httpPOST(url: string, params: {[index: string]: any}) {
-    let rawRes = await fetch(url, { 
-        method: "POST", 
-        body: JSON.stringify(params, (key, value) => {
-            return (key == "model") ? undefined : value
-        }), 
-        headers: new Headers({ "Content-type" : "application/json" })
-    });
+export async function http(url: string, method: Method = Method.GET, params: {[index: string]: any} = {}) {
+    let rawRes = (method === Method.GET) ? 
+        await fetch(url) 
+        : await fetch(url, { 
+            method, 
+            body: JSON.stringify(params, (key, value) => {
+                return (key == "model") ? undefined : value
+            }), 
+            headers: new Headers({ "Content-type" : "application/json" })
+        });
     return await validateResponse(rawRes);
 }
 
@@ -65,5 +70,6 @@ export function* rushHourSaga() {
     yield takeLatest(Action.depart.request, generateDepart);
     yield takeLatest(Action.extend.request, generateExtend);
     yield takeLatest(Action.connect.request, generateConnect);
+    yield takeLatest(Action.destroy.request, generateDestroy);
     yield takeEvery(Action.setMenu.request, generateSetMenu);
 };

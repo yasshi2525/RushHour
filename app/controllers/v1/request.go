@@ -10,35 +10,45 @@ import (
 
 // OwnerRequest represents requirement field of user action.
 type OwnerRequest struct {
-	O     *entities.Player
-	Scale float64
+	O *entities.Player
 }
 
 // Parse validates and insert value from response.
 func (o *OwnerRequest) Parse(token string, v map[string]interface{}) []string {
 	errs := []string{}
-
 	if o.O = services.FindOwner(token); o.O == nil {
 		errs = append(errs, "user not found")
 	}
+	return errs
+}
+
+// ScaleRequest represents requirement field of user action with scaling.
+type ScaleRequest struct {
+	OwnerRequest
+	Scale float64
+}
+
+// Parse validates and insert value from response.
+func (s *ScaleRequest) Parse(token string, v map[string]interface{}) []string {
+	errs := s.OwnerRequest.Parse(token, v)
 	if scale, ok := v["scale"].(float64); !ok {
 		errs = append(errs, fmt.Sprintf("parse scale failed: %v", v["scale"]))
 	} else {
-		o.Scale = scale
+		s.Scale = scale
 	}
 	return errs
 }
 
 // PointRequest represents requirement field of user action pointing somewhere.
 type PointRequest struct {
-	OwnerRequest
+	ScaleRequest
 	X float64
 	Y float64
 }
 
 // Parse validates and insert value from response.
 func (p *PointRequest) Parse(token string, v map[string]interface{}) []string {
-	errs := p.OwnerRequest.Parse(token, v)
+	errs := p.ScaleRequest.Parse(token, v)
 	if x, ok := v["x"].(float64); !ok {
 		errs = append(errs, fmt.Sprintf("parse x failed: %v", v["x"]))
 	} else {

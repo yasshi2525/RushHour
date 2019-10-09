@@ -57,6 +57,10 @@ export default class extends GroupModel {
         return error;
     }
 
+    removeChild(key: string, id: string) {
+        this.containers[key].removeChild(id);
+    }
+
     resolve() {
         let error: ResolveError = {};
         this.forEach(v => v.resolve(error));

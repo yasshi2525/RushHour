@@ -57,6 +57,7 @@ export enum ZIndex {
     RAIL_LINE,
     LINE_TASK,
     HUMAN,
+    DESTROY,
     PLAYER,
     ANCHOR,
     CURSOR

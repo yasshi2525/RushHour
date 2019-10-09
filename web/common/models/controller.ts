@@ -5,6 +5,7 @@ import Anchor from "./anchor";
 import Cursor from "./cursor";
 import WorldBorder from "./world";
 import { XBorderContainer, YBorderContainer } from "./border";
+import Destroyer from "./destroy";
 
 export default class extends GroupModel {
     init() {
@@ -16,23 +17,17 @@ export default class extends GroupModel {
             delegate: this.model.delegate
         };
         
-        let anchor_ss = textures["anchor"].spritesheet;
-        let cursor_ss = textures["cursor"].spritesheet;
+        let anim: { [index:string]: PIXI.Texture[]} = {};
 
-        let anchor_anim: PIXI.Texture[];
-        let cursor_anim: PIXI.Texture[];
+        ["anchor", "cursor", "destroy"]
+            .map(key => ({ key, sheet: textures[key].spritesheet }))
+            .forEach(entry => anim[entry.key] = entry.sheet !== undefined ? entry.sheet.animations[entry.key] : [PIXI.Texture.EMPTY])
 
-        if (anchor_ss !== undefined && cursor_ss !== undefined) {
-            anchor_anim = anchor_ss.animations["anchor"]
-            cursor_anim = cursor_ss.animations["cursor"];
-        } else {
-            anchor_anim = [PIXI.Texture.EMPTY];
-            cursor_anim = [PIXI.Texture.EMPTY];
-        }
-
-        let anchor = new Anchor({ ...props, zIndex: ZIndex.ANCHOR, animation: anchor_anim });
+        let anchor = new Anchor({ ...props, zIndex: ZIndex.ANCHOR, animation: anim["anchor"] });
+        let destroyer = new Destroyer({ ...props, zIndex: ZIndex.DESTROY, animation: anim["destroy"] });
+        this.objects.cursor = new Cursor({ ...props, anchor, destroyer, zIndex: ZIndex.CURSOR, animation: anim["cursor"] });
         this.objects.anchor = anchor;
-        this.objects.cursor = new Cursor({ ...props, anchor, zIndex: ZIndex.CURSOR, animation: cursor_anim });
+        this.objects.destroyer = destroyer;
         this.containers.xborder = new XBorderContainer({ ...props, zIndex: ZIndex.NORMAL_BORDER });
         this.containers.yborder = new YBorderContainer({ ...props, zIndex: ZIndex.NORMAL_BORDER });
         this.objects.world = new WorldBorder({ ...props, zIndex: ZIndex.WORLD_BORDER });

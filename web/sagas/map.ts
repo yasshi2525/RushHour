@@ -1,6 +1,6 @@
 import GameModel from "../common/models";
 import * as Action from "../actions";
-import { generateRequest, httpGET } from ".";
+import { generateRequest, http } from ".";
 
 const mapURL = "api/v1/gamemap";
 
@@ -14,7 +14,7 @@ function buildQuery(model: GameModel): string {
 }
 
 export async function fetchMap(model: GameModel) {
-    let json = await httpGET(mapURL + "?" + buildQuery(model))
+    let json = await http(mapURL + "?" + buildQuery(model))
     let error = model.gamemap.mergeAll(json.results);
     model.timestamp = json.timestamp;
     if (model.gamemap.isChanged()) {

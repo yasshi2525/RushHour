@@ -80,6 +80,7 @@ func (ch *Chunk) addConnectable(obj Connectable) {
 	fromID := reflect.ValueOf(ch.ID)
 	toCh := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
 	if toCh == nil {
+		// ex. no Platform, Gate in Chunk referred by Step
 		return
 	}
 	toID := reflect.ValueOf(toCh.ID)
@@ -87,6 +88,7 @@ func (ch *Chunk) addConnectable(obj Connectable) {
 	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 
 	if !outMap.IsValid() {
+		// ex. no OutSteps in DelegateNode
 		return
 	}
 
@@ -152,6 +154,7 @@ func (ch *Chunk) removeConnectable(obj Connectable) {
 	fromID := reflect.ValueOf(ch.ID)
 	toCh := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
 	if toCh == nil {
+		// ex. no Platform, Gate in Chunk referred by Step
 		return
 	}
 	toID := reflect.ValueOf(toCh.ID)
@@ -159,6 +162,7 @@ func (ch *Chunk) removeConnectable(obj Connectable) {
 	outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
 
 	if !outMap.IsValid() {
+		// ex. no OutSteps in DelegateNode
 		return
 	}
 
@@ -186,12 +190,21 @@ func (ch *Chunk) Has(raw Entity) bool {
 		return nodeField.Elem().FieldByName("List").MapIndex(id).IsValid()
 
 	case Connectable:
-		outMapName := fmt.Sprintf("Out%ss", obj.B().T.String())
-		outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
-		if !outMap.IsValid() {
+		toCh := ch.M.RootCluster.FindChunk(obj.To(), ch.Parent.Scale)
+		if toCh == nil {
+			// ex. no Platform, Gate in Chunk referred by Step
 			return false
 		}
-		return outMap.MapIndex(id).IsValid()
+		toID := reflect.ValueOf(toCh.ID)
+
+		outMapName := fmt.Sprintf("Out%ss", obj.B().T.String())
+		outMap := reflect.ValueOf(ch).Elem().FieldByName(outMapName)
+
+		if !outMap.IsValid() {
+			// ex. no OutSteps in DelegateNode
+			return false
+		}
+		return outMap.MapIndex(toID).IsValid()
 	}
 	return false
 }
