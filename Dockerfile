@@ -38,7 +38,8 @@ RUN go get gopkg.in/go-playground/validator.v9 && \
     go get github.com/revel/cmd/revel && \
     go get github.com/gomodule/oauth1/oauth && \
     go get golang.org/x/oauth2 && \
-    go get google.golang.org/api/oauth2/v2
+    go get google.golang.org/api/oauth2/v2 && \
+    go get github.com/google/go-github/github
 
 RUN mkdir -p /rushhour && \
     /go/bin/revel build -t /rushhour -m prod -a github.com/yasshi2525/RushHour

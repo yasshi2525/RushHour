@@ -14,8 +14,8 @@ GET     /twitter                                Auth.Twitter
 GET     /twitter/callback                       Auth.TwitterCallback
 GET     /google                                 Auth.Google
 GET     /google/callback                        Auth.GoogleCallback
-# GET     /github                                 Auth.Github
-# GET     /github/callback                        Auth.GoogleCallback
+GET     /github                                 Auth.Github
+GET     /github/callback                        Auth.GithubCallback
 GET     /api/v1/gamemap                         ApiV1Game.Index
 GET     /api/v1/players                         ApiV1Game.Players
 POST    /api/v1/dept                            ApiV1Game.Departure
