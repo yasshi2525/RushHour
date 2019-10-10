@@ -27,6 +27,7 @@ const (
 	Local AuthType = iota + 1
 	Twitter
 	Google
+	GitHub
 )
 
 // AuthList is list of all AuthType
@@ -38,6 +39,7 @@ func InitAuthList() {
 		Local,
 		Twitter,
 		Google,
+		GitHub,
 	}
 }
 

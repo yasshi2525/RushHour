@@ -69,3 +69,25 @@ func (a Auth) GoogleCallback() revel.Result {
 		return a.Redirect("/")
 	}
 }
+
+// GitHub redirects google sign in page
+func (a Auth) GitHub() revel.Result {
+	return a.Redirect(auth.GetGitHubAuthURL())
+}
+
+// GitHubCallback registers user info
+func (a Auth) GitHubCallback() revel.Result {
+	state := a.Params.Get("state")
+	code := a.Params.Get("code")
+
+	if info, err := auth.GetGitHubUserInfo(state, code); err != nil {
+		return a.RenderHTML(err.Error())
+	} else {
+		if my, err := services.OAuthSignIn(entities.GitHub, info); err != nil {
+			return a.RenderHTML(err.Error())
+		} else {
+			a.Session.Set("token", my.Token)
+		}
+		return a.Redirect("/")
+	}
+}

@@ -25,6 +25,7 @@ func Init(config Config) {
 
 	initTwitter(config.Twitter)
 	initGoogle(config.Google)
+	initGitHub(config.GitHub)
 }
 
 // IsValid returns whether OAuthToken exists or not

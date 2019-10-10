@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { AppBar as AppBarOrg, Toolbar, Typography, Button, Fade, Dialog, Link } from "@material-ui/core";
+import { AppBar as AppBarOrg, Toolbar, Typography, Button, Fade, Dialog, Link, Hidden } from "@material-ui/core";
 import * as styles from "./style.css";
 import { GameBarProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
@@ -21,9 +21,19 @@ class AppBar extends React.Component<GameBarProperty, GameBarState> {
         return (
             <AppBarOrg position="sticky">
                 <Toolbar>
-                    <Typography variant="h4">
-                        RushHour
-                    </Typography>
+                    {/* PC向け */}
+                    <Hidden xsDown>
+                        <Typography variant="h4">
+                            RushHour
+                        </Typography>
+                    </Hidden>
+                    {/* スマホ向け */}
+                    <Hidden smUp>
+                        <Typography variant="h6">
+                            RushHour
+                        </Typography>
+                    </Hidden>
+                    
                     { this.props.readOnly ?
                         <>
                             <Button variant="contained" onClick={this.handleOpen}>登録/サインイン</Button>
@@ -43,6 +53,9 @@ class AppBar extends React.Component<GameBarProperty, GameBarState> {
                                             </Button>
                                             <Button>
                                                 <Link href="/google">Google</Link>
+                                            </Button>
+                                            <Button>
+                                                <Link href="/github">GitHub</Link>
                                             </Button>
                                         </div>
                                     </div>

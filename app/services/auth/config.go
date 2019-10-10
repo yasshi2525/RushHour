@@ -39,4 +39,5 @@ type Config struct {
 
 	Twitter cfgTwitter
 	Google  cfgOAuth
+	GitHub  cfgOAuth
 }
