@@ -8,7 +8,7 @@ export interface ActionPayload {
     results: any
 };
 
-export interface GameBarProperty {
+export interface AppBarProperty {
     [key: string]: any,
     readOnly: boolean,
     displayName: string | undefined,

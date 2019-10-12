@@ -1,26 +1,40 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { AppBar as AppBarOrg, Toolbar, Typography, Button, Fade, Dialog, Link, Hidden } from "@material-ui/core";
-import * as styles from "./style.css";
-import { GameBarProperty } from "../common/interfaces";
+import { AppBar as AppBarOrg, Toolbar, Typography, Button, Avatar, Link, Hidden, Theme } from "@material-ui/core";
+import { makeStyles, createStyles } from "@material-ui/styles";
+import { AppBarProperty } from "../common/interfaces";
 import { RushHourStatus } from "../state";
+import SignIn from "./SignIn";
 
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        item: {
+            marginRight: theme.spacing(1)
+        },
+        profile: {
+            marginRight: theme.spacing(1),
+            [theme.breakpoints.up("sm")]: {
+                width: 50,
+                height: 50,
+            }
+        },
+        name: {
+            [theme.breakpoints.down("xs")]: {
+                display: "none"
+            }
+        },
+        grow: {
+            flexGrow: 1,
+        },
+    })
+);
 
-interface GameBarState {
-    openModal: boolean
-}
-
-class AppBar extends React.Component<GameBarProperty, GameBarState> {
-    constructor(props: any) {
-        super(props);
-        this.state = { openModal: false };
-        this.handleOpen = this.handleOpen.bind(this);
-        this.handleClose = this.handleClose.bind(this);
-    }
-    render () {
-        return (
-            <AppBarOrg position="sticky">
-                <Toolbar>
+function AppBar(props: AppBarProperty) {
+    const classes = useStyles();
+    return (
+        <AppBarOrg position="sticky">
+            <Toolbar>
+                <div className={classes.item}>
                     {/* PC向け */}
                     <Hidden xsDown>
                         <Typography variant="h4">
@@ -33,54 +47,23 @@ class AppBar extends React.Component<GameBarProperty, GameBarState> {
                             RushHour
                         </Typography>
                     </Hidden>
-                    
-                    { this.props.readOnly ?
-                        <>
-                            <Button variant="contained" onClick={this.handleOpen}>登録/サインイン</Button>
-                            <Dialog
-                                aria-labelledby="modal-title"
-                                aria-describedby="modal-description"
-                                open={this.state.openModal} 
-                                onClose={this.handleClose}>
-                                <Fade in={this.state.openModal}>
-                                    <div>
-                                        <div id="modal-title">
-                                            登録/サインイン
-                                        </div>
-                                        <div id="modal-description">
-                                            <Button >
-                                                <Link href="/twitter">Twitter</Link>
-                                            </Button>
-                                            <Button>
-                                                <Link href="/google">Google</Link>
-                                            </Button>
-                                            <Button>
-                                                <Link href="/github">GitHub</Link>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Fade>
-                            </Dialog>
-                        </> :
-                        <>
-                            <img className={styles.profile} src={this.props.image} />
-                            <div>{this.props.displayName}</div>
-                            <Button variant="contained">
-                                <Link href="/signout">サインアウト</Link>
-                            </Button>
-                        </> }
-                </Toolbar>
-            </AppBarOrg>
-        );
-    }
-
-    handleOpen() {
-        this.setState({ openModal: true });
-    }
-
-    handleClose() {
-        this.setState({ openModal: false });
-    }
+                </div>
+                { props.readOnly ?
+                    <>
+                        <div className={classes.grow} />
+                        <SignIn />
+                    </> :
+                    <>
+                        <Avatar className={classes.profile} src={props.image} />
+                        <div className={classes.name}>{props.displayName}</div>
+                        <div className={classes.grow} />
+                        <Button className={classes.item} variant="contained">
+                            <Link href="/signout">サインアウト</Link>
+                        </Button>
+                    </> }
+            </Toolbar>
+        </AppBarOrg>
+    );
 }
 
 function mapStateToProps(_: RushHourStatus) {
