@@ -102,6 +102,9 @@ func Encrypt(plain string) string {
 
 // Decrypt returns plain text from AES and Base64 encoded string.
 func Decrypt(enc64 string) string {
+	if enc64 == "" {
+		return ""
+	}
 	if combined, err := base64.StdEncoding.DecodeString(enc64); err != nil {
 		panic(err)
 	} else {

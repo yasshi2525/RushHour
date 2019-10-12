@@ -1,7 +1,12 @@
-import { createAsyncAction } from "typesafe-actions";
+import { createAsyncAction, createAction } from "typesafe-actions";
 import GameContainer from "../common";
 import GameModel from "../common/models";
 import { GameMap, MenuStatus } from "../state";
+
+export interface LoginRequest {
+    id: string,
+    password: string
+}
 
 export interface ModelRequest {
     model: GameModel
@@ -56,6 +61,8 @@ export interface MenuResponse {
 
 export const initPIXI = createAsyncAction("INIT_PIXI_REQUESTED", "INIT_PIXI_SUCCEEDED", "INIT_PIXI_FAILED")<GameContainer, GameContainer, Error>();
 export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEEDED", "FETCH_MAP_FAILED")<ModelRequest, GameMapResponse, Error>();
+export const login = createAsyncAction("LOGGEDIN_REQUESTED", "LOGGEDIN_SUCCEEDED", "LOGGEDIN_FAILED")<LoginRequest, GameResponse, Error>();
+export const resetLoginError = createAction("RESET_LOGIN_ERROR");
 export const players = createAsyncAction("PLAYERS_REQUESTED", "PLAYERS_SUCCEEDED", "PLAYERS_FAILED")<ModelRequest, GameResponse, Error>();
 export const depart = createAsyncAction("DEPART_REQUESTED", "DEPART_SUCCEEDED", "DEPART_FAILED")<PointRequest, GameResponse, Error>();
 export const extend = createAsyncAction("EXTEND_REQUESTED", "EXTEND_SUCCEEDED", "EXTEND_FAILED")<ExtendRequest, GameResponse, Error>();

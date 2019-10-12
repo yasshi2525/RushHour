@@ -3,7 +3,7 @@ import * as Action from "../actions";
 import { generatePIXI } from "./model";
 import { generateMap } from "./map";
 import { generateDepart, generateExtend, generateConnect } from "./rail";
-import { generatePlayers } from "./player";
+import { generatePlayers, generateLogin } from "./player";
 import { generateSetMenu } from "./menu";
 import { generateDestroy } from "./destroy";
 
@@ -66,6 +66,7 @@ export async function http(url: string, method: Method = Method.GET, params: {[i
 export function* rushHourSaga() {
     yield takeLatest(Action.initPIXI.request, generatePIXI);
     yield takeLatest(Action.fetchMap.request, generateMap);
+    yield takeLatest(Action.login.request, generateLogin);
     yield takeLatest(Action.players.request, generatePlayers);
     yield takeLatest(Action.depart.request, generateDepart);
     yield takeLatest(Action.extend.request, generateExtend);
