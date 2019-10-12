@@ -48,6 +48,8 @@ export interface RushHourStatus {
     [key: string]: any,
     timestamp: number,
     menu: MenuStatus,
+    isLoginSucceeded: boolean,
+    isLoginFailed: boolean,
     isFetchRequired: boolean,
     isPlayerFetched: boolean
 };
@@ -57,6 +59,8 @@ export const defaultState: RushHourStatus = {
     readOnly: true,
     timestamp: 0,
     menu: MenuStatus.IDLE,
+    isLoginSucceeded: false,
+    isLoginFailed: false,
     isFetchRequired: false,
     isPlayerFetched: false
 };

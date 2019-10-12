@@ -4,8 +4,14 @@ import { RushHourStatus } from "../state";
 
 export default (state: RushHourStatus, action: {type: string, payload: ActionPayload}) => {
     switch (action.type) {
+        case Actions.login.success.toString():
+            return Object.assign({}, state, { isLoginSucceeded: true });
+        case Actions.login.failure.toString():
+            return Object.assign({}, state, { isLoginFailed: true });
+        case Actions.resetLoginError.toString():
+            return Object.assign({}, state, { isLoginFailed: false });
         case Actions.setMenu.success.toString():
-            return Object.assign({}, state, { menu: action.payload })
+            return Object.assign({}, state, { menu: action.payload });
         case Actions.fetchMap.success.toString():
             return Object.assign({}, state, { 
                 timestamp: action.payload.timestamp,

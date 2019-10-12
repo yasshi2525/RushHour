@@ -32,6 +32,25 @@ func (c APIv1Game) Index() revel.Result {
 		genResponse(true, services.ViewDelegateMap(params["cx"], params["cy"], params["scale"], params["delegate"])))
 }
 
+// Login returns result of password login
+func (c APIv1Game) Login() revel.Result {
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
+	id, okid := json["id"].(string)
+	password, okpw := json["password"].(string)
+
+	if !okid || !okpw {
+		return c.RenderJSON(genResponse(false, "id or password is invalid"))
+	}
+	if o, err := services.PasswordSignIn(id, password); err != nil {
+		return c.RenderJSON(genResponse(false, err))
+	} else {
+		c.Session.Set("token", o.Token)
+		return c.RenderJSON(genResponse(true, o))
+	}
+}
+
 // Players returns list of player
 func (c APIv1Game) Players() revel.Result {
 	services.MuModel.RLock()
@@ -175,14 +194,29 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 }
 
 func genResponse(status bool, results interface{}) interface{} {
+	var details interface{}
+
+	switch obj := results.(type) {
+	case []error:
+		outputs := []string{}
+		for _, err := range obj {
+			outputs = append(outputs, err.Error())
+		}
+		details = outputs
+	case error:
+		details = []string{obj.Error()}
+	default:
+		details = results
+	}
+
 	return &struct {
 		Status    bool        `json:"status"`
 		Timestamp int64       `json:"timestamp"`
 		Results   interface{} `json:"results"`
 	}{
-		Status:    true,
+		Status:    status,
 		Timestamp: time.Now().Unix(),
-		Results:   results,
+		Results:   details,
 	}
 }
 
