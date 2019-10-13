@@ -167,7 +167,6 @@ func (m *Model) PasswordSignUp(loginid string, password string) (*Player, error)
 	o.Level = Normal
 	o.LoginID = auth.Encrypt(loginid)
 	o.Password = auth.Digest(password)
-	o.DisplayName = loginid
 	o.Auth = Local
 	o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
 	o.M.Logins[Local][loginhash] = o

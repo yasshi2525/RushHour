@@ -51,6 +51,25 @@ func (c APIv1Game) Login() revel.Result {
 	}
 }
 
+// Register returns result of password sign up
+func (c APIv1Game) Register() revel.Result {
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
+	id, okid := json["id"].(string)
+	password, okpw := json["password"].(string)
+
+	if !okid || !okpw {
+		return c.RenderJSON(genResponse(false, "id or password is invalid"))
+	}
+	if o, err := services.PasswordSignUp(id, password); err != nil {
+		return c.RenderJSON(genResponse(false, err))
+	} else {
+		c.Session.Set("token", o.Token)
+		return c.RenderJSON(genResponse(true, o))
+	}
+}
+
 // Players returns list of player
 func (c APIv1Game) Players() revel.Result {
 	services.MuModel.RLock()

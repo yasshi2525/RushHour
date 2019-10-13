@@ -50,6 +50,8 @@ export interface RushHourStatus {
     menu: MenuStatus,
     isLoginSucceeded: boolean,
     isLoginFailed: boolean,
+    isRegisterSucceeded: boolean,
+    isRegisterFailed: boolean,
     isFetchRequired: boolean,
     isPlayerFetched: boolean
 };
@@ -61,6 +63,8 @@ export const defaultState: RushHourStatus = {
     menu: MenuStatus.IDLE,
     isLoginSucceeded: false,
     isLoginFailed: false,
+    isRegisterSucceeded: false,
+    isRegisterFailed: false,
     isFetchRequired: false,
     isPlayerFetched: false
 };

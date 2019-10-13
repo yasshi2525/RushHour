@@ -40,7 +40,14 @@ func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
 
 // PasswordSignUp creates Player with loginid and password
 func PasswordSignUp(loginid string, password string) (*entities.Player, error) {
-	return Model.PasswordSignUp(loginid, password)
+	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
+		return nil, err
+	} else {
+		o.DisplayName = auth.Encrypt("ゲスト")
+		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
+		o.Image = auth.Encrypt(url)
+		return o, nil
+	}
 }
 
 // FindOwner returns Player by token
