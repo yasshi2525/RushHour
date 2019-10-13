@@ -2,7 +2,7 @@ package entities
 
 import (
 	"fmt"
-	"math"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -67,7 +67,9 @@ type Player struct {
 	Token string `gorm:"not null;index" json:"-"`
 
 	ReRouting bool `gorm:"-"              json:"-"`
-	Color     int  `gorm:"not null"       json:"color"`
+
+	// Hue is hue attribute on HSV model.
+	Hue int `gorm:"not null"       json:"hue"`
 
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
@@ -85,26 +87,6 @@ func (m *Model) NewPlayer() *Player {
 		Base:        m.NewBase(PLAYER),
 		Persistence: NewPersistence(),
 	}
-	h := float64((int(o.ID)%6)*60 + (int(o.ID)/6)*15)
-	var r, g, b int
-	h0 := int(math.Floor(h / 60))
-
-	switch h0 {
-	case 0:
-		r, g, b = 0xFF, int(h/60*0xFF), 0x00
-	case 1:
-		r, g, b = int((h-120)/60*0xFF), 0xFF, 0x00
-	case 2:
-		r, g, b = 0x00, 0xFF, int((h-120)/60*0xFF)
-	case 3:
-		r, g, b = 0x00, int((240-h)/60*0xFF), 0xFF
-	case 4:
-		r, g, b = int((240-h)/60*0xFF), 0x00, 0xFF
-	case 5:
-		r, g, b = 0xFF, 0x00, int((360-h)/60*0xFF)
-	}
-
-	o.Color = r<<16 + g<<8 + b
 
 	o.O = o
 	o.OwnerID = o.ID
@@ -130,6 +112,7 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.UserInfo) (*Player, er
 	}
 	o := m.NewPlayer()
 	o.Level = Normal
+	o.Hue = rand.Intn(360)
 	o.ImportInfo(authType, info)
 	return o, nil
 }

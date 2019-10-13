@@ -8,12 +8,13 @@ import (
 )
 
 // CreatePlayer creates player.
-func CreatePlayer(loginid string, displayname string, password string, level entities.PlayerType) (*entities.Player, error) {
+func CreatePlayer(loginid string, displayname string, password string, hue int, level entities.PlayerType) (*entities.Player, error) {
 	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
 		return nil, err
 	} else {
 		o.Level = level
 		o.DisplayName = auth.Encrypt(displayname)
+		o.Hue = hue
 		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
 		o.Image = auth.Encrypt(url)
 		AddOpLog("CreatePlayer", o)
@@ -39,11 +40,12 @@ func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
 }
 
 // PasswordSignUp creates Player with loginid and password
-func PasswordSignUp(loginid string, password string) (*entities.Player, error) {
+func PasswordSignUp(loginid string, name string, password string, hue int) (*entities.Player, error) {
 	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
 		return nil, err
 	} else {
-		o.DisplayName = auth.Encrypt("ゲスト")
+		o.DisplayName = auth.Encrypt(name)
+		o.Hue = hue
 		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
 		o.Image = auth.Encrypt(url)
 		return o, nil

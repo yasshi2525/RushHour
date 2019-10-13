@@ -71,7 +71,7 @@ export default function() {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Box className={classes.register}><Register /></Box>
+                    <Box className={classes.register}><Register hue={Math.round(Math.random()*360)}/></Box>
                     <Button onClick={handleClose}>戻る</Button>
                 </DialogActions>
             </Dialog>

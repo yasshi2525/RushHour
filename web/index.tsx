@@ -35,6 +35,7 @@ if (props !== null && appbar !== null && actionmenu !== null && canvas !== null 
         readOnly: false,
         displayName: props.dataset.displayname,
         image: props.dataset.image,
+        hue: props.dataset.hue
     };
     
     ReactDOM.render(

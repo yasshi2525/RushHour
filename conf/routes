@@ -9,7 +9,7 @@ module:pprof
 
 
 GET     /                                       App.Index
-POST    /                                       App.Index
+POST    /                                       App.IndexPost
 GET     /signout                                App.SignOut
 GET     /twitter                                Auth.Twitter
 GET     /twitter/callback                       Auth.TwitterCallback

@@ -101,7 +101,7 @@ func processMsg(msg *Operation) time.Time {
 			if strings.Compare(msg.OName, "admin") == 0 {
 				level = entities.Admin
 			}
-			CreatePlayer(msg.OName, msg.OName, msg.OName, level)
+			CreatePlayer(msg.OName, msg.OName, msg.OName, rand.Intn(360), level)
 		case entities.RESIDENCE:
 			fallthrough
 		case entities.COMPANY:

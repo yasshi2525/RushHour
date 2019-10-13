@@ -13,6 +13,7 @@ export interface AppBarProperty {
     readOnly: boolean,
     displayName: string | undefined,
     image: string | undefined
+    hue: number | undefined,
 };
 
 export interface GameComponentProperty {
