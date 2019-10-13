@@ -34,6 +34,7 @@ export default function() {
     const classes = useStyles(theme);
     const isFullScreen = useMediaQuery(theme.breakpoints.down("xs"));
     const [id, setUserID] = React.useState("");
+    const [name, setName] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [confirm, setConfirm] = React.useState("");
     const [idError, setIDError] = React.useState(false);
@@ -54,7 +55,7 @@ export default function() {
             setCnfError(true);
             return
         }
-        dispatch(Actions.register.request({id, password}));
+        dispatch(Actions.register.request({id, name: (name == "" ? "ゲスト" : name), password}));
     };
     
     const failed = useSelector<RushHourStatus, boolean>(state => state.isRegisterFailed);
@@ -101,6 +102,13 @@ export default function() {
                             value={id} onInput={e => setUserID((e.target as HTMLInputElement).value)}
                             className={classes.text}
                             onChange={() => setIDError(false)}
+                        />
+                        <TextField
+                            name="name"
+                            label="表示名"
+                            placeholder="ゲスト"
+                            value={name} onInput={e => setName((e.target as HTMLInputElement).value)}
+                            className={classes.text}
                         />
                         <TextField
                             error={pwError}

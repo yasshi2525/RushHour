@@ -57,12 +57,13 @@ func (c APIv1Game) Register() revel.Result {
 	c.Params.BindJSON(&json)
 
 	id, okid := json["id"].(string)
+	name, okname := json["name"].(string)
 	password, okpw := json["password"].(string)
 
-	if !okid || !okpw {
+	if !okid || !okname || !okpw {
 		return c.RenderJSON(genResponse(false, "id or password is invalid"))
 	}
-	if o, err := services.PasswordSignUp(id, password); err != nil {
+	if o, err := services.PasswordSignUp(id, name, password); err != nil {
 		return c.RenderJSON(genResponse(false, err))
 	} else {
 		c.Session.Set("token", o.Token)
