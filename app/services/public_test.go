@@ -19,7 +19,7 @@ func TestCreateResidence(t *testing.T) {
 	InitRepository()
 	auth.Init(Secret.Auth)
 
-	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
+	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)
 
 	residence, err := CreateResidence(admin, 1, 1)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestCreateCompany(t *testing.T) {
 	LoadSecret()
 	InitRepository()
 	auth.Init(Secret.Auth)
-	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
+	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)
 
 	company, err := CreateCompany(admin, 1, 1)
 	if err != nil {
@@ -61,7 +61,7 @@ func TestCreateStep(t *testing.T) {
 	LoadSecret()
 	InitRepository()
 	auth.Init(Secret.Auth)
-	admin, _ := CreatePlayer("test", "test", "test", entities.Admin)
+	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)
 
 	r, err := CreateResidence(admin, 1, 1)
 	if err != nil {

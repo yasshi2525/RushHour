@@ -20,6 +20,7 @@ func (c App) Index() revel.Result {
 			info := o.ExportInfo()
 			c.ViewArgs["name"] = info.DisplayName
 			c.ViewArgs["image"] = info.Image
+			c.ViewArgs["hue"] = o.Hue
 		} else {
 			c.Session.Del("token")
 		}
@@ -27,6 +28,11 @@ func (c App) Index() revel.Result {
 		c.Session.Del("token")
 	}
 	return c.Render()
+}
+
+// IndexPost redirect to index.html
+func (c App) IndexPost() revel.Result {
+	return c.Redirect("/")
 }
 
 // SignOut delete session attribute token.

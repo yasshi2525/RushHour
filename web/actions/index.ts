@@ -9,7 +9,8 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest extends LoginRequest {
-    name: string
+    name: string,
+    hue: number
 }
 
 export interface ModelRequest {
