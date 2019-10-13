@@ -32,10 +32,21 @@ export default function() {
     const classes = useStyles();
     const [id, setUserID] = React.useState("");
     const [password, setPassword] = React.useState("");
+    const [idError, setIDError] = React.useState(false);
+    const [pwError, setPWError] = React.useState(false);
     const dispatch = useDispatch();
     const handleLogin = () => {
+        if (id == "") {
+            setIDError(true);
+        }
+        if (password == "") {
+            setPWError(true);
+        }
+        if (id == "" || password == "") {
+            return
+        }
         dispatch(Actions.login.request({id, password}))
-    }
+    };
     const failed = useSelector<RushHourStatus, boolean>(state => state.isLoginFailed);
     const succeeded = useSelector<RushHourStatus, boolean>(state => state.isLoginSucceeded);
     const formRef = React.useRef<HTMLFormElement>(null);
@@ -43,26 +54,36 @@ export default function() {
     if (succeeded && formRef.current !== null) {
         formRef.current.submit();
     }
+
+    const handleSubmit = () => {
+        if (!succeeded) {
+            handleLogin();
+        }
+    }
     
     return (
-        <form action="/" method="GET" ref={formRef}>
+        <form action="/" method="POST" ref={formRef} onSubmit={() => handleSubmit()}>
             <Box className={classes.title}>RushHourのアカウント</Box>
             <TextField
+                error={idError}
                 name="id"
                 label="メールアドレス"
                 value={id} onInput={e => setUserID((e.target as HTMLInputElement).value)}
                 className={classes.text}
             />
             <TextField
+                error={pwError}
                 name="password"
                 label="パスワード"
                 type="password"
                 value={password} onInput={e => setPassword((e.target as HTMLInputElement).value)}
                 className={classes.text}
             />
+            { idError && <Box className={classes.error}>メールアドレスを入力してください</Box> }
+            { pwError && <Box className={classes.error}>パスワードを入力してください</Box> }
             { failed && <Box className={classes.error}>メールアドレスまたはパスワードが間違っています</Box> }
             <Button 
-                variant="outlined" 
+                variant="contained" 
                 color="primary" 
                 onClick={handleLogin}
                 className={classes.button}>

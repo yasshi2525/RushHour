@@ -10,6 +10,10 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
             return Object.assign({}, state, { isLoginFailed: true });
         case Actions.resetLoginError.toString():
             return Object.assign({}, state, { isLoginFailed: false });
+        case Actions.register.success.toString():
+            return Object.assign({}, state, { isRegisterSucceeded: true });
+        case Actions.register.failure.toString():
+            return Object.assign({}, state, { isRegisterFailed: true });
         case Actions.setMenu.success.toString():
             return Object.assign({}, state, { menu: action.payload });
         case Actions.fetchMap.success.toString():

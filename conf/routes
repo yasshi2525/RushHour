@@ -9,6 +9,7 @@ module:pprof
 
 
 GET     /                                       App.Index
+POST    /                                       App.Index
 GET     /signout                                App.SignOut
 GET     /twitter                                Auth.Twitter
 GET     /twitter/callback                       Auth.TwitterCallback
@@ -18,6 +19,7 @@ GET     /github                                 Auth.Github
 GET     /github/callback                        Auth.GithubCallback
 GET     /api/v1/gamemap                         ApiV1Game.Index
 POST    /api/v1/login                           ApiV1Game.Login
+POST    /api/v1/register                        ApiV1Game.Register
 GET     /api/v1/players                         ApiV1Game.Players
 POST    /api/v1/dept                            ApiV1Game.Departure
 POST    /api/v1/extend                          ApiV1Game.Extend

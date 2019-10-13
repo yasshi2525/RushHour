@@ -63,6 +63,7 @@ export const initPIXI = createAsyncAction("INIT_PIXI_REQUESTED", "INIT_PIXI_SUCC
 export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEEDED", "FETCH_MAP_FAILED")<ModelRequest, GameMapResponse, Error>();
 export const login = createAsyncAction("LOGGEDIN_REQUESTED", "LOGGEDIN_SUCCEEDED", "LOGGEDIN_FAILED")<LoginRequest, GameResponse, Error>();
 export const resetLoginError = createAction("RESET_LOGIN_ERROR");
+export const register = createAsyncAction("REGISTER_REQUESTED", "REGISTER_SUCCEEDED", "REGISTER_FAILED")<LoginRequest, GameResponse, Error>();
 export const players = createAsyncAction("PLAYERS_REQUESTED", "PLAYERS_SUCCEEDED", "PLAYERS_FAILED")<ModelRequest, GameResponse, Error>();
 export const depart = createAsyncAction("DEPART_REQUESTED", "DEPART_SUCCEEDED", "DEPART_FAILED")<PointRequest, GameResponse, Error>();
 export const extend = createAsyncAction("EXTEND_REQUESTED", "EXTEND_SUCCEEDED", "EXTEND_FAILED")<ExtendRequest, GameResponse, Error>();

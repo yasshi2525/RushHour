@@ -1,9 +1,11 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Dialog, DialogTitle, List, ListItem, ListItemAvatar, Avatar, ListItemText, DialogActions, Divider, Grid, DialogContent, useTheme, useMediaQuery } from "@material-ui/core";
+import { Button, Dialog, DialogTitle, List, ListItem, ListItemAvatar, Avatar, ListItemText, DialogActions, Divider, Grid, DialogContent, Box, useTheme, useMediaQuery } from "@material-ui/core";
+import { makeStyles, createStyles } from "@material-ui/styles";
 import { RushHourStatus } from "../state";
 import * as Actions from "../actions";
 import PasswordLogin from "./Password";
+import Register from "./Register";
 
 const sns = [
     { image: "twitter", msg: "Twitterでログイン" },
@@ -11,7 +13,16 @@ const sns = [
     { image: "github", msg: "GitHubでログイン" },
 ];
 
+const useStyles = makeStyles(() =>
+    createStyles({
+        register: {
+            marginRight: "auto"
+        }
+    })
+);
+
 export default function() {
+    const classes = useStyles();
     const [opened, setOpened] = React.useState(false);
     const theme = useTheme();
     const isFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -60,6 +71,7 @@ export default function() {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
+                    <Box className={classes.register}><Register /></Box>
                     <Button onClick={handleClose}>戻る</Button>
                 </DialogActions>
             </Dialog>
