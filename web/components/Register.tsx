@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Theme, TextField, Box, Dialog, DialogTitle, Divider, DialogContent, DialogActions, useTheme, useMediaQuery, Grid, Typography, Slider } from "@material-ui/core";
+import { Button, Theme, TextField, Box, Dialog, DialogTitle, Divider, DialogContent, DialogActions, useTheme, useMediaQuery, Grid, Typography, Slider, Container } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
 import { hueToRgb } from "../common/interfaces/gamemap";
 import { RushHourStatus } from "../state";
@@ -28,18 +28,37 @@ const useStyles = makeStyles((theme: Theme) =>
             marginTop: theme.spacing(1),
             marginLeft: theme.spacing(1)
         },
-        slider: {
+        lineColor: {
             marginLeft: theme.spacing(1),
-            width: "80%"
+            padding: "0px",
+            display: "flex",
+            alignItems: "flex-end"
+        },
+        sliderBox: {
+            padding: "0px",
+            margin: "0px",
+            width: "180px",
+        },
+        sliderItem: {
+            padding: "0px",
+            margin: "0px",
+            width: "180px"
+        },
+        colorImage: {
+            padding: "0px",
+            margin: "0px",
+            width: "180px",
+            height: "10px"
         },
         sampleBox: {
-            borderColor: theme.palette.primary.main,
+            marginLeft: theme.spacing(2),
             width: "40px",
-            height: "30px"
+            height: "30px",
+            display: "flex"
         },
         sample: {
-            width: "100%",
-            height: "100%"
+            width: "40px",
+            height: "30px",
         },
         hidden: {
             display: "none"
@@ -170,18 +189,23 @@ export default function(props: Attributes) {
                                         className={classes.text}
                                 />
                                 <Typography className={classes.label}>路線カラー</Typography>
-                                <Slider
-                                    className={classes.slider}
-                                    value={hue}
-                                    min={0} max={360}
-                                    onChange={handleChange} />
-                                <Box border={1} className={classes.sampleBox}>
-                                    <div 
-                                        ref={sampleRef} 
-                                        className={classes.sample}
-                                        style={{backgroundColor: `rgb(${hueToRgb(props.hue).join(",")})`}}
-                                    />
-                                </Box>
+                                <Container className={classes.lineColor}>
+                                    <Box className={classes.sliderBox}>
+                                        <Slider
+                                            className={classes.sliderItem}
+                                            value={hue}
+                                            min={0} max={360}
+                                            onChange={handleChange} />
+                                        <img className={classes.colorImage} src={`/public/spritesheet/color@${window.devicePixelRatio}x.png`} />
+                                    </Box>
+                                    <Box className={classes.sampleBox}>
+                                        <div 
+                                            ref={sampleRef} 
+                                            className={classes.sample}
+                                            style={{backgroundColor: `rgb(${hueToRgb(props.hue).join(",")})`}}
+                                        />
+                                    </Box>
+                                </Container>
                             </Grid>
                         </Grid>
                         <input className={classes.hidden} type="submit"/>
