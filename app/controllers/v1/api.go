@@ -85,7 +85,7 @@ func (c APIv1Game) Register() revel.Result {
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
-	if o, err := services.PasswordSignUp(id, name, password, int(hue)); err != nil {
+	if o, err := services.PasswordSignUp(id, name, password, int(hue), entities.Normal); err != nil {
 		return c.RenderJSON(genResponse(false, err))
 	} else {
 		c.Session.Set("token", o.Token)

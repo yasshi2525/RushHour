@@ -9,14 +9,13 @@ import (
 )
 
 // CreatePlayer creates player.
-func CreatePlayer(loginid string, displayname string, password string, hue int, level entities.PlayerType) (*entities.Player, error) {
+func CreatePlayer(loginid string, displayname string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
 	if err := CheckMaintenance(); err != nil {
 		return nil, err
 	}
-	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
+	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
 		return nil, err
 	} else {
-		o.Level = level
 		o.CustomDisplayName = auth.Encrypt(displayname)
 		o.UseCustomDisplayName = true
 		o.Hue = hue
@@ -58,11 +57,11 @@ func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
 }
 
 // PasswordSignUp creates Player with loginid and password
-func PasswordSignUp(loginid string, name string, password string, hue int) (*entities.Player, error) {
-	if err := CheckMaintenance(); err != nil {
+func PasswordSignUp(loginid string, name string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
+	if err := CheckMaintenance(); lv != entities.Admin && err != nil {
 		return nil, err
 	}
-	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
+	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
 		return nil, err
 	} else {
 		o.CustomDisplayName = auth.Encrypt(name)

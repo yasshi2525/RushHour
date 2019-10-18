@@ -163,13 +163,13 @@ func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error)
 
 // PasswordSignUp creates Player with loginid and password, then register token value.
 // arg must be plain text
-func (m *Model) PasswordSignUp(loginid string, password string) (*Player, error) {
+func (m *Model) PasswordSignUp(loginid string, password string, lv PlayerType) (*Player, error) {
 	loginhash := auth.Digest(loginid)
 	if _, found := m.Logins[Local][loginhash]; found {
 		return nil, fmt.Errorf("id is already exists")
 	}
 	o := m.NewPlayer()
-	o.Level = Normal
+	o.Level = lv
 	o.LoginID = auth.Encrypt(loginid)
 	o.Password = auth.Digest(password)
 	o.Auth = Local
