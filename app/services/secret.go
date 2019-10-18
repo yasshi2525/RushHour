@@ -10,8 +10,14 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
+type admin struct {
+	UserName string
+	Password string
+}
+
 type secret struct {
-	Auth auth.Config
+	Admin admin
+	Auth  auth.Config
 }
 
 // Secret defines secret constant variable
