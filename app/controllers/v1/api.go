@@ -35,6 +35,9 @@ func (c APIv1Game) Index() revel.Result {
 
 // Login returns result of password login
 func (c APIv1Game) Login() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
 	json := make(map[string]interface{})
 	c.Params.BindJSON(&json)
 
@@ -54,6 +57,9 @@ func (c APIv1Game) Login() revel.Result {
 
 // Register returns result of password sign up
 func (c APIv1Game) Register() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
 	json := make(map[string]interface{})
 	c.Params.BindJSON(&json)
 
@@ -79,7 +85,7 @@ func (c APIv1Game) Register() revel.Result {
 	if len(errs) > 0 {
 		return c.RenderJSON(genResponse(false, errs))
 	}
-	if o, err := services.PasswordSignUp(id, name, password, int(hue)); err != nil {
+	if o, err := services.PasswordSignUp(id, name, password, int(hue), entities.Normal); err != nil {
 		return c.RenderJSON(genResponse(false, err))
 	} else {
 		c.Session.Set("token", o.Token)
@@ -301,6 +307,62 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 	return c.RenderJSON(genResponse(true, &struct {
 		DeleteID uint `json:"id"`
 	}{uint(id)}))
+}
+
+func (c APIv1Game) GameStatus() revel.Result {
+	return c.RenderJSON(genResponse(true, services.IsInOperation()))
+}
+
+func (c APIv1Game) StartGame() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token)
+
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+
+	if o.O.Level != entities.Admin {
+		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("permission denied")}))
+	}
+
+	if !services.IsInOperation() {
+		services.Start()
+	}
+	return c.RenderJSON(genResponse(true, nil))
+}
+
+func (c APIv1Game) StopGame() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token)
+
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+
+	if o.O.Level != entities.Admin {
+		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("permission denied")}))
+	}
+
+	if services.IsInOperation() {
+		services.Stop()
+	}
+	return c.RenderJSON(genResponse(true, nil))
 }
 
 func genResponse(status bool, results interface{}) interface{} {

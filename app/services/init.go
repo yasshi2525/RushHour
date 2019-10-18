@@ -16,6 +16,8 @@ import (
 
 var db *gorm.DB
 
+var isInOperation bool
+
 // Init prepares for starting game
 func Init() {
 	revel.AppLog.Info("start preparation for game")
@@ -52,15 +54,17 @@ func Start() {
 	StartBackupTicker()
 	StartModelWatching()
 	StartProcedure()
+	isInOperation = true
 }
 
 // Stop stop game
 func Stop() {
+	isInOperation = false
 	CancelRouting()
 	StopProcedure()
 	StopModelWatching()
 	StopBackupTicker()
-	Backup()
+	Backup(false)
 }
 
 func connectDB() *gorm.DB {
@@ -99,4 +103,9 @@ func getConfig(key string) string {
 		return value
 	}
 	panic(fmt.Errorf("%s is not defined", key))
+}
+
+// IsInOperation returns true after game started.
+func IsInOperation() bool {
+	return isInOperation
 }

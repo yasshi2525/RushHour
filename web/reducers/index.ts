@@ -38,6 +38,12 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
                 isFetchRequired: true
             });
         }
+        case Actions.gameStatus.success.toString(): 
+            return Object.assign({}, state, { maintenance: !action.payload.results });
+        case Actions.startGame.success.toString():
+            return Object.assign({}, state, { maintenance: false });
+        case Actions.stopGame.success.toString():
+            return Object.assign({}, state, { maintenance: true });
         default:
             return state;
     }

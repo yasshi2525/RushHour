@@ -9,11 +9,13 @@ import (
 )
 
 // CreatePlayer creates player.
-func CreatePlayer(loginid string, displayname string, password string, hue int, level entities.PlayerType) (*entities.Player, error) {
-	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
+func CreatePlayer(loginid string, displayname string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
+	if err := CheckMaintenance(); err != nil {
+		return nil, err
+	}
+	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
 		return nil, err
 	} else {
-		o.Level = level
 		o.CustomDisplayName = auth.Encrypt(displayname)
 		o.UseCustomDisplayName = true
 		o.Hue = hue
@@ -27,7 +29,13 @@ func CreatePlayer(loginid string, displayname string, password string, hue int, 
 
 // OAuthSignIn find or create Player by OAuth
 func OAuthSignIn(authType entities.AuthType, info *auth.OAuthInfo) (*entities.Player, error) {
-	return Model.OAuthSignIn(authType, info)
+	if o, err := Model.OAuthSignIn(authType, info); err != nil {
+		return nil, err
+	} else if err := CheckMaintenance(o); err != nil {
+		return nil, err
+	} else {
+		return o, nil
+	}
 }
 
 // SignOut delete Player's token value
@@ -39,12 +47,21 @@ func SignOut(token string) {
 
 // PasswordSignIn finds Player by loginid and password
 func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
-	return Model.PasswordSignIn(loginid, password)
+	if o, err := Model.PasswordSignIn(loginid, password); err != nil {
+		return nil, err
+	} else if err := CheckMaintenance(o); err != nil {
+		return nil, err
+	} else {
+		return o, nil
+	}
 }
 
 // PasswordSignUp creates Player with loginid and password
-func PasswordSignUp(loginid string, name string, password string, hue int) (*entities.Player, error) {
-	if o, err := Model.PasswordSignUp(loginid, password); err != nil {
+func PasswordSignUp(loginid string, name string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
+	if err := CheckMaintenance(); lv != entities.Admin && err != nil {
+		return nil, err
+	}
+	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
 		return nil, err
 	} else {
 		o.CustomDisplayName = auth.Encrypt(name)

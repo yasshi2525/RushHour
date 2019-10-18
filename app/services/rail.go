@@ -9,6 +9,9 @@ import (
 
 // CreateRailNode create RailNode
 func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*entities.DelegateRailNode, error) {
+	if err := CheckMaintenance(); err != nil {
+		return nil, err
+	}
 	if err := CheckArea(x, y); err != nil {
 		return nil, err
 	}
@@ -23,6 +26,9 @@ func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*e
 
 // RemoveRailNode remove RailNode
 func RemoveRailNode(o *entities.Player, id uint) error {
+	if err := CheckMaintenance(); err != nil {
+		return err
+	}
 	if rn, err := Model.DeleteIf(o, entities.RAILNODE, id); err != nil {
 		return err
 	} else {
@@ -43,6 +49,9 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 // ExtendRailNode extends Rail
 func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	x float64, y float64, scale float64) (*entities.DelegateRailNode, *entities.DelegateRailEdge, error) {
+	if err := CheckMaintenance(); err != nil {
+		return nil, nil, err
+	}
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, err
 	}
@@ -68,6 +77,9 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 
 // ConnectRailNode connects Rail
 func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.RailNode, scale float64) (*entities.DelegateRailEdge, error) {
+	if err := CheckMaintenance(); err != nil {
+		return nil, err
+	}
 	if err := CheckAuth(o, from); err != nil {
 		return nil, err
 	}
@@ -96,6 +108,9 @@ func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.R
 
 // RemoveRailEdge remove RailEdge
 func RemoveRailEdge(o *entities.Player, id uint) error {
+	if err := CheckMaintenance(); err != nil {
+		return err
+	}
 	if re, err := Model.DeleteIf(o, entities.RAILEDGE, id); err != nil {
 		return err
 	} else {

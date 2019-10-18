@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/revel/revel"
+	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
@@ -21,12 +22,14 @@ func (c App) Index() revel.Result {
 			c.ViewArgs["name"] = info.DisplayName
 			c.ViewArgs["image"] = info.Image
 			c.ViewArgs["hue"] = o.Hue
+			c.ViewArgs["admin"] = o.Level == entities.Admin
 		} else {
 			c.Session.Del("token")
 		}
 	} else {
 		c.Session.Del("token")
 	}
+	c.ViewArgs["maintenance"] = !services.IsInOperation()
 	return c.Render()
 }
 

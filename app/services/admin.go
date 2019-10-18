@@ -17,7 +17,7 @@ func CreateIfAdmin() {
 		}
 		return
 	} else {
-		if o, err := PasswordSignUp(Secret.Admin.UserName, "admin", Secret.Admin.Password, 0); err != nil {
+		if o, err := PasswordSignUp(Secret.Admin.UserName, "admin", Secret.Admin.Password, 0, entities.Admin); err != nil {
 			panic(err)
 		} else {
 			o.Level = entities.Admin

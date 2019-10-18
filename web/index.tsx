@@ -28,9 +28,12 @@ if (props !== null && appbar !== null && actionmenu !== null && canvas !== null 
             hue: parseInt(props.dataset.hue as string)
         } : undefined;
 
+    let isAdmin = props.dataset.admin !== undefined;
+    let maintenance = props.dataset.maintenance !== undefined;
+
     function wrap(props: any = {}){
         return function(Component: React.ComponentType){
-            return (<Provider store={store(my)}>
+            return (<Provider store={store({my, isAdmin, maintenance})}>
                 <ThemeProvider theme={RushHourTheme}>
                     <Component {...props} />
                 </ThemeProvider>
@@ -53,7 +56,7 @@ if (props !== null && appbar !== null && actionmenu !== null && canvas !== null 
         if (loading !== null) {
             loading.remove();
         }
-        if (my !== undefined) {
+        if (my !== undefined && !maintenance) {
             ReactDOM.render(wrap({ model: game.model })(ActionMenu), actionmenu);
         }
         ReactDOM.render(wrap({
