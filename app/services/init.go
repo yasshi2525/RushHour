@@ -36,6 +36,7 @@ func Init() {
 	//db.LogMode(true)
 	MigrateDB()
 	Restore()
+	CreateIfAdmin()
 	StartRouting()
 }
 

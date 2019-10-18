@@ -14,6 +14,8 @@ FROM golang:alpine as server
 
 WORKDIR /go
 
+ENV admin_username "admin"
+ENV admin_password "password"
 ENV baseurl "https://localhost:9000/"
 ENV salt ""
 ENV key "1234567890123456"

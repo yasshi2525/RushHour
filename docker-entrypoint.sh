@@ -1,6 +1,8 @@
 #!/bin/ash
 
 sed -i -e "s/&loc=Asia%2FTokyo//" src/github.com/yasshi2525/RushHour/conf/app.conf
+sed -i -e "s/__ADMIN_USERNAME__/${admin_username}/" src/github.com/yasshi2525/RushHour/conf/secret.conf
+sed -i -e "s/__ADMIN_PASSWORD__/${admin_password}/" src/github.com/yasshi2525/RushHour/conf/secret.conf
 sed -i -e "s|^baseurl = .*$|baseurl = \"${baseurl}\"|" src/github.com/yasshi2525/RushHour/conf/secret.conf
 sed -i -e "s/__SALT__/${salt}/" src/github.com/yasshi2525/RushHour/conf/secret.conf
 sed -i -e "s/______KEY_______/${key}/" src/github.com/yasshi2525/RushHour/conf/secret.conf
