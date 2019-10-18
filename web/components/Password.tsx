@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Theme, TextField, Box } from "@material-ui/core";
+import { Button, Theme, TextField, Box, useTheme } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
 import { RushHourStatus } from "../state";
 import * as Actions from "../actions";
@@ -29,7 +29,8 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export default function() {
-    const classes = useStyles();
+    const theme = useTheme();
+    const classes = useStyles(theme);
     const [id, setUserID] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [idError, setIDError] = React.useState(false);

@@ -28,8 +28,8 @@ func GetGoogleAuthURL() string {
 	return googleConf.AuthCodeURL(state)
 }
 
-// GetGoogleUserInfo returns user info
-func GetGoogleUserInfo(resState string, code string) (*UserInfo, error) {
+// GetGoogleOAuthInfo returns user info
+func GetGoogleOAuthInfo(resState string, code string) (*OAuthInfo, error) {
 	if resState != state {
 		return nil, fmt.Errorf("invalid state")
 	}
@@ -48,7 +48,7 @@ func GetGoogleUserInfo(resState string, code string) (*UserInfo, error) {
 				if person, err := service.Userinfo.V2.Me.Get().Do(); err != nil {
 					return nil, err
 				} else {
-					return &UserInfo{
+					return &OAuthInfo{
 						OAuthToken:  token.AccessToken,
 						LoginID:     info.UserId,
 						DisplayName: person.Name,

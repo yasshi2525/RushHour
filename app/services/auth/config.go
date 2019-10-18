@@ -7,8 +7,8 @@ var state string
 var salt string
 var block cipher.Block
 
-// UserInfo represents infomation from OAuth App
-type UserInfo struct {
+// OAuthInfo represents infomation from OAuth App
+type OAuthInfo struct {
 	DisplayName string
 	Image       string
 	LoginID     string

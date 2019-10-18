@@ -26,8 +26,8 @@ func GetGitHubAuthURL() string {
 	return githubConf.AuthCodeURL(state)
 }
 
-// GetGitHubUserInfo returns user info
-func GetGitHubUserInfo(resState string, code string) (*UserInfo, error) {
+// GetGitHubOAuthInfo returns user info
+func GetGitHubOAuthInfo(resState string, code string) (*OAuthInfo, error) {
 	if resState != state {
 		return nil, fmt.Errorf("invalid state")
 	}
@@ -48,7 +48,7 @@ func GetGitHubUserInfo(resState string, code string) (*UserInfo, error) {
 				res.Body.Read(buf)
 				return nil, fmt.Errorf("status %d %+v %s", res.StatusCode, res.Header, buf)
 			} else {
-				return &UserInfo{
+				return &OAuthInfo{
 					OAuthToken:  token.AccessToken,
 					LoginID:     fmt.Sprintf("%d", *user.ID),
 					DisplayName: *user.Name,

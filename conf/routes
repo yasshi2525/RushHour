@@ -20,6 +20,8 @@ GET     /github/callback                        Auth.GithubCallback
 GET     /api/v1/gamemap                         ApiV1Game.Index
 POST    /api/v1/login                           ApiV1Game.Login
 POST    /api/v1/register                        ApiV1Game.Register
+GET     /api/v1/settings                        ApiV1Game.GetSettings
+POST    /api/v1/settings/:resname               ApiV1Game.ChangeSettings
 GET     /api/v1/players                         ApiV1Game.Players
 POST    /api/v1/dept                            ApiV1Game.Departure
 POST    /api/v1/extend                          ApiV1Game.Extend

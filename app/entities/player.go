@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -30,6 +31,21 @@ const (
 	GitHub
 )
 
+// MarshalJSON converts AuthType to string
+func (a AuthType) MarshalJSON() ([]byte, error) {
+	switch a {
+	case Local:
+		return json.Marshal("RushHour")
+	case Twitter:
+		return json.Marshal("Twitter")
+	case Google:
+		return json.Marshal("Google")
+	case GitHub:
+		return json.Marshal("GitHub")
+	}
+	return json.Marshal("Unknown Service")
+}
+
 // AuthList is list of all AuthType
 var AuthList []AuthType
 
@@ -48,11 +64,17 @@ type Player struct {
 	Base
 	Persistence
 
-	Level PlayerType `gorm:"not null" json:"lv"`
-	// DisplayName is public attribute and shown to everyone. Owner can change it.
-	DisplayName string `gorm:"not null" sql:"type:text" json:"-"`
-	// Image is public attribute and shown to everyone. Owner can change it.
-	Image string `gorm:"not null" sql:"type:text" json:"-"`
+	Level PlayerType `gorm:"not null" json:"-"`
+	// OAuthDisplayName is public attribute and shown to everyone. Owner can change it.
+	OAuthDisplayName     string `gorm:"not null" sql:"type:text" json:"-"`
+	CustomDisplayName    string `gorm:"not null" sql:"type:text" json:"-"`
+	UseCustomDisplayName bool   `gorm:"not null" json:"-"`
+
+	// OAuthImage is public attribute and shown to everyone. Owner can change it.
+	OAuthImage     string `gorm:"not null" sql:"type:text" json:"-"`
+	CustomImage    string `gorm:"not null" sql:"type:text" json:"-"`
+	UseCustomImage bool   `gorm:"not null" json:"-"`
+
 	// LoginID is hidden attribute and used for identification in OAuth App.
 	LoginID string `gorm:"not null" sql:"type:text" json:"-"`
 	// Password is hidden attribute, but owner can change it.
@@ -66,10 +88,10 @@ type Player struct {
 	// Token is hidden attribute and used for authentication in RushHour
 	Token string `gorm:"not null;index" json:"-"`
 
-	ReRouting bool `gorm:"-"              json:"-"`
+	ReRouting bool `gorm:"-" json:"-"`
 
 	// Hue is hue attribute on HSV model.
-	Hue int `gorm:"not null"       json:"hue"`
+	Hue int `gorm:"not null" json:"hue"`
 
 	RailNodes map[uint]*RailNode `gorm:"-" json:"-"`
 	RailEdges map[uint]*RailEdge `gorm:"-" json:"-"`
@@ -97,7 +119,7 @@ func (m *Model) NewPlayer() *Player {
 }
 
 // OAuthSignIn finds or create Player by auth and loginid, then refresh token value.
-func (m *Model) OAuthSignIn(authType AuthType, info *auth.UserInfo) (*Player, error) {
+func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, error) {
 	if !info.IsValid() {
 		return nil, fmt.Errorf("token is empty")
 	}
@@ -188,12 +210,12 @@ func (o *Player) Init(m *Model) {
 }
 
 // ImportInfo encrypts user information
-func (o *Player) ImportInfo(authType AuthType, info *auth.UserInfo) {
+func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
 	enc := info.Enc()
 	delete(o.M.Tokens, o.Token)
 
-	o.DisplayName = enc.DisplayName
-	o.Image = enc.Image
+	o.OAuthDisplayName = enc.DisplayName
+	o.OAuthImage = enc.Image
 	o.LoginID = enc.LoginID
 	o.Auth = authType
 	o.OAuthToken = enc.OAuthToken
@@ -205,15 +227,31 @@ func (o *Player) ImportInfo(authType AuthType, info *auth.UserInfo) {
 }
 
 // ExportInfo decrypts user information
-func (o *Player) ExportInfo() *auth.UserInfo {
-	return (&auth.UserInfo{
-		DisplayName: o.DisplayName,
-		Image:       o.Image,
+func (o *Player) ExportInfo() *auth.OAuthInfo {
+	return (&auth.OAuthInfo{
+		DisplayName: o.GetDisplayName(),
+		Image:       o.GetImage(),
 		LoginID:     o.LoginID,
 		OAuthToken:  o.OAuthToken,
 		OAuthSecret: o.OAuthSecret,
 		IsEnc:       true,
 	}).Dec()
+}
+
+// GetDisplayName returns customized name if player do.
+func (o *Player) GetDisplayName() string {
+	if o.UseCustomDisplayName {
+		return o.CustomDisplayName
+	}
+	return o.OAuthDisplayName
+}
+
+// GetImage returns customized name if player do.
+func (o *Player) GetImage() string {
+	if o.UseCustomImage {
+		return o.CustomImage
+	}
+	return o.OAuthImage
 }
 
 // Resolve set reference.
@@ -296,12 +334,26 @@ func (o *Player) Delete() {
 func (o *Player) String() string {
 	o.Marshal()
 	return fmt.Sprintf("%s(%d):nm=%s,lv=%v:%s", o.Type().Short(),
-		o.ID, o.LoginID, o.Level, o.DisplayName)
+		o.ID, o.LoginID, o.Level, o.OAuthDisplayName)
 }
 
 // Short returns short description
 func (o *Player) Short() string {
 	return fmt.Sprintf("%s(%d)", o.LoginID, o.ID)
+}
+
+// MarshalJSON returns plain text data.
+func (o *Player) MarshalJSON() ([]byte, error) {
+	type Alias Player
+	return json.Marshal(&struct {
+		DisplayName string `json:"name"`
+		Image       string `json:"image"`
+		*Alias
+	}{
+		DisplayName: auth.Decrypt(o.GetDisplayName()),
+		Image:       auth.Decrypt(o.GetImage()),
+		Alias:       (*Alias)(o),
+	})
 }
 
 func (pt PlayerType) String() string {

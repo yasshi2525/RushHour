@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import GameModel from "../models";
 import { MenuStatus } from "../../state";
 
@@ -8,13 +9,17 @@ export interface ActionPayload {
     results: any
 };
 
-export interface AppBarProperty {
+export interface BaseProperty {
     [key: string]: any,
-    readOnly: boolean,
-    displayName: string | undefined,
-    image: string | undefined
-    hue: number | undefined,
-};
+    children: ReactNode | undefined
+}
+
+export interface UserInfo {
+    [key: string]: string | number,
+    name: string,
+    image: string,
+    hue: number
+}
 
 export interface GameComponentProperty {
     model: GameModel,
@@ -33,3 +38,8 @@ export interface MenuProperty {
     menu: MenuStatus,
     setMenu: (opts: {model: GameModel, menu: MenuStatus}) => void
 };
+
+export interface Entry {
+    key: string
+    value: any
+}

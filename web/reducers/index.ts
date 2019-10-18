@@ -14,6 +14,16 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
             return Object.assign({}, state, { isRegisterSucceeded: true });
         case Actions.register.failure.toString():
             return Object.assign({}, state, { isRegisterFailed: true });
+        case Actions.settings.success.toString():
+            return Object.assign({}, state, { settings: action.payload.results });
+        case Actions.editSettings.request.toString():
+            return Object.assign({}, state, { waitingFor: action.payload });
+        case Actions.editSettings.success.toString():
+            let my = Object.assign({}, state.my, action.payload.results.my)
+            let settings = Object.assign({}, state.settings, { [action.payload.results.key]: action.payload.results.value });
+            return Object.assign({}, state, { waitingFor: undefined, settings, my });
+        case Actions.editSettings.failure.toString():
+            return Object.assign({}, state, { waitingFor: undefined });
         case Actions.setMenu.success.toString():
             return Object.assign({}, state, { menu: action.payload });
         case Actions.fetchMap.success.toString():

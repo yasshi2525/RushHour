@@ -1,11 +1,12 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { AppBar as AppBarOrg, Toolbar, Typography, Button, Avatar, Link, Hidden, Theme } from "@material-ui/core";
+import { AppBar as AppBarOrg, Toolbar, Typography, Button, Avatar, Link, Theme, useTheme, useMediaQuery } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { AppBarProperty } from "../common/interfaces";
+import { UserInfo } from "../common/interfaces";
 import { hueToRgb } from "../common/interfaces/gamemap";
-import { RushHourStatus } from "../state";
 import SignIn from "./SignIn";
+import UserSettings from "./UserSettings";
+import { RushHourStatus } from "@/state";
+import { useSelector } from "react-redux";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -14,9 +15,10 @@ const useStyles = makeStyles((theme: Theme) =>
         },
         profile: {
             borderStyle: "solid",
-            borderWidth: "5px",
+            borderWidth: "2px",
             marginRight: theme.spacing(1),
             [theme.breakpoints.up("sm")]: {
+                borderWidth: "4px",
                 width: 50,
                 height: 50,
             }
@@ -29,51 +31,55 @@ const useStyles = makeStyles((theme: Theme) =>
         grow: {
             flexGrow: 1,
         },
+        setting: {
+            width: 50,
+                height: 50,
+                [theme.breakpoints.up("sm")]: {
+                    borderWidth: "4px",
+                    width: 50,
+                    height: 50,
+                }
+        }
     })
 );
 
-function AppBar(props: AppBarProperty) {
-    const classes = useStyles();
-
-    const myColor = props.hue !== undefined ? `rgb(${hueToRgb(props.hue).join(",")})` : "inherit";
+export default function() {
+    const theme = useTheme();
+    const classes = useStyles(theme);
+    const isTiny = useMediaQuery(theme.breakpoints.down("xs"));
+    const readOnly = useSelector<RushHourStatus, boolean>(state => state.readOnly);
+    const my = useSelector<RushHourStatus, UserInfo | undefined>(state => state.my, (l, r) => {
+        if (l === undefined || r === undefined) {
+            return l == r
+        } else {
+            return Object.keys(l).filter(k => l[k] != r[k]).length == 0;
+        }
+    });
+    
+    const myColor = my !== undefined ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
 
     return (
         <AppBarOrg position="sticky">
             <Toolbar>
-                <div className={classes.item}>
-                    {/* PC向け */}
-                    <Hidden xsDown>
-                        <Typography variant="h4">
-                            RushHour
-                        </Typography>
-                    </Hidden>
-                    {/* スマホ向け */}
-                    <Hidden smUp>
-                        <Typography variant="h6">
-                            RushHour
-                        </Typography>
-                    </Hidden>
-                </div>
-                { props.readOnly ?
+                <Typography className={classes.item} variant={ isTiny ? "h6" : "h4" }>RushHour</Typography>
+                { my !== undefined &&
                     <>
+                        <Avatar style={{borderColor: myColor}} className={classes.profile} src={my.image} />
+                        <div className={classes.name}>{my.name}</div>
                         <div className={classes.grow} />
-                        <SignIn />
-                    </> :
-                    <>
-                        <Avatar style={{borderColor: myColor}} className={classes.profile} src={props.image} />
-                        <div className={classes.name}>{props.displayName}</div>
-                        <div className={classes.grow} />
+                        <UserSettings />
                         <Button className={classes.item} variant="contained">
                             <Link href="/signout">サインアウト</Link>
                         </Button>
-                    </> }
+                    </> 
+                }
+                { readOnly &&
+                    <>
+                        <div className={classes.grow} />
+                        <SignIn />
+                    </>
+                }
             </Toolbar>
         </AppBarOrg>
     );
 }
-
-function mapStateToProps(_: RushHourStatus) {
-    return {};
-}
-
-export default connect(mapStateToProps)(AppBar);

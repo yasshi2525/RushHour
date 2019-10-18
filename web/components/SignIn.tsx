@@ -16,7 +16,7 @@ const sns = [
 const useStyles = makeStyles(() =>
     createStyles({
         register: {
-            marginRight: "auto"
+            
         }
     })
 );

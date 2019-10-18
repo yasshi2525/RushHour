@@ -14,7 +14,7 @@ type OwnerRequest struct {
 }
 
 // Parse validates and insert value from response.
-func (o *OwnerRequest) Parse(token string, v map[string]interface{}) []string {
+func (o *OwnerRequest) Parse(token string) []string {
 	errs := []string{}
 	if o.O = services.FindOwner(token); o.O == nil {
 		errs = append(errs, "user not found")
@@ -30,7 +30,7 @@ type ScaleRequest struct {
 
 // Parse validates and insert value from response.
 func (s *ScaleRequest) Parse(token string, v map[string]interface{}) []string {
-	errs := s.OwnerRequest.Parse(token, v)
+	errs := s.OwnerRequest.Parse(token)
 	if scale, ok := v["scale"].(float64); !ok {
 		errs = append(errs, fmt.Sprintf("parse scale failed: %v", v["scale"]))
 	} else {

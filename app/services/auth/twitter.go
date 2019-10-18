@@ -35,14 +35,14 @@ func GetTwitterAuthURL() (*oauth.Credentials, string) {
 	return tmpCred, twitterClient.AuthorizationURL(tmpCred, nil)
 }
 
-type twitterUserInfo struct {
+type twitterOAuthInfo struct {
 	LoginID     string `json:"id_str"`
 	DisplayName string `json:"name"`
 	Image       string `json:"profile_image_url_https"`
 }
 
-// GetTwitterUserInfo returns user info
-func GetTwitterUserInfo(tmpCred *oauth.Credentials, tmpSecret string) (*UserInfo, error) {
+// GetTwitterOAuthInfo returns user info
+func GetTwitterOAuthInfo(tmpCred *oauth.Credentials, tmpSecret string) (*OAuthInfo, error) {
 	if cred, values, err := twitterClient.RequestToken(&http.Client{}, tmpCred, tmpSecret); err != nil {
 		return nil, err
 	} else {
@@ -56,11 +56,11 @@ func GetTwitterUserInfo(tmpCred *oauth.Credentials, tmpSecret string) (*UserInfo
 				res.Body.Read(buf)
 				return nil, fmt.Errorf("status %d %+v %s", res.StatusCode, res.Header, buf)
 			} else {
-				info := &twitterUserInfo{}
+				info := &twitterOAuthInfo{}
 				if err := json.NewDecoder(res.Body).Decode(info); err != nil {
 					return nil, err
 				} else {
-					return &UserInfo{
+					return &OAuthInfo{
 						OAuthToken:  values.Get("oauth_token"),
 						OAuthSecret: values.Get("oauth_token_secret"),
 						LoginID:     info.LoginID,
