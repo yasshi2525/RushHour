@@ -31,7 +31,7 @@ func (a Auth) TwitterCallback() revel.Result {
 		if tmpSecret, err := a.Session.Get("tmpSecret"); err != nil {
 			return a.RenderHTML(err.Error())
 		} else {
-			if info, err := auth.GetTwitterUserInfo(&oauth.Credentials{
+			if info, err := auth.GetTwitterOAuthInfo(&oauth.Credentials{
 				Token:  tmpToken.(string),
 				Secret: tmpSecret.(string),
 			}, secret); err != nil {
@@ -58,7 +58,7 @@ func (a Auth) GoogleCallback() revel.Result {
 	state := a.Params.Get("state")
 	code := a.Params.Get("code")
 
-	if info, err := auth.GetGoogleUserInfo(state, code); err != nil {
+	if info, err := auth.GetGoogleOAuthInfo(state, code); err != nil {
 		return a.RenderHTML(err.Error())
 	} else {
 		if my, err := services.OAuthSignIn(entities.Google, info); err != nil {
@@ -80,7 +80,7 @@ func (a Auth) GitHubCallback() revel.Result {
 	state := a.Params.Get("state")
 	code := a.Params.Get("code")
 
-	if info, err := auth.GetGitHubUserInfo(state, code); err != nil {
+	if info, err := auth.GetGitHubOAuthInfo(state, code); err != nil {
 		return a.RenderHTML(err.Error())
 	} else {
 		if my, err := services.OAuthSignIn(entities.GitHub, info); err != nil {

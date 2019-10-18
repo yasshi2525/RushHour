@@ -29,7 +29,7 @@ func Init(config Config) {
 }
 
 // IsValid returns whether OAuthToken exists or not
-func (i *UserInfo) IsValid() bool {
+func (i *OAuthInfo) IsValid() bool {
 	if i.IsEnc {
 		return Decrypt(i.OAuthToken) != ""
 	} else {
@@ -38,11 +38,11 @@ func (i *UserInfo) IsValid() bool {
 }
 
 // Enc returns encrypted info
-func (i *UserInfo) Enc() *UserInfo {
+func (i *OAuthInfo) Enc() *OAuthInfo {
 	if i.IsEnc {
 		panic(fmt.Errorf("%s is already encrypted", i.LoginID))
 	}
-	return &UserInfo{
+	return &OAuthInfo{
 		LoginID:     Encrypt(i.LoginID),
 		OAuthToken:  Encrypt(i.OAuthToken),
 		OAuthSecret: Encrypt(i.OAuthSecret),
@@ -53,11 +53,11 @@ func (i *UserInfo) Enc() *UserInfo {
 }
 
 // Dec returns decrypted info
-func (i *UserInfo) Dec() *UserInfo {
+func (i *OAuthInfo) Dec() *OAuthInfo {
 	if !i.IsEnc {
 		panic(fmt.Errorf("%s is already decrypted", i.LoginID))
 	}
-	return &UserInfo{
+	return &OAuthInfo{
 		LoginID:     Decrypt(i.LoginID),
 		OAuthToken:  Decrypt(i.OAuthToken),
 		OAuthSecret: Decrypt(i.OAuthSecret),
@@ -68,7 +68,7 @@ func (i *UserInfo) Dec() *UserInfo {
 }
 
 // Token returns digest of access token.
-func (i *UserInfo) Token() string {
+func (i *OAuthInfo) Token() string {
 	if !i.IsValid() {
 		panic(fmt.Errorf("%s's access token is empty", i.LoginID))
 	}

@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services"
+	"github.com/yasshi2525/RushHour/app/services/auth"
 
 	"github.com/revel/revel"
-	"github.com/yasshi2525/RushHour/app/services"
 )
 
 // APIv1Game is controller for REST API
@@ -84,6 +85,80 @@ func (c APIv1Game) Register() revel.Result {
 		c.Session.Set("token", o.Token)
 		return c.RenderJSON(genResponse(true, o))
 	}
+}
+
+// GetSettings returns the list of customizable attributes
+func (c APIv1Game) GetSettings() revel.Result {
+	services.MuModel.RLock()
+	defer services.MuModel.RUnlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token)
+
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+
+	return c.RenderJSON(genResponse(true, services.GetAccountSettings(o.O)))
+}
+
+// ChangeSettings returns the result of change profile
+func (c APIv1Game) ChangeSettings() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token)
+
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+
+	json := make(map[string]interface{})
+	c.Params.BindJSON(&json)
+
+	var value interface{}
+	var ok bool
+
+	if value, ok = json["value"]; !ok {
+		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("value is not set")}))
+	}
+	res := c.Params.Get("resname")
+	switch res {
+	case "custom_name":
+		if v, ok := value.(string); !ok {
+			return c.RenderJSON(genResponse(false, []error{fmt.Errorf("%s is not string: %s", res, value)}))
+		} else {
+			o.O.CustomDisplayName = auth.Encrypt(v)
+		}
+	case "use_cname":
+		if v, ok := value.(bool); !ok {
+			return c.RenderJSON(genResponse(false, []error{fmt.Errorf("%s is not bool: %s", res, value)}))
+		} else {
+			o.O.UseCustomDisplayName = v
+		}
+	default:
+		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("invalid attribute %s", res)}))
+	}
+	return c.RenderJSON(genResponse(true, &struct {
+		Player *entities.Player `json:"my"`
+		Key    string           `json:"key"`
+		Value  interface{}      `json:"value"`
+	}{
+		Player: o.O,
+		Key:    res,
+		Value:  value,
+	}))
 }
 
 // Players returns list of player
@@ -211,7 +286,7 @@ func (c APIv1Game) RemoveRailNode() revel.Result {
 	c.Params.BindJSON(&json)
 
 	o := &OwnerRequest{}
-	errs := o.Parse(token, json)
+	errs := o.Parse(token)
 
 	id, ok := json["id"].(float64)
 	if !ok {

@@ -5,6 +5,11 @@ const theme = createMuiTheme({
     palette: {
         primary: indigo,
         error: red,
+    },
+    props: {
+        MuiPaper: {
+            elevation: 4
+        }
     }
 });
 
