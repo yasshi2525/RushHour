@@ -27,6 +27,9 @@ POST    /api/v1/dept                            ApiV1Game.Departure
 POST    /api/v1/extend                          ApiV1Game.Extend
 POST    /api/v1/connect                         ApiV1Game.Connect
 DELETE  /api/v1/rail_nodes                      ApiV1Game.RemoveRailNode
+GET     /api/v1/game                            ApiV1Game.GameStatus
+POST    /api/v1/game/start                      ApiV1Game.StartGame
+POST    /api/v1/game/stop                       ApiV1Game.StopGame
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

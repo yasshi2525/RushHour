@@ -68,11 +68,18 @@ export interface RushHourStatus {
     readOnly: boolean,
     my: UserInfo | undefined,
     settings: AccountSettings | undefined,
-    waitingFor: Entry | undefined
+    waitingFor: Entry | undefined,
+    maintenance: boolean,
+    isAdmin: boolean
 };
 
+export interface DefaultProp {
+    my: UserInfo | undefined,
+    isAdmin: boolean,
+    maintenance: boolean
+}
 
-export function defaultState(my: UserInfo | undefined = undefined): RushHourStatus {
+export function defaultState(opts: DefaultProp): RushHourStatus {
     return {
         timestamp: 0,
         menu: MenuStatus.IDLE,
@@ -82,9 +89,11 @@ export function defaultState(my: UserInfo | undefined = undefined): RushHourStat
         isRegisterFailed: false,
         isFetchRequired: false,
         isPlayerFetched: false,
-        my,
-        readOnly: my === undefined,
+        my: opts.my,
+        readOnly: opts.my === undefined,
         settings: undefined,
-        waitingFor: undefined
+        waitingFor: undefined,
+        maintenance: opts.maintenance,
+        isAdmin: opts.isAdmin
     };
 };

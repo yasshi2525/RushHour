@@ -30,15 +30,17 @@ func StopBackupTicker() {
 
 func watchBackup() {
 	for range backupTicker.C {
-		Backup()
+		Backup(true)
 	}
 }
 
 // Backup set model to database
-func Backup() {
+func Backup(withLock bool) {
 	start := time.Now()
-	MuModel.RLock()
-	defer MuModel.RUnlock()
+	if withLock {
+		MuModel.RLock()
+		defer MuModel.RUnlock()
+	}
 	lock := time.Now()
 
 	tx := db.Begin()

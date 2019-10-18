@@ -7,6 +7,7 @@ import SignIn from "./SignIn";
 import UserSettings from "./UserSettings";
 import { RushHourStatus } from "@/state";
 import { useSelector } from "react-redux";
+import Administrator from "./Administrator";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -39,6 +40,9 @@ const useStyles = makeStyles((theme: Theme) =>
                     width: 50,
                     height: 50,
                 }
+        },
+        maintenance: {
+            color: theme.palette.error.main
         }
     })
 );
@@ -55,18 +59,24 @@ export default function() {
             return Object.keys(l).filter(k => l[k] != r[k]).length == 0;
         }
     });
-    
+    const isAdmin = useSelector<RushHourStatus, boolean>(state => state.isAdmin);
+    const maintenance = useSelector<RushHourStatus, boolean>(state => state.maintenance);
+
     const myColor = my !== undefined ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
 
     return (
         <AppBarOrg position="sticky">
             <Toolbar>
                 <Typography className={classes.item} variant={ isTiny ? "h6" : "h4" }>RushHour</Typography>
+                { maintenance && 
+                    <Typography className={classes.maintenance} variant={ isTiny ? "h6" : "h6" }>メンテナンス中です</Typography>
+                }
                 { my !== undefined &&
                     <>
                         <Avatar style={{borderColor: myColor}} className={classes.profile} src={my.image} />
                         <div className={classes.name}>{my.name}</div>
                         <div className={classes.grow} />
+                        { isAdmin && <Administrator /> }
                         <UserSettings />
                         <Button className={classes.item} variant="contained">
                             <Link href="/signout">サインアウト</Link>

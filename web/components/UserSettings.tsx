@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme: Theme) =>
 export default function() {
     const [opened, setOpened] = React.useState(false);
     const theme = useTheme();
-    const classes = useStyles();
+    const classes = useStyles(theme);
     const isFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
     const settings = useSelector<RushHourStatus, AccountSettings | undefined>(state => state.settings);
     const waitingFor = useSelector<RushHourStatus, Entry | undefined>(state => state.waitingFor);
@@ -142,7 +142,7 @@ export default function() {
                                                     <Switch
                                                         color="primary"
                                                         checked={!settings.use_cname} 
-                                                        onChange={(e) => useCName(!e.target.checked)} value="checkedName" />
+                                                        onChange={(e) => useCName(!e.target.checked)} />
                                                 }
                                                 disabled={ waitingFor !== undefined }
                                                 label={

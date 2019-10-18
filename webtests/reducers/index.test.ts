@@ -4,7 +4,7 @@ import { fetchMap } from "@/actions";
 
 test("fetches map", () => {
     let time = new Date().getTime();
-    const actual = reducer(defaultState(), {
+    const actual = reducer(defaultState({ my: undefined, isAdmin: false, maintenance: false }), {
         type: fetchMap.success.toString(),
         payload: {status: true, timestamp: time, results: {foo: "bar"}}
     });
