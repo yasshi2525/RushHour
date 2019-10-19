@@ -6,7 +6,7 @@ import { generateDepart, generateExtend, generateConnect } from "./rail";
 import { generatePlayers, generateLogin, generateRegister, generateSettings, generateEditSettings } from "./player";
 import { generateSetMenu } from "./menu";
 import { generateDestroy } from "./destroy";
-import { generateStart, generateStop } from "./admin";
+import { generateStatus, generateInOperation } from "./admin";
 
 export function* generateRequest(
     request: any, 
@@ -76,7 +76,7 @@ export function* rushHourSaga() {
     yield takeLatest(Action.extend.request, generateExtend);
     yield takeLatest(Action.connect.request, generateConnect);
     yield takeLatest(Action.destroy.request, generateDestroy);
-    yield takeLatest(Action.startGame.request, generateStart);
-    yield takeLatest(Action.stopGame.request, generateStop);
+    yield takeLatest(Action.gameStatus.request, generateStatus);
+    yield takeLatest(Action.inOperation.request, generateInOperation);
     yield takeEvery(Action.setMenu.request, generateSetMenu);
 };

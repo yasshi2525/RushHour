@@ -1,4 +1,4 @@
-import { Entry, UserInfo } from "../common/interfaces";
+import { Entry, UserInfo, AsyncStatus } from "../common/interfaces";
 import { Point } from "../common/interfaces/gamemap";
 
 export interface Coordinates {
@@ -69,14 +69,13 @@ export interface RushHourStatus {
     my: UserInfo | undefined,
     settings: AccountSettings | undefined,
     waitingFor: Entry | undefined,
-    maintenance: boolean,
-    isAdmin: boolean
+    inOperation: AsyncStatus,
 };
 
 export interface DefaultProp {
     my: UserInfo | undefined,
     isAdmin: boolean,
-    maintenance: boolean
+    inOperation: boolean
 }
 
 export function defaultState(opts: DefaultProp): RushHourStatus {
@@ -93,7 +92,7 @@ export function defaultState(opts: DefaultProp): RushHourStatus {
         readOnly: opts.my === undefined,
         settings: undefined,
         waitingFor: undefined,
-        maintenance: opts.maintenance,
+        inOperation: { waiting: false, value: opts.inOperation },
         isAdmin: opts.isAdmin
     };
 };

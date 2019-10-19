@@ -336,7 +336,7 @@ func (c APIv1Game) StartGame() revel.Result {
 	if !services.IsInOperation() {
 		services.Start()
 	}
-	return c.RenderJSON(genResponse(true, nil))
+	return c.RenderJSON(genResponse(true, true))
 }
 
 func (c APIv1Game) StopGame() revel.Result {
@@ -362,7 +362,7 @@ func (c APIv1Game) StopGame() revel.Result {
 	if services.IsInOperation() {
 		services.Stop()
 	}
-	return c.RenderJSON(genResponse(true, nil))
+	return c.RenderJSON(genResponse(true, false))
 }
 
 func genResponse(status bool, results interface{}) interface{} {

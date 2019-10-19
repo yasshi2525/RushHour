@@ -9,22 +9,15 @@ async function status() {
     return await http(statusURL);
 }
 
-async function start() {
-    return await http(startURL, Method.POST);
-}
-
-async function stop() {
-    return await http(stopURL, Method.POST);
+async function inOperation(value: boolean) {
+    let url = value ? startURL : stopURL;
+    return await http(url, Method.POST);
 }
 
 export function* generateStatus(action: ReturnType<typeof Action.gameStatus.request>) {
     return yield generateRequest(() => status(), action, Action.gameStatus);
 }
 
-export function* generateStart(action: ReturnType<typeof Action.startGame.request>) {
-    return yield generateRequest(() => start(), action, Action.startGame);
-}
-
-export function* generateStop(action: ReturnType<typeof Action.stopGame.request>) {
-    return yield generateRequest(() => stop(), action, Action.stopGame);
+export function* generateInOperation(action: ReturnType<typeof Action.inOperation.request>) {
+    return yield generateRequest(() => inOperation(action.payload.value), action, Action.inOperation);
 }
