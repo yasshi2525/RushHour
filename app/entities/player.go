@@ -348,11 +348,13 @@ func (o *Player) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		DisplayName string `json:"name"`
 		Image       string `json:"image"`
+		Admin       bool   `json:"admin,omitempty"`
 		*Alias
 	}{
 		DisplayName: auth.Decrypt(o.GetDisplayName()),
 		Image:       auth.Decrypt(o.GetImage()),
 		Alias:       (*Alias)(o),
+		Admin:       o.Level == Admin,
 	})
 }
 

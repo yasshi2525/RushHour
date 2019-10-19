@@ -57,6 +57,13 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
         case Actions.purgeUserData.failure.toString():
             var inPurge: AsyncStatus = Object.assign({}, state.inPurge, { waiting: false, value: false });
             return Object.assign({}, state, {inPurge});
+        case Actions.playersPlain.request.toString():
+            var players: AsyncStatus = Object.assign({}, state.players, { waiting: true });
+            return Object.assign({}, state, {players});
+        case Actions.playersPlain.success.toString():
+        case Actions.playersPlain.failure.toString():
+            var players: AsyncStatus = Object.assign({}, state.players, { waiting: false, value: action.payload.results });
+            return Object.assign({}, state, {players});
         default:
             return state;
     }

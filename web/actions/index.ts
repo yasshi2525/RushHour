@@ -80,6 +80,7 @@ export const register = createAsyncAction("REGISTER_REQUESTED", "REGISTER_SUCCEE
 export const settings = createAsyncAction("SETTINGS_REQUESTED", "SETTINGS_SUCCEEDED", "SETTINGS_FAILED")<Request, GameResponse, Error>();
 export const editSettings = createAsyncAction("EDIT_SETTINGS_REQUESTED", "EDIT_SETTINGS_SUCCEEDED", "EDIT_SETTINGS_FAILED")<ResourceRequest, GameResponse, Error>();
 export const players = createAsyncAction("PLAYERS_REQUESTED", "PLAYERS_SUCCEEDED", "PLAYERS_FAILED")<ModelRequest, GameResponse, Error>();
+export const playersPlain = createAsyncAction("PLAYERS_PLAIN_REQUESTED", "PLAYERS_PLAIN_SUCCEEDED", "PLAYERS_PLAIN_FAILED")<ResourceRequest, GameResponse, Error>();
 export const depart = createAsyncAction("DEPART_REQUESTED", "DEPART_SUCCEEDED", "DEPART_FAILED")<PointRequest, GameResponse, Error>();
 export const extend = createAsyncAction("EXTEND_REQUESTED", "EXTEND_SUCCEEDED", "EXTEND_FAILED")<ExtendRequest, GameResponse, Error>();
 export const connect = createAsyncAction("CONNECT_REQUESTED", "CONNECT_SUCCEEDED", "CONNECT_FAILED")<ConnectRequest, GameResponse, Error>();

@@ -8,10 +8,12 @@ const loginURL = "api/v1/login";
 const registerURL = "api/v1/register";
 const settingsURL = "api/v1/settings";
 
-export async function fetchPlayers(map: GameMap) {
+export async function fetchPlayers(map: GameMap | undefined = undefined) {
     let json = await http(playersURL)
-    map.mergeChildren("players", json.results);
-    map.resolve();
+    if (map !== undefined) {
+        map.mergeChildren("players", json.results);
+        map.resolve();
+    }
     return json;
 }
 
@@ -33,6 +35,10 @@ async function register(opts: Action.LoginRequest) {
 
 export function* generatePlayers(action: ReturnType<typeof Action.players.request>) {
     return yield generateRequest(() => fetchPlayers(action.payload.model.gamemap), action, Action.players);
+}
+
+export function* generatePlayersPlain(action: ReturnType<typeof Action.playersPlain.request>) {
+    return yield generateRequest(() => fetchPlayers(), action, Action.playersPlain);
 }
 
 export function* generateLogin(action: ReturnType<typeof Action.login.request>) {
