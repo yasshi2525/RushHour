@@ -65,9 +65,9 @@ func Terminate() {
 // Start start game
 func Start() {
 	StartBackupTicker()
-	StartModelWatching()
 	StartProcedure()
 	if Const.Game.Simulation {
+		StartModelWatching()
 		StartSimulation()
 	}
 	isInOperation = true
@@ -78,10 +78,10 @@ func Stop() {
 	isInOperation = false
 	if Const.Game.Simulation {
 		StopSimulation()
+		StopModelWatching()
 	}
 	CancelRouting()
 	StopProcedure()
-	StopModelWatching()
 	StopBackupTicker()
 	Backup(false)
 }
