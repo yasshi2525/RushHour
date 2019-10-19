@@ -51,3 +51,14 @@ func MigrateDB() {
 	db.Model(entities.HUMAN.Obj(Model)).AddForeignKey("from_id", foreign[entities.RESIDENCE], "RESTRICT", "RESTRICT")
 	db.Model(entities.HUMAN.Obj(Model)).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
 }
+
+func PurgeDB() {
+	length := len(entities.TypeList)
+	tx := db.Begin()
+	for i := length - 1; i >= 0; i-- {
+		if key := entities.TypeList[i]; key.IsDB() {
+			db.Exec(fmt.Sprintf("DELETE FROM %s", key.Table()))
+		}
+	}
+	tx.Commit()
+}

@@ -365,6 +365,33 @@ func (c APIv1Game) StopGame() revel.Result {
 	return c.RenderJSON(genResponse(true, false))
 }
 
+// PurgeUserData deletes all user data.
+func (c APIv1Game) PurgeUserData() revel.Result {
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
+	token, err := c.getToken()
+	if err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+
+	o := &OwnerRequest{}
+	errs := o.Parse(token)
+
+	if len(errs) > 0 {
+		return c.RenderJSON(genResponse(false, errs))
+	}
+
+	if o.O.Level != entities.Admin {
+		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("permission denied")}))
+	}
+
+	if err := services.Purge(); err != nil {
+		return c.RenderJSON(genResponse(false, []error{err}))
+	}
+	return c.RenderJSON(genResponse(true, true))
+}
+
 func genResponse(status bool, results interface{}) interface{} {
 	var details interface{}
 

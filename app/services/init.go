@@ -37,9 +37,22 @@ func Init() {
 	db = connectDB()
 	//db.LogMode(true)
 	MigrateDB()
-	Restore()
+	Restore(true)
 	CreateIfAdmin()
 	StartRouting()
+}
+
+// Purge deletes all user data
+func Purge() error {
+	if IsInOperation() {
+		return fmt.Errorf("couldn't purge during under operation")
+	}
+	PurgeDB()
+	InitRepository()
+	Restore(false)
+	CreateIfAdmin()
+	StartRouting()
+	return nil
 }
 
 // Terminate finalizes after stopping game

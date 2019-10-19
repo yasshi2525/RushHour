@@ -30,9 +30,9 @@ DELETE  /api/v1/rail_nodes                      ApiV1Game.RemoveRailNode
 GET     /api/v1/game                            ApiV1Game.GameStatus
 POST    /api/v1/game/start                      ApiV1Game.StartGame
 POST    /api/v1/game/stop                       ApiV1Game.StopGame
+DELETE  /api/v1/game/purge                      ApiV1Game.PurgeUserData
 
-# Ignore favicon requests
-GET     /favicon.ico                            404
+GET     /favicon.ico                            Static.Serve("public/img/favicon.ico")
 
 # Map static resources from the /app/public folder to the /public path
 GET     /public/*filepath                       Static.Serve("public")

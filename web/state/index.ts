@@ -70,6 +70,7 @@ export interface RushHourStatus {
     settings: AccountSettings | undefined,
     waitingFor: Entry | undefined,
     inOperation: AsyncStatus,
+    inPurge: AsyncStatus
 };
 
 export interface DefaultProp {
@@ -93,6 +94,7 @@ export function defaultState(opts: DefaultProp): RushHourStatus {
         settings: undefined,
         waitingFor: undefined,
         inOperation: { waiting: false, value: opts.inOperation },
-        isAdmin: opts.isAdmin
+        isAdmin: opts.isAdmin,
+        inPurge: { waiting: false, value: false }
     };
 };
