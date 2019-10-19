@@ -38,11 +38,9 @@ func init() {
 	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(services.Init, 1)
 	revel.OnAppStart(services.Start, 2)
-	revel.OnAppStart(services.StartSimulation, 3)
 
-	revel.OnAppStop(services.StopSimulation, 1)
-	revel.OnAppStop(services.Stop, 2)
-	revel.OnAppStop(services.Terminate, 3)
+	revel.OnAppStop(services.Stop, 1)
+	revel.OnAppStop(services.Terminate, 2)
 }
 
 // HeaderFilter adds common security headers

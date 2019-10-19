@@ -23,8 +23,9 @@ func (d *duration) UnmarshalText(text []byte) error {
 }
 
 type cfgGame struct {
-	Interval duration
-	Queue    uint `validate:"gt=0"`
+	Interval   duration
+	Queue      uint `validate:"gt=0"`
+	Simulation bool
 }
 
 type cfgRouting struct {
