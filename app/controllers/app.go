@@ -29,7 +29,7 @@ func (c App) Index() revel.Result {
 	} else {
 		c.Session.Del("token")
 	}
-	c.ViewArgs["maintenance"] = !services.IsInOperation()
+	c.ViewArgs["inOperation"] = services.IsInOperation()
 	return c.Render()
 }
 

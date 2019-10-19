@@ -1,12 +1,13 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, useTheme, Dialog, DialogTitle, DialogActions, DialogContent, Divider, Theme, Switch, useMediaQuery, Grid, Typography } from "@material-ui/core";
+import { Button, useTheme, Dialog, DialogTitle, DialogActions, DialogContent, Divider, Theme, Switch, useMediaQuery, Grid, Typography, Box, CircularProgress } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
+import { AsyncStatus } from "../common/interfaces";
 import * as Actions from "../actions";
 import { RushHourStatus } from "../state";
 
 const msg = {
-    start: "メンテナンス状態を解除してもよろしいですか？",
+    start: "稼働状態にしてもよろしいですか？",
     stop: "メンテナンス状態にしてもよろしいですか？"
 };
 
@@ -26,29 +27,33 @@ export default function() {
     const classes = useStyles(theme);
     const [opened, setOpened] = React.useState(false);
     const [confirmMessage, setConfirmMessage] = React.useState("");
-    const isFullScreen = useMediaQuery(theme.breakpoints.down("md"));
-    const maintenance = useSelector<RushHourStatus, boolean>(state => state.maintenance);
+    const isFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const inOperation = useSelector<RushHourStatus, AsyncStatus>(state => state.inOperation);
     const dispatch = useDispatch();
+
+    const request = () => {
+        dispatch(Actions.gameStatus.request({}));
+    }
 
     const handleClose = () => {
         setOpened(false);
     }
 
-    const confirmGameStatus = (maintenance: boolean) => {
-        if (maintenance) {
-            setConfirmMessage(msg.stop);
-        } else {
+    const confirmGameStatus = (status: boolean) => {
+        if (status) {
             setConfirmMessage(msg.start);
+        } else {
+            setConfirmMessage(msg.stop);
         }
     }
 
     const handleChange = () => {
         switch(confirmMessage) {
             case msg.start:
-                dispatch(Actions.startGame.request({}));
+                dispatch(Actions.inOperation.request({ key: "inOperation", value : true }));
                 break;
             case msg.stop:
-                dispatch(Actions.stopGame.request({}));
+                dispatch(Actions.inOperation.request({ key: "inOperation", value : false }));
                 break;
         }
         setConfirmMessage("");
@@ -56,11 +61,11 @@ export default function() {
 
     return (
         <>
-            <Button variant="contained" className={classes.bg} onClick={() => setOpened(true)}>管理</Button>
+            <Button variant="contained" className={classes.bg} onClick={() => {request(); setOpened(true);}}>管理</Button>
             <Dialog
                 fullScreen={isFullScreen}
                 fullWidth={true}
-                maxWidth="md"
+                maxWidth="sm"
                 aria-labelledby="modal-title"
                 open={opened} 
                 onClose={handleClose}
@@ -70,20 +75,25 @@ export default function() {
                 </DialogTitle>
                 <Divider />
                 <DialogContent>
-                    <Grid container alignItems="center">
-                        <Grid item>
-                            <Typography>稼働</Typography>
+                    { inOperation.waiting ? 
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                            <CircularProgress />
+                        </Box> :
+                        <Grid container alignItems="center">
+                            <Grid item>
+                                <Typography>稼働</Typography>
+                            </Grid>
+                            <Grid item>
+                                <Switch
+                                    checked={!inOperation.value}
+                                    onChange={e => confirmGameStatus(!e.target.checked)}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <Typography className={classes.fr}>停止</Typography>
+                            </Grid>
                         </Grid>
-                        <Grid item>
-                            <Switch
-                                checked={maintenance}
-                                onChange={e => confirmGameStatus(e.target.checked)}
-                            />
-                        </Grid>
-                        <Grid item>
-                            <Typography className={classes.fr}>停止</Typography>
-                        </Grid>
-                    </Grid>
+                    }
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => handleClose()}>戻る</Button>
@@ -92,6 +102,8 @@ export default function() {
             <Dialog
                 open={confirmMessage != ""} 
                 onClose={() => setConfirmMessage("")}
+                fullWidth={true}
+                maxWidth="xs"
                 aria-labelledby="modal-confirmation-title"
             >
                 <DialogTitle id="modal-confirmation-title">

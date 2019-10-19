@@ -43,3 +43,8 @@ export interface Entry {
     key: string
     value: any
 }
+
+export interface AsyncStatus {
+    waiting: boolean
+    value: any
+}

@@ -1,5 +1,5 @@
 import * as Actions from "../actions";
-import { ActionPayload } from "..//common/interfaces";
+import { ActionPayload, AsyncStatus } from "..//common/interfaces";
 import { RushHourStatus } from "../state";
 
 export default (state: RushHourStatus, action: {type: string, payload: ActionPayload}) => {
@@ -38,12 +38,18 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
                 isFetchRequired: true
             });
         }
+        case Actions.gameStatus.request.toString():
+        case Actions.inOperation.request.toString():
+            var inOperation: AsyncStatus = Object.assign({}, state.inOperation, { waiting: true });
+            return Object.assign({}, state, inOperation);
         case Actions.gameStatus.success.toString(): 
-            return Object.assign({}, state, { maintenance: !action.payload.results });
-        case Actions.startGame.success.toString():
-            return Object.assign({}, state, { maintenance: false });
-        case Actions.stopGame.success.toString():
-            return Object.assign({}, state, { maintenance: true });
+        case Actions.inOperation.success.toString():
+            var inOperation: AsyncStatus = Object.assign({}, state.inOperation, { waiting: false, value: action.payload.results });
+            return Object.assign({}, state, {inOperation});
+        case Actions.gameStatus.failure.toString():
+        case Actions.inOperation.failure.toString():
+            var inOperation: AsyncStatus = Object.assign({}, state.inOperation, { waiting: false });
+            return Object.assign({}, state, {inOperation});
         default:
             return state;
     }

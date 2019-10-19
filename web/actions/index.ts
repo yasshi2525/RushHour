@@ -86,5 +86,4 @@ export const connect = createAsyncAction("CONNECT_REQUESTED", "CONNECT_SUCCEEDED
 export const destroy = createAsyncAction("DESTROY_REQUESTED", "DESTROY_SUCCEEDED", "DESTROY_FAILED")<DestroyRequest, GameResponse, Error>();
 export const setMenu = createAsyncAction("MENU_REQUESTED", "MENU_SUCCEEDED", "MENU_FAILED")<MenuRequest, MenuResponse, Error>();
 export const gameStatus = createAsyncAction("GAMESTATUS_REQUESTED", "GAMESTATUS_SUCCEEDED", "GAMESTATUS_FAILED")<Request, GameResponse, Error>();
-export const startGame = createAsyncAction("STARTGAME_REQUESTED", "STARTGAME_SUCCEEDED", "STARTGAME_FAILED")<Request, GameResponse, Error>();
-export const stopGame = createAsyncAction("STOPGAME_REQUESTED", "STOPGAME_SUCCEEDED", "STOPGAME_FAILED")<Request, GameResponse, Error>();
+export const inOperation = createAsyncAction("OPERATION_REQUESTED", "OPERATION_SUCCEEDED", "OPERATION_FAILED")<ResourceRequest, GameResponse, Error>();

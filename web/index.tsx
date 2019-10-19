@@ -22,18 +22,18 @@ let canvas = document.getElementById("canvas")
 let loading = document.getElementById("loading")
 
 if (props !== null && appbar !== null && actionmenu !== null && canvas !== null && loading !== null) {
-    let my: UserInfo | undefined = props.dataset.loggedin ? {
+    let my: UserInfo | undefined = props.dataset.loggedin !== undefined ? {
             name: props.dataset.displayname as string,
             image: props.dataset.image as string,
             hue: parseInt(props.dataset.hue as string)
         } : undefined;
 
     let isAdmin = props.dataset.admin !== undefined;
-    let maintenance = props.dataset.maintenance !== undefined;
+    let inOperation = props.dataset.inoperation !== undefined;
 
     function wrap(props: any = {}){
         return function(Component: React.ComponentType){
-            return (<Provider store={store({my, isAdmin, maintenance})}>
+            return (<Provider store={store({my, isAdmin, inOperation})}>
                 <ThemeProvider theme={RushHourTheme}>
                     <Component {...props} />
                 </ThemeProvider>
@@ -56,7 +56,7 @@ if (props !== null && appbar !== null && actionmenu !== null && canvas !== null 
         if (loading !== null) {
             loading.remove();
         }
-        if (my !== undefined && !maintenance) {
+        if (my !== undefined || !inOperation) {
             ReactDOM.render(wrap({ model: game.model })(ActionMenu), actionmenu);
         }
         ReactDOM.render(wrap({

@@ -5,26 +5,22 @@
 {{end}}
 {{template "header.html" .}}
 
-{{ if .loggedin }}
-  <input type="hidden"
-    id="properties"
-    data-loggedin="{{ .loggedin }}" 
+<input type="hidden"
+  id="properties"
+  {{ if .loggedin }}
+    data-loggedin
     data-oid="{{ .oid }}"
     data-displayname="{{ .name }}"
     data-image="{{ .image }}"
     data-hue="{{ .hue }}"
     {{ if .admin }}
-    data-admin
+      data-admin
     {{ end }}
-    {{ if .maintenance }}
-    data-maintenance
-    {{ end }}
-    />
-{{ else }}
-  <input type="hidden"
-    id="properties"
-  />
-{{ end }}
+  {{ end }}
+  {{ if .inOperation }}
+    data-inoperation
+  {{ end }}
+/>
 
 <div id="canvas"></div>
 <div id="appbar"></div>

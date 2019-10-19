@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme: Theme) =>
                     height: 50,
                 }
         },
-        maintenance: {
+        inOperation: {
             color: theme.palette.error.main
         }
     })
@@ -60,7 +60,7 @@ export default function() {
         }
     });
     const isAdmin = useSelector<RushHourStatus, boolean>(state => state.isAdmin);
-    const maintenance = useSelector<RushHourStatus, boolean>(state => state.maintenance);
+    const inOperation = useSelector<RushHourStatus, boolean>(state => state.inOperation.value);
 
     const myColor = my !== undefined ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
 
@@ -68,8 +68,8 @@ export default function() {
         <AppBarOrg position="sticky">
             <Toolbar>
                 <Typography className={classes.item} variant={ isTiny ? "h6" : "h4" }>RushHour</Typography>
-                { maintenance && 
-                    <Typography className={classes.maintenance} variant={ isTiny ? "h6" : "h6" }>メンテナンス中です</Typography>
+                { !inOperation && 
+                    <Typography className={classes.inOperation} variant={ isTiny ? "h6" : "h6" }>メンテナンス中です</Typography>
                 }
                 { my !== undefined &&
                     <>

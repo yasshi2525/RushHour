@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Dialog, DialogTitle, Divider, DialogContent, DialogActions, useTheme, Theme, IconButton, useMediaQuery, Typography, CircularProgress, Box, FormControlLabel, Grid, TextField, Paper, Switch, Fade, Button } from "@material-ui/core";
+import { Dialog, DialogTitle, Divider, DialogContent, DialogActions, useTheme, Theme, IconButton, useMediaQuery, Typography, CircularProgress, Box, FormControlLabel, Grid, TextField, Paper, Switch, Button } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
 import SettingsIcon from "@material-ui/icons/Settings";
 import EditIcon from '@material-ui/icons/Edit';
@@ -159,7 +159,7 @@ export default function() {
                                             <Paper className={ classes.value }>
                                                 <Typography className={ settings.use_cname ? classes.disable : undefined}>{ settings.oauth_name }</Typography>
                                             </Paper> 
-                                            <Fade in={ settings.use_cname }><CustomName /></Fade>
+                                            { settings.use_cname && <CustomName /> }
                                         </>
                                     : <CustomName />}
                                 </Box>
