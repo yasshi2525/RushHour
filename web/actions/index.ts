@@ -87,3 +87,4 @@ export const destroy = createAsyncAction("DESTROY_REQUESTED", "DESTROY_SUCCEEDED
 export const setMenu = createAsyncAction("MENU_REQUESTED", "MENU_SUCCEEDED", "MENU_FAILED")<MenuRequest, MenuResponse, Error>();
 export const gameStatus = createAsyncAction("GAMESTATUS_REQUESTED", "GAMESTATUS_SUCCEEDED", "GAMESTATUS_FAILED")<Request, GameResponse, Error>();
 export const inOperation = createAsyncAction("OPERATION_REQUESTED", "OPERATION_SUCCEEDED", "OPERATION_FAILED")<ResourceRequest, GameResponse, Error>();
+export const purgeUserData = createAsyncAction("PURGEDATA_REQUESTED", "PURGEDATA_SUCCEEDED", "PURGEDATA_FAILED")<ResourceRequest, GameResponse, Error>();

@@ -16,12 +16,14 @@ import (
 const ZERO = 0
 
 // Restore get model from database
-func Restore() {
+func Restore(withLock bool) {
 	revel.AppLog.Info("start restore from database")
 	defer revel.AppLog.Info("end restore from database")
 	start := time.Now()
-	MuModel.Lock()
-	defer MuModel.Unlock()
+	if withLock {
+		MuModel.Lock()
+		defer MuModel.Unlock()
+	}
 	lock := time.Now()
 	defer WarnLongExec(start, lock, Const.Perf.Restore.D, "restore", true)
 

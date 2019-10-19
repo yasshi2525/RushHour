@@ -8,11 +8,15 @@ import { RushHourStatus } from "../state";
 
 const msg = {
     start: "稼働状態にしてもよろしいですか？",
-    stop: "メンテナンス状態にしてもよろしいですか？"
+    stop: "メンテナンス状態にしてもよろしいですか？",
+    purge: "すべてのユーザおよびユーザデータを削除してもよろしいですか？"
 };
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
+        item: {
+            margin: theme.spacing(2)
+        },
         bg: {
             color: "#fff",
             background: theme.palette.error.main
@@ -29,6 +33,7 @@ export default function() {
     const [confirmMessage, setConfirmMessage] = React.useState("");
     const isFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
     const inOperation = useSelector<RushHourStatus, AsyncStatus>(state => state.inOperation);
+    const inPurge = useSelector<RushHourStatus, AsyncStatus>(state => state.inPurge);
     const dispatch = useDispatch();
 
     const request = () => {
@@ -55,6 +60,9 @@ export default function() {
             case msg.stop:
                 dispatch(Actions.inOperation.request({ key: "inOperation", value : false }));
                 break;
+            case msg.purge:
+                dispatch(Actions.purgeUserData.request({ key: "inPurge", value : true }));
+                break;
         }
         setConfirmMessage("");
     }
@@ -79,7 +87,7 @@ export default function() {
                         <Box display="flex" justifyContent="center" alignItems="center">
                             <CircularProgress />
                         </Box> :
-                        <Grid container alignItems="center">
+                        <Grid className={classes.item} container alignItems="center">
                             <Grid item>
                                 <Typography>稼働</Typography>
                             </Grid>
@@ -93,6 +101,20 @@ export default function() {
                                 <Typography className={classes.fr}>停止</Typography>
                             </Grid>
                         </Grid>
+                    }
+                    <Divider />
+                    { inPurge.waiting ?
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                            <CircularProgress />
+                        </Box> :
+                        <Button 
+                            className={`${classes.bg} ${classes.item}`} 
+                            variant="contained" 
+                            disabled={ inOperation.value }
+                            onClick={() => setConfirmMessage(msg.purge)}
+                        >
+                            ユーザデータ削除
+                        </Button>
                     }
                 </DialogContent>
                 <DialogActions>
