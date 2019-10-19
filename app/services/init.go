@@ -47,6 +47,8 @@ func Purge() error {
 	if IsInOperation() {
 		return fmt.Errorf("couldn't purge during under operation")
 	}
+	revel.AppLog.Info("start purging user data")
+	defer revel.AppLog.Info("end purging user data")
 	PurgeDB()
 	InitRepository()
 	Restore(false)
@@ -64,6 +66,8 @@ func Terminate() {
 
 // Start start game
 func Start() {
+	revel.AppLog.Info("start starting game procedure")
+	defer revel.AppLog.Info("end starting game procedure")
 	StartBackupTicker()
 	StartProcedure()
 	isInOperation = true
@@ -75,6 +79,8 @@ func Start() {
 
 // Stop stop game
 func Stop() {
+	revel.AppLog.Info("start stopping game procedure")
+	defer revel.AppLog.Info("end stopping game procedure")
 	if Const.Game.Simulation {
 		StopSimulation()
 		StopModelWatching()
