@@ -174,28 +174,6 @@ func (c APIv1Game) Players() revel.Result {
 	return c.RenderJSON(genResponse(true, entities.JSONPlayer(services.Model.Players)))
 }
 
-func (c APIv1Game) PlayersAdmin() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
-
-	token, err := c.getToken()
-	if err != nil {
-		return c.RenderJSON(genResponse(false, []error{err}))
-	}
-
-	o := &OwnerRequest{}
-	errs := o.Parse(token)
-
-	if len(errs) > 0 {
-		return c.RenderJSON(genResponse(false, errs))
-	}
-
-	if o.O.Level != entities.Admin {
-		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("permission denied")}))
-	}
-	return c.RenderJSON(genResponse(true, entities.JSONPlayer(services.Model.Players)))
-}
-
 // Departure returns result of rail node creation
 func (c APIv1Game) Departure() revel.Result {
 	services.MuModel.Lock()

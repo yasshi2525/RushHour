@@ -70,7 +70,8 @@ export interface RushHourStatus {
     settings: AccountSettings | undefined,
     waitingFor: Entry | undefined,
     inOperation: AsyncStatus,
-    inPurge: AsyncStatus
+    inPurge: AsyncStatus,
+    players: AsyncStatus
 };
 
 export interface DefaultProp {
@@ -95,6 +96,7 @@ export function defaultState(opts: DefaultProp): RushHourStatus {
         waitingFor: undefined,
         inOperation: { waiting: false, value: opts.inOperation },
         isAdmin: opts.isAdmin,
-        inPurge: { waiting: false, value: false }
+        inPurge: { waiting: false, value: false },
+        players: { waiting: false, value: [] }
     };
 };

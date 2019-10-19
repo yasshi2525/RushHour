@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, useTheme, Dialog, DialogTitle, DialogActions, DialogContent, Divider, Theme, Switch, useMediaQuery, Grid, Typography, Box, CircularProgress } from "@material-ui/core";
+import { Button, useTheme, Dialog, DialogTitle, DialogActions, DialogContent, Divider, Theme, Switch, useMediaQuery, Grid, Typography, Box, CircularProgress, Table, TableHead, TableRow, TableCell, TableBody, Avatar } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
 import { AsyncStatus } from "../common/interfaces";
 import * as Actions from "../actions";
 import { RushHourStatus } from "../state";
+import { hueToRgb } from "@/common/interfaces/gamemap";
 
 const msg = {
     start: "稼働状態にしてもよろしいですか？",
@@ -31,13 +32,22 @@ export default function() {
     const classes = useStyles(theme);
     const [opened, setOpened] = React.useState(false);
     const [confirmMessage, setConfirmMessage] = React.useState("");
-    const isFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const isFullScreen = useMediaQuery(theme.breakpoints.down("md"));
     const inOperation = useSelector<RushHourStatus, AsyncStatus>(state => state.inOperation);
     const inPurge = useSelector<RushHourStatus, AsyncStatus>(state => state.inPurge);
+    const players = useSelector<RushHourStatus, AsyncStatus>(state => state.players);
     const dispatch = useDispatch();
+
+    let sortedPlayers: any[] | undefined;
+
+    if (!players.waiting) {
+        sortedPlayers = Array.from(players.value);
+        sortedPlayers.sort((a, b) => a.id - b.id);
+    }
 
     const request = () => {
         dispatch(Actions.gameStatus.request({}));
+        dispatch(Actions.playersPlain.request({ key: "players", value: [] }))
     }
 
     const handleClose = () => {
@@ -55,13 +65,13 @@ export default function() {
     const handleChange = () => {
         switch(confirmMessage) {
             case msg.start:
-                dispatch(Actions.inOperation.request({ key: "inOperation", value : true }));
+                dispatch(Actions.inOperation.request({ key: "inOperation", value: true }));
                 break;
             case msg.stop:
-                dispatch(Actions.inOperation.request({ key: "inOperation", value : false }));
+                dispatch(Actions.inOperation.request({ key: "inOperation", value: false }));
                 break;
             case msg.purge:
-                dispatch(Actions.purgeUserData.request({ key: "inPurge", value : true }));
+                dispatch(Actions.purgeUserData.request({ key: "inPurge", value: true }));
                 break;
         }
         setConfirmMessage("");
@@ -73,7 +83,7 @@ export default function() {
             <Dialog
                 fullScreen={isFullScreen}
                 fullWidth={true}
-                maxWidth="sm"
+                maxWidth="md"
                 aria-labelledby="modal-title"
                 open={opened} 
                 onClose={handleClose}
@@ -115,6 +125,42 @@ export default function() {
                         >
                             ユーザデータ削除
                         </Button>
+                    }
+                    { players.waiting ?
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                            <CircularProgress />
+                        </Box> :
+                        <>
+                            <Typography>ユーザ一覧</Typography>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>ID</TableCell>
+                                        <TableCell>Icon</TableCell>
+                                        <TableCell>Name</TableCell>
+                                        <TableCell>Color</TableCell>
+                                        <TableCell>管理者権限</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    { sortedPlayers !== undefined && sortedPlayers.map( (o: any) => (
+                                        <TableRow key={o.id}>
+                                            <TableCell>{ o.id }</TableCell>
+                                            <TableCell>
+                                                <Avatar src={o.image} />
+                                            </TableCell>
+                                            <TableCell><Typography>{ o.name }</Typography></TableCell>
+                                            <TableCell style={{backgroundColor: `rgb(${hueToRgb(o.hue).join(",")})`}} />
+                                            <TableCell>
+                                            <Switch
+                                                checked={o.admin}
+                                            />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </>
                     }
                 </DialogContent>
                 <DialogActions>

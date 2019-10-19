@@ -3,7 +3,7 @@ import * as Action from "../actions";
 import { generatePIXI } from "./model";
 import { generateMap } from "./map";
 import { generateDepart, generateExtend, generateConnect } from "./rail";
-import { generatePlayers, generateLogin, generateRegister, generateSettings, generateEditSettings } from "./player";
+import { generatePlayers, generateLogin, generateRegister, generateSettings, generateEditSettings, generatePlayersPlain } from "./player";
 import { generateSetMenu } from "./menu";
 import { generateDestroy } from "./destroy";
 import { generateStatus, generateInOperation, generatePurgeUserData } from "./admin";
@@ -72,6 +72,7 @@ export function* rushHourSaga() {
     yield takeLatest(Action.settings.request, generateSettings);
     yield takeLatest(Action.editSettings.request, generateEditSettings);
     yield takeLatest(Action.players.request, generatePlayers);
+    yield takeLatest(Action.playersPlain.request, generatePlayersPlain);
     yield takeLatest(Action.depart.request, generateDepart);
     yield takeLatest(Action.extend.request, generateExtend);
     yield takeLatest(Action.connect.request, generateConnect);
