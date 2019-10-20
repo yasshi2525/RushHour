@@ -14,17 +14,6 @@ FROM golang:alpine as server
 
 WORKDIR /go
 
-ENV admin_username "admin"
-ENV admin_password "password"
-ENV baseurl "https://localhost:9000/"
-ENV salt ""
-ENV key "1234567890123456"
-ENV state ""
-ENV twitter_token ""
-ENV twitter_secret ""
-ENV google_client ""
-ENV google_secret ""
-
 RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
 
@@ -49,6 +38,23 @@ RUN mkdir -p /rushhour && \
 FROM alpine
 
 ENV APP_SECRET kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
+ENV DB_USER "rushhourgo"
+ENV DB_PASSWORD "rushhourgo"
+ENV DB_HOST "localhost"
+ENV DB_PORT "3306"
+ENV DB_DATABASE "rushhourgo"
+ENV DB_ARGS ""
+ENV admin_username "admin"
+ENV admin_password "password"
+ENV baseurl "https://localhost:9000/"
+ENV salt ""
+ENV key "1234567890123456"
+ENV state ""
+ENV twitter_token ""
+ENV twitter_secret ""
+ENV google_client ""
+ENV google_secret ""
+
 RUN apk update && apk --no-cache add tzdata && \
     addgroup rushhour && adduser rushhour --disabled-password -G rushhour
 
