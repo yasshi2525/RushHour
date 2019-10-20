@@ -60,7 +60,7 @@ jobs:
       DB_HOST: localhost
       DB_PORT: "3306"
       DB_DATABASE: rushhourgo
-      DB_ARGS: ""
+      DB_ARGS: "?parseTime=true&loc=Asia%2FTokyo"
     docker:
       - image: circleci/golang:latest
       - image: circleci/mariadb:latest
