@@ -49,15 +49,21 @@ RUN mkdir -p /rushhour && \
 FROM alpine
 
 ENV APP_SECRET kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
-RUN apk update && apk --no-cache add tzdata
+RUN apk update && apk --no-cache add tzdata && \
+    addgroup rushhour && adduser rushhour --disabled-password -G rushhour
 
 WORKDIR /rushhour
 
-COPY --from=server /rushhour/ ./
-COPY --from=client /data/public/ src/github.com/yasshi2525/RushHour/public/
-COPY docker-entrypoint.sh .
+COPY --from=server --chown=rushhour:rushhour /rushhour/ ./
+COPY --from=client --chown=rushhour:rushhour /data/public/ src/github.com/yasshi2525/RushHour/public/
+COPY --chown=rushhour:rushhour docker-entrypoint.sh .
+
 RUN chmod u+x docker-entrypoint.sh
 
 EXPOSE 9000
+
+VOLUME [ "/rushhour/src/github.com/yasshi2525/RushHour/log", "/rushhour/src/github.com/yasshi2525/RushHour/conf" ]
+
+USER rushhour
 
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
