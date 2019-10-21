@@ -100,8 +100,6 @@ func connectDB() *gorm.DB {
 	driver := getConfig("db.driver")
 	spec := getConfig("db.spec")
 
-	revel.AppLog.Debugf("db.spec: %s", spec)
-
 	for i := 1; i <= 60; i++ {
 		database, err = gorm.Open(driver, spec)
 		if err != nil {
