@@ -18,6 +18,7 @@ func CreateResidence(o *entities.Player, x float64, y float64) (*entities.Reside
 	r := Model.NewResidence(x, y)
 	r.Name = "NoName"
 
+	StartRouting()
 	AddOpLog("CreateResidence", o, r)
 	return r, nil
 }
@@ -30,6 +31,7 @@ func RemoveResidence(o *entities.Player, id uint) error {
 	if r, err := Model.DeleteIf(o, entities.RESIDENCE, id); err != nil {
 		return err
 	} else {
+		StartRouting()
 		AddOpLog("RemoveResidence", o, r)
 		return nil
 	}
@@ -44,6 +46,7 @@ func CreateCompany(o *entities.Player, x float64, y float64) (*entities.Company,
 		return nil, fmt.Errorf("no permission")
 	}
 	c := Model.NewCompany(x, y)
+	StartRouting()
 	AddOpLog("CreateCompany", o, c)
 	return c, nil
 }
@@ -56,6 +59,7 @@ func RemoveCompany(o *entities.Player, id uint) error {
 	if c, err := Model.DeleteIf(o, entities.COMPANY, id); err != nil {
 		return err
 	} else {
+		StartRouting()
 		AddOpLog("RemoveCompany", o, c)
 		return nil
 	}

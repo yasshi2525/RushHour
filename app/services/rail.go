@@ -16,6 +16,7 @@ func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*e
 		return nil, err
 	}
 	rn := Model.NewRailNode(o, x, y)
+	StartRouting()
 	AddOpLog("CreateRailNode", o, rn)
 
 	if ch := Model.RootCluster.FindChunk(rn, scale); ch != nil {
@@ -41,6 +42,7 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}
 		}
+		StartRouting()
 		AddOpLog("RemoveRailNode", o, rn)
 		return nil
 	}
@@ -65,6 +67,7 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 			route.RefreshTransports(l, Const.Routing.Worker)
 		}
 	}
+	StartRouting()
 	AddOpLog("ExtendRailNode", o, from, to, e1, e1.Reverse)
 
 	fch := Model.RootCluster.FindChunk(from, scale)
@@ -96,6 +99,7 @@ func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.R
 	}
 	e1 := from.Connect(to)
 	route.RefreshTracks(o, Const.Routing.Worker)
+	StartRouting()
 	AddOpLog("ConnectRailNode", o, from, to, e1, e1.Reverse)
 
 	fch := Model.RootCluster.FindChunk(from, scale)
@@ -123,6 +127,7 @@ func RemoveRailEdge(o *entities.Player, id uint) error {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}
 		}
+		StartRouting()
 		AddOpLog("RemoveRailEdge", o, re)
 		return nil
 	}
