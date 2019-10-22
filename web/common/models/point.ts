@@ -41,7 +41,7 @@ export abstract class PointModel extends PIXIModel implements Monitorable {
     }
 
     standOnChunk(chunk: Chunk) {
-        if (!this.props.visible) {
+        if (!this.props.visible || this.props.pos === undefined) {
             return false;
         }
         let my = getChunkByPos(this.props.pos, chunk.scale);

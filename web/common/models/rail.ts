@@ -83,6 +83,7 @@ export class RailNodeContainer extends AnimatedSpriteContainer<RailNode> impleme
         if (this.cursor !== undefined) {
             this.cursor.current = undefined;
             this.cursor.destination = undefined;
+            this.cursor.merge("pos", undefined);
         }
     }
 
