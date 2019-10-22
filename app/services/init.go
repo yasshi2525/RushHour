@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/yasshi2525/RushHour/app/entities"
+
 	"github.com/yasshi2525/RushHour/app/services/auth"
 
 	"github.com/jinzhu/gorm"
@@ -43,13 +45,13 @@ func Init() {
 }
 
 // Purge deletes all user data
-func Purge() error {
+func Purge(o *entities.Player) error {
 	if IsInOperation() {
 		return fmt.Errorf("couldn't purge during under operation")
 	}
 	revel.AppLog.Info("start purging user data")
 	defer revel.AppLog.Info("end purging user data")
-	PurgeDB()
+	PurgeDB(o)
 	InitRepository()
 	Restore(false)
 	CreateIfAdmin()

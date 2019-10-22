@@ -18,7 +18,7 @@ func CreateIfAdmin() {
 		return
 	} else {
 		if o, err := PasswordSignUp(Secret.Admin.UserName, "admin", Secret.Admin.Password, 0, entities.Admin); err != nil {
-			panic(err)
+			revel.AppLog.Info("skip create administrator because already exist")
 		} else {
 			o.Level = entities.Admin
 			revel.AppLog.Info("administrator was successfully created")

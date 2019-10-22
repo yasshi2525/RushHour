@@ -386,7 +386,7 @@ func (c APIv1Game) PurgeUserData() revel.Result {
 		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("permission denied")}))
 	}
 
-	if err := services.Purge(); err != nil {
+	if err := services.Purge(o.O); err != nil {
 		return c.RenderJSON(genResponse(false, []error{err}))
 	}
 	return c.RenderJSON(genResponse(true, true))
