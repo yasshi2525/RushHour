@@ -52,12 +52,17 @@ func MigrateDB() {
 	db.Model(entities.HUMAN.Obj(Model)).AddForeignKey("to_id", foreign[entities.COMPANY], "RESTRICT", "RESTRICT")
 }
 
-func PurgeDB() {
+// PurgeDB purge database without login user
+func PurgeDB(o *entities.Player) {
 	length := len(entities.TypeList)
 	tx := db.Begin()
 	for i := length - 1; i >= 0; i-- {
 		if key := entities.TypeList[i]; key.IsDB() {
-			db.Exec(fmt.Sprintf("DELETE FROM %s", key.Table()))
+			if key == entities.PLAYER {
+				db.Exec(fmt.Sprintf("DELETE FROM %s WHERE login_id <> %s", key.Table(), o.LoginID))
+			} else {
+				db.Exec(fmt.Sprintf("DELETE FROM %s", key.Table()))
+			}
 		}
 	}
 	tx.Commit()

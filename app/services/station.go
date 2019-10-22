@@ -24,6 +24,7 @@ func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*ent
 	p := Model.NewPlatform(rn, g)
 
 	st.Name = name
+	StartRouting()
 	AddOpLog("CreateStation", o, rn, st, g, p)
 	return st, nil
 }
@@ -45,6 +46,7 @@ func RemoveStation(o *entities.Player, id uint) error {
 				route.RefreshTransports(l, Const.Routing.Worker)
 			}
 		}
+		StartRouting()
 		AddOpLog("RemoveStation", o, st)
 		return nil
 	}

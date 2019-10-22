@@ -29,7 +29,7 @@ async function login(opts: Action.LoginRequest) {
     return await http(loginURL, Method.POST, opts);
 }
 
-async function register(opts: Action.LoginRequest) {
+async function register(opts: Action.RegisterRequest) {
     return await http(registerURL, Method.POST, opts);
 }
 

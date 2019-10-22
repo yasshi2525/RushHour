@@ -71,15 +71,7 @@ func StopModelWatching() {
 func watchModel() {
 	for msg := range modelChannel {
 		start := time.Now()
-		skipReroute := msg.Target == entities.PLAYER
-
-		if !skipReroute {
-			CancelRouting()
-		}
 		lock := processMsg(msg)
-		if !skipReroute {
-			StartRouting()
-		}
 		WarnLongExec(start, lock, Const.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}
 	revel.AppLog.Info("model watching channel was closed.")

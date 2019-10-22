@@ -20,6 +20,7 @@ func CreateRailLine(o *entities.Player, name string, ext bool, pass bool) (*enti
 	l.AutoExt = ext
 	l.AutoPass = pass
 
+	StartRouting()
 	AddOpLog("CreateRailLine", o, l)
 	return l, nil
 }
@@ -45,6 +46,7 @@ func StartRailLine(
 	if l.ReRouting {
 		route.RefreshTransports(l, Const.Routing.Worker)
 	}
+	StartRouting()
 	AddOpLog("StartRailLine", o, l, p)
 	return nil
 }
@@ -68,6 +70,7 @@ func StartRailLineEdge(o *entities.Player,
 	if l.ReRouting {
 		route.RefreshTransports(l, Const.Routing.Worker)
 	}
+	StartRouting()
 	AddOpLog("StartRailLineEdge", o, l, re)
 	return nil
 }
@@ -87,6 +90,7 @@ func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entiti
 	if l.ReRouting {
 		route.RefreshTransports(l, Const.Routing.Worker)
 	}
+	StartRouting()
 	AddOpLog("InsertLineTaskRailEdge", o, l, re)
 	return nil
 }
@@ -102,6 +106,7 @@ func ComplementRailLine(o *entities.Player, l *entities.RailLine) (bool, error) 
 		return false, fmt.Errorf("line is already ringed: %v", l)
 	}
 	l.Complement()
+	StartRouting()
 	return true, nil
 }
 
@@ -117,6 +122,7 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	ret := l.RingIf()
 	if ret {
 		route.RefreshTransports(l, Const.Routing.Worker)
+		StartRouting()
 		AddOpLog("RingRailLine", o, l)
 	}
 	return ret, nil
@@ -129,6 +135,7 @@ func RemoveRailLine(o *entities.Player, id uint) error {
 	if l, err := Model.DeleteIf(o, entities.RAILLINE, id); err != nil {
 		return err
 	} else {
+		StartRouting()
 		AddOpLog("RemoveRailLine", o, l)
 		return nil
 	}
