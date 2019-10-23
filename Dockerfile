@@ -19,9 +19,7 @@ COPY . src/github.com/yasshi2525/RushHour
 
 RUN apk update && apk add --no-cache git
 RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
-    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go && \
-    mkdir -p /conf && \
-    cp -rT src/github.com/yasshi2525/RushHour/conf /conf
+    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go
 
 RUN go get gopkg.in/go-playground/validator.v9 && \
     go get github.com/BurntSushi/toml && \
@@ -62,7 +60,6 @@ RUN apk update && apk --no-cache add tzdata && \
 
 WORKDIR /rushhour
 
-COPY --from=server --chown=rushhour:rushhour /conf /tmp/conf 
 COPY --from=server --chown=rushhour:rushhour /rushhour/ ./
 COPY --from=client --chown=rushhour:rushhour /data/public/ src/github.com/yasshi2525/RushHour/public/
 COPY --chown=rushhour:rushhour docker-entrypoint.sh .
@@ -71,7 +68,7 @@ RUN chmod u+x docker-entrypoint.sh
 
 EXPOSE 9000
 
-VOLUME [ "/rushhour/src/github.com/yasshi2525/RushHour/log", "/rushhour/src/github.com/yasshi2525/RushHour/conf" ]
+VOLUME [ "/rushhour/src/github.com/yasshi2525/RushHour/log" ]
 
 USER rushhour
 
