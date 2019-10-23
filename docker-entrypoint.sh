@@ -13,7 +13,7 @@ sed -i -e "s/__GOOGLE_SECRET__/${google_secret}/" /tmp/conf/secret.conf
 sed -i -e "s/__GITHUB_CLIENT__/${github_client}/" /tmp/conf/secret.conf
 sed -i -e "s/__GITHUB_SECRET__/${github_secret}/" /tmp/conf/secret.conf
 
-TARGET="src/github.com/yasshi2525/RushHour/conf"
+TARGET="/rushhour/src/github.com/yasshi2525/RushHour/conf"
 
 old_pwd="$(pwd)"
 
