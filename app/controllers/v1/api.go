@@ -33,6 +33,7 @@ type APIv1Game struct {
 // @Param scale query number true "width,height(100%)=2^scale"
 // @Param delegate query number true "width,height(grid)=2^delegate"
 // @Success 200 {object} entities.DelegateMap "map centered (x,y) with grid in (width,height)"
+// @Router /gamemap [get]
 func (c APIv1Game) Index() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
