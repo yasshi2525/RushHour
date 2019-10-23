@@ -12,12 +12,27 @@ import (
 	"github.com/revel/revel"
 )
 
+// @title RushHour REST API
+// @version 1.0
+// @description RushHour REST API
+// @license.name MIT License
+// @host https://rushhourgame.net
+// @BasePath /api/v1
+// @schemes https
+
 // APIv1Game is controller for REST API
 type APIv1Game struct {
 	*revel.Controller
 }
 
 // Index returns gamemap
+// @Accept  json
+// @Produce  json
+// @Param cx query number true "x coordinate"
+// @Param cy query number true "y coordinate"
+// @Param scale query number true "width,height(100%)=2^scale"
+// @Param delegate query number true "width,height(grid)=2^delegate"
+// @Success 200 {object} entities.DelegateMap "map centered (x,y) with grid in (width,height)"
 func (c APIv1Game) Index() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
