@@ -41,13 +41,10 @@ extensions = [
     'sphinxcontrib.blockdiag',
     'sphinxcontrib.seqdiag',
     'sphinxcontrib.actdiag',
-    'sphinxcontrib.nwdiag',
-    'sphinxcontrib.rackdiag',
-    'sphinxcontrib.packetdiag',
     'sphinx.ext.todo',
 ]
 
-og_site_url = 'http://docs.rushhourgame.net/spec/'
+og_site_url = 'https://rushhourgame.net/doc/spec/'
 og_twitter_site = '@yasshi2525'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -139,23 +136,17 @@ html_favicon = 'favicon.ico'
 blockdiag_html_image_format = 'SVG'
 seqdiag_html_image_format = 'SVG'
 actdiag_html_image_format = 'SVG'
-nwdiag_html_image_format = 'SVG'
-rackiag_html_image_format = 'SVG'
-packetdiag_html_image_format = 'SVG'
 
 blockdiag_fontpath = [
-  'C:\WINDOWS\Fonts\MEIRYO.TTC',
-  '/usr/share/fonts/vlgothic/VL-Gothic-Regular.ttf',
+  '/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf',
 ]
 
 actdiag_fontpath = [
-  'C:\WINDOWS\Fonts\MEIRYO.TTC',
-  '/usr/share/fonts/vlgothic/VL-Gothic-Regular.ttf',
+  '/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf',
 ]
 
 seqdiag_fontpath = [
-  'C:\WINDOWS\Fonts\MEIRYO.TTC',
-  '/usr/share/fonts/vlgothic/VL-Gothic-Regular.ttf',
+  '/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf',
 ]
 
 graphviz_output_format = "svg"
