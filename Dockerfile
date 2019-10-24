@@ -1,4 +1,4 @@
-FROM node AS client
+FROM node:12 AS client
 
 WORKDIR /data
 COPY . .
