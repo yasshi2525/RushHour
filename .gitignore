@@ -7,11 +7,11 @@ coverage/
 public/fonts/roboto-*
 public/spritesheet/*
 public/js/bundle.*.js
-docs/_build
-docs/_ext/__pycache__
-docs/swagger.json
-docs/swagger.yaml
-docs/docs.go
+docs/spec/dist
+docs/spec/src/_ext/__pycache__
+docs/api/swagger.json
+docs/api/swagger.yaml
+docs/api/docs.go
 
 resources/img/*
 resources/js/*
