@@ -6,13 +6,13 @@ stages:
       buildContext: .
       tag: rushhourswagger
       pushRemote: true
-      registry: register.rushhourgame.net
+      registry: registry.rushhourgame.net
   - publishImageConfig:
       dockerfilePath: ./Dockerfile
       buildContext: ./docs/spec
       tag: rushhourspec
       pushRemote: true
-      registry: register.rushhourgame.net
+      registry: registry.rushhourgame.net
 timeout: 60
 branch:
   include:
