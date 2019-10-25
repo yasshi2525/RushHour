@@ -2,7 +2,7 @@ stages:
 - name: Build Docker Image
   steps:
   - publishImageConfig:
-      dockerfilePath: ./docs/swagger/Dockerfile
+      dockerfilePath: ./docs/api/Dockerfile
       buildContext: .
       tag: rushhourswagger
       pushRemote: true
