@@ -1,5 +1,5 @@
 stages:
-- name: Build Docker Image
+- name: Build API document docker image
   steps:
   - publishImageConfig:
       dockerfilePath: ./docs/api/Dockerfile
@@ -7,6 +7,8 @@ stages:
       tag: rushhourswagger
       pushRemote: true
       registry: registry.rushhourgame.net
+- name: Build specification docker image
+  steps:
   - publishImageConfig:
       dockerfilePath: ./docs/spec/Dockerfile
       buildContext: ./docs/spec
