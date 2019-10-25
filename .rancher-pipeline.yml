@@ -8,7 +8,7 @@ stages:
       pushRemote: true
       registry: registry.rushhourgame.net
   - publishImageConfig:
-      dockerfilePath: ./Dockerfile
+      dockerfilePath: ./docs/spec/Dockerfile
       buildContext: ./docs/spec
       tag: rushhourspec
       pushRemote: true
