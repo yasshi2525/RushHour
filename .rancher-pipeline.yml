@@ -1,0 +1,20 @@
+stages:
+- name: Build Docker Image
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./docs/swagger/Dockerfile
+      buildContext: .
+      tag: rushhourswagger
+      pushRemote: true
+      registry: register.rushhourgame.net
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: ./docs/spec
+      tag: rushhourspec
+      pushRemote: true
+      registry: register.rushhourgame.net
+timeout: 60
+branch:
+  include:
+  - master
+notification: {}
