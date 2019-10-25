@@ -17,4 +17,11 @@ timeout: 60
 branch:
   include:
   - master
-notification: {}
+notification:
+  recipients:
+  - recipient: '#dev'
+    notifier: c-hmkdm:n-bwk89
+  condition:
+  - Success
+  - Changed
+  - Failed
