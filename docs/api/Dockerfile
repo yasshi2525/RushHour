@@ -5,7 +5,7 @@ WORKDIR /go
 COPY /app ./src/github.com/yasshi2525/RushHour/app
 
 RUN apk update && apk add --no-cache git && \
-    git config --global http.postBuffer 1048576000 && \
+    git config --global http.postBuffer 2147483648 && \
     go get -u github.com/swaggo/swag/cmd/swag && \
     cd ./src/github.com/yasshi2525/RushHour && \
     swag init -g ./app/controllers/v1/api.go
