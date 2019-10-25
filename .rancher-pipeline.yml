@@ -15,6 +15,14 @@ stages:
       tag: rushhourspec
       pushRemote: true
       registry: registry.rushhourgame.net
+- name: Build application docker image
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: rushhour
+      pushRemote: true
+      registry: registry.rushhourgame.net
 timeout: 60
 branch:
   include:
