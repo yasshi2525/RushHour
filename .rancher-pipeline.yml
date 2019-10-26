@@ -23,6 +23,13 @@ stages:
       tag: rushhour
       pushRemote: true
       registry: registry.rushhourgame.net
+- name: Upgrade Helm Release
+  steps:
+  - applyAppConfig:
+      catalogTemplate: p-pmlwb:rushhour-rushhour
+      version: 0.1.0
+      name: rushhour
+      targetNamespace: rushhour
 timeout: 60
 branch:
   include:
