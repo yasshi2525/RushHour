@@ -9,9 +9,6 @@ public/spritesheet/*
 public/js/bundle.*.js
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
-docs/api/swagger.json
-docs/api/swagger.yaml
-docs/api/docs.go
 
 resources/img/*
 resources/js/*

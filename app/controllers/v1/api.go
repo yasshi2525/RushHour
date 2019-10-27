@@ -16,7 +16,7 @@ import (
 // @version 1.0
 // @description RushHour REST API
 // @license.name MIT License
-// @host https://rushhourgame.net
+// @host rushhourgame.net
 // @BasePath /api/v1
 // @schemes https
 

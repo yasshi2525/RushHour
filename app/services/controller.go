@@ -9,7 +9,7 @@ import (
 // ViewDelegateMap returns delegate Entity for client view.
 func ViewDelegateMap(x float64, y float64, scale float64, delegate float64) *entities.DelegateMap {
 	dm := &entities.DelegateMap{}
-	dm.Init(Model)
+	dm.Init()
 	Model.RootCluster.ViewMap(dm, x, y, scale, delegate)
 	return dm
 }
