@@ -243,22 +243,16 @@ func (ch *Chunk) Resolve(args ...Entity) {
 
 // Export set delegate Entity to DelegateMap
 func (ch *Chunk) Export(dm *DelegateMap) {
-	if r := ch.Residence; r != nil {
-		dm.Residences[r.ID] = r
-	}
-	if c := ch.Company; c != nil {
-		dm.Companies[c.ID] = c
-	}
-	if rn := ch.RailNode; rn != nil {
-		dm.RailNodes[rn.ID] = rn
-	}
+	dm.Add(ch.Residence)
+	dm.Add(ch.Company)
+	dm.Add(ch.RailNode)
 	for _, re := range ch.InRailEdges {
-		dm.RailEdges[re.ID] = re
-		dm.RailNodes[re.FromID] = re.From.(*DelegateRailNode)
+		dm.Add(re)
+		dm.Add(re.From)
 	}
 	for _, re := range ch.OutRailEdges {
-		dm.RailEdges[re.ID] = re
-		dm.RailNodes[re.ToID] = re.To.(*DelegateRailNode)
+		dm.Add(re)
+		dm.Add(re.To)
 	}
 }
 

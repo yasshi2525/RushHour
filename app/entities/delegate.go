@@ -3,23 +3,51 @@ package entities
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
 // DelegateMap represents Map for client view.
 type DelegateMap struct {
-	Residences jsonDelegateResidence `json:"residences"`
-	Companies  jsonDelegateCompany   `json:"companies"`
-	RailNodes  jsonDelegateRailNode  `json:"rail_nodes"`
-	RailEdges  jsonDelegateRailEdge  `json:"rail_edges"`
+	// Residences is the list of delegated Residence information
+	Residences []*DelegateResidence `json:"residences"`
+	// Companies is the list of delegated Company information
+	Companies []*DelegateCompany `json:"companies"`
+	// RailNodes is the list of delegated RailNode information
+	RailNodes []*DelegateRailNode `json:"rail_nodes"`
+	// RailEdges is the list of delegated RailEdge information
+	RailEdges []*DelegateRailEdge `json:"rail_edges"`
 }
 
-// Init creates maps.
-func (dm *DelegateMap) Init(m *Model) {
-	dm.Residences = make(map[uint]*DelegateResidence)
-	dm.Companies = make(map[uint]*DelegateCompany)
-	dm.RailNodes = make(map[uint]*DelegateRailNode)
-	dm.RailEdges = make(map[uint]*DelegateRailEdge)
+func (dm *DelegateMap) Init() {
+	dm.Residences = []*DelegateResidence{}
+	dm.Companies = []*DelegateCompany{}
+	dm.RailNodes = []*DelegateRailNode{}
+	dm.RailEdges = []*DelegateRailEdge{}
+}
+
+func (dm *DelegateMap) Add(obj interface{}) {
+	if reflect.ValueOf(obj).IsNil() {
+		return
+	}
+	root := reflect.ValueOf(dm).Elem()
+
+	for i := 0; i < root.NumField(); i++ {
+		slice := root.Field(i)
+		if slice.Type().Elem() == reflect.TypeOf(obj) {
+			var contains bool
+			for j := 0; j < slice.Len(); j++ {
+				if obj == slice.Index(j).Interface() {
+					contains = true
+					break
+				}
+			}
+			if !contains {
+				newSlice := reflect.Append(slice, reflect.ValueOf(obj))
+				root.Field(i).Set(newSlice)
+			}
+		}
+	}
 }
 
 // JSONPlayer is collection of Player.
