@@ -36,7 +36,7 @@ branch:
   - master
 notification:
   recipients:
-  - recipient: '#dev'
+  - recipient: dev
     notifier: c-hmkdm:n-bwk89
   condition:
   - Success
