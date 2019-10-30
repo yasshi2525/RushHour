@@ -23,10 +23,7 @@ RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.con
 
 RUN go get -u github.com/golang/dep/cmd/dep && \
     dep ensure && \
-    cd /go/src/github.com/yasshi2525/RushHour/vendor/github.com/go-sql-driver/mysql && go install . && \
-    cd /go/src/github.com/yasshi2525/RushHour/vendor/github.com/revel/revel && go install . && \
-    cd /go/src/github.com/yasshi2525/RushHour/vendor/github.com/revel/cmd && go install . && \
-    cd /go
+    go install github.com/revel/cmd/revel
 
 RUN mkdir -p /rushhour && \
     /go/bin/revel build -t /rushhour -m prod -a github.com/yasshi2525/RushHour

@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["github.com/go-sql-driver/mysql", "github.com/revel/revel", "github.com/revel/modules", "github.com/revel/cmd"]
 
 [[constraint]]
   name = "github.com/BurntSushi/toml"
@@ -79,4 +80,3 @@
 
 [prune]
   go-tests = true
-  unused-packages = true

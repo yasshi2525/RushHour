@@ -82,9 +82,7 @@ jobs:
 
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: dep ensure
-      - run: cd vendor/github.com/go-sql-driver/mysql && go install .
-      - run: cd vendor/github.com/revel/revel && go install .
-      - run: cd vendor/github.com/revel/cmd && go install .
+      - run: go install github.com/revel/cmd/revel
       
       - run: ./cc-test-reporter before-build
       - run: go test -coverprofile c.out ./...
