@@ -48,14 +48,22 @@ export enum Method {
 }
 
 export async function http(url: string, method: Method = Method.GET, params: {[index: string]: any} = {}) {
+    let headers = new Headers()
+    let jwt = localStorage.getItem("jwt");
+    if (jwt !== null) {
+        headers.set("Authorization", `Bearer ${jwt}`);
+    }
+    if (method !== Method.GET) {
+        headers.set("Content-type", "application/json");
+    }
+
     let rawRes = (method === Method.GET) ? 
-        await fetch(url) 
-        : await fetch(url, { 
-            method, 
+        await fetch(url, { headers }) 
+        : await fetch(url, {
+            method, headers,
             body: JSON.stringify(params, (key, value) => {
                 return (key == "model") ? undefined : value
-            }), 
-            headers: new Headers({ "Content-type" : "application/json" })
+            })
         });
     return await validateResponse(rawRes);
 }

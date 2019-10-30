@@ -26,7 +26,9 @@ async function editSettings(entry: Entry) {
 }
 
 async function login(opts: Action.LoginRequest) {
-    return await http(loginURL, Method.POST, opts);
+    let json = await http(loginURL, Method.POST, opts);
+    localStorage.setItem("jwt", json.results)
+    return json;
 }
 
 async function register(opts: Action.RegisterRequest) {

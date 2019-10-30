@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -37,4 +38,18 @@ func authenticate(o *entities.Player) string {
 		panic(err)
 	}
 	return jwt
+}
+
+func parse(header string) (*entities.Player, error) {
+	url := services.Secret.Auth.BaseURL
+	token := strings.TrimPrefix(header, "Bearer ")
+	if obj, err := jwt.ParseWithClaims(token, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(services.Secret.Auth.Salt), nil
+	}); err != nil || !obj.Valid {
+		return nil, err
+	} else {
+		data := obj.Claims.(jwt.MapClaims)
+		value := data[fmt.Sprintf("%s/id", url)]
+		return services.Model.Players[uint(value.(float64))], nil
+	}
 }

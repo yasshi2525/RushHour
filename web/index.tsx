@@ -1,4 +1,5 @@
 import "typeface-roboto";
+import * as jwt from "jsonwebtoken";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
@@ -22,18 +23,27 @@ let canvas = document.getElementById("canvas")
 let loading = document.getElementById("loading")
 
 if (props !== null && appbar !== null && actionmenu !== null && canvas !== null && loading !== null) {
-    let my: UserInfo | undefined = props.dataset.loggedin !== undefined ? {
-            name: props.dataset.displayname as string,
-            image: props.dataset.image as string,
-            hue: parseInt(props.dataset.hue as string)
-        } : undefined;
+    let my: UserInfo | undefined = undefined;
 
-    let isAdmin = props.dataset.admin !== undefined;
+    let token = localStorage.getItem("jwt");
+    if (token !== null) {
+        let obj = jwt.decode(token);
+        if (obj instanceof Object) {
+            my = {
+                id: obj[`${window.location.href}id`],
+                name: obj[`${window.location.href}name`],
+                image: obj[`${window.location.href}image`],
+                hue: obj[`${window.location.href}hue`],
+                admin: obj[`${window.location.href}admin`]
+            }
+        }
+    }
+
     let inOperation = props.dataset.inoperation !== undefined;
 
     function wrap(props: any = {}){
         return function(Component: React.ComponentType){
-            return (<Provider store={store({my, isAdmin, inOperation})}>
+            return (<Provider store={store({my, inOperation: true})}>
                 <ThemeProvider theme={RushHourTheme}>
                     <Component {...props} />
                 </ThemeProvider>
@@ -48,7 +58,7 @@ if (props !== null && appbar !== null && actionmenu !== null && canvas !== null 
 
     ReactDOM.render(wrap()(AppBar), appbar);
 
-    let myid = (props.dataset.oid !== undefined) ? parseInt(props.dataset.oid) : 0
+    let myid = (my !== undefined) ? my.id : 0
     let game = new GameContainer(myid);
     
     loadImages(game)
