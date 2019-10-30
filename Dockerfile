@@ -21,18 +21,8 @@ RUN apk update && apk add --no-cache git
 RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
     sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go
 
-RUN go get gopkg.in/go-playground/validator.v9 && \
-    go get github.com/BurntSushi/toml && \
-    go get github.com/jinzhu/gorm && \
-    go get github.com/go-sql-driver/mysql && \
-    go get github.com/revel/revel && \
-    go get github.com/revel/cmd/revel && \
-    go get github.com/gomodule/oauth1/oauth && \
-    go get golang.org/x/oauth2 && \
-    go get google.golang.org/api/oauth2/v2 && \
-    go get github.com/google/go-github/github && \
-    go get github.com/dgrijalva/jwt-go && \
-    go get github.com/google/uuid
+RUN go get -u github.com/golang/dep/cmd/dep && \
+    dep ensure
 
 RUN mkdir -p /rushhour && \
     /go/bin/revel build -t /rushhour -m prod -a github.com/yasshi2525/RushHour
