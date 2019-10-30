@@ -67,8 +67,7 @@ func (c APIv1Game) Login() revel.Result {
 		return c.RenderJSON(genResponse(false, err))
 	} else {
 		c.Session.Set("token", o.Token)
-		revel.AppLog.Debugf("%s", authenticate(o))
-		return c.RenderJSON(genResponse(true, o))
+		return c.RenderJSON(genResponse(true, authenticate(o)))
 	}
 }
 
@@ -188,6 +187,7 @@ func (c APIv1Game) ChangeSettings() revel.Result {
 func (c APIv1Game) Players() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
+	parse(c.Request.GetHttpHeader("Authorization"))
 	return c.RenderJSON(genResponse(true, entities.JSONPlayer(services.Model.Players)))
 }
 

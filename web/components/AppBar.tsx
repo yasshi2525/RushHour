@@ -79,7 +79,7 @@ export default function() {
                         { isAdmin && <Administrator /> }
                         <UserSettings />
                         <Button className={classes.item} variant="contained">
-                            <Link href="/signout">サインアウト</Link>
+                            <Link href="/signout" onClick={() => localStorage.removeItem("jwt")}>サインアウト</Link>
                         </Button>
                     </> 
                 }

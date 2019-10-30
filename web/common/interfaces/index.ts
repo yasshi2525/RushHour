@@ -15,10 +15,12 @@ export interface BaseProperty {
 }
 
 export interface UserInfo {
-    [key: string]: string | number,
+    [key: string]: string | number | boolean,
+    id: number,
     name: string,
     image: string,
-    hue: number
+    hue: number,
+    admin: boolean
 }
 
 export interface GameComponentProperty {
