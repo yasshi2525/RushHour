@@ -90,6 +90,8 @@ jobs:
       - run: go get golang.org/x/oauth2
       - run: go get google.golang.org/api/oauth2/v2
       - run: go get github.com/google/go-github/github
+      - run: go get github.com/dgrijalva/jwt-go
+    　- run: go get github.com/google/uuid
 
       - run: ./cc-test-reporter before-build
       - run: go test -coverprofile c.out ./...
