@@ -34,7 +34,7 @@ required = ["github.com/go-sql-driver/mysql", "github.com/revel/revel", "github.
   name = "github.com/dgrijalva/jwt-go"
   version = "3.2.0"
 
-[[override]]
+[[constraint]]
   name = "github.com/go-sql-driver/mysql"
   version = "1.4.1"
 
@@ -54,11 +54,11 @@ required = ["github.com/go-sql-driver/mysql", "github.com/revel/revel", "github.
   name = "github.com/jinzhu/gorm"
   version = "1.9.11"
 
-[[override]]
+[[constraint]]
   name = "github.com/revel/cmd"
   version = "0.21.1"
 
-[[override]]
+[[constraint]]
   name = "github.com/revel/modules"
   version = "0.21.0"
 

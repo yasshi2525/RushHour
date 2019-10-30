@@ -81,7 +81,7 @@ jobs:
             - v1-pkg-cache
 
       - run: go get -u github.com/golang/dep/cmd/dep
-      - run: dep ensure
+      - run: dep ensure -v
       - run: go install github.com/revel/cmd/revel
       
       - run: ./cc-test-reporter before-build
