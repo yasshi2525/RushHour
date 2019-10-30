@@ -67,6 +67,7 @@ func (c APIv1Game) Login() revel.Result {
 		return c.RenderJSON(genResponse(false, err))
 	} else {
 		c.Session.Set("token", o.Token)
+		revel.AppLog.Debugf("%s", authenticate(o))
 		return c.RenderJSON(genResponse(true, o))
 	}
 }
