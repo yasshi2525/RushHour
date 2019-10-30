@@ -57,7 +57,7 @@
   name = "github.com/revel/cmd"
   version = "0.21.1"
 
-[[constraint]]
+[[override]]
   name = "github.com/revel/modules"
   version = "0.21.0"
 
