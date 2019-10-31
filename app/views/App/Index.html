@@ -1,29 +1,25 @@
-{{set . "title" "RushHour"}}
-{{append . "moreStyles" "css/index.css"}}
-{{if .DevMode}}
-  {{append . "moreStyles" "css/debug.css"}}
-{{end}}
-{{template "header.html" .}}
+<!DOCTYPE html>
 
-<input type="hidden"
-  id="properties"
-  {{ if .inOperation }}
-    data-inoperation
-  {{ end }}
-/>
+<html>
 
-<div id="canvas"></div>
-<div id="appbar"></div>
-<div id="actionmenu"></div>
-<div id="loading"></div>
+<head>
+  <title>RushHour</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" type="image/png" href="/public/img/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="/public/css/index.css">
+</head>
 
-<div class="container">
-  <div class="row">
-    <div class="span6">
-      {{template "flash.html" .}}
-    </div>
-  </div>
-</div>
+<body>
+  <input type="hidden" id="properties" {{ if .inOperation }} data-inoperation {{ end }} />
 
-{{append . "moreScripts" "js/bundle.index.js"}}
-{{template "footer.html" .}}
+  <div id="canvas"></div>
+  <div id="appbar"></div>
+  <div id="actionmenu"></div>
+  <div id="loading"></div>
+
+  <div class="container"></div>
+  <script src="/public/js/bundle.index.js" type="text/javascript" charset="utf-8"></script>
+</body>
+
+</html>

@@ -5,8 +5,8 @@ routes/
 node_modules/
 .vscode/
 coverage/
-public/fonts/roboto-*
-public/spritesheet/*
+public/fonts
+public/spritesheet
 public/js/bundle.*.js
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
