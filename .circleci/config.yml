@@ -37,17 +37,22 @@ jobs:
           key: v1-dependencies-{{ checksum "package-lock.json" }}
 
       - run: 
-          name: Run Test
-          command: |
-            npm test
-            ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage/lcov.info
-
+          command: npm test
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "reports/jest"
+            JEST_JUNIT_OUTPUT_NAME: "results.xml"
+          
+      - run: 
+          name: Collect Coverage
+          command: ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage/lcov.info
+      
       # reuse compiled js file
       - run: npm run build
 
       - persist_to_workspace:
           root: .
           paths: 
+            - reports
             - public/js
             - codeclimate.client.json
 
@@ -82,17 +87,28 @@ jobs:
 
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: dep ensure -v
-      - run: go get github.com/revel/cmd/revel
+      - run: go get -u github.com/revel/cmd/revel
+      - run: go get -u github.com/jstemmer/go-junit-report
       
-      - run: ./cc-test-reporter before-build
-      - run: go test -coverprofile c.out ./...
-      - run: ./cc-test-reporter after-build
-      - run: /go/bin/revel test -m dev
+      - run: 
+          name: Run Test
+          command: |
+            ./cc-test-reporter before-build
+            mkdir -p reports/golang
+            go test -coverprofile c.out ./... -v 2>&1 | go-junit-report > reports/golang/results.xml
+            ./cc-test-reporter after-build
+            /go/bin/revel test -m dev
+            cp -r test-results reports/revel
 
       - save_cache:
           key: v1-pkg-cache
           paths:
             - "/go/pkg"
+
+      - persist_to_workspace:
+          root: .
+          paths: 
+            - reports
 
   upload-coverage:
     machine: 
@@ -107,6 +123,9 @@ jobs:
           command: |
             ./cc-test-reporter sum-coverage codeclimate.*.json -p 1
             ./cc-test-reporter upload-coverage
+
+      - store_test_results:
+          path: reports
 
 workflows:
   version: 2
