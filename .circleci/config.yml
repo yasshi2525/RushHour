@@ -90,16 +90,15 @@ jobs:
       - run: go get -u github.com/revel/cmd/revel
       - run: go get -u github.com/jstemmer/go-junit-report
       
-      - run: ./cc-test-reporter before-build
-      - run: mkdir -p reports/golang
       - run: 
           name: Run Test
-          command: | 
-            trap "go-junit-report go-test.out > reports/golang/results.xml" EXIT
-            go test -coverprofile c.out  ./...  | tee go-test.out
-            
-      - run: ./cc-test-reporter after-build
-      - run: /go/bin/revel test -m dev
+          command: 
+            ./cc-test-reporter before-build
+            mkdir -p reports/golang
+            go test -coverprofile c.out ./... -v 2>&1 | go-junit-report > reports/golang/results.xml
+            ./cc-test-reporter after-build
+            /go/bin/revel test -m dev
+            cp test_results reports/revel
 
       - save_cache:
           key: v1-pkg-cache
