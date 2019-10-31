@@ -24,8 +24,7 @@ RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.con
 RUN go get -u github.com/golang/dep/cmd/dep && \
     cd  src/github.com/yasshi2525/RushHour && \
     dep ensure && \
-    cd vendor && \
-    go install github.com/revel/cmd/revel && \
+    go get github.com/revel/cmd/revel && \
     cd /go
 
 RUN mkdir -p /rushhour && \
