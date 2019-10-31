@@ -48,6 +48,7 @@
     "jest-config": "^24.9.0",
     "jest-environment-jsdom": "^24.9.0",
     "jest-haste-map": "^24.9.0",
+    "jest-junit": "^9.0.0",
     "jest-puppeteer": "^4.3.0",
     "jest-runtime": "^24.9.0",
     "jest-snapshot": "^24.9.0",
