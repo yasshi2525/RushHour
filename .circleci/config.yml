@@ -98,7 +98,7 @@ jobs:
             go test -coverprofile c.out ./... -v 2>&1 | go-junit-report > reports/golang/results.xml
             ./cc-test-reporter after-build
             /go/bin/revel test -m dev
-            cp test-results reports/revel
+            cp -r test-results reports/revel
 
       - save_cache:
           key: v1-pkg-cache
