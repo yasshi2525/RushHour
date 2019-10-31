@@ -80,18 +80,9 @@ jobs:
           keys:
             - v1-pkg-cache
 
-      - run: go get gopkg.in/go-playground/validator.v9
-      - run: go get github.com/BurntSushi/toml
-      - run: go get github.com/jinzhu/gorm
-      - run: go get github.com/go-sql-driver/mysql
-      - run: go get github.com/revel/revel
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: dep ensure -v
       - run: go get github.com/revel/cmd/revel
-      - run: go get github.com/gomodule/oauth1/oauth
-      - run: go get golang.org/x/oauth2
-      - run: go get google.golang.org/api/oauth2/v2
-      - run: go get github.com/google/go-github/github
-      - run: go get github.com/dgrijalva/jwt-go
-      - run: go get github.com/google/uuid
       
       - run: ./cc-test-reporter before-build
       - run: go test -coverprofile c.out ./...

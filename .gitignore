@@ -9,6 +9,7 @@ public/spritesheet/*
 public/js/bundle.*.js
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
+vendor
 
 resources/img/*
 resources/js/*
