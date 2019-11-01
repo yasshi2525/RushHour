@@ -28,8 +28,6 @@ type Model struct {
 	Cluster    map[uint]*Cluster
 	Chunks     map[uint]*Chunk
 
-	// Tokens is quick access to Player by session attribute.
-	Tokens map[string]*Player
 	// Logins is quick access to Player by user id attribute.
 	Logins      map[AuthType]map[string]*Player
 	RootCluster *Cluster
@@ -200,7 +198,6 @@ func NewModel() *Model {
 		obj.Values[res] = model.Field(idx)
 	}
 
-	obj.Tokens = make(map[string]*Player)
 	obj.Logins = make(map[AuthType]map[string]*Player)
 	for _, auth := range AuthList {
 		obj.Logins[auth] = make(map[string]*Player)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/yasshi2525/RushHour/app/services/auth"
 )
@@ -85,8 +84,6 @@ type Player struct {
 	OAuthToken string `gorm:"not null" sql:"type:text" json:"-"`
 	// OAuthSecret is hidden attribute and used for OAuth authentication (access token secret).
 	OAuthSecret string `gorm:"not null" sql:"type:text" json:"-"`
-	// Token is hidden attribute and used for authentication in RushHour
-	Token string `gorm:"not null;index" json:"-"`
 
 	ReRouting bool `gorm:"-" json:"-"`
 
@@ -128,8 +125,6 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, e
 		enc := info.Enc()
 		o.OAuthToken = enc.OAuthToken
 		o.OAuthSecret = enc.OAuthSecret
-		o.Token = info.Token()
-		m.Tokens[o.Token] = o
 		return o, nil
 	}
 	o := m.NewPlayer()
@@ -141,10 +136,8 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, e
 
 // SignOut deletes token value.
 func (o *Player) SignOut() {
-	delete(o.M.Tokens, o.Token)
 	o.OAuthToken = ""
 	o.OAuthSecret = ""
-	o.Token = ""
 }
 
 // PasswordSignIn finds Player by loginid and password, then refresh token value.
@@ -152,9 +145,6 @@ func (o *Player) SignOut() {
 func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error) {
 	if o, found := m.Logins[Local][auth.Digest(loginid)]; found {
 		if encPassword := auth.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
-			delete(m.Tokens, o.Token)
-			o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), encPassword))
-			m.Tokens[o.Token] = o
 			return o, nil
 		}
 	}
@@ -173,9 +163,7 @@ func (m *Model) PasswordSignUp(loginid string, password string, lv PlayerType) (
 	o.LoginID = auth.Encrypt(loginid)
 	o.Password = auth.Digest(password)
 	o.Auth = Local
-	o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
 	o.M.Logins[Local][loginhash] = o
-	o.M.Tokens[o.Token] = o
 	return o, nil
 }
 
@@ -212,7 +200,6 @@ func (o *Player) Init(m *Model) {
 // ImportInfo encrypts user information
 func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
 	enc := info.Enc()
-	delete(o.M.Tokens, o.Token)
 
 	o.OAuthDisplayName = enc.DisplayName
 	o.OAuthImage = enc.Image
@@ -220,10 +207,8 @@ func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
 	o.Auth = authType
 	o.OAuthToken = enc.OAuthToken
 	o.OAuthSecret = enc.OAuthSecret
-	o.Token = info.Token()
 
 	o.M.Logins[authType][auth.Digest(info.LoginID)] = o
-	o.M.Tokens[o.Token] = o
 }
 
 // ExportInfo decrypts user information

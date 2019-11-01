@@ -67,21 +67,6 @@ func (i *OAuthInfo) Dec() *OAuthInfo {
 	}
 }
 
-// Token returns digest of access token.
-func (i *OAuthInfo) Token() string {
-	if !i.IsValid() {
-		panic(fmt.Errorf("%s's access token is empty", i.LoginID))
-	}
-	var key string
-	if i.IsEnc {
-		key = Decrypt(i.OAuthToken)
-	} else {
-		key = i.OAuthToken
-	}
-
-	return Digest(key)
-}
-
 // Digest returns hash value of plain
 func Digest(plain string) string {
 	mac := hmac.New(sha512.New, []byte(salt))
