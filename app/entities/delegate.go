@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // DelegateMap represents Map for client view.
@@ -17,6 +18,7 @@ type DelegateMap struct {
 	RailNodes []*DelegateRailNode `json:"rail_nodes"`
 	// RailEdges is the list of delegated RailEdge information
 	RailEdges []*DelegateRailEdge `json:"rail_edges"`
+	Timestamp int64               `json:"timestamp"`
 }
 
 func (dm *DelegateMap) Init() {
@@ -24,6 +26,7 @@ func (dm *DelegateMap) Init() {
 	dm.Companies = []*DelegateCompany{}
 	dm.RailNodes = []*DelegateRailNode{}
 	dm.RailEdges = []*DelegateRailEdge{}
+	dm.Timestamp = time.Now().Unix()
 }
 
 func (dm *DelegateMap) Add(obj interface{}) {
