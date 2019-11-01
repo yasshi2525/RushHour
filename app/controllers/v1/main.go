@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
@@ -22,11 +23,16 @@ type API struct {
 	*revel.Controller
 }
 
-// Response is general response format when return code is 200
-type Response struct {
-	Status    bool        `json:"status"`
-	Timestamp int64       `json:"timestamp"`
-	Results   interface{} `json:"results"`
+// user represents public attributes that everyone can view
+type user struct {
+	// ID is number
+	ID uint `json:"id"`
+	// Name is display name
+	Name string `json:"name"`
+	// Image is url of profile icon
+	Image string `json:"image"`
+	// Hue is rail line color (HSV model)
+	Hue float64 `json:"hue"`
 }
 
 // mapToStruct converts request parameter map to struct filterd field key.
@@ -39,6 +45,19 @@ func mapToStruct(origin url.Values, outPtr interface{}) interface{} {
 		obj.Field(i).Set(reflect.ValueOf(origin.Get(t.Field(i).Tag.Get("json"))))
 	}
 	return outPtr
+}
+
+func buildErrorMessages(errs validator.ValidationErrors) []string {
+	msgs := []string{}
+	for _, err := range errs {
+		if err.Param() == "" {
+			msgs = append(msgs, fmt.Sprintf("%s must be %s", err.Field(), err.Tag()))
+		} else {
+			msgs = append(msgs, fmt.Sprintf("%s must be %s %s", err.Field(), err.Tag(), err.Param()))
+		}
+
+	}
+	return msgs
 }
 
 var validate *validator.Validate
@@ -55,5 +74,5 @@ func Init() {
 		}
 		return name
 	})
-	validate.RegisterStructValidation(validGameMapRequest, GameMapRequest{})
+	validate.RegisterStructValidation(validGameMapRequest, gameMapRequest{})
 }
