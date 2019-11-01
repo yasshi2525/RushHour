@@ -216,6 +216,41 @@ func TestBuildErrorMessages(t *testing.T) {
 			assertError(t, c.in, c.want)
 		}
 	})
+
+	t.Run("Register", func(t *testing.T) {
+		cases := []struct {
+			in   registerRequest
+			want []string
+		}{
+			{
+				// too small hue
+				in: registerRequest{
+					loginRequest: loginRequest{
+						ID:       "test@example.com",
+						Password: "password",
+					},
+					DisplayName: "",
+					Hue:         "0",
+				},
+				want: []string{"hue must be gte 0"},
+			},
+			{
+				// too large hue
+				in: registerRequest{
+					loginRequest: loginRequest{
+						ID:       "test@example.com",
+						Password: "password",
+					},
+					DisplayName: "",
+					Hue:         "360",
+				},
+				want: []string{"hue must be lt 360"},
+			},
+		}
+		for _, c := range cases {
+			assertError(t, c.in, c.want)
+		}
+	})
 }
 
 func TestInit(t *testing.T) {

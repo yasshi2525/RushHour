@@ -75,4 +75,5 @@ func Init() {
 		return name
 	})
 	validate.RegisterStructValidation(validGameMapRequest, gameMapRequest{})
+	validate.RegisterStructValidation(validRegisterRequest, registerRequest{})
 }

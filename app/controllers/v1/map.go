@@ -5,15 +5,15 @@ import (
 	"math"
 	"strconv"
 
-	"gopkg.in/go-playground/validator.v9"
 	"github.com/revel/revel"
-	
+	"gopkg.in/go-playground/validator.v9"
+
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
 const getGameMapRequest string = "dive,keys,oneof=cx cy scale delegate,endkeys"
 
-// gameMapRequest represents API parameter and validation format
+// gameMapRequest represents requirement to view game map
 type gameMapRequest struct {
 	// Cx is center x coordinate
 	Cx string `json:"cx" validate:"required,numeric"`
@@ -34,7 +34,7 @@ func (v *gameMapRequest) export() (float64, float64, float64, float64) {
 	return cx, cy, sc, dlg
 }
 
-// validGameMapRequest validate GameMapRequest contains game whole map
+// validGameMapRequest validates that GameMapRequest contains game whole map
 func validGameMapRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(gameMapRequest)
 	cx, cy, sc, dlg := v.export()
@@ -101,7 +101,7 @@ func (c API) GetGameMap() revel.Result {
 
 	params := &gameMapRequest{}
 	if errs := validate.Struct(mapToStruct(c.Params.Query, params)); errs != nil {
-		c.Response.Status = 422
+		c.Response.SetStatus(422)
 		return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
 	}
 	return c.RenderJSON(services.ViewDelegateMap(params.export()))

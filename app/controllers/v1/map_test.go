@@ -24,8 +24,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: nil,
-		},
-		{
+		}, {
 			// too small Scale
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -34,8 +33,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'gte' tag"},
-		},
-		{
+		}, {
 			// too large Scale
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -44,8 +42,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'lte' tag"},
-		},
-		{
+		}, {
 			// too small Delegate
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -54,8 +51,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "-0.0001",
 			},
 			want: []string{"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'gte' tag"},
-		},
-		{
+		}, {
 			// too large Delegate
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -64,8 +60,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: fmt.Sprintf("%f", services.Config.Entity.MinScale+1),
 			},
 			want: []string{"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'lte' tag"},
-		},
-		{
+		}, {
 			// left over
 			in: gameMapRequest{
 				Cx:       fmt.Sprintf("%f", -math.Pow(2, services.Config.Entity.MaxScale)),
@@ -74,8 +69,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'gte' tag"},
-		},
-		{
+		}, {
 			// right over
 			in: gameMapRequest{
 				Cx:       fmt.Sprintf("%f", math.Pow(2, services.Config.Entity.MaxScale)),
@@ -84,8 +78,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'lte' tag"},
-		},
-		{
+		}, {
 			// top over
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -94,8 +87,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'gte' tag"},
-		},
-		{
+		}, {
 			// bottom over
 			in: gameMapRequest{
 				Cx:       "0.0",
@@ -104,8 +96,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'lte' tag"},
-		},
-		{
+		}, {
 			// invalid format
 			in: gameMapRequest{
 				Cx:       "invalid",
@@ -119,8 +110,7 @@ func TestValidgameMapRequest(t *testing.T) {
 				"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'numeric' tag",
 				"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'numeric' tag",
 			},
-		},
-		{
+		}, {
 			// empty
 			in: gameMapRequest{},
 			want: []string{

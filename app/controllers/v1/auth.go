@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
-// loginRequest represents API parameter and validation format
+// loginRequest represents requirement for login
 type loginRequest struct {
 	// ID is email address of user as login id
 	ID string `json:"id" validate:"required,email"`
@@ -31,10 +32,10 @@ type jwtInfo struct {
 
 // Login returns result of password login
 // @Description try login using loginid/password paramter
-// @Tags string
+// @Tags jwtInfo
 // @Summary try login to RushHour server
 // @Accept json
-// @Produce string
+// @Produce json
 // @Param id body string true "email address"
 // @Param password body string true "password"
 // @Success 200 {object} jwtInfo "json web token containing user attributes"
@@ -46,52 +47,68 @@ func (c API) Login() revel.Result {
 
 	params := &loginRequest{}
 	if errs := validate.Struct(c.Params.BindJSON(params)); errs != nil {
-		c.Response.Status = 401
+		c.Response.SetStatus(401)
 		return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
 	}
-	if o, err := services.PasswordSignIn(params.ID, params.Password); err == nil {
-		return c.RenderJSON(authenticate(o))
-	} else {
-		return c.RenderJSON([]string{"id or password is incorrect"})
+	o, err := services.PasswordSignIn(params.ID, params.Password)
+	if err != nil {
+		c.Response.SetStatus(401)
+		return c.RenderJSON([]string{err.Error()})
+	}
+	return c.RenderJSON(authenticate(o))
+}
+
+// registerRequest represents requirement for sign up to RushHour server
+type registerRequest struct {
+	loginRequest
+	// DisplayName is shown by everyone (default: NoName)
+	DisplayName string `json:"name" validate:"omitempty"`
+	// Hue is rail line symbol color (HSV model)
+	Hue string `json:"hue" validate:"required,numeric"`
+}
+
+// validRegisterRequest validates that Register satisfies sign in conditions
+func validRegisterRequest(sl validator.StructLevel) {
+	v := sl.Current().Interface().(registerRequest)
+	hue, _ := strconv.Atoi(v.Hue)
+
+	if hue < 0 {
+		sl.ReportError(v.Hue, "hue", "Hue", "gte", "0")
+	}
+	if hue >= 360 {
+		sl.ReportError(v.Hue, "hue", "Hue", "lt", "360")
 	}
 }
 
 // Register returns result of password sign up
+// @Description try register with loginid/password
+// @Tags jwtInfo
+// @Summary try register to RushHour server
+// @Accept json
+// @Produce json
+// @Param id body string true "email address"
+// @Param password body string true "password"
+// @Param name body string false "display name"
+// @Param hue body integer "player's rail line symbol color (HSV model)"
+// @Success 200 {object} jwtInfo "json web token containing user attributes"
+// @Failure 422 {array} string "reasons of error when register"
+// @Router /register [post]
 func (c API) Register() revel.Result {
 	services.MuModel.Lock()
 	defer services.MuModel.Unlock()
 
-	json := make(map[string]interface{})
-	c.Params.BindJSON(&json)
-
-	id, okid := json["id"].(string)
-	password, okpw := json["password"].(string)
-	name, oknm := json["name"].(string)
-	hue, okh := json["hue"].(float64)
-
-	errs := []error{}
-
-	if !okid {
-		errs = append(errs, fmt.Errorf("id is invalid"))
+	params := &registerRequest{}
+	if errs := validate.Struct(c.Params.BindJSON(params)); errs != nil {
+		c.Response.SetStatus(422)
+		return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
 	}
-	if !okpw {
-		errs = append(errs, fmt.Errorf("password is invalid"))
+	hue, _ := strconv.Atoi(params.Hue)
+	o, err := services.PasswordSignUp(params.ID, params.DisplayName, params.Password, hue, entities.Normal)
+	if err != nil {
+		c.Response.SetStatus(422)
+		return c.RenderJSON([]string{err.Error()})
 	}
-	if !oknm {
-		errs = append(errs, fmt.Errorf("name is invalid"))
-	}
-	if !okh {
-		errs = append(errs, fmt.Errorf("hue is invalid"))
-	}
-	if len(errs) > 0 {
-		return c.RenderJSON(genResponse(false, errs))
-	}
-	if o, err := services.PasswordSignUp(id, name, password, int(hue), entities.Normal); err != nil {
-		return c.RenderJSON(genResponse(false, err))
-	} else {
-		c.Session.Set("token", o.Token)
-		return c.RenderJSON(genResponse(true, o))
-	}
+	return c.RenderJSON(authenticate(o))
 }
 
 // GetSettings returns the list of customizable attributes
