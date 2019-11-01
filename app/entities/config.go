@@ -45,8 +45,8 @@ type cfgHuman struct {
 
 // Config represents constants for entity.
 type Config struct {
-	MaxScale  float64 `toml:"max_scale"`
-	MinScale  float64 `toml:"min_scale"`
+	MaxScale  float64 `toml:"max_scale" validate:"gtfield=MinScale"`
+	MinScale  float64 `toml:"min_scale" validate:"ltfield=MaxScale"`
 	Residence cfgResidence
 	Company   cfgCompany
 	Gate      cfgGate
