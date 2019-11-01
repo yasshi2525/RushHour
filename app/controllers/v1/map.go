@@ -15,13 +15,13 @@ const getGameMapRequest string = "dive,keys,oneof=cx cy scale delegate,endkeys"
 // GameMapRequest represents API parameter and validation format
 type GameMapRequest struct {
 	// Cx is center x coordinate
-	Cx string `json:"cx" validate:"numeric,required"`
+	Cx string `json:"cx" validate:"required,numeric"`
 	// Cy is center y coordinate
-	Cy string `json:"cy" validate:"numeric,required"`
+	Cy string `json:"cy" validate:"required,numeric"`
 	// Scale is 2^Scale coordinate maps size
-	Scale string `json:"scale" validate:"numeric,required"`
+	Scale string `json:"scale" validate:"required,numeric"`
 	// Delegate is 2^Delegate grid of map
-	Delegate string `json:"delegate" validate:"numeric,required"`
+	Delegate string `json:"delegate" validate:"required,numeric"`
 }
 
 // export converts string to float64
@@ -43,21 +43,21 @@ func validGameMapRequest(sl validator.StructLevel) {
 
 	// validate scale
 	if sc < minSc {
-		sl.ReportError(v.Scale, "Scale", "scale", "gte", fmt.Sprintf("%f", minSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
 		return
 	}
 	if sc > maxSc {
-		sl.ReportError(v.Scale, "Scale", "scale", "lte", fmt.Sprintf("%f", maxSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
 		return
 	}
 
 	// validate delegate
 	if dlg < 0 {
-		sl.ReportError(v.Delegate, "Delegate", "delegate", "gte", "0")
+		sl.ReportError(v.Delegate, "delegate", "Delegate", "gte", "0")
 	}
 
 	if sc-dlg < minSc {
-		sl.ReportError(v.Delegate, "Delegate", "delegate", "lte", fmt.Sprintf("%f", sc-minSc))
+		sl.ReportError(v.Delegate, "delegate", "Delegate", "lte", fmt.Sprintf("%f", sc-minSc))
 	}
 
 	radius := math.Pow(2, sc-1)
@@ -65,20 +65,33 @@ func validGameMapRequest(sl validator.StructLevel) {
 
 	// left over
 	if cx-radius < -border {
-		sl.ReportError(v.Cx, "Cx", "cx", "gte", fmt.Sprintf("%f", radius-border))
+		sl.ReportError(v.Cx, "cx", "Cx", "gte", fmt.Sprintf("%f", radius-border))
 	}
 	// right over
 	if cx+radius > border {
-		sl.ReportError(v.Cx, "Cx", "cx", "lte", fmt.Sprintf("%f", border-radius))
+		sl.ReportError(v.Cx, "cx", "Cx", "lte", fmt.Sprintf("%f", border-radius))
 	}
 	// top over
 	if cy-radius < -border {
-		sl.ReportError(v.Cx, "Cy", "cy", "gte", fmt.Sprintf("%f", radius-border))
+		sl.ReportError(v.Cx, "cy", "Cy", "gte", fmt.Sprintf("%f", radius-border))
 	}
 	// bottom over
 	if cy+radius > border {
-		sl.ReportError(v.Cx, "Cy", "cy", "lte", fmt.Sprintf("%f", border-radius))
+		sl.ReportError(v.Cx, "cy", "Cy", "lte", fmt.Sprintf("%f", border-radius))
 	}
+}
+
+func errorGetGameMap(errs validator.ValidationErrors) []string {
+	msgs := []string{}
+	for _, err := range errs {
+		if err.Param() == "" {
+			msgs = append(msgs, fmt.Sprintf("%s must be %s", err.Field(), err.Tag()))
+		} else {
+			msgs = append(msgs, fmt.Sprintf("%s must be %s %s", err.Field(), err.Tag(), err.Param()))
+		}
+
+	}
+	return msgs
 }
 
 // GetGameMap returns all data of gamemap
@@ -92,16 +105,16 @@ func validGameMapRequest(sl validator.StructLevel) {
 // @Param scale query number true "width,height(100%)=2^scale"
 // @Param delegate query number true "width,height(grid)=2^delegate"
 // @Success 200 {object} entities.DelegateMap "map centered (x,y) with grid in (width,height)"
-// @Failure 422 {object} error "reason of error when cx, cy and scale are out of area"
+// @Failure 422 {array} string "reasons of error when cx, cy and scale are out of area"
 // @Router /gamemap [get]
 func (c APIv1Game) GetGameMap() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
 
 	params := &GameMapRequest{}
-	if err := validate.Struct(mapToStruct(c.Params.Query, params)); err != nil {
+	if errs := validate.Struct(mapToStruct(c.Params.Query, params)); errs != nil {
 		c.Response.Status = 422
-		return c.RenderJSON(err)
+		return c.RenderJSON(errorGetGameMap(errs.(validator.ValidationErrors)))
 	}
 	return c.RenderJSON(services.ViewDelegateMap(params.export()))
 }

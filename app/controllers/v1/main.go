@@ -3,6 +3,7 @@ package v1
 import (
 	"net/url"
 	"reflect"
+	"strings"
 
 	"github.com/revel/revel"
 	"gopkg.in/go-playground/validator.v9"
@@ -45,5 +46,14 @@ var validate *validator.Validate
 // Init must be called in StartUp phase
 func Init() {
 	validate = validator.New()
+	// BUG: err.Field() refered `json` field, but refer struct field
+	// https://github.com/go-playground/validator/issues/337
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
 	validate.RegisterStructValidation(validGameMapRequest, GameMapRequest{})
 }
