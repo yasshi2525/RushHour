@@ -72,9 +72,7 @@ func LoadConf() {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := toml.DecodeFile(
-		fmt.Sprintf("%s/%s", dir, "conf/game.conf"),
-		&Config); err != nil {
+	if _, err := toml.DecodeFile(fmt.Sprintf("%s/%s", dir, "conf/game.conf"), &Config); err != nil {
 		panic(fmt.Errorf("failed to load conf: %v", err))
 	}
 	if err := validator.New().Struct(Config); err != nil {
