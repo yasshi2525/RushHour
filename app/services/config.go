@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
@@ -67,7 +68,13 @@ var Const cfgService
 
 // LoadConf load and validate game.conf
 func LoadConf() {
-	if _, err := toml.DecodeFile("conf/game.conf", &Config); err != nil {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	if _, err := toml.DecodeFile(
+		fmt.Sprintf("%s/%s", dir, "conf/game.conf"),
+		&Config); err != nil {
 		panic(fmt.Errorf("failed to load conf: %v", err))
 	}
 	if err := validator.New().Struct(Config); err != nil {
