@@ -188,13 +188,25 @@ func (c API) ChangeSettings() revel.Result {
 	}
 }
 
-// SignOut delete session attribute token.
+// SignOut deletes cached OAuth token.
+// @Description deletes OAuth token
+// @Summary execute user sign out
+// @Accept json
+// @Produce json
+// @Success 200 {object} null "sign out successfully"
+// @Failure 401 {array} string "invalid jwt"
+// @Router /settings/{resname} [post]
 func (c API) SignOut() revel.Result {
-	if token, err := c.Session.Get("token"); err == nil {
-		services.SignOut(token.(string))
-		c.Session.Del("token")
+	services.MuModel.Lock()
+	defer services.MuModel.Unlock()
+
+	o, err := parse(c.Request.GetHttpHeader("Authorization"))
+	if err != nil {
+		c.Response.SetStatus(401)
+		return c.RenderJSON([]string{err.Error()})
 	}
-	return c.Redirect("/")
+	services.SignOut(o)
+	return c.RenderJSON(nil)
 }
 
 func authenticate(o *entities.Player) *jwtInfo {
