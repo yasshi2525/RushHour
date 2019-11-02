@@ -1,6 +1,7 @@
 package app
 
 import (
+	api "github.com/yasshi2525/RushHour/app/controllers/v1"
 	"github.com/yasshi2525/RushHour/app/services"
 
 	"github.com/revel/revel"
@@ -32,12 +33,9 @@ func init() {
 		revel.ActionInvoker,           // Invoke the action.
 	}
 
-	// Register startup functions with OnAppStart
-	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
-	// ( order dependent )
-	// revel.OnAppStart(ExampleStartupScript)
 	revel.OnAppStart(services.Init, 1)
-	revel.OnAppStart(services.Start, 2)
+	revel.OnAppStart(api.Init, 2)
+	revel.OnAppStart(services.Start, 3)
 
 	revel.OnAppStop(services.Stop, 1)
 	revel.OnAppStop(services.Terminate, 2)
@@ -54,11 +52,3 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 
 	fc[0](c, fc[1:]) // Execute the next filter stage.
 }
-
-//func ExampleStartupScript() {
-//	// revel.DevMod and revel.RunMode work here
-//	// Use this script to check for dev mode and set dev/prod startup scripts here!
-//	if revel.DevMode == true {
-//		// Dev mode
-//	}
-//}
