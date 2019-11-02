@@ -117,7 +117,7 @@ func (t *APITest) TestGetSettings() {
 	jwt, _ := t.registerTestUser("test@example.com", "password", 20)
 
 	req, _ := http.NewRequest("GET", "/api/v1/settings", nil)
-	req.Header.Add("Authorization", fmt.Sprintf("bearer %s", jwt))
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", jwt))
 	t.NewTestRequest(req).Send()
 	t.AssertOk()
 }
@@ -128,4 +128,71 @@ func (t *APITest) TestGetSettingsInvalid() {
 
 	t.Get("/api/v1/settings")
 	t.AssertStatus(401)
+}
+
+// TestChangeSettingsNoAuth try changing settings withotu authentication
+func (t *APITest) TestChangeSettingsNoAuth() {
+	t.registerTestUser("test@example.com", "password", 20)
+	buf, err := json.Marshal(struct {
+		Value string `json:"value"`
+	}{Value: "changed"})
+	t.Assert(err == nil)
+	t.Post("/api/v1/settings/cname", "application/json", bytes.NewBuffer(buf))
+	t.AssertStatus(401)
+}
+
+// TestChangeSettingsCName try changing custom user name
+func (t *APITest) TestChangeSettingsCName() {
+	jwt, _ := t.registerTestUser("test@example.com", "password", 20)
+	buf, err := json.Marshal(struct {
+		Value string `json:"value"`
+	}{Value: "changed"})
+	t.Assert(err == nil)
+	req, _ := http.NewRequest("POST", "/api/v1/settings/cname", bytes.NewBuffer(buf))
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+	t.NewTestRequest(req).Send()
+	t.AssertOk()
+}
+
+// TestChangeSettingsCNameInvalid try changing invalid custom user name
+func (t *APITest) TestChangeSettingsCNameInvalid() {
+	jwt, _ := t.registerTestUser("test@example.com", "password", 20)
+	buf, err := json.Marshal(struct {
+		Value string `json:"value"`
+	}{})
+	t.Assert(err == nil)
+	req, _ := http.NewRequest("POST", "/api/v1/settings/cname", bytes.NewBuffer(buf))
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+	t.NewTestRequest(req).Send()
+	t.AssertStatus(422)
+}
+
+// TestChangeSettingsUseCName try changing using custom user name
+func (t *APITest) TestChangeSettingsUseCName() {
+	jwt, _ := t.registerTestUser("test@example.com", "password", 20)
+	buf, err := json.Marshal(struct {
+		Value string `json:"value"`
+	}{Value: "true"})
+	t.Assert(err == nil)
+	req, _ := http.NewRequest("POST", "/api/v1/settings/use_cname", bytes.NewBuffer(buf))
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+	t.NewTestRequest(req).Send()
+	t.AssertOk()
+}
+
+// TestChangeSettingsUseCNameInvalid try changing invalid using custom user name
+func (t *APITest) TestChangeSettingsUseCNameInvalid() {
+	jwt, _ := t.registerTestUser("test@example.com", "password", 20)
+	buf, err := json.Marshal(struct {
+		Value string `json:"value"`
+	}{})
+	t.Assert(err == nil)
+	req, _ := http.NewRequest("POST", "/api/v1/settings/use_cname", bytes.NewBuffer(buf))
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+	t.NewTestRequest(req).Send()
+	t.AssertStatus(422)
 }

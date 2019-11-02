@@ -133,58 +133,59 @@ func (c API) GetSettings() revel.Result {
 	return c.RenderJSON(services.GetAccountSettings(o.O))
 }
 
+// settingsCName is format of custom user name
+type settingsCName struct {
+	Value string `json:"value" validation:"required"`
+}
+
+type settingsUseCname struct {
+	Value string `json:"value" validation:"required,eq=true|eq=false"`
+}
+
 // ChangeSettings returns the result of change profile
+// @Description change user attributes including private one
+// @Tags entry
+// @Summary change user attributes
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "with the bearer started"
+// @Param resname path string true "changing resource name" Enums(custom_name, use_cname)
+// @Param value body string true "changing resource value"
+// @Success 200 {object} entry "changed user attributes"
+// @Failure 401 {array} string "invalid jwt"
+// @Failure 422 {array} string "invalid parameter"
+// @Router /settings/{resname} [post]
 func (c API) ChangeSettings() revel.Result {
 	services.MuModel.Lock()
 	defer services.MuModel.Unlock()
 
-	token, err := c.getToken()
+	o, err := parse(c.Request.GetHttpHeader("Authorization"))
 	if err != nil {
-		return c.RenderJSON(genResponse(false, []error{err}))
+		c.Response.SetStatus(401)
+		return c.RenderJSON([]string{err.Error()})
 	}
 
-	o := &OwnerRequest{}
-	errs := o.Parse(token)
-
-	if len(errs) > 0 {
-		return c.RenderJSON(genResponse(false, errs))
-	}
-
-	json := make(map[string]interface{})
-	c.Params.BindJSON(&json)
-
-	var value interface{}
-	var ok bool
-
-	if value, ok = json["value"]; !ok {
-		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("value is not set")}))
-	}
 	res := c.Params.Get("resname")
 	switch res {
 	case "custom_name":
-		if v, ok := value.(string); !ok {
-			return c.RenderJSON(genResponse(false, []error{fmt.Errorf("%s is not string: %s", res, value)}))
-		} else {
-			o.O.CustomDisplayName = auth.Encrypt(v)
+		val := &settingsCName{}
+		if errs := validate.Struct(c.Params.BindJSON(val)); err != nil {
+			c.Response.SetStatus(422)
+			return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
 		}
+		o.O.CustomDisplayName = auth.Encrypt(val.Value)
+		return c.RenderJSON(entry{Key: res, Value: val.Value})
 	case "use_cname":
-		if v, ok := value.(bool); !ok {
-			return c.RenderJSON(genResponse(false, []error{fmt.Errorf("%s is not bool: %s", res, value)}))
-		} else {
-			o.O.UseCustomDisplayName = v
+		val := &settingsUseCname{}
+		if errs := validate.Struct(c.Params.BindJSON(val)); err != nil {
+			c.Response.SetStatus(422)
+			return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
 		}
+		o.O.UseCustomDisplayName, _ = strconv.ParseBool(val.Value)
+		return c.RenderJSON(entry{Key: res, Value: val.Value})
 	default:
-		return c.RenderJSON(genResponse(false, []error{fmt.Errorf("invalid attribute %s", res)}))
+		return c.RenderJSON([]error{fmt.Errorf("invalid attribute %s", res)})
 	}
-	return c.RenderJSON(genResponse(true, &struct {
-		Player *entities.Player `json:"my"`
-		Key    string           `json:"key"`
-		Value  interface{}      `json:"value"`
-	}{
-		Player: o.O,
-		Key:    res,
-		Value:  value,
-	}))
 }
 
 // SignOut delete session attribute token.
@@ -233,6 +234,10 @@ func parse(header string) (*entities.Player, error) {
 	} else {
 		data := obj.Claims.(jwt.MapClaims)
 		value := data[fmt.Sprintf("%s/id", url)]
-		return services.Model.Players[uint(value.(float64))], nil
+		o, ok := services.Model.Players[uint(value.(float64))]
+		if !ok {
+			return nil, fmt.Errorf("specified user is already removed")
+		}
+		return o, nil
 	}
 }

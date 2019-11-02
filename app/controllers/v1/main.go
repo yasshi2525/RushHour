@@ -23,6 +23,12 @@ type API struct {
 	*revel.Controller
 }
 
+// entry represents generic key-value pair
+type entry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 // user represents public attributes that everyone can view
 type user struct {
 	// ID is number

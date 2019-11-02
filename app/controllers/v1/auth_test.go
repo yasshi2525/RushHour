@@ -32,7 +32,7 @@ func TestValidRegisterRequest(t *testing.T) {
 					Password: "password",
 				},
 				DisplayName: "",
-				Hue:         "0",
+				Hue:         "-1",
 			},
 			want: []string{"Key: 'registerRequest.hue' Error:Field validation for 'hue' failed on the 'gte' tag"},
 		}, {
