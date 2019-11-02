@@ -74,11 +74,6 @@ func PasswordSignUp(loginid string, name string, password string, hue int, lv en
 	}
 }
 
-// FindOwner returns Player by token
-func FindOwner(token string) *entities.Player {
-	return Model.Tokens[token]
-}
-
 // AccountSettings returns user customizable attributes.
 type AccountSettings struct {
 	Player      *entities.Player  `json:"-"`
