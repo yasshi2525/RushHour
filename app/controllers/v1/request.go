@@ -16,9 +16,10 @@ type OwnerRequest struct {
 // Parse validates and insert value from response.
 func (o *OwnerRequest) Parse(token string) []string {
 	errs := []string{}
-	if o.O = services.FindOwner(token); o.O == nil {
-		errs = append(errs, "user not found")
-	}
+	// [TODO] delete it
+	//if o.O = services.FindOwner(token); o.O == nil {
+	errs = append(errs, "user not found")
+	//}
 	return errs
 }
 

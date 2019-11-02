@@ -39,10 +39,8 @@ func OAuthSignIn(authType entities.AuthType, info *auth.OAuthInfo) (*entities.Pl
 }
 
 // SignOut delete Player's token value
-func SignOut(token string) {
-	if o, found := Model.Tokens[token]; found {
-		o.SignOut()
-	}
+func SignOut(o *entities.Player) {
+	o.SignOut()
 }
 
 // PasswordSignIn finds Player by loginid and password

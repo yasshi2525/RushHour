@@ -37,10 +37,9 @@ func (a Auth) TwitterCallback() revel.Result {
 			}, secret); err != nil {
 				return a.RenderHTML(err.Error())
 			} else {
-				if my, err := services.OAuthSignIn(entities.Twitter, info); err != nil {
+				if _, err := services.OAuthSignIn(entities.Twitter, info); err != nil {
 					return a.RenderHTML(err.Error())
 				} else {
-					a.Session.Set("token", my.Token)
 					return a.Redirect("/")
 				}
 			}
@@ -61,12 +60,11 @@ func (a Auth) GoogleCallback() revel.Result {
 	if info, err := auth.GetGoogleOAuthInfo(state, code); err != nil {
 		return a.RenderHTML(err.Error())
 	} else {
-		if my, err := services.OAuthSignIn(entities.Google, info); err != nil {
+		if _, err := services.OAuthSignIn(entities.Google, info); err != nil {
 			return a.RenderHTML(err.Error())
 		} else {
-			a.Session.Set("token", my.Token)
+			return a.Redirect("/")
 		}
-		return a.Redirect("/")
 	}
 }
 
@@ -83,11 +81,10 @@ func (a Auth) GitHubCallback() revel.Result {
 	if info, err := auth.GetGitHubOAuthInfo(state, code); err != nil {
 		return a.RenderHTML(err.Error())
 	} else {
-		if my, err := services.OAuthSignIn(entities.GitHub, info); err != nil {
+		if _, err := services.OAuthSignIn(entities.GitHub, info); err != nil {
 			return a.RenderHTML(err.Error())
 		} else {
-			a.Session.Set("token", my.Token)
+			return a.Redirect("/")
 		}
-		return a.Redirect("/")
 	}
 }
