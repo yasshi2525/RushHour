@@ -17,17 +17,9 @@ WORKDIR /go
 RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
 
-RUN apk update && apk add --no-cache git
-RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
-    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go
-
-RUN go get -u github.com/golang/dep/cmd/dep && \
-    cd  src/github.com/yasshi2525/RushHour && \
-    dep ensure && \
-    go get github.com/revel/cmd/revel && \
-    cd /go
-
-RUN mkdir -p /rushhour && \
+RUN apk update && apk add --no-cache git && \
+    go mod download && \
+    mkdir -p /rushhour && \
     /go/bin/revel build -t /rushhour -m prod -a github.com/yasshi2525/RushHour
 
 FROM alpine
