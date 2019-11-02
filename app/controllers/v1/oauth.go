@@ -1,4 +1,4 @@
-package controllers
+package v1
 
 import (
 	"github.com/gomodule/oauth1/oauth"

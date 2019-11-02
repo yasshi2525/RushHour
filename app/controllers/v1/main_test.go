@@ -60,7 +60,11 @@ func TestMapToStruct(t *testing.T) {
 
 func assertError(t *testing.T, in interface{}, want []string) {
 	errs := buildErrorMessages(validate.Struct(in).(validator.ValidationErrors))
-	if len(errs) != len(want) {
+	if errs == nil {
+		if want != nil {
+			t.Errorf("buildErrorMessages(%v) == %d errors, want %d errors", in, 0, len(want))
+		}
+	} else if len(errs) != len(want) {
 		t.Errorf("buildErrorMessages(%v) == %d errors, want %d errors", in, len(errs), len(want))
 	} else {
 		for i := 0; i < len(errs); i++ {
@@ -230,7 +234,7 @@ func TestBuildErrorMessages(t *testing.T) {
 						Password: "password",
 					},
 					DisplayName: "",
-					Hue:         "0",
+					Hue:         "-1",
 				},
 				want: []string{"hue must be gte 0"},
 			},
