@@ -112,23 +112,25 @@ func (c API) Register() revel.Result {
 }
 
 // GetSettings returns the list of customizable attributes
+// @Description list up user attributes including private one
+// @Tags services.AccountSettings
+// @Summary get user attributes
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "with the bearer started"
+// @Success 200 {object} services.AccountSettings "user attributes"
+// @Failure 401 {array} string "invalid jwt"
+// @Router /settings [get]
 func (c API) GetSettings() revel.Result {
 	services.MuModel.RLock()
 	defer services.MuModel.RUnlock()
 
-	token, err := c.getToken()
+	o, err := parse(c.Request.GetHttpHeader("Authorization"))
 	if err != nil {
-		return c.RenderJSON(genResponse(false, []error{err}))
+		c.Response.SetStatus(401)
+		return c.RenderJSON([]string{err.Error()})
 	}
-
-	o := &OwnerRequest{}
-	errs := o.Parse(token)
-
-	if len(errs) > 0 {
-		return c.RenderJSON(genResponse(false, errs))
-	}
-
-	return c.RenderJSON(genResponse(true, services.GetAccountSettings(o.O)))
+	return c.RenderJSON(services.GetAccountSettings(o.O))
 }
 
 // ChangeSettings returns the result of change profile
