@@ -65,7 +65,7 @@ func (re *RailEdge) To() Entity {
 
 // Cost represents distance
 func (re *RailEdge) Cost() float64 {
-	return re.FromNode.Point.Dist(&re.ToNode.Point) / Const.Train.Speed
+	return re.FromNode.Point.Dist(&re.ToNode.Point) / re.M.conf.Train.Speed
 }
 
 // Div returns dividing point to certain ratio.

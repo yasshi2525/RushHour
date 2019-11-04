@@ -1,12 +1,19 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+)
 
 func TestPlatform(t *testing.T) {
-	Const = Config{MaxScale: 7}
 	t.Run("NewPlatform", func(t *testing.T) {
 		t.Run("stop", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 7,
+			}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			l.AutoExt = true
@@ -53,7 +60,10 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("pass", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 7,
+			}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			l.AutoExt = true
@@ -81,7 +91,10 @@ func TestPlatform(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("stop", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 7,
+			}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			l.AutoExt = true
@@ -110,7 +123,10 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("pass", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 7,
+			}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			l.AutoExt = true
@@ -140,7 +156,10 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("multiple", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 7,
+			}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 

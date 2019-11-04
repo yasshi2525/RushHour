@@ -35,7 +35,7 @@ func (dm *DelegateMap) Add(obj interface{}) {
 	}
 	root := reflect.ValueOf(dm).Elem()
 
-	for i := 0; i < root.NumField(); i++ {
+	for i := 0; i < root.NumField()-1; i++ {
 		slice := root.Field(i)
 		if slice.Type().Elem() == reflect.TypeOf(obj) {
 			var contains bool

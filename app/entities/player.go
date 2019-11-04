@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/yasshi2525/RushHour/app/services/auth"
+	"github.com/yasshi2525/RushHour/app/auth"
 )
 
 // PlayerType represents authenticate level
@@ -120,9 +120,12 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, e
 	if !info.IsValid() {
 		return nil, fmt.Errorf("token is empty")
 	}
-	loginhash := auth.Digest(info.LoginID)
+	loginhash := m.auther.Digest(info.LoginID)
 	if o, found := m.Logins[authType][loginhash]; found {
-		enc := info.Enc()
+		enc, err := info.Enc()
+		if err != nil {
+			return nil, err
+		}
 		o.OAuthToken = enc.OAuthToken
 		o.OAuthSecret = enc.OAuthSecret
 		return o, nil
@@ -143,8 +146,8 @@ func (o *Player) SignOut() {
 // PasswordSignIn finds Player by loginid and password, then refresh token value.
 // arg must be plain text
 func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error) {
-	if o, found := m.Logins[Local][auth.Digest(loginid)]; found {
-		if encPassword := auth.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
+	if o, found := m.Logins[Local][m.auther.Digest(loginid)]; found {
+		if encPassword := m.auther.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
 			return o, nil
 		}
 	}
@@ -154,14 +157,14 @@ func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error)
 // PasswordSignUp creates Player with loginid and password, then register token value.
 // arg must be plain text
 func (m *Model) PasswordSignUp(loginid string, password string, lv PlayerType) (*Player, error) {
-	loginhash := auth.Digest(loginid)
+	loginhash := m.auther.Digest(loginid)
 	if _, found := m.Logins[Local][loginhash]; found {
 		return nil, fmt.Errorf("id is already exists")
 	}
 	o := m.NewPlayer()
 	o.Level = lv
-	o.LoginID = auth.Encrypt(loginid)
-	o.Password = auth.Digest(password)
+	o.LoginID = m.auther.Encrypt(loginid)
+	o.Password = m.auther.Digest(password)
 	o.Auth = Local
 	o.M.Logins[Local][loginhash] = o
 	return o, nil
@@ -198,8 +201,11 @@ func (o *Player) Init(m *Model) {
 }
 
 // ImportInfo encrypts user information
-func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
-	enc := info.Enc()
+func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) error {
+	enc, err := info.Enc()
+	if err != nil {
+		return err
+	}
 
 	o.OAuthDisplayName = enc.DisplayName
 	o.OAuthImage = enc.Image
@@ -208,12 +214,14 @@ func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
 	o.OAuthToken = enc.OAuthToken
 	o.OAuthSecret = enc.OAuthSecret
 
-	o.M.Logins[authType][auth.Digest(info.LoginID)] = o
+	o.M.Logins[authType][o.M.auther.Digest(info.LoginID)] = o
+	return nil
 }
 
 // ExportInfo decrypts user information
-func (o *Player) ExportInfo() *auth.OAuthInfo {
+func (o *Player) ExportInfo() (*auth.OAuthInfo, error) {
 	return (&auth.OAuthInfo{
+		Handler:     o.M.auther,
 		DisplayName: o.GetDisplayName(),
 		Image:       o.GetImage(),
 		LoginID:     o.LoginID,
@@ -336,8 +344,8 @@ func (o *Player) MarshalJSON() ([]byte, error) {
 		Admin       bool   `json:"admin,omitempty"`
 		*Alias
 	}{
-		DisplayName: auth.Decrypt(o.GetDisplayName()),
-		Image:       auth.Decrypt(o.GetImage()),
+		DisplayName: o.M.auther.Decrypt(o.GetDisplayName()),
+		Image:       o.M.auther.Decrypt(o.GetImage()),
 		Alias:       (*Alias)(o),
 		Admin:       o.Level == Admin,
 	})

@@ -36,7 +36,7 @@ func (m *Model) NewPlatform(rn *RailNode, g *Gate) *Platform {
 	p := &Platform{
 		Base:        m.NewBase(PLATFORM, rn.O),
 		Persistence: NewPersistence(),
-		Capacity:    Const.Platform.Capacity,
+		Capacity:    m.conf.Platform.Capacity,
 	}
 	p.Init(m)
 	p.Resolve(rn.O, rn, g.InStation, g)

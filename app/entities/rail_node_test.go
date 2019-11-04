@@ -1,10 +1,16 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+)
 
 func TestRailNode(t *testing.T) {
 	t.Run("NewRailNode", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		o := m.NewPlayer()
 
 		var x, y float64 = 10.0, 20.0
@@ -23,7 +29,8 @@ func TestRailNode(t *testing.T) {
 
 	t.Run("Extend", func(t *testing.T) {
 		t.Run("without line", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			from := m.NewRailNode(o, 0, 0)
 			var x, y float64 = 10.0, 20.0
@@ -41,7 +48,8 @@ func TestRailNode(t *testing.T) {
 			}.Assert(t)
 		})
 		t.Run("with autoExt", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			l.AutoExt = true
@@ -65,7 +73,8 @@ func TestRailNode(t *testing.T) {
 
 	t.Run("CheckDelete", func(t *testing.T) {
 		t.Run("block overPlatform", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			st := m.NewStation(o)
 			g := m.NewGate(st)
@@ -77,7 +86,8 @@ func TestRailNode(t *testing.T) {
 			}
 		})
 		t.Run("block lineTask", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 
@@ -96,7 +106,8 @@ func TestRailNode(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("isolated", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -116,7 +127,8 @@ func TestRailNode(t *testing.T) {
 			}.Assert(t)
 		})
 		t.Run("line to isolated", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			n1 := m.NewRailNode(o, 0, 0)
 			n2, _ := n1.Extend(10, 0)

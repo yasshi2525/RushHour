@@ -1,9 +1,8 @@
 package entities
 
 import (
+	"log"
 	"time"
-
-	"github.com/revel/revel"
 )
 
 // Base based on gorm.Model
@@ -63,7 +62,7 @@ func (b *Base) Permits(target *Player) bool {
 	case Guest:
 		return false
 	default:
-		revel.AppLog.Errorf("invalid type %T: %+v", target.Level, target)
+		log.Printf("invalid type %T: %+v", target.Level, target)
 		return false
 	}
 }

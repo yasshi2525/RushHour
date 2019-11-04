@@ -1,12 +1,19 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+)
 
 func TestLineController(t *testing.T) {
-	Const = Config{MaxScale: 6}
 	t.Run("Shrink", func(t *testing.T) {
 		t.Run("head", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			_, e01 := n0.Extend(10, 0)
@@ -33,7 +40,10 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("tail", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)
@@ -63,7 +73,10 @@ func TestLineController(t *testing.T) {
 
 	t.Run("Shave", func(t *testing.T) {
 		t.Run("no reverse set next to nil", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)
@@ -86,7 +99,10 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("no next set next to nil", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)
@@ -110,7 +126,10 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("delete redundant departure", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)
@@ -141,7 +160,10 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("change passing to stopping", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{
+				MaxScale: 6,
+			}, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"reflect"
 	"sync/atomic"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
 )
 
 // ZERO emphasis it is zero value.
@@ -38,6 +41,11 @@ type Model struct {
 
 	// Map represents each resource map
 	Values map[ModelType]reflect.Value
+
+	// conf is constant variable
+	conf config.CnfEntity
+	// a is utility of encryption
+	auther *auth.Auther
 }
 
 // Find returns object from type and id.
@@ -164,7 +172,7 @@ func (m *Model) DBLen() int {
 }
 
 // NewModel initialize model object.
-func NewModel() *Model {
+func NewModel(conf config.CnfEntity, a *auth.Auther) *Model {
 	if TypeList == nil {
 		InitType()
 	}
@@ -202,6 +210,8 @@ func NewModel() *Model {
 	for _, auth := range AuthList {
 		obj.Logins[auth] = make(map[string]*Player)
 	}
+	obj.conf = conf
 	obj.RootCluster = obj.NewCluster(nil, 0, 0)
+	obj.auther = a
 	return obj
 }

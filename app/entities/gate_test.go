@@ -1,10 +1,16 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+)
 
 func TestGate(t *testing.T) {
 	t.Run("NewGate", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		m.NewCompany(0, 0)
 		m.NewResidence(0, 0)
 		o := m.NewPlayer()
@@ -24,7 +30,8 @@ func TestGate(t *testing.T) {
 		}.Assert(t)
 	})
 	t.Run("Delete", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		m.NewCompany(0, 0)
 		m.NewResidence(0, 0)
 		o := m.NewPlayer()

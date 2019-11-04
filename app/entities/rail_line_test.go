@@ -1,10 +1,16 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+)
 
 func TestRailLine(t *testing.T) {
 	t.Run("NewRailLine", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		o := m.NewPlayer()
 		l := m.NewRailLine(o)
 
@@ -17,7 +23,8 @@ func TestRailLine(t *testing.T) {
 
 	t.Run("StartPlatform", func(t *testing.T) {
 		t.Run("auto ext", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			from := m.NewRailNode(o, 0, 0)
 			_, re := from.Extend(10, 0)
@@ -40,7 +47,8 @@ func TestRailLine(t *testing.T) {
 			}.Assert(t, head)
 		})
 		t.Run("manual", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -55,7 +63,8 @@ func TestRailLine(t *testing.T) {
 			}.Assert(t, head)
 		})
 		t.Run("auto pass", func(t *testing.T) {
-			m := NewModel()
+			a, _ := auth.GetAuther(config.CnfAuth{})
+			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -75,7 +84,8 @@ func TestRailLine(t *testing.T) {
 	})
 
 	t.Run("Complement", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		o := m.NewPlayer()
 		from := m.NewRailNode(o, 0, 0)
 		to, re := from.Extend(10, 0)
@@ -101,7 +111,8 @@ func TestRailLine(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		m := NewModel()
+		a, _ := auth.GetAuther(config.CnfAuth{})
+		m := NewModel(config.CnfEntity{}, a)
 		o := m.NewPlayer()
 		from := m.NewRailNode(o, 0, 0)
 		_, re := from.Extend(10, 0)

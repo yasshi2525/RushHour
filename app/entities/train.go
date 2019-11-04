@@ -37,9 +37,9 @@ func (m *Model) NewTrain(o *Player, name string) *Train {
 		Base:        m.NewBase(TRAIN, o),
 		Persistence: NewPersistence(),
 		Point:       Point{},
-		Capacity:    Const.Train.Capacity,
-		Mobility:    Const.Train.Mobility,
-		Speed:       Const.Train.Speed,
+		Capacity:    m.conf.Train.Capacity,
+		Mobility:    m.conf.Train.Mobility,
+		Speed:       m.conf.Train.Speed,
 		Name:        name,
 	}
 	t.Init(m)
@@ -61,7 +61,7 @@ func (t *Train) P() *Persistence {
 // UnLoad unregisters all Human ride on it forcefully.
 func (t *Train) UnLoad() {
 	for _, h := range t.Passengers {
-		h.Point = *t.Point.Rand(Const.Train.Randomize)
+		h.Point = *t.Point.Rand(t.M.conf.Train.Randomize)
 		h.onTrain = nil
 		h.TrainID = ZERO
 		t.Occupied--
@@ -84,7 +84,7 @@ func (t *Train) Step(sec float64) {
 				t.SetTask(t.task.next)
 			}
 		}
-		//revel.AppLog.Debugf("t(%d) sec = %f prod = %f: %v", t.ID, sec, t.Progress, t)
+		//log.Printf("t(%d) sec = %f prod = %f: %v", t.ID, sec, t.Progress, t)
 	}
 	t.X, t.Y = t.task.Loc(t.Progress).Flat()
 }

@@ -2,10 +2,9 @@ package entities
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"strings"
-
-	"github.com/revel/revel"
 )
 
 const (
@@ -37,7 +36,7 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 		Base: m.NewBase(CLUSTER),
 	}
 	if p == nil {
-		cl.Scale = Const.MaxScale
+		cl.Scale = m.conf.MaxScale
 	} else {
 		cl.Parent = p
 		cl.Scale = p.Scale - 1
@@ -64,7 +63,7 @@ func (cl *Cluster) Init(m *Model) {
 
 	cl.Data = make(map[uint]*Chunk)
 
-	if cl.Scale > Const.MinScale {
+	if cl.Scale > cl.M.conf.MinScale {
 		len := math.Pow(2, cl.Scale-2)
 		cl.ChPos = [2][2]*Point{}
 		cl.ChPos[N][W] = &Point{cl.X - len, cl.Y - len}
@@ -126,7 +125,7 @@ func (cl *Cluster) addEntity(obj Entity, p *Point) {
 	}
 
 	if !cl.Point.IsIn(p.X, p.Y, cl.Scale) {
-		revel.AppLog.Warnf("%v(%v) is out of bounds for %v", obj, p, cl)
+		log.Printf("%v(%v) is out of bounds for %v", obj, p, cl)
 	}
 
 	oid := obj.B().OwnerID
@@ -198,7 +197,7 @@ func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float6
 }
 
 func (cl *Cluster) eachChildren(callback func(int, int, *Cluster, *Point)) {
-	if cl.Scale > Const.MinScale {
+	if cl.Scale > cl.M.conf.MinScale {
 		for _, dy := range []int{-1, +1} {
 			for _, dx := range []int{-1, +1} {
 				c, p := cl.FindChild(dx, dy)
@@ -252,7 +251,7 @@ func (cl *Cluster) CheckDelete() error {
 	if len(cl.Data) > 0 {
 		return fmt.Errorf("data exists")
 	}
-	if cl.Scale > Const.MinScale {
+	if cl.Scale > cl.M.conf.MinScale {
 		for _, dy := range []int{-1, +1} {
 			for _, dx := range []int{-1, +1} {
 				if res := cl.Children[dy][dx].CheckDelete(); res != nil {

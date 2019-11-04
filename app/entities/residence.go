@@ -26,8 +26,8 @@ func (m *Model) NewResidence(x float64, y float64) *Residence {
 		Base:        m.NewBase(RESIDENCE),
 		Persistence: NewPersistence(),
 		Point:       NewPoint(x, y),
-		Capacity:    Const.Residence.Capacity,
-		Wait:        Const.Residence.Interval.D.Seconds() * rand.Float64(),
+		Capacity:    m.conf.Residence.Capacity,
+		Wait:        m.conf.Residence.Interval.D.Seconds() * rand.Float64(),
 	}
 	r.Init(m)
 	r.Resolve()
