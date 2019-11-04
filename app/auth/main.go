@@ -30,7 +30,7 @@ type Auther struct {
 
 // OAuthInfo represents infomation from OAuth App
 type OAuthInfo struct {
-	handler     *Auther
+	Handler     *Auther
 	DisplayName string
 	Image       string
 	LoginID     string
@@ -68,7 +68,7 @@ func GetAuther(conf config.CnfAuth) (*Auther, error) {
 // IsValid returns whether OAuthToken exists or not
 func (i *OAuthInfo) IsValid() bool {
 	if i.IsEnc {
-		return i.handler.Decrypt(i.OAuthToken) != ""
+		return i.Handler.Decrypt(i.OAuthToken) != ""
 	}
 	return i.OAuthToken != ""
 }
@@ -79,12 +79,12 @@ func (i *OAuthInfo) Enc() (*OAuthInfo, error) {
 		return nil, fmt.Errorf("%v is already encrypted", i)
 	}
 	return &OAuthInfo{
-		handler:     i.handler,
-		LoginID:     i.handler.Encrypt(i.LoginID),
-		OAuthToken:  i.handler.Encrypt(i.OAuthToken),
-		OAuthSecret: i.handler.Encrypt(i.OAuthSecret),
-		DisplayName: i.handler.Encrypt(i.DisplayName),
-		Image:       i.handler.Encrypt(i.Image),
+		Handler:     i.Handler,
+		LoginID:     i.Handler.Encrypt(i.LoginID),
+		OAuthToken:  i.Handler.Encrypt(i.OAuthToken),
+		OAuthSecret: i.Handler.Encrypt(i.OAuthSecret),
+		DisplayName: i.Handler.Encrypt(i.DisplayName),
+		Image:       i.Handler.Encrypt(i.Image),
 		IsEnc:       true,
 	}, nil
 }
@@ -95,12 +95,12 @@ func (i *OAuthInfo) Dec() (*OAuthInfo, error) {
 		return nil, fmt.Errorf("%v is already decrypted", i)
 	}
 	return &OAuthInfo{
-		handler:     i.handler,
-		LoginID:     i.handler.Decrypt(i.LoginID),
-		OAuthToken:  i.handler.Decrypt(i.OAuthToken),
-		OAuthSecret: i.handler.Decrypt(i.OAuthSecret),
-		DisplayName: i.handler.Decrypt(i.DisplayName),
-		Image:       i.handler.Decrypt(i.Image),
+		Handler:     i.Handler,
+		LoginID:     i.Handler.Decrypt(i.LoginID),
+		OAuthToken:  i.Handler.Decrypt(i.OAuthToken),
+		OAuthSecret: i.Handler.Decrypt(i.OAuthSecret),
+		DisplayName: i.Handler.Decrypt(i.DisplayName),
+		Image:       i.Handler.Decrypt(i.Image),
 		IsEnc:       false,
 	}, nil
 }

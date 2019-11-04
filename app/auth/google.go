@@ -52,7 +52,7 @@ func (a *Auther) GetGoogleOAuthInfo(resState string, code string) (*OAuthInfo, e
 			return nil, err
 		}
 		return &OAuthInfo{
-			handler:     a,
+			Handler:     a,
 			OAuthToken:  token.AccessToken,
 			LoginID:     info.UserId,
 			DisplayName: person.Name,

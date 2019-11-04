@@ -49,7 +49,7 @@ func (a *Auther) GetGitHubOAuthInfo(resState string, code string) (*OAuthInfo, e
 			return nil, fmt.Errorf("status %d %+v %s", res.StatusCode, res.Header, buf)
 		}
 		return &OAuthInfo{
-			handler:     a,
+			Handler:     a,
 			OAuthToken:  token.AccessToken,
 			LoginID:     fmt.Sprintf("%d", *user.ID),
 			DisplayName: *user.Name,

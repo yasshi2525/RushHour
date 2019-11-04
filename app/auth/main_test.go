@@ -29,28 +29,28 @@ func TestOAuth(t *testing.T) {
 		}{
 			{
 				in: &OAuthInfo{
-					handler:    a,
+					Handler:    a,
 					IsEnc:      false,
 					OAuthToken: plainEmpty,
 				},
 				want: false,
 			}, {
 				in: &OAuthInfo{
-					handler:    a,
+					Handler:    a,
 					IsEnc:      false,
 					OAuthToken: plainValue,
 				},
 				want: true,
 			}, {
 				in: &OAuthInfo{
-					handler:    a,
+					Handler:    a,
 					IsEnc:      true,
 					OAuthToken: encEmpty,
 				},
 				want: false,
 			}, {
 				in: &OAuthInfo{
-					handler:    a,
+					Handler:    a,
 					IsEnc:      true,
 					OAuthToken: encValue,
 				},
@@ -80,7 +80,7 @@ func TestOAuth(t *testing.T) {
 		}{
 			{
 				in: &OAuthInfo{
-					handler:     a,
+					Handler:     a,
 					IsEnc:       false,
 					DisplayName: plainValue,
 					Image:       plainValue,
@@ -130,7 +130,7 @@ func TestOAuth(t *testing.T) {
 		}{
 			{
 				in: &OAuthInfo{
-					handler:     a,
+					Handler:     a,
 					IsEnc:       true,
 					DisplayName: encValue,
 					Image:       encValue,

@@ -66,6 +66,7 @@ func (a *Auther) GetTwitterOAuthInfo(tmpCred *oauth.Credentials, tmpSecret strin
 		return nil, err
 	}
 	return &OAuthInfo{
+		Handler:     a,
 		OAuthToken:  values.Get("oauth_token"),
 		OAuthSecret: values.Get("oauth_token_secret"),
 		LoginID:     info.LoginID,
