@@ -3,27 +3,42 @@ package services
 import (
 	crand "crypto/rand"
 	"fmt"
+	"log"
 	"math"
 	"math/big"
 	"math/rand"
 	"time"
 
-	"github.com/yasshi2525/RushHour/app/entities"
-
-	"github.com/yasshi2525/RushHour/app/services/auth"
-
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/revel/revel"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+	"github.com/yasshi2525/RushHour/app/entities"
 )
 
 var db *gorm.DB
 
 var isInOperation bool
+var isPersist bool
+
+// ServiceConfig represents service settings
+type ServiceConfig struct {
+	// IsPersist is whether storing user data to database
+	IsPersist bool
+	// LoadsConf is whether using conf file
+	AppConf config.Config
+}
+
+var serviceConf ServiceConfig
+var auther *auth.Auther
 
 // Init prepares for starting game
-func Init() {
-	revel.AppLog.Info("start preparation for game")
-	defer revel.AppLog.Info("end preparation for game")
+func Init(sc ServiceConfig) {
+	log.Println("start preparation for game")
+	defer log.Println("end preparation for game")
+
+	serviceConf = sc
 
 	start := time.Now()
 
@@ -31,15 +46,19 @@ func Init() {
 	rand.Seed(seed.Int64())
 
 	InitLock()
-	LoadSecret()
-	LoadConf()
-	auth.Init(Secret.Auth)
-	defer WarnLongExec(start, start, Const.Perf.Init.D, "initialization", true)
+	var err error
+	auther, err = auth.GetAuther(serviceConf.AppConf.Secret.Auth)
+	if err != nil {
+		panic(err)
+	}
+	defer WarnLongExec(start, start, serviceConf.AppConf.Game.Service.Perf.Init.D, "initialization", true)
 	InitRepository()
-	db = connectDB()
-	//db.LogMode(true)
-	MigrateDB()
-	Restore(true)
+	if serviceConf.IsPersist {
+		db = connectDB()
+		//db.LogMode(true)
+		MigrateDB()
+		Restore(true)
+	}
 	CreateIfAdmin()
 	StartRouting()
 }
@@ -49,11 +68,15 @@ func Purge(o *entities.Player) error {
 	if IsInOperation() {
 		return fmt.Errorf("couldn't purge during under operation")
 	}
-	revel.AppLog.Info("start purging user data")
-	defer revel.AppLog.Info("end purging user data")
-	PurgeDB(o)
+	log.Println("start purging user data")
+	defer log.Println("end purging user data")
+	if serviceConf.IsPersist {
+		PurgeDB(o)
+	}
 	InitRepository()
-	Restore(false)
+	if serviceConf.IsPersist {
+		Restore(false)
+	}
 	CreateIfAdmin()
 	StartRouting()
 	return nil
@@ -68,12 +91,14 @@ func Terminate() {
 
 // Start start game
 func Start() {
-	revel.AppLog.Info("start starting game procedure")
-	defer revel.AppLog.Info("end starting game procedure")
-	StartBackupTicker()
+	log.Println("start starting game procedure")
+	defer log.Println("end starting game procedure")
+	if serviceConf.IsPersist {
+		StartBackupTicker()
+	}
 	StartProcedure()
 	isInOperation = true
-	if Const.Game.Simulation {
+	if serviceConf.AppConf.Game.Service.Procedure.Simulation {
 		StartModelWatching()
 		StartSimulation()
 	}
@@ -81,17 +106,19 @@ func Start() {
 
 // Stop stop game
 func Stop() {
-	revel.AppLog.Info("start stopping game procedure")
-	defer revel.AppLog.Info("end stopping game procedure")
-	if Const.Game.Simulation {
+	log.Println("start stopping game procedure")
+	defer log.Println("end stopping game procedure")
+	if serviceConf.AppConf.Game.Service.Procedure.Simulation {
 		StopSimulation()
 		StopModelWatching()
 	}
 	isInOperation = false
 	CancelRouting()
 	StopProcedure()
-	StopBackupTicker()
-	Backup(false)
+	if serviceConf.IsPersist {
+		StopBackupTicker()
+		Backup(false)
+	}
 }
 
 func connectDB() *gorm.DB {
@@ -99,13 +126,13 @@ func connectDB() *gorm.DB {
 		database *gorm.DB
 		err      error
 	)
-	driver := getConfig("db.driver")
-	spec := getConfig("db.spec")
+	driver := serviceConf.AppConf.Secret.DB.Driver
+	spec := serviceConf.AppConf.Secret.DB.Spec
 
 	for i := 1; i <= 60; i++ {
 		database, err = gorm.Open(driver, spec)
 		if err != nil {
-			revel.AppLog.Warnf("failed to connect database(%v). retry after 10 seconds.", err)
+			log.Printf("failed to connect database(%v). retry after 10 seconds.", err)
 			time.Sleep(10 * time.Second)
 		}
 	}
@@ -114,7 +141,7 @@ func connectDB() *gorm.DB {
 		panic(fmt.Errorf("failed to connect database: %v", err))
 	}
 
-	revel.AppLog.Info("connect database successfully")
+	log.Println("connect database successfully")
 	return database
 }
 
@@ -122,14 +149,7 @@ func closeDB() {
 	if err := db.Close(); err != nil {
 		panic(err)
 	}
-	revel.AppLog.Info("disconnect database successfully")
-}
-
-func getConfig(key string) string {
-	if value, found := revel.Config.String(key); found {
-		return value
-	}
-	panic(fmt.Errorf("%s is not defined", key))
+	log.Println("disconnect database successfully")
 }
 
 // IsInOperation returns true after game started.

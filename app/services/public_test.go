@@ -1,23 +1,21 @@
 package services
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 func TestCreateResidence(t *testing.T) {
-	prev, _ := filepath.Abs(".")
-	defer os.Chdir(prev)
-	os.Chdir("../../")
+	conf, _ := config.Load()
+	conf.Game.Service.Routing.Worker = 1
+	conf.Game.Entity.MaxScale = 2
+	serviceConf = ServiceConfig{AppConf: conf}
+	auther, _ = auth.GetAuther(conf.Secret.Auth)
 
-	LoadConf()
-	LoadSecret()
 	InitRepository()
-	auth.Init(Secret.Auth)
 	isInOperation = true
 
 	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)
@@ -33,14 +31,13 @@ func TestCreateResidence(t *testing.T) {
 }
 
 func TestCreateCompany(t *testing.T) {
-	prev, _ := filepath.Abs(".")
-	defer os.Chdir(prev)
-	os.Chdir("../../")
+	conf, _ := config.Load()
+	conf.Game.Service.Routing.Worker = 1
+	conf.Game.Entity.MaxScale = 2
+	serviceConf = ServiceConfig{AppConf: conf}
+	auther, _ = auth.GetAuther(conf.Secret.Auth)
 
-	LoadConf()
-	LoadSecret()
 	InitRepository()
-	auth.Init(Secret.Auth)
 	isInOperation = true
 
 	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)
@@ -56,14 +53,13 @@ func TestCreateCompany(t *testing.T) {
 }
 
 func TestCreateStep(t *testing.T) {
-	prev, _ := filepath.Abs(".")
-	defer os.Chdir(prev)
-	os.Chdir("../../")
+	conf, _ := config.Load()
+	conf.Game.Service.Routing.Worker = 1
+	conf.Game.Entity.MaxScale = 2
+	serviceConf = ServiceConfig{AppConf: conf}
+	auther, _ = auth.GetAuther(conf.Secret.Auth)
 
-	LoadConf()
-	LoadSecret()
 	InitRepository()
-	auth.Init(Secret.Auth)
 	isInOperation = true
 
 	admin, _ := CreatePlayer("test", "test", "test", 0, entities.Admin)

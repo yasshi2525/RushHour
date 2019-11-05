@@ -2,26 +2,23 @@ package services
 
 import (
 	"fmt"
-
-	"github.com/revel/revel"
+	"log"
 
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 // CreateIfAdmin creates named Admin User
 func CreateIfAdmin() {
-	if o, ok := Model.Logins[entities.Local][auth.Digest(Secret.Admin.UserName)]; ok {
+	if o, ok := Model.Logins[entities.Local][auther.Digest(serviceConf.AppConf.Secret.Admin.UserName)]; ok {
 		if o.Level != entities.Admin {
-			panic(fmt.Errorf("admin %s exists, but lv is not admin but %d", Secret.Admin.UserName, o.Level))
+			panic(fmt.Errorf("admin %s exists, but lv is not admin but %d", serviceConf.AppConf.Secret.Admin.UserName, o.Level))
 		}
 		return
+	}
+	if o, err := PasswordSignUp(serviceConf.AppConf.Secret.Admin.UserName, "admin", serviceConf.AppConf.Secret.Admin.Password, 0, entities.Admin); err != nil {
+		log.Println("skip create administrator because already exist")
 	} else {
-		if o, err := PasswordSignUp(Secret.Admin.UserName, "admin", Secret.Admin.Password, 0, entities.Admin); err != nil {
-			revel.AppLog.Info("skip create administrator because already exist")
-		} else {
-			o.Level = entities.Admin
-			revel.AppLog.Info("administrator was successfully created")
-		}
+		o.Level = entities.Admin
+		log.Println("administrator was successfully created")
 	}
 }

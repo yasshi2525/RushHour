@@ -1,9 +1,8 @@
 package services
 
 import (
+	"log"
 	"time"
-
-	"github.com/revel/revel"
 )
 
 var gamemaster *time.Ticker
@@ -11,17 +10,17 @@ var beforeProcedure time.Time
 
 // StartProcedure start game.
 func StartProcedure() {
-	gamemaster = time.NewTicker(Const.Game.Interval.D)
+	gamemaster = time.NewTicker(serviceConf.AppConf.Game.Service.Procedure.Interval.D)
 
 	go watchGame()
-	revel.AppLog.Info("game procedure was successfully started.")
+	log.Println("game procedure was successfully started.")
 }
 
 // StopProcedure stop game
 func StopProcedure() {
 	if gamemaster != nil {
 		gamemaster.Stop()
-		revel.AppLog.Info("game procedure was successfully stopped.")
+		log.Println("game procedure was successfully stopped.")
 	}
 }
 
@@ -36,7 +35,7 @@ func processGame() {
 	MuModel.Lock()
 	defer MuModel.Unlock()
 	lock := time.Now()
-	defer WarnLongExec(start, lock, Const.Perf.Game.D, "procedure")
+	defer WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Game.D, "procedure")
 	defer func() { beforeProcedure = time.Now() }()
 
 	if beforeProcedure.IsZero() {
