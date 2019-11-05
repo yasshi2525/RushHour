@@ -76,10 +76,15 @@ func PasswordSignUp(loginid string, name string, password string, hue int, lv en
 
 // AccountSettings returns user customizable attributes.
 type AccountSettings struct {
-	Player      *entities.Player  `json:"-"`
-	CustomName  string            `json:"custom_name"`
-	CustomImage string            `json:"custom_image"`
-	AuthType    entities.AuthType `json:"auth_type"`
+	Player         *entities.Player  `json:"-"`
+	CustomName     string            `json:"custom_name"`
+	CustomImage    string            `json:"custom_image"`
+	AuthType       entities.AuthType `json:"auth_type"`
+	LoginID        string            `json:"email,omitempty"`
+	OAuthName      string            `json:"oauth_name,omitempty"`
+	UseCustomName  bool              `json:"use_cname,omitempty"`
+	OAuthImage     string            `json:"oauth_image,omitempty"`
+	UseCustomImage bool              `json:"use_cimage,omitempty"`
 }
 
 // MarshalJSON returns plain text data.

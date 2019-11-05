@@ -1,265 +1,197 @@
 package v1
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"math"
-	"net/url"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
 	"testing"
+	"time"
 
-	"github.com/yasshi2525/RushHour/app/services"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v9"
+
+	"github.com/yasshi2525/RushHour/app/auth"
+	"github.com/yasshi2525/RushHour/app/config"
+	"github.com/yasshi2525/RushHour/app/entities"
+	"github.com/yasshi2525/RushHour/app/services"
 )
 
 func TestMain(m *testing.M) {
-	services.Config.Entity.MinScale = 0
-	services.Config.Entity.MaxScale = 16
-	m.Run()
-}
-
-func TestMapToStruct(t *testing.T) {
-	// check certain map keyed "target"'s value insearting into struct
-	type Sample struct {
-		Target string `json:"target"`
-	}
-
-	cases := []struct {
-		in struct {
-			params url.Values
-			out    *Sample
-		}
-		want string
-	}{
-		{
-			in: struct {
-				params url.Values
-				out    *Sample
-			}{
-				params: map[string][]string{"target": []string{"true"}},
-				out:    &Sample{},
-			}, want: "true",
-		}, {
-			in: struct {
-				params url.Values
-				out    *Sample
-			}{
-				params: map[string][]string{"untarget": []string{"true"}},
-				out:    &Sample{},
-			}, want: "",
-		},
-	}
-	for _, c := range cases {
-		got := mapToStruct(c.in.params, c.in.out).(*Sample).Target
-		if got != c.want {
-			t.Errorf("mapToStruct(%v,%v).Target == %v, want %v", c.in.params, c.in.out, got, c.want)
-		}
-		if c.in.out.Target != c.want {
-			t.Errorf("mapToStruct(%v,%v), 2nd params.Target == %v, want %v", c.in.params, c.in.out, c.in.out.Target, c.want)
-		}
-	}
-}
-
-func assertError(t *testing.T, in interface{}, want []string) {
-	errs := buildErrorMessages(validate.Struct(in).(validator.ValidationErrors))
-	if errs == nil {
-		if want != nil {
-			t.Errorf("buildErrorMessages(%v) == %d errors, want %d errors", in, 0, len(want))
-		}
-	} else if len(errs) != len(want) {
-		t.Errorf("buildErrorMessages(%v) == %d errors, want %d errors", in, len(errs), len(want))
+	gin.SetMode(gin.ReleaseMode)
+	conf.Game.Entity.MinScale = 0
+	conf.Game.Entity.MaxScale = 16
+	conf.Game.Service.Procedure.Interval.D = 1 * time.Hour
+	conf.Secret.Admin.UserName = "admin@example.com"
+	conf.Secret.Admin.Password = "password_test"
+	services.Init(services.ServiceConfig{
+		AppConf: conf,
+	})
+	defer services.Terminate()
+	services.CreateIfAdmin()
+	services.Start()
+	defer services.Stop()
+	var err error
+	if auther, err = auth.GetAuther(conf.Secret.Auth); err != nil {
+		panic(fmt.Errorf("failed to create auther: %v", err))
 	} else {
-		for i := 0; i < len(errs); i++ {
-			got, want := errs[i], want[i]
-			if fmt.Sprintf("%s", got) != want {
-				t.Errorf("buildErrorMessages(%v)[%d] == %s, want %s", in, i, got, want)
+		binding.Validator = new(DefaultValidator)
+		m.Run()
+	}
+}
+
+func prepare() (*httptest.ResponseRecorder, *gin.Context, *gin.Engine) {
+	w := httptest.NewRecorder()
+	c, r := gin.CreateTestContext(w)
+	r.Use(GeneralHandler())
+	return w, c, r
+}
+
+func assertValidation(name string, t *testing.T, v *validator.Validate, in interface{}, want []string) {
+	t.Helper()
+	if rawResult := v.Struct(in); rawResult == nil {
+		if want != nil {
+			t.Errorf("%s(%v) got nil, want %v", name, in, want)
+		}
+	} else {
+		res := rawResult.(validator.ValidationErrors)
+		if len(res) != len(want) {
+			t.Errorf("%s(%v).err got %d errors, want %d errors", name, in, len(res), len(want))
+		} else {
+			for i := 0; i < len(res); i++ {
+				got, want := res[i], want[i]
+				if fmt.Sprintf("%s", got) != want {
+					t.Errorf("%s(%v)[%d] got %s, want %s", name, in, i, got, want)
+				}
 			}
 		}
 	}
 }
 
-func TestBuildErrorMessages(t *testing.T) {
-	Init()
-	t.Run("GetGameMap", func(t *testing.T) {
-		cases := []struct {
-			in   gameMapRequest
-			want []string
-		}{
-			{
-				// too small Scale
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale-0.0001),
-					Delegate: "0.0",
-				},
-				want: []string{"scale must be gte 0.000000"},
-			},
-			{
-				// too large Scale
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MaxScale+0.0001),
-					Delegate: "0.0",
-				},
-				want: []string{"scale must be lte 16.000000"},
-			},
-			{
-				// too small Delegate
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: "-0.0001",
-				},
-				want: []string{"delegate must be gte 0"},
-			},
-			{
-				// too large Delegate
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: fmt.Sprintf("%f", services.Config.Entity.MinScale+1),
-				},
-				want: []string{"delegate must be lte 0.000000"},
-			},
-			{
-				// left over
-				in: gameMapRequest{
-					Cx:       fmt.Sprintf("%f", -math.Pow(2, services.Config.Entity.MaxScale)),
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: "0.0",
-				},
-				want: []string{"cx must be gte -32767.500000"},
-			},
-			{
-				// right over
-				in: gameMapRequest{
-					Cx:       fmt.Sprintf("%f", math.Pow(2, services.Config.Entity.MaxScale)),
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: "0.0",
-				},
-				want: []string{"cx must be lte 32767.500000"},
-			},
-			{
-				// top over
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       fmt.Sprintf("%f", -math.Pow(2, services.Config.Entity.MaxScale)),
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: "0.0",
-				},
-				want: []string{"cy must be gte -32767.500000"},
-			},
-			{
-				// bottom over
-				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       fmt.Sprintf("%f", math.Pow(2, services.Config.Entity.MaxScale)),
-					Scale:    fmt.Sprintf("%f", services.Config.Entity.MinScale),
-					Delegate: "0.0",
-				},
-				want: []string{"cy must be lte 32767.500000"},
-			},
-			{
-				// invalid format
-				in: gameMapRequest{
-					Cx:       "invalid",
-					Cy:       "invalid",
-					Scale:    "invalid",
-					Delegate: "invalid",
-				},
-				want: []string{
-					"cx must be numeric",
-					"cy must be numeric",
-					"scale must be numeric",
-					"delegate must be numeric",
-				},
-			},
-			{
-				// empty
-				in: gameMapRequest{},
-				want: []string{
-					"cx must be required",
-					"cy must be required",
-					"scale must be required",
-					"delegate must be required",
-				},
-			},
+func assertErrorResponse(name string, t *testing.T, w *httptest.ResponseRecorder, want []string) {
+	t.Helper()
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("%s.code got %d, want %d (details = %s)", name, w.Code, http.StatusBadRequest, w.Body.String())
+	} else {
+		var msg errInfo
+		if err := json.Unmarshal(w.Body.Bytes(), &msg); err != nil {
+			t.Errorf("%s.body.err got %v, want nil", name, err)
+		} else if got, ok := msg.Err.([]interface{}); !ok {
+			t.Errorf("%s.body.err got type %s, want type []interface{} (details = %v)", name, reflect.TypeOf(msg.Err), msg.Err)
+		} else {
+			if len(got) != len(want) {
+				t.Errorf("%s.body got %d errors, want %d errors", name, len(got), len(want))
+			} else {
+				for i := 0; i < len(got); i++ {
+					got, want := got[i], want[i]
+					if str, ok := got.(string); !ok {
+						t.Errorf("%s.body[%d] got type %s, want string (details = got %v, want %v)", name, i, reflect.TypeOf(got), got, want)
+					} else if str != want {
+						t.Errorf("%s.body[%d] got %s, want %s", name, i, str, want)
+					}
+				}
+			}
 		}
-		for _, c := range cases {
-			assertError(t, c.in, c.want)
-		}
-	})
-
-	t.Run("Login", func(t *testing.T) {
-		cases := []struct {
-			in   loginRequest
-			want []string
-		}{
-			{
-				// invalid mail address
-				in: loginRequest{
-					ID:       "admin",
-					Password: "password",
-				},
-				want: []string{"id must be email"},
-			},
-			{
-				// empty
-				in: loginRequest{},
-				want: []string{
-					"id must be required",
-					"password must be required",
-				},
-			},
-		}
-		for _, c := range cases {
-			assertError(t, c.in, c.want)
-		}
-	})
-
-	t.Run("Register", func(t *testing.T) {
-		cases := []struct {
-			in   registerRequest
-			want []string
-		}{
-			{
-				// too small hue
-				in: registerRequest{
-					loginRequest: loginRequest{
-						ID:       "test@example.com",
-						Password: "password",
-					},
-					DisplayName: "",
-					Hue:         "-1",
-				},
-				want: []string{"hue must be gte 0"},
-			},
-			{
-				// too large hue
-				in: registerRequest{
-					loginRequest: loginRequest{
-						ID:       "test@example.com",
-						Password: "password",
-					},
-					DisplayName: "",
-					Hue:         "360",
-				},
-				want: []string{"hue must be lt 360"},
-			},
-		}
-		for _, c := range cases {
-			assertError(t, c.in, c.want)
-		}
-	})
+	}
 }
 
-func TestInit(t *testing.T) {
-	Init()
-	if validate == nil {
-		t.Errorf("validate == nil, want not nil")
+type paramAssertOk struct {
+	Method string
+	Path   string
+	Jwt    string
+	R      *gin.Engine
+	W      *httptest.ResponseRecorder
+	In     interface{}
+	Assert func(got map[string]interface{})
+}
+
+func assertOkResponse(t *testing.T, args paramAssertOk) {
+	t.Helper()
+	str, _ := json.Marshal(args.In)
+	req, _ := http.NewRequest(args.Method, args.Path, bytes.NewBuffer(str))
+	req.Header.Set("Content-Type", "application/json")
+	if args.Jwt != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", args.Jwt))
 	}
+	args.R.ServeHTTP(args.W, req)
+	if args.W.Code != http.StatusOK {
+		t.Errorf("%s.code got %d, want %d (details = %s)", args.Path, args.W.Code, http.StatusOK, args.W.Body.String())
+	} else {
+		var msg map[string]interface{}
+		if err := json.Unmarshal(args.W.Body.Bytes(), &msg); err != nil {
+			t.Errorf("%s.body.err got %v, want nil", args.Path, err)
+		} else {
+			args.Assert(msg)
+		}
+	}
+}
+
+type paramAssertUnauthorized struct {
+	Method string
+	Path   string
+	R      *gin.Engine
+	W      *httptest.ResponseRecorder
+	In     interface{}
+}
+
+func assertUnauthorized(t *testing.T, args paramAssertUnauthorized) {
+	t.Helper()
+	str, _ := json.Marshal(args.In)
+	req, _ := http.NewRequest(args.Method, args.Path, bytes.NewBuffer(str))
+	req.Header.Set("Content-Type", "application/json")
+	args.R.ServeHTTP(args.W, req)
+	if args.W.Code != http.StatusUnauthorized {
+		t.Errorf("%s.code got %d, want %d (details = %s)", args.Path, args.W.Code, http.StatusUnauthorized, args.W.Body.String())
+	}
+}
+
+func TestBuildJwt(t *testing.T) {
+	if _, err := buildJwt(&entities.Player{}); err != nil {
+		t.Errorf("buildJwt().err got %v, want nil", err)
+	}
+}
+
+func TestInitController(t *testing.T) {
+	bkConf := conf
+	wantConf := config.Config{
+		Game: config.CnfGame{
+			Entity: config.CnfEntity{
+				MaxScale: 5,
+			},
+		},
+	}
+	wantAuther, _ := auth.GetAuther(wantConf.Secret.Auth)
+
+	InitController(wantConf, wantAuther)
+	if conf != wantConf {
+		t.Errorf("InitController(%v, %v).conf got %v, want %v", wantConf, wantAuther, conf, wantConf)
+	}
+	if auther != wantAuther {
+		t.Errorf("InitController(%v, %v).auther got %v, want %v", wantConf, wantAuther, auther, wantAuther)
+	}
+	conf = bkConf
+}
+
+func registerTestUser(t *testing.T, id string, password string) string {
+	t.Helper()
+	w, _, r := prepare()
+	r.POST("/register", Register)
+	str, _ := json.Marshal(&registerRequest{
+		loginRequest: loginRequest{ID: id, Password: password},
+		DisplayName:  id,
+		Hue:          "0",
+	})
+	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(str))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+	var res map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &res)
+	if token, ok := res["jwt"]; ok {
+		return token.(string)
+	}
+	t.Fatalf("register failed: %v", res)
+	return ""
 }

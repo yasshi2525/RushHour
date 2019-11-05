@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/revel/revel"
+	"github.com/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/yasshi2525/RushHour/app/services"
@@ -16,13 +16,13 @@ const getGameMapRequest string = "dive,keys,oneof=cx cy scale delegate,endkeys"
 // gameMapRequest represents requirement to view game map
 type gameMapRequest struct {
 	// Cx is center x coordinate
-	Cx string `json:"cx" validate:"required,numeric"`
+	Cx string `form:"cx" json:"cx" validate:"required,numeric"`
 	// Cy is center y coordinate
-	Cy string `json:"cy" validate:"required,numeric"`
+	Cy string `form:"cy" json:"cy" validate:"required,numeric"`
 	// Scale is 2^Scale coordinate maps size
-	Scale string `json:"scale" validate:"required,numeric"`
+	Scale string `form:"scale" json:"scale" validate:"required,numeric"`
 	// Delegate is 2^Delegate grid of map
-	Delegate string `json:"delegate" validate:"required,numeric"`
+	Delegate string `form:"delegate" json:"delegate" validate:"required,numeric"`
 }
 
 // export converts string to float64
@@ -39,8 +39,8 @@ func validGameMapRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(gameMapRequest)
 	cx, cy, sc, dlg := v.export()
 
-	minSc := services.Config.Entity.MinScale
-	maxSc := services.Config.Entity.MaxScale
+	minSc := conf.Game.Entity.MinScale
+	maxSc := conf.Game.Entity.MaxScale
 
 	// validate scale
 	if sc < minSc {
@@ -82,7 +82,7 @@ func validGameMapRequest(sl validator.StructLevel) {
 	}
 }
 
-// GetGameMap returns all data of gamemap
+// GameMap returns all data of gamemap
 // @Description entities are delegate object
 // @Tags entities.DelegateMap
 // @Summary get all entities in specified area
@@ -93,16 +93,13 @@ func validGameMapRequest(sl validator.StructLevel) {
 // @Param scale query number true "width,height(100%)=2^scale"
 // @Param delegate query number true "width,height(grid)=2^delegate"
 // @Success 200 {object} entities.DelegateMap "map centered (x,y) with grid in (width,height)"
-// @Failure 422 {array} string "reasons of error when cx, cy and scale are out of area"
+// @Failure 400 {array} string "reasons of error when cx, cy and scale are out of area"
 // @Router /gamemap [get]
-func (c API) GetGameMap() revel.Result {
-	services.MuModel.RLock()
-	defer services.MuModel.RUnlock()
-
-	params := &gameMapRequest{}
-	if errs := validate.Struct(mapToStruct(c.Params.Query, params)); errs != nil {
-		c.Response.SetStatus(422)
-		return c.RenderJSON(buildErrorMessages(errs.(validator.ValidationErrors)))
+func GameMap(c *gin.Context) {
+	params := gameMapRequest{}
+	if err := c.Bind(&params); err != nil {
+		c.Set(keyErr, err)
+	} else {
+		c.Set(keyOk, services.ViewDelegateMap(params.export()))
 	}
-	return c.RenderJSON(services.ViewDelegateMap(params.export()))
 }
