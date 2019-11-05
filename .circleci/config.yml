@@ -99,7 +99,7 @@ jobs:
             ./cc-test-reporter before-build
             mkdir -p reports/golang
             cd app
-            go test -coverprofile ../c.out -v ./... -v 2>&1 | go-junit-report > ../reports/golang/results.xml || true
+            go test -coverprofile ../c.out -v ./... 2>&1 | go-junit-report > ../reports/golang/results.xml || true
             cd ..
             ./cc-test-reporter after-build
 
