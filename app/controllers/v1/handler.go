@@ -32,7 +32,7 @@ func GeneralHandler() gin.HandlerFunc {
 				c.JSON(http.StatusBadRequest, buildErrorMessages(verr))
 			} else {
 				if e, ok := res.(error); ok {
-					c.JSON(http.StatusBadRequest, &errInfo{Err: e.Error()})
+					c.JSON(http.StatusBadRequest, &errInfo{Err: []string{e.Error()}})
 				} else if es, ok := res.([]error); ok {
 					var msgs []string
 					for _, e := range es {

@@ -161,7 +161,7 @@ func ChangeSettings(c *gin.Context) {
 			c.Set(keyOk, entry{Key: res, Value: val.Value})
 		}
 	default:
-		c.Set(keyErr, []error{fmt.Errorf("invalid attribute %s", res)})
+		c.Set(keyErr, fmt.Errorf("invalid attribute %s", res))
 	}
 }
 

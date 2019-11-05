@@ -70,5 +70,7 @@ func initValidate() *validator.Validate {
 	})
 	v.RegisterStructValidation(validGameMapRequest, gameMapRequest{})
 	v.RegisterStructValidation(validRegisterRequest, registerRequest{})
+	v.RegisterStructValidation(validScaleRequest, scaleRequest{})
+	v.RegisterStructValidation(validPointRequest, pointRequest{})
 	return v
 }

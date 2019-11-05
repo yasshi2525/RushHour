@@ -11,8 +11,6 @@ import (
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
-const getGameMapRequest string = "dive,keys,oneof=cx cy scale delegate,endkeys"
-
 // gameMapRequest represents requirement to view game map
 type gameMapRequest struct {
 	// Cx is center x coordinate
@@ -74,11 +72,11 @@ func validGameMapRequest(sl validator.StructLevel) {
 	}
 	// top over
 	if cy-radius < -border {
-		sl.ReportError(v.Cx, "cy", "Cy", "gte", fmt.Sprintf("%f", radius-border))
+		sl.ReportError(v.Cy, "cy", "Cy", "gte", fmt.Sprintf("%f", radius-border))
 	}
 	// bottom over
 	if cy+radius > border {
-		sl.ReportError(v.Cx, "cy", "Cy", "lte", fmt.Sprintf("%f", border-radius))
+		sl.ReportError(v.Cy, "cy", "Cy", "lte", fmt.Sprintf("%f", border-radius))
 	}
 }
 
@@ -86,7 +84,7 @@ func validGameMapRequest(sl validator.StructLevel) {
 // @Description entities are delegate object
 // @Tags entities.DelegateMap
 // @Summary get all entities in specified area
-// @Accept  json
+// @Accept  query
 // @Produce  json
 // @Param cx query number true "x coordinate"
 // @Param cy query number true "y coordinate"

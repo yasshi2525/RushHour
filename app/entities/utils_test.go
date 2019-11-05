@@ -17,6 +17,7 @@ type TestCases []TestCase
 
 // Assert assert all test case satisfy condition.
 func (cases TestCases) Assert(t *testing.T, callback ...func(interface{}) interface{}) {
+	t.Helper()
 	op := func(input interface{}) interface{} {
 		return input
 	}
@@ -45,6 +46,7 @@ type TestCaseLineTasks []TestCaseLineTask
 
 // Assert walk through loop of LineTask and assert condition.
 func (cases TestCaseLineTasks) Assert(t *testing.T, lt *LineTask) {
+	t.Helper()
 	for i, c := range cases {
 		t.Run(fmt.Sprintf("[%d] %s", i, c.Name), func(t *testing.T) {
 			if lt == nil {
