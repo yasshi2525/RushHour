@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/yasshi2525/RushHour/app/auth"
@@ -9,7 +11,8 @@ import (
 )
 
 func TestCreateResidence(t *testing.T) {
-	conf, _ := config.Load()
+	wd, _ := os.Getwd()
+	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
 	serviceConf = ServiceConfig{AppConf: conf}
@@ -31,7 +34,8 @@ func TestCreateResidence(t *testing.T) {
 }
 
 func TestCreateCompany(t *testing.T) {
-	conf, _ := config.Load()
+	wd, _ := os.Getwd()
+	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
 	serviceConf = ServiceConfig{AppConf: conf}
@@ -53,7 +57,8 @@ func TestCreateCompany(t *testing.T) {
 }
 
 func TestCreateStep(t *testing.T) {
-	conf, _ := config.Load()
+	wd, _ := os.Getwd()
+	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
 	serviceConf = ServiceConfig{AppConf: conf}

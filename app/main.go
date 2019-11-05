@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -61,7 +64,11 @@ func setupRouter(secret string) *gin.Engine {
 // @schemes https
 
 func main() {
-	conf, err := config.Load()
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	conf, err := config.Load(fmt.Sprintf("%s/config", dir))
 	if err != nil {
 		panic(err)
 	}
