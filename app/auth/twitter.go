@@ -26,15 +26,15 @@ func (a *Auther) initTwitter(conf config.CnfTwitter) {
 }
 
 // GetTwitterAuthURL returns auth url
-func (a *Auther) GetTwitterAuthURL() (*oauth.Credentials, string) {
+func (a *Auther) GetTwitterAuthURL() (*oauth.Credentials, string, error) {
 	tmpCred, err := twitterClient.RequestTemporaryCredentials(
 		&http.Client{}, fmt.Sprintf("%s/twitter/callback", a.baseURL), nil)
 
 	if err != nil {
-		panic(err)
+		return nil, "", err
 	}
 
-	return tmpCred, twitterClient.AuthorizationURL(tmpCred, nil)
+	return tmpCred, twitterClient.AuthorizationURL(tmpCred, nil), nil
 }
 
 type twitterOAuthInfo struct {

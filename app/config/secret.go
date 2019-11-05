@@ -30,6 +30,7 @@ type CnfOAuth struct {
 // CnfAuth is auth section of secret.conf
 type CnfAuth struct {
 	BaseURL string `validate:"url"`
+	Cookie  string
 	Salt    string
 	Key     string `validate:"len=16"`
 	State   string
