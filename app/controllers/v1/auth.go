@@ -2,54 +2,182 @@ package v1
 
 import (
 	"fmt"
-	"strings"
-	"time"
+	"strconv"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
+	"github.com/gin-gonic/gin"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
-	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
-func authenticate(o *entities.Player) string {
-	url := services.Secret.Auth.BaseURL
-	now := time.Now()
-	exp := now.Add(time.Hour)
-	uu := uuid.New()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss":                        url,
-		"sub":                        "AccessToken",
-		"aud":                        url,
-		"exp":                        exp.Unix(),
-		"nbf":                        now.Unix(),
-		"iat":                        now.Unix(),
-		"jti":                        uu.String(),
-		fmt.Sprintf("%s/id", url):    o.ID,
-		fmt.Sprintf("%s/name", url):  auth.Decrypt(o.GetDisplayName()),
-		fmt.Sprintf("%s/image", url): auth.Decrypt(o.GetImage()),
-		fmt.Sprintf("%s/admin", url): o.Level == entities.Admin,
-		fmt.Sprintf("%s/hue", url):   o.Hue,
-	})
-
-	jwt, err := token.SignedString([]byte(services.Secret.Auth.Salt))
-	if err != nil {
-		panic(err)
-	}
-	return jwt
+// loginRequest represents requirement for login
+type loginRequest struct {
+	// ID is email address of user as login id
+	ID string `form:"id" json:"id" validate:"required,email"`
+	// Password is password of binded user
+	Password string `form:"password" json:"password" validate:"required"`
 }
 
-func parse(header string) (*entities.Player, error) {
-	url := services.Secret.Auth.BaseURL
-	token := strings.TrimPrefix(header, "Bearer ")
-	if obj, err := jwt.ParseWithClaims(token, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(services.Secret.Auth.Salt), nil
-	}); err != nil || !obj.Valid {
-		return nil, err
+// Login returns result of password login
+// @Description try login using loginid/password paramter
+// @Tags jwtInfo
+// @Summary try login to RushHour server
+// @Accept json
+// @Produce json
+// @Param id body string true "email address"
+// @Param password body string true "password"
+// @Success 200 {object} jwtInfo "json web token containing user attributes"
+// @Failure 400 {object} errInfo "reasons of error when login fail"
+// @Router /login [post]
+func Login(c *gin.Context) {
+	params := loginRequest{}
+	if err := c.Bind(&params); err != nil {
+		c.Set(keyErr, err)
 	} else {
-		data := obj.Claims.(jwt.MapClaims)
-		value := data[fmt.Sprintf("%s/id", url)]
-		return services.Model.Players[uint(value.(float64))], nil
+		if o, err := services.PasswordSignIn(params.ID, params.Password); err != nil {
+			c.Set(keyErr, err)
+		} else if jwt, err := buildJwt(o); err != nil {
+			c.Set(keyErr, err)
+		} else {
+			c.Set(keyOk, jwt)
+		}
 	}
+}
+
+// registerRequest represents requirement for sign up to RushHour server
+type registerRequest struct {
+	loginRequest
+	// DisplayName is shown by everyone (default: NoName)
+	DisplayName string `json:"name" validate:"omitempty"`
+	// Hue is rail line symbol color (HSV model)
+	Hue string `json:"hue" validate:"required,numeric"`
+}
+
+// validRegisterRequest validates that Register satisfies sign in conditions
+func validRegisterRequest(sl validator.StructLevel) {
+	v := sl.Current().Interface().(registerRequest)
+	hue, _ := strconv.Atoi(v.Hue)
+
+	if hue < 0 {
+		sl.ReportError(v.Hue, "hue", "Hue", "gte", "0")
+	}
+	if hue >= 360 {
+		sl.ReportError(v.Hue, "hue", "Hue", "lt", "360")
+	}
+}
+
+// Register returns result of password sign up
+// @Description try register with loginid/password
+// @Tags jwtInfo
+// @Summary try register to RushHour server
+// @Accept json
+// @Produce json
+// @Param id body string true "email address"
+// @Param password body string true "password"
+// @Param name body string false "display name"
+// @Param hue body integer "player's rail line symbol color (HSV model)"
+// @Success 200 {object} jwtInfo "json web token containing user attributes"
+// @Failure 400 {object} errInfo "reasons of error when register"
+// @Router /register [post]
+func Register(c *gin.Context) {
+	params := registerRequest{}
+	if err := c.Bind(&params); err != nil {
+		c.Set(keyErr, err)
+	} else {
+		hue, _ := strconv.Atoi(params.Hue)
+		if o, err := services.PasswordSignUp(params.ID, params.DisplayName, params.Password, hue, entities.Normal); err != nil {
+			c.Set(keyErr, err)
+		} else if jwt, err := buildJwt(o); err != nil {
+			c.Set(keyErr, err)
+		} else {
+			c.Set(keyOk, jwt)
+		}
+	}
+}
+
+// Settings returns the list of customizable attributes
+// @Description list up user attributes including private one
+// @Tags services.AccountSettings
+// @Summary get user attributes
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "with the bearer started"
+// @Success 200 {object} services.AccountSettings "user attributes"
+// @Failure 400 {object} errInfo "under maintenance"
+// @Failure 401 {object} errInfo "invalid jwt"
+// @Router /settings [get]
+func Settings(c *gin.Context) {
+	o := authorize(c)
+	if o == nil {
+		return
+	}
+	c.Set(keyOk, services.GetAccountSettings(o))
+}
+
+// settingsCName is format of custom user name
+type settingsCName struct {
+	Value string `form:"value" json:"value" validation:"required"`
+}
+
+type settingsUseCname struct {
+	Value string `form:"value" json:"value" validation:"required,eq=true|eq=false"`
+}
+
+// ChangeSettings returns the result of change profile
+// @Description change user attributes including private one
+// @Tags entry
+// @Summary change user attributes
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "with the bearer started"
+// @Param resname path string true "changing resource name" Enums(custom_name, use_cname)
+// @Param value body string true "changing resource value"
+// @Success 200 {object} entry "changed user attributes"
+// @Failure 400 {object} errInfo "invalid parameter"
+// @Failure 401 {object} errInfo "invalid jwt"
+// @Router /settings/{resname} [post]
+func ChangeSettings(c *gin.Context) {
+	o := authorize(c)
+	if o == nil {
+		return
+	}
+	res := c.Param("resname")
+	switch res {
+	case "custom_name":
+		val := settingsCName{}
+		if err := c.Bind(&val); err != nil {
+			c.Set(keyErr, err)
+		} else {
+			o.CustomDisplayName = auther.Encrypt(val.Value)
+			c.Set(keyOk, entry{Key: res, Value: val.Value})
+		}
+	case "use_cname":
+		val := settingsUseCname{}
+		if err := c.Bind(&val); err != nil {
+			c.Set(keyErr, err)
+		} else {
+			o.UseCustomDisplayName, _ = strconv.ParseBool(val.Value)
+			c.Set(keyOk, entry{Key: res, Value: val.Value})
+		}
+	default:
+		c.Set(keyErr, fmt.Errorf("invalid attribute %s", res))
+	}
+}
+
+// SignOut deletes cached OAuth token.
+// @Description deletes OAuth token
+// @Summary execute user sign out
+// @Accept json
+// @Produce json
+// @Success 200 {object} null "sign out successfully"
+// @Failure 401 {object} errInfo "invalid jwt"
+// @Router /signout [get]
+func SignOut(c *gin.Context) {
+	o := authorize(c)
+	if o == nil {
+		return
+	}
+	services.SignOut(o)
+	c.Set(keyOk, nil)
 }

@@ -2,13 +2,12 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"time"
 
-	"github.com/yasshi2525/RushHour/app/services/auth"
-	"github.com/yasshi2525/RushHour/app/services/route"
+	"github.com/yasshi2525/RushHour/app/route"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -17,15 +16,15 @@ const ZERO = 0
 
 // Restore get model from database
 func Restore(withLock bool) {
-	revel.AppLog.Info("start restore from database")
-	defer revel.AppLog.Info("end restore from database")
+	log.Println("start restore from database")
+	defer log.Println("end restore from database")
 	start := time.Now()
 	if withLock {
 		MuModel.Lock()
 		defer MuModel.Unlock()
 	}
 	lock := time.Now()
-	defer WarnLongExec(start, lock, Const.Perf.Restore.D, "restore", true)
+	defer WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Restore.D, "restore", true)
 
 	setNextID()
 	fetchStatic()
@@ -80,7 +79,7 @@ func fetchStatic() {
 			panic(err)
 		}
 	}
-	revel.AppLog.Infof("restored %d entities", cnt)
+	log.Printf("restored %d entities", cnt)
 }
 
 // resolveStatic set pointer from id for Restore()
@@ -99,10 +98,9 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	for _, o := range Model.Players {
-		Model.Tokens[o.Token] = o
-		hash := auth.Digest(auth.Decrypt(o.LoginID))
+		hash := auther.Digest(auther.Decrypt(o.LoginID))
 		Model.Logins[o.Auth][hash] = o
-		route.RefreshTracks(o, Const.Routing.Worker)
+		route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 	}
 	for _, r := range Model.Residences {
 		r.GenOutSteps()
@@ -114,7 +112,7 @@ func genDynamics() {
 		p.GenOutSteps()
 	}
 	for _, l := range Model.RailLines {
-		route.RefreshTransports(l, Const.Routing.Worker)
+		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 	}
 	for _, h := range Model.Humans {
 		h.GenOutSteps()

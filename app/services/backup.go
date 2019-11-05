@@ -2,29 +2,29 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 
 	"github.com/jinzhu/gorm"
-	"github.com/revel/revel"
 )
 
 var backupTicker *time.Ticker
 
 // StartBackupTicker start tikcer
 func StartBackupTicker() {
-	backupTicker = time.NewTicker(Const.Backup.Interval.D)
+	backupTicker = time.NewTicker(serviceConf.AppConf.Game.Service.Backup.Interval.D)
 
 	go watchBackup()
-	revel.AppLog.Info("backup ticker was successfully started.")
+	log.Println("backup ticker was successfully started.")
 }
 
 // StopBackupTicker stop ticker
 func StopBackupTicker() {
 	if backupTicker != nil {
 		backupTicker.Stop()
-		revel.AppLog.Info("backup ticker was successfully stopped.")
+		log.Println("backup ticker was successfully stopped.")
 	}
 }
 
@@ -45,11 +45,11 @@ func Backup(withLock bool) {
 
 	tx := db.Begin()
 	new, up, del, skip := persistStatic(tx)
-	log := logOperation(tx)
+	logOp := logOperation(tx)
 	tx.Commit()
 
-	WarnLongExec(start, lock, Const.Perf.Backup.D, "backup")
-	revel.AppLog.Infof("backup was successfully ended (new %d, up %d, del %d, skip %d, log %d)", new, up, del, skip, log)
+	WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Backup.D, "backup")
+	log.Printf("backup was successfully ended (new %d, up %d, del %d, skip %d, log %d)", new, up, del, skip, logOp)
 }
 
 func persistStatic(tx *gorm.DB) (int, int, int, int) {

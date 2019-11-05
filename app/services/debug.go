@@ -2,12 +2,12 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/revel/revel"
 	"github.com/yasshi2525/RushHour/app/entities"
 )
 
@@ -77,7 +77,7 @@ func StartSimulation() {
 	UpdateModel(op)
 
 	simWg.Wait()
-	revel.AppLog.Info("simulation was successfully started.")
+	log.Println("simulation was successfully started.")
 }
 
 // StopSimulation stop simulation.
@@ -87,7 +87,7 @@ func StopSimulation() {
 		for _, t := range simTickers {
 			t.Stop()
 		}
-		revel.AppLog.Info("simulation was successfully stopped.")
+		log.Println("simulation was successfully stopped.")
 	}
 }
 
@@ -95,7 +95,7 @@ func watchSim() {
 	for v := range simCh {
 		simTickers = append(simTickers, v)
 	}
-	revel.AppLog.Info("simulation channel was successfully stopped.")
+	log.Println("simulation channel was successfully stopped.")
 }
 
 // mkOp returns creation operation
@@ -137,10 +137,10 @@ func tickOp(source string, target entities.ModelType, interval time.Duration, ca
 // WarnLongExec alerts long time consuming task.
 func WarnLongExec(start time.Time, lock time.Time, max time.Duration, title string, verbose ...bool) {
 	if consumed := time.Now().Sub(start); consumed > max {
-		revel.AppLog.Warnf("%s consumed %.2f(%.2f) sec >%.2f", title, consumed.Seconds(),
+		log.Printf("%s consumed %.2f(%.2f) sec >%.2f", title, consumed.Seconds(),
 			time.Now().Sub(lock).Seconds(), max.Seconds())
 	} else if len(verbose) > 0 && verbose[0] {
-		revel.AppLog.Debugf("%s consumed %.2f(%.2f) sec <%.2f", title, consumed.Seconds(),
+		log.Printf("%s consumed %.2f(%.2f) sec <%.2f", title, consumed.Seconds(),
 			time.Now().Sub(lock).Seconds(), max.Seconds())
 	}
 }

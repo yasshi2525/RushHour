@@ -2,14 +2,13 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
-	"github.com/revel/revel"
-
 	"github.com/jinzhu/gorm"
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/route"
+	"github.com/yasshi2525/RushHour/app/route"
 )
 
 // Model is contained all data for gaming
@@ -48,7 +47,7 @@ func (op *OpLog) Add(obj entities.Entity) {
 	case 3:
 		op.Obj4 = str
 	default:
-		revel.AppLog.Errorf("too many args = %d", op.idx+1)
+		log.Printf("too many args = %d", op.idx+1)
 	}
 	op.idx++
 }
@@ -71,7 +70,6 @@ func InitLock() {
 
 // InitRepository initialize storage
 func InitRepository() {
-	entities.Const = Config.Entity
-	Model = entities.NewModel()
+	Model = entities.NewModel(serviceConf.AppConf.Game.Entity, auther)
 	OpCache = []*OpLog{}
 }

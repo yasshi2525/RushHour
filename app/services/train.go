@@ -3,7 +3,7 @@ package services
 import (
 	"fmt"
 
-	"github.com/yasshi2525/RushHour/app/services/route"
+	"github.com/yasshi2525/RushHour/app/route"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 )
@@ -36,7 +36,7 @@ func DeployTrain(o *entities.Player, t *entities.Train, l *entities.RailLine) er
 		break
 	}
 	t.SetTask(start)
-	route.RefreshTransports(l, Const.Routing.Worker)
+	route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 	AddOpLog("DeployTrain", o, t, start)
 	return nil
 }
@@ -51,7 +51,7 @@ func UnDeployTrain(o *entities.Player, t *entities.Train) error {
 	if lt := t.Task(); lt != nil {
 		t.UnLoad()
 		t.SetTask(nil)
-		route.RefreshTransports(lt.RailLine, Const.Routing.Worker)
+		route.RefreshTransports(lt.RailLine, serviceConf.AppConf.Game.Service.Routing.Worker)
 	}
 	return nil
 }

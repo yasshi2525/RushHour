@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/route"
+	"github.com/yasshi2525/RushHour/app/route"
 )
 
 // CreateRailNode create RailNode
@@ -35,11 +35,11 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 	} else {
 		rn := rn.(*entities.RailNode)
 		if o.ReRouting {
-			route.RefreshTracks(o, Const.Routing.Worker)
+			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, Const.Routing.Worker)
+				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()
@@ -61,10 +61,10 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 		return nil, nil, err
 	}
 	to, e1 := from.Extend(x, y)
-	route.RefreshTracks(o, Const.Routing.Worker)
+	route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 	for _, l := range o.RailLines {
 		if l.ReRouting {
-			route.RefreshTransports(l, Const.Routing.Worker)
+			route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 		}
 	}
 	StartRouting()
@@ -98,7 +98,7 @@ func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.R
 		}
 	}
 	e1 := from.Connect(to)
-	route.RefreshTracks(o, Const.Routing.Worker)
+	route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 	StartRouting()
 	AddOpLog("ConnectRailNode", o, from, to, e1, e1.Reverse)
 
@@ -120,11 +120,11 @@ func RemoveRailEdge(o *entities.Player, id uint) error {
 	} else {
 		re := re.(*entities.RailEdge)
 		if o.ReRouting {
-			route.RefreshTracks(o, Const.Routing.Worker)
+			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, Const.Routing.Worker)
+				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()

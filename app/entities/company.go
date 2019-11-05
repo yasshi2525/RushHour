@@ -24,7 +24,7 @@ func (m *Model) NewCompany(x float64, y float64) *Company {
 		Base:        m.NewBase(COMPANY),
 		Persistence: NewPersistence(),
 		Point:       NewPoint(x, y),
-		Attract:     Const.Company.Attract,
+		Attract:     m.conf.Company.Attract,
 	}
 	c.Init(m)
 	c.Resolve()

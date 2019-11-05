@@ -2,8 +2,7 @@ package entities
 
 import (
 	"fmt"
-
-	"github.com/revel/revel"
+	"log"
 )
 
 // Depart creates new LineTask which deprats from it.
@@ -26,7 +25,7 @@ func (lt *LineTask) DepartIf(force ...bool) *LineTask {
 	}
 	if lt.TaskType == OnStopping {
 		if lt.Dest == nil {
-			revel.AppLog.Errorf("dest is nil %v", lt)
+			log.Printf("dest is nil %v", lt)
 		}
 		return lt.Depart(force...)
 	}

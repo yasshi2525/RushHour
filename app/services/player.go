@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/yasshi2525/RushHour/app/auth"
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/auth"
 )
 
 // CreatePlayer creates player.
@@ -13,18 +13,19 @@ func CreatePlayer(loginid string, displayname string, password string, hue int, 
 	if err := CheckMaintenance(); err != nil {
 		return nil, err
 	}
-	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
+	o, err := Model.PasswordSignUp(loginid, password, lv)
+	if err != nil {
 		return nil, err
-	} else {
-		o.CustomDisplayName = auth.Encrypt(displayname)
-		o.UseCustomDisplayName = true
-		o.Hue = hue
-		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
-		o.CustomImage = auth.Encrypt(url)
-		o.UseCustomImage = true
-		AddOpLog("CreatePlayer", o)
-		return o, nil
 	}
+	o.CustomDisplayName = auther.Encrypt(displayname)
+	o.UseCustomDisplayName = true
+	o.Hue = hue
+	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
+	o.CustomImage = auther.Encrypt(url)
+	o.UseCustomImage = true
+	AddOpLog("CreatePlayer", o)
+	return o, nil
+
 }
 
 // OAuthSignIn find or create Player by OAuth
@@ -39,10 +40,8 @@ func OAuthSignIn(authType entities.AuthType, info *auth.OAuthInfo) (*entities.Pl
 }
 
 // SignOut delete Player's token value
-func SignOut(token string) {
-	if o, found := Model.Tokens[token]; found {
-		o.SignOut()
-	}
+func SignOut(o *entities.Player) {
+	o.SignOut()
 }
 
 // PasswordSignIn finds Player by loginid and password
@@ -61,30 +60,31 @@ func PasswordSignUp(loginid string, name string, password string, hue int, lv en
 	if err := CheckMaintenance(); lv != entities.Admin && err != nil {
 		return nil, err
 	}
-	if o, err := Model.PasswordSignUp(loginid, password, lv); err != nil {
+	o, err := Model.PasswordSignUp(loginid, password, lv)
+	if err != nil {
 		return nil, err
-	} else {
-		o.CustomDisplayName = auth.Encrypt(name)
-		o.UseCustomDisplayName = true
-		o.Hue = hue
-		url := fmt.Sprintf("%s/public/img/player.png", Secret.Auth.BaseURL)
-		o.CustomImage = auth.Encrypt(url)
-		o.UseCustomImage = true
-		return o, nil
 	}
-}
+	o.CustomDisplayName = auther.Encrypt(name)
+	o.UseCustomDisplayName = true
+	o.Hue = hue
+	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
+	o.CustomImage = auther.Encrypt(url)
+	o.UseCustomImage = true
+	return o, nil
 
-// FindOwner returns Player by token
-func FindOwner(token string) *entities.Player {
-	return Model.Tokens[token]
 }
 
 // AccountSettings returns user customizable attributes.
 type AccountSettings struct {
-	Player      *entities.Player  `json:"-"`
-	CustomName  string            `json:"custom_name"`
-	CustomImage string            `json:"custom_image"`
-	AuthType    entities.AuthType `json:"auth_type"`
+	Player         *entities.Player  `json:"-"`
+	CustomName     string            `json:"custom_name"`
+	CustomImage    string            `json:"custom_image"`
+	AuthType       entities.AuthType `json:"auth_type"`
+	LoginID        string            `json:"email,omitempty"`
+	OAuthName      string            `json:"oauth_name,omitempty"`
+	UseCustomName  bool              `json:"use_cname,omitempty"`
+	OAuthImage     string            `json:"oauth_image,omitempty"`
+	UseCustomImage bool              `json:"use_cimage,omitempty"`
 }
 
 // MarshalJSON returns plain text data.
@@ -95,7 +95,7 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 			LoginID string `json:"email"`
 			*Alias
 		}{
-			LoginID: auth.Decrypt(s.Player.LoginID),
+			LoginID: auther.Decrypt(s.Player.LoginID),
 			Alias:   (*Alias)(s),
 		})
 	}
@@ -106,9 +106,9 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 		UseCustomImage bool   `json:"use_cimage"`
 		*Alias
 	}{
-		OAuthName:      auth.Decrypt(s.Player.OAuthDisplayName),
+		OAuthName:      auther.Decrypt(s.Player.OAuthDisplayName),
 		UseCustomName:  s.Player.UseCustomDisplayName,
-		OAuthImage:     auth.Decrypt(s.Player.OAuthImage),
+		OAuthImage:     auther.Decrypt(s.Player.OAuthImage),
 		UseCustomImage: s.Player.UseCustomImage,
 		Alias:          (*Alias)(s),
 	})
@@ -118,8 +118,8 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 func GetAccountSettings(o *entities.Player) *AccountSettings {
 	return &AccountSettings{
 		Player:      o,
-		CustomName:  auth.Decrypt(o.CustomDisplayName),
-		CustomImage: auth.Decrypt(o.CustomImage),
+		CustomName:  auther.Decrypt(o.CustomDisplayName),
+		CustomImage: auther.Decrypt(o.CustomImage),
 		AuthType:    o.Auth,
 	}
 }

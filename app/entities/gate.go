@@ -31,7 +31,7 @@ func (m *Model) NewGate(st *Station) *Gate {
 	g := &Gate{
 		Base:        m.NewBase(GATE, st.O),
 		Persistence: NewPersistence(),
-		Num:         Const.Gate.Num,
+		Num:         m.conf.Gate.Num,
 	}
 	g.Init(m)
 	g.Resolve(st.O, st)

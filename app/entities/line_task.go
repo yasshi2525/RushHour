@@ -111,13 +111,13 @@ func (lt *LineTask) Init(m *Model) {
 
 // Step procceed progress to certain time.
 func (lt *LineTask) Step(prog *float64, sec *float64) {
-	canDist := *sec * Const.Train.Speed
+	canDist := *sec * lt.M.conf.Train.Speed
 	remainDist := (1.0 - *prog) * lt.Cost()
 	if remainDist < canDist {
-		*sec -= remainDist / Const.Train.Speed
+		*sec -= remainDist / lt.M.conf.Train.Speed
 		*prog = 1.0
 	} else {
-		*prog += *sec * Const.Train.Speed / lt.Cost()
+		*prog += *sec * lt.M.conf.Train.Speed / lt.Cost()
 		*sec = 0
 	}
 }
@@ -326,20 +326,20 @@ func (lt *LineTask) Cost() float64 {
 			}
 		}
 		if length := len(lt.RailLine.Trains); length != 0 {
-			return sum / Const.Train.Speed / float64(length)
+			return sum / lt.M.conf.Train.Speed / float64(length)
 		}
 		return math.MaxFloat64
 	default:
 		cost := lt.Moving.Cost()
 		if lt.before.TaskType == OnDeparture {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
+			cost += 0.5 * lt.Moving.Cost() * lt.M.conf.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.before.Moving.Angle(lt.Moving) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * lt.M.conf.Train.Slowness * lt.before.Moving.Angle(lt.Moving) / math.Pi
 		}
 		if lt.TaskType == OnStopping {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness
+			cost += 0.5 * lt.Moving.Cost() * lt.M.conf.Train.Slowness
 		} else {
-			cost += 0.5 * lt.Moving.Cost() * Const.Train.Slowness * lt.Moving.Angle(lt.next.Moving) / math.Pi
+			cost += 0.5 * lt.Moving.Cost() * lt.M.conf.Train.Slowness * lt.Moving.Angle(lt.next.Moving) / math.Pi
 		}
 		return cost
 	}

@@ -1,0 +1,13 @@
+{{ define "error.tmpl" }}
+<!DOCTYPE html>
+<html>
+    <header>
+        <meta charset="UTF-8">
+    </header>
+    <body>
+        <h2>一時的なエラーが発生しました</h2>
+        <div>原因: {{ .err }}</div>
+        <div>再度トライしてください</div>
+    </body>
+</html>
+{{ end }}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/yasshi2525/RushHour/app/entities"
-	"github.com/yasshi2525/RushHour/app/services/route"
+	"github.com/yasshi2525/RushHour/app/route"
 )
 
 //CreateStation create Station
@@ -39,11 +39,11 @@ func RemoveStation(o *entities.Player, id uint) error {
 	} else {
 		st := st.(*entities.Station)
 		if o.ReRouting {
-			route.RefreshTracks(o, Const.Routing.Worker)
+			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, Const.Routing.Worker)
+				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()

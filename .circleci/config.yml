@@ -85,20 +85,23 @@ jobs:
           keys:
             - v1-pkg-cache
 
-      - run: go get -u github.com/golang/dep/cmd/dep
-      - run: dep ensure -v
-      - run: go get -u github.com/revel/cmd/revel
-      - run: go get -u github.com/jstemmer/go-junit-report
+      - run:
+          name: Module download
+          command: |
+            cd app
+            go mod download
+            go get -u github.com/jstemmer/go-junit-report
+            cd ..
       
       - run: 
           name: Run Test
           command: |
             ./cc-test-reporter before-build
             mkdir -p reports/golang
-            go test -coverprofile c.out ./... -v 2>&1 | go-junit-report > reports/golang/results.xml
+            cd app
+            go test -coverprofile ../c.out -v ./... 2>&1 | go-junit-report > ../reports/golang/results.xml || true
+            cd ..
             ./cc-test-reporter after-build
-            /go/bin/revel test -m dev
-            cp -r test-results reports/revel
 
       - save_cache:
           key: v1-pkg-cache

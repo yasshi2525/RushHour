@@ -48,7 +48,7 @@ func (s *Step) To() Entity {
 
 // Cost is calculated by distance
 func (s *Step) Cost() float64 {
-	return s.FromNode.Pos().Dist(s.ToNode.Pos()) / Const.Human.Speed
+	return s.FromNode.Pos().Dist(s.ToNode.Pos()) / s.M.conf.Human.Speed
 }
 
 // Resolve set reference from id.

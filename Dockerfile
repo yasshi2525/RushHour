@@ -17,22 +17,15 @@ WORKDIR /go
 RUN mkdir -p src/github.com/yasshi2525/RushHour
 COPY . src/github.com/yasshi2525/RushHour
 
-RUN apk update && apk add --no-cache git
-RUN sed -i -e "s|conf/game.conf|src/github.com/yasshi2525/RushHour/conf/game.conf|" src/github.com/yasshi2525/RushHour/app/services/config.go && \
-    sed -i -e "s|conf/secret.conf|src/github.com/yasshi2525/RushHour/conf/secret.conf|" src/github.com/yasshi2525/RushHour/app/services/secret.go
-
-RUN go get -u github.com/golang/dep/cmd/dep && \
-    cd  src/github.com/yasshi2525/RushHour && \
-    dep ensure && \
-    go get github.com/revel/cmd/revel && \
-    cd /go
-
-RUN mkdir -p /rushhour && \
-    /go/bin/revel build -t /rushhour -m prod -a github.com/yasshi2525/RushHour
+RUN apk update && apk add --no-cache git && \
+    mkdir -p /rushhour/config && \
+    cd app && \
+    go mod download && \
+    go build -o /rushhour/RushHour && \
+    cp config/*.conf /rushhour/config
 
 FROM alpine
 
-ENV APP_SECRET kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
 ENV DB_USER "rushhourgo"
 ENV DB_PASSWORD "rushhourgo"
 ENV DB_HOST "localhost"
@@ -45,6 +38,7 @@ ENV baseurl "https://localhost:9000/"
 ENV salt ""
 ENV key "1234567890123456"
 ENV state ""
+ENV cookie kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
 ENV twitter_token ""
 ENV twitter_secret ""
 ENV google_client ""

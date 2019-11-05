@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 
-	"github.com/yasshi2525/RushHour/app/services/auth"
+	"github.com/yasshi2525/RushHour/app/auth"
 )
 
 // PlayerType represents authenticate level
@@ -85,8 +84,6 @@ type Player struct {
 	OAuthToken string `gorm:"not null" sql:"type:text" json:"-"`
 	// OAuthSecret is hidden attribute and used for OAuth authentication (access token secret).
 	OAuthSecret string `gorm:"not null" sql:"type:text" json:"-"`
-	// Token is hidden attribute and used for authentication in RushHour
-	Token string `gorm:"not null;index" json:"-"`
 
 	ReRouting bool `gorm:"-" json:"-"`
 
@@ -123,13 +120,14 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, e
 	if !info.IsValid() {
 		return nil, fmt.Errorf("token is empty")
 	}
-	loginhash := auth.Digest(info.LoginID)
+	loginhash := m.auther.Digest(info.LoginID)
 	if o, found := m.Logins[authType][loginhash]; found {
-		enc := info.Enc()
+		enc, err := info.Enc()
+		if err != nil {
+			return nil, err
+		}
 		o.OAuthToken = enc.OAuthToken
 		o.OAuthSecret = enc.OAuthSecret
-		o.Token = info.Token()
-		m.Tokens[o.Token] = o
 		return o, nil
 	}
 	o := m.NewPlayer()
@@ -141,20 +139,15 @@ func (m *Model) OAuthSignIn(authType AuthType, info *auth.OAuthInfo) (*Player, e
 
 // SignOut deletes token value.
 func (o *Player) SignOut() {
-	delete(o.M.Tokens, o.Token)
 	o.OAuthToken = ""
 	o.OAuthSecret = ""
-	o.Token = ""
 }
 
 // PasswordSignIn finds Player by loginid and password, then refresh token value.
 // arg must be plain text
 func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error) {
-	if o, found := m.Logins[Local][auth.Digest(loginid)]; found {
-		if encPassword := auth.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
-			delete(m.Tokens, o.Token)
-			o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), encPassword))
-			m.Tokens[o.Token] = o
+	if o, found := m.Logins[Local][m.auther.Digest(loginid)]; found {
+		if encPassword := m.auther.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
 			return o, nil
 		}
 	}
@@ -164,18 +157,16 @@ func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error)
 // PasswordSignUp creates Player with loginid and password, then register token value.
 // arg must be plain text
 func (m *Model) PasswordSignUp(loginid string, password string, lv PlayerType) (*Player, error) {
-	loginhash := auth.Digest(loginid)
+	loginhash := m.auther.Digest(loginid)
 	if _, found := m.Logins[Local][loginhash]; found {
 		return nil, fmt.Errorf("id is already exists")
 	}
 	o := m.NewPlayer()
 	o.Level = lv
-	o.LoginID = auth.Encrypt(loginid)
-	o.Password = auth.Digest(password)
+	o.LoginID = m.auther.Encrypt(loginid)
+	o.Password = m.auther.Digest(password)
 	o.Auth = Local
-	o.Token = auth.Digest(fmt.Sprintf("%s%s", time.Now(), password))
 	o.M.Logins[Local][loginhash] = o
-	o.M.Tokens[o.Token] = o
 	return o, nil
 }
 
@@ -210,9 +201,11 @@ func (o *Player) Init(m *Model) {
 }
 
 // ImportInfo encrypts user information
-func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
-	enc := info.Enc()
-	delete(o.M.Tokens, o.Token)
+func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) error {
+	enc, err := info.Enc()
+	if err != nil {
+		return err
+	}
 
 	o.OAuthDisplayName = enc.DisplayName
 	o.OAuthImage = enc.Image
@@ -220,15 +213,15 @@ func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) {
 	o.Auth = authType
 	o.OAuthToken = enc.OAuthToken
 	o.OAuthSecret = enc.OAuthSecret
-	o.Token = info.Token()
 
-	o.M.Logins[authType][auth.Digest(info.LoginID)] = o
-	o.M.Tokens[o.Token] = o
+	o.M.Logins[authType][o.M.auther.Digest(info.LoginID)] = o
+	return nil
 }
 
 // ExportInfo decrypts user information
-func (o *Player) ExportInfo() *auth.OAuthInfo {
+func (o *Player) ExportInfo() (*auth.OAuthInfo, error) {
 	return (&auth.OAuthInfo{
+		Handler:     o.M.auther,
 		DisplayName: o.GetDisplayName(),
 		Image:       o.GetImage(),
 		LoginID:     o.LoginID,
@@ -351,8 +344,8 @@ func (o *Player) MarshalJSON() ([]byte, error) {
 		Admin       bool   `json:"admin,omitempty"`
 		*Alias
 	}{
-		DisplayName: auth.Decrypt(o.GetDisplayName()),
-		Image:       auth.Decrypt(o.GetImage()),
+		DisplayName: o.M.auther.Decrypt(o.GetDisplayName()),
+		Image:       o.M.auther.Decrypt(o.GetImage()),
 		Alias:       (*Alias)(o),
 		Admin:       o.Level == Admin,
 	})
