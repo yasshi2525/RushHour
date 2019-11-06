@@ -84,8 +84,8 @@ func validGameMapRequest(sl validator.StructLevel) {
 // @Description entities are delegate object
 // @Tags entities.DelegateMap
 // @Summary get all entities in specified area
-// @Accept  query
-// @Produce  json
+// @Accept json
+// @Produce json
 // @Param cx query number true "x coordinate"
 // @Param cy query number true "y coordinate"
 // @Param scale query number true "width,height(100%)=2^scale"

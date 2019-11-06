@@ -64,7 +64,7 @@ type extendResponse struct {
 // @Param x body number true "x coordinate"
 // @Param y body number true "y coordinate"
 // @Param scale body number true "width,height(100%)=2^scale"
-// @Param rnid body number true "tail rail node id"
+// @Param rnid body integer true "tail rail node id"
 // @Success 200 {object} extendResponse "extend rail node"
 // @Success 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
@@ -109,8 +109,8 @@ type connectResponse struct {
 // @Param x body number true "x coordinate"
 // @Param y body number true "y coordinate"
 // @Param scale body number true "width,height(100%)=2^scale"
-// @Param from body number true "from rail node id"
-// @Param to body number true "to rail node id"
+// @Param from body integer true "from rail node id"
+// @Param to body integer true "to rail node id"
 // @Success 200 {object} connectResponse "connect rail node"
 // @Success 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
@@ -156,7 +156,7 @@ type removeRailNodeResponse struct {
 // @Summary remove rail node
 // @Accept json
 // @Produce json
-// @Param rnid body number true "rail node id"
+// @Param rnid body integer true "rail node id"
 // @Success 200 {object} removeRailNodeResponse "connect rail node"
 // @Success 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"

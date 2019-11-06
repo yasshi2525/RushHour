@@ -304,7 +304,7 @@ func TestChangeSettings(t *testing.T) {
 				want: "changed",
 			}, {
 				in:   entry{Key: "use_cname", Value: "true"},
-				want: true,
+				want: "true",
 			},
 		}
 		for _, c := range cases {
