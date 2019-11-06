@@ -28,13 +28,3 @@ func CheckArea(x float64, y float64) error {
 	}
 	return fmt.Errorf("out of bounds")
 }
-
-func CheckMaintenance(owner ...*entities.Player) error {
-	if len(owner) > 0 && owner[0].Level == entities.Admin {
-		return nil
-	}
-	if !IsInOperation() {
-		return fmt.Errorf("under maintenance")
-	}
-	return nil
-}

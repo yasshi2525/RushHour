@@ -15,8 +15,8 @@ func TestCreateResidence(t *testing.T) {
 	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
-	serviceConf = ServiceConfig{AppConf: conf}
-	auther, _ = auth.GetAuther(conf.Secret.Auth)
+	auther, _ := auth.GetAuther(conf.Secret.Auth)
+	serviceConf = &ServiceConfig{AppConf: conf, Auther: auther}
 
 	InitRepository()
 	isInOperation = true
@@ -38,8 +38,8 @@ func TestCreateCompany(t *testing.T) {
 	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
-	serviceConf = ServiceConfig{AppConf: conf}
-	auther, _ = auth.GetAuther(conf.Secret.Auth)
+	auther, _ := auth.GetAuther(conf.Secret.Auth)
+	serviceConf = &ServiceConfig{AppConf: conf, Auther: auther}
 
 	InitRepository()
 	isInOperation = true
@@ -61,8 +61,8 @@ func TestCreateStep(t *testing.T) {
 	conf, _ := config.Load(fmt.Sprintf("%s/../config", wd))
 	conf.Game.Service.Routing.Worker = 1
 	conf.Game.Entity.MaxScale = 2
-	serviceConf = ServiceConfig{AppConf: conf}
-	auther, _ = auth.GetAuther(conf.Secret.Auth)
+	auther, _ := auth.GetAuther(conf.Secret.Auth)
+	serviceConf = &ServiceConfig{AppConf: conf, Auther: auther}
 
 	InitRepository()
 	isInOperation = true

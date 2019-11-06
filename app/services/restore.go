@@ -98,7 +98,7 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	for _, o := range Model.Players {
-		hash := auther.Digest(auther.Decrypt(o.LoginID))
+		hash := serviceConf.Auther.Digest(serviceConf.Auther.Decrypt(o.LoginID))
 		Model.Logins[o.Auth][hash] = o
 		route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
 	}

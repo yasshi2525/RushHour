@@ -5,10 +5,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/yasshi2525/RushHour/app/auth"
@@ -16,6 +13,14 @@ import (
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 )
+
+// @title RushHour REST API
+// @version 1.0
+// @description RushHour REST API
+// @license.name MIT License
+// @host rushhourgame.net
+// @BasePath /api/v1
+// @schemes https
 
 // entry represents generic key-value pair
 type entry struct {
@@ -40,39 +45,14 @@ type user struct {
 }
 
 type errInfo struct {
-	Err interface{} `json:"err"`
+	Err []string `json:"err"`
 }
 
-var conf config.Config
+var conf *config.Config
 var auther *auth.Auther
 
-// buildJwt returns JSON Web Token of player
-func buildJwt(o *entities.Player) (*jwtInfo, error) {
-	url := conf.Secret.Auth.BaseURL
-	now := time.Now()
-	exp := now.Add(time.Hour)
-	uu := uuid.New()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss":                        url,
-		"sub":                        "AccessToken",
-		"aud":                        url,
-		"exp":                        exp.Unix(),
-		"nbf":                        now.Unix(),
-		"iat":                        now.Unix(),
-		"jti":                        uu.String(),
-		fmt.Sprintf("%s/id", url):    o.ID,
-		fmt.Sprintf("%s/name", url):  auther.Decrypt(o.GetDisplayName()),
-		fmt.Sprintf("%s/image", url): auther.Decrypt(o.GetImage()),
-		fmt.Sprintf("%s/admin", url): o.Level == entities.Admin,
-		fmt.Sprintf("%s/hue", url):   o.Hue,
-	})
-
-	jwt, err := token.SignedString([]byte(conf.Secret.Auth.Salt))
-	if err != nil {
-		return nil, err
-	}
-	return &jwtInfo{jwt}, nil
-}
+// excludeList accepts admin request even under maintenance
+var excludeList []string
 
 type scaleRequest struct {
 	Scale string `form:"scale" json:"scale" validate:"required,numeric"`
@@ -165,7 +145,11 @@ func validateEntity(res entities.ModelType, raw interface{}) (entities.Entity, e
 }
 
 // InitController loads config
-func InitController(c config.Config, a *auth.Auther) {
+func InitController(c *config.Config, a *auth.Auther) {
 	conf = c
 	auther = a
+	excludeList = []string{
+		"/api/v1/login",
+		"/api/v1/admin",
+	}
 }

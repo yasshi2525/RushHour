@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -13,52 +14,103 @@ import (
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
-var keyErr = "err"
-var keyOk = "ok"
-var keyOwner = "o"
-var keyOwnerErr = "oerr"
+// keyErr is set when error happens
+const keyErr = "err"
 
-// GeneralHandler fetch user from bearer token and set Player to user variable, then respond client
-func GeneralHandler() gin.HandlerFunc {
+// keyOk is set when no error happens
+const keyOk = "ok"
+
+// keyOwner is set when user is specified by jwt
+const keyOwner = "o"
+
+// keyOAuth is set when user information is received by OAuth
+const keyOAuth = "oauth"
+
+func abortByMaintenance(c *gin.Context) {
+	c.JSON(http.StatusServiceUnavailable, &errInfo{Err: []string{"under maintenance"}})
+	c.Abort()
+}
+
+// MaintenanceHandler blocks user access under maintenance
+func MaintenanceHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Println("before MaintenanceHandler")
+		defer log.Println("after MaintenanceHandler")
+		if !services.IsInOperation() {
+			abortByMaintenance(c)
+		} else {
+			c.Next()
+		}
+	}
+}
+
+// JWTHandler handles user action with jwt key
+// It should be called after MaintenanceHandler is called
+func JWTHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Println("before JWTHandler")
+		defer log.Println("after JWTHandler")
+		o, err := parseJWT(c.GetHeader("Authorization"))
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, &errInfo{Err: []string{err.Error()}})
+			c.Abort()
+		}
+		c.Set(keyOwner, o)
+		c.Next()
+	}
+}
+
+// AdminHandler handles admin action
+// It should be called after JWTHandler is called
+func AdminHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Println("before AdminHandler")
+		defer log.Println("after AdminHandler")
+		if c.MustGet(keyOwner).(*entities.Player).Level != entities.Admin {
+			c.JSON(http.StatusUnauthorized, &errInfo{Err: []string{"permission denied"}})
+			c.Abort()
+		}
+		c.Next()
+	}
+}
+
+// ModelHandler handles model and error controling
+// It causes panic when neither result keyOk or keyErr is set
+// It should be called after JWTHandeler and AdminHandler are called
+func ModelHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		services.MuModel.Lock()
 		defer services.MuModel.Unlock()
-		o, err := parseJWT(c.GetHeader("Authorization"))
-		c.Set(keyOwner, o)
-		c.Set(keyOwnerErr, err)
+		log.Println("before ModelHandler")
+		defer log.Println("after ModelHandler")
 		c.Next()
+		// error reported
 		if res, has := c.Get(keyErr); has {
+			// error caused by validation
 			if verr, ok := res.(validator.ValidationErrors); ok {
 				c.JSON(http.StatusBadRequest, buildErrorMessages(verr))
 			} else {
+				// error caused by services
 				if e, ok := res.(error); ok {
+					// single reason
 					c.JSON(http.StatusBadRequest, &errInfo{Err: []string{e.Error()}})
 				} else if es, ok := res.([]error); ok {
+					// multiple reason
 					var msgs []string
 					for _, e := range es {
 						msgs = append(msgs, e.Error())
 					}
 					c.JSON(http.StatusBadRequest, &errInfo{Err: msgs})
 				} else {
-					c.JSON(http.StatusBadRequest, &errInfo{Err: e})
+					// unhandle error
+					c.JSON(http.StatusBadRequest, &errInfo{Err: []string{fmt.Sprintf("%s", e)}})
 				}
 
 			}
-		} else if res, has := c.Get(keyOk); has {
-			c.JSON(http.StatusOK, res)
-		} else if err != nil {
-			c.JSON(http.StatusUnauthorized, &errInfo{Err: err.Error()})
 		} else {
-			c.JSON(http.StatusBadRequest, &errInfo{Err: nil})
+			c.JSON(http.StatusOK, c.MustGet(keyOk))
 		}
 	}
-}
-
-func authorize(c *gin.Context) *entities.Player {
-	if o, has := c.Get(keyOwner); has {
-		return o.(*entities.Player)
-	}
-	return nil
 }
 
 func parseJWT(header string) (*entities.Player, error) {

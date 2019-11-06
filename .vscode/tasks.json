@@ -6,7 +6,21 @@
         {
             "label": "run RushHour",
             "type": "shell",
-            "command": "go run github.com/yasshi2525/RushHour/app",
+            "command": "go run .",
+            "options": {
+                "cwd": "app"
+            },
+            "problemMatcher": [
+                "$go"
+            ]
+        },
+        {
+            "label": "go test",
+            "type": "shell",
+            "command": "go test -v ./... -coverprofile ../reports/golang/c.out |& tee /dev/tty | go-junit-report > ../reports/golang/results.xml",
+            "options": {
+                "cwd": "app"
+            },
             "problemMatcher": [
                 "$go"
             ]
@@ -29,6 +43,12 @@
                 "$tsc",
                 "$eslint-compact",
             ]
-        }
+        },
+        {
+            "label": "swagger",
+            "type": "shell",
+            "command": "swag init -d app -o docs/api",
+            "problemMatcher": []
+        },
     ]
 }

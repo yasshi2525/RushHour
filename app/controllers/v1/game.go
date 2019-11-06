@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/yasshi2525/RushHour/app/entities"
@@ -30,22 +28,14 @@ func GameStatus(c *gin.Context) {
 // @Summary start game
 // @Produce json
 // @Success 200 {object} gameStatus "game status"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /game/start [post]
+// @Router /admin/game/start [post]
 func StartGame(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
+	if !services.IsInOperation() {
+		services.Start()
 	}
-	if o.Level != entities.Admin {
-		c.Set(keyErr, fmt.Errorf("permission denied"))
-	} else {
-		if !services.IsInOperation() {
-			services.Start()
-		}
-		c.Set(keyOk, &gameStatus{services.IsInOperation()})
-	}
+	c.Set(keyOk, &gameStatus{services.IsInOperation()})
 }
 
 // StopGame returns result of game stopping
@@ -54,22 +44,14 @@ func StartGame(c *gin.Context) {
 // @Summary stop game
 // @Produce json
 // @Success 200 {object} gameStatus "game status"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /game/stop [post]
+// @Router /admin/game/stop [post]
 func StopGame(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
+	if services.IsInOperation() {
+		services.Stop()
 	}
-	if o.Level != entities.Admin {
-		c.Set(keyErr, fmt.Errorf("permission denied"))
-	} else {
-		if services.IsInOperation() {
-			services.Stop()
-		}
-		c.Set(keyOk, &gameStatus{services.IsInOperation()})
-	}
+	c.Set(keyOk, &gameStatus{services.IsInOperation()})
 }
 
 type purgeStatus struct {
@@ -82,17 +64,12 @@ type purgeStatus struct {
 // @Summary start game
 // @Produce json
 // @Success 200 {object} gameStatus "game status"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /game/start [post]
+// @Router /admin/game/purge [post]
 func PurgeUserData(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
-	if o.Level != entities.Admin {
-		c.Set(keyErr, fmt.Errorf("permission denied"))
-	} else if err := services.Purge(o.O); err != nil {
+	o := c.MustGet(keyOwner).(*entities.Player)
+	if err := services.Purge(o.O); err != nil {
 		c.Set(keyErr, err)
 	} else {
 		c.Set(keyOk, &purgeStatus{true})

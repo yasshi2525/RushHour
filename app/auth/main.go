@@ -10,8 +10,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/oauth1/oauth"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
 	"github.com/yasshi2525/RushHour/app/config"
@@ -37,6 +40,15 @@ type OAuthInfo struct {
 	OAuthToken  string
 	OAuthSecret string
 	IsEnc       bool
+}
+
+// JWTInfo is requirements to create json web token
+type JWTInfo struct {
+	ID    uint
+	Name  string
+	Image string
+	Admin bool
+	Hue   int
 }
 
 // GetAuther initiates cipher, connection
@@ -139,6 +151,34 @@ func (a *Auther) Decrypt(enc64 string) string {
 		cipher.NewCBCDecrypter(a.block, iv).CryptBlocks(plain, enc)
 		return string(unpad(plain))
 	}
+}
+
+// BuildJWT returns JSON Web Token of player
+func (a *Auther) BuildJWT(o *JWTInfo) (string, error) {
+	url := a.baseURL
+	now := time.Now()
+	exp := now.Add(time.Hour)
+	uu := uuid.New()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"iss":                        url,
+		"sub":                        "AccessToken",
+		"aud":                        url,
+		"exp":                        exp.Unix(),
+		"nbf":                        now.Unix(),
+		"iat":                        now.Unix(),
+		"jti":                        uu.String(),
+		fmt.Sprintf("%s/id", url):    o.ID,
+		fmt.Sprintf("%s/name", url):  o.Name,
+		fmt.Sprintf("%s/image", url): o.Image,
+		fmt.Sprintf("%s/admin", url): o.Admin,
+		fmt.Sprintf("%s/hue", url):   o.Hue,
+	})
+
+	res, err := token.SignedString([]byte(a.salt))
+	if err != nil {
+		return "", err
+	}
+	return res, nil
 }
 
 func (a *Auther) genEncrypter() (cipher.BlockMode, []byte) {

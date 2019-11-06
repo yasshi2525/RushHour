@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strings"
 
 	"github.com/yasshi2525/RushHour/app/auth"
 )
@@ -147,7 +146,7 @@ func (o *Player) SignOut() {
 // arg must be plain text
 func (m *Model) PasswordSignIn(loginid string, password string) (*Player, error) {
 	if o, found := m.Logins[Local][m.auther.Digest(loginid)]; found {
-		if encPassword := m.auther.Digest(password); strings.Compare(o.Password, encPassword) == 0 {
+		if encPassword := m.auther.Digest(password); o.Password == encPassword {
 			return o, nil
 		}
 	}
@@ -218,7 +217,7 @@ func (o *Player) ImportInfo(authType AuthType, info *auth.OAuthInfo) error {
 	return nil
 }
 
-// ExportInfo decrypts user information
+// ExportInfo decrypts user information for OAuth
 func (o *Player) ExportInfo() (*auth.OAuthInfo, error) {
 	return (&auth.OAuthInfo{
 		Handler:     o.M.auther,
@@ -229,6 +228,17 @@ func (o *Player) ExportInfo() (*auth.OAuthInfo, error) {
 		OAuthSecret: o.OAuthSecret,
 		IsEnc:       true,
 	}).Dec()
+}
+
+// ExportJWTInfo decrypts user information for json web token
+func (o *Player) ExportJWTInfo() *auth.JWTInfo {
+	return &auth.JWTInfo{
+		ID:    o.ID,
+		Name:  o.M.auther.Decrypt(o.GetDisplayName()),
+		Image: o.M.auther.Decrypt(o.GetImage()),
+		Admin: o.Level == Admin,
+		Hue:   o.Hue,
+	}
 }
 
 // GetDisplayName returns customized name if player do.

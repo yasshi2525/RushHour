@@ -49,7 +49,7 @@ func (a *Auther) GetTwitterOAuthInfo(tmpCred *oauth.Credentials, tmpSecret strin
 	if err != nil {
 		return nil, err
 	}
-	res, err := twitterClient.Get(&http.Client{}, cred, "https://api.twitter.com/1.1/users/show.json", url.Values{"user_id": {values.Get("user_id")}})
+	res, err := twitterClient.Get(&http.Client{}, cred, "https://api.twitter.com/1.1/users/show.json", url.Values{"user_id": []string{values.Get("user_id")}})
 	if err != nil {
 		return nil, err
 	}
