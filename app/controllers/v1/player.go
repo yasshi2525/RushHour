@@ -15,11 +15,8 @@ import (
 // @Produce json
 // @Success 200 {array} entities.Player "list of player"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /players [get]
 func Players(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
 	c.Set(keyOk, entities.JSONPlayer(services.Model.Players))
 }

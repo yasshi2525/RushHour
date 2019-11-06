@@ -9,7 +9,7 @@ import (
 
 // CreateIfAdmin creates named Admin User
 func CreateIfAdmin() {
-	if o, ok := Model.Logins[entities.Local][auther.Digest(serviceConf.AppConf.Secret.Admin.UserName)]; ok {
+	if o, ok := Model.Logins[entities.Local][serviceConf.Auther.Digest(serviceConf.AppConf.Secret.Admin.UserName)]; ok {
 		if o.Level != entities.Admin {
 			panic(fmt.Errorf("admin %s exists, but lv is not admin but %d", serviceConf.AppConf.Secret.Admin.UserName, o.Level))
 		}

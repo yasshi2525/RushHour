@@ -1,0 +1,17 @@
+{{ define "oauth.tmpl" }}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>RushHour</title>
+        <script>
+            localStorage.setItem("jwt", "{{ .jwt }}");
+            location.href="/";
+        </script>
+    </head>
+    <body>
+        <div>
+            自動的にジャンプしない場合、<a href="/">こちら</a>をクリックしてください
+        </div>
+    </body>
+</html>
+{{ end }}

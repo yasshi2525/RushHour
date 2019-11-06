@@ -29,6 +29,7 @@ type loginRequest struct {
 // @Param password body string true "password"
 // @Success 200 {object} jwtInfo "json web token containing user attributes"
 // @Failure 400 {object} errInfo "reasons of error when login fail"
+// @Failure 503 {object} errInfo "under maintenance (apply only normal, except admin)"
 // @Router /login [post]
 func Login(c *gin.Context) {
 	params := loginRequest{}
@@ -37,7 +38,9 @@ func Login(c *gin.Context) {
 	} else {
 		if o, err := services.PasswordSignIn(params.ID, params.Password); err != nil {
 			c.Set(keyErr, err)
-		} else if jwt, err := buildJwt(o); err != nil {
+		} else if !services.IsInOperation() && o.Level == entities.Normal {
+			abortByMaintenance(c)
+		} else if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
 			c.Set(keyErr, err)
 		} else {
 			c.Set(keyOk, jwt)
@@ -79,6 +82,7 @@ func validRegisterRequest(sl validator.StructLevel) {
 // @Param hue body integer true "player's rail line symbol color (HSV model)"
 // @Success 200 {object} jwtInfo "json web token containing user attributes"
 // @Failure 400 {object} errInfo "reasons of error when register"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /register [post]
 func Register(c *gin.Context) {
 	params := registerRequest{}
@@ -88,7 +92,7 @@ func Register(c *gin.Context) {
 		hue, _ := strconv.Atoi(params.Hue)
 		if o, err := services.PasswordSignUp(params.ID, params.DisplayName, params.Password, hue, entities.Normal); err != nil {
 			c.Set(keyErr, err)
-		} else if jwt, err := buildJwt(o); err != nil {
+		} else if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
 			c.Set(keyErr, err)
 		} else {
 			c.Set(keyOk, jwt)
@@ -106,12 +110,10 @@ func Register(c *gin.Context) {
 // @Success 200 {object} services.AccountSettings "user attributes"
 // @Failure 400 {object} errInfo "under maintenance"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /settings [get]
 func Settings(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	c.Set(keyOk, services.GetAccountSettings(o))
 }
 
@@ -136,12 +138,10 @@ type settingsUseCname struct {
 // @Success 200 {object} entry "changed user attributes"
 // @Failure 400 {object} errInfo "invalid parameter"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /settings/{resname} [post]
 func ChangeSettings(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	res := c.Param("resname")
 	switch res {
 	case "custom_name":
@@ -172,12 +172,10 @@ func ChangeSettings(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} string "sign out successfully"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /signout [get]
 func SignOut(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	services.SignOut(o)
 	c.Set(keyOk, nil)
 }

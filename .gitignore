@@ -1,23 +1,18 @@
 test-results/
 reports
 tmp/
-routes/
 node_modules/
 .vscode/
-coverage/
-public/fonts
-public/spritesheet
-public/js/bundle.*.js
+app/assets/fonts
+app/assets/spritesheet
+app/assets/js/bundle.*.js
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
-junit.xml
-vendor
+docs/api/swagger.json
+docs/api/swagger.yaml
+docs/api/docs.go
 
-resources/img/*
-resources/js/*
-log
 !.gitkeep
-conf/secret.conf
 
 # Binaries for programs and plugins
 *.exe

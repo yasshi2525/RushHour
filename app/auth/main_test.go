@@ -237,4 +237,10 @@ func TestAuther(t *testing.T) {
 			}
 		}
 	})
+	t.Run("BuildJWT", func(t *testing.T) {
+		a, _ := GetAuther(config.CnfAuth{})
+		if _, err := a.BuildJWT(&JWTInfo{}); err != nil {
+			t.Errorf("buildJWT().err got %v, want nil", err)
+		}
+	})
 }

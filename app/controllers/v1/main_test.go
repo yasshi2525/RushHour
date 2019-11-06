@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
@@ -16,37 +15,38 @@ import (
 
 	"github.com/yasshi2525/RushHour/app/auth"
 	"github.com/yasshi2525/RushHour/app/config"
-	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/services"
 )
 
 func TestMain(m *testing.M) {
 	gin.SetMode(gin.ReleaseMode)
+	conf = &config.Config{}
 	conf.Game.Entity.MinScale = 0
 	conf.Game.Entity.MaxScale = 16
 	conf.Game.Service.Procedure.Interval.D = 1 * time.Hour
 	conf.Secret.Admin.UserName = "admin@example.com"
 	conf.Secret.Admin.Password = "password_test"
-	services.Init(services.ServiceConfig{
-		AppConf: conf,
-	})
-	defer services.Terminate()
-	services.CreateIfAdmin()
-	services.Start()
-	defer services.Stop()
 	var err error
 	if auther, err = auth.GetAuther(conf.Secret.Auth); err != nil {
 		panic(fmt.Errorf("failed to create auther: %v", err))
 	} else {
+		services.Init(&services.ServiceConfig{
+			AppConf: conf,
+			Auther:  auther,
+		})
+		defer services.Terminate()
+		services.CreateIfAdmin()
+		services.Start()
+		defer services.Stop()
 		binding.Validator = new(DefaultValidator)
 		m.Run()
 	}
 }
 
-func prepare() (*httptest.ResponseRecorder, *gin.Context, *gin.Engine) {
+func prepare(handlers ...gin.HandlerFunc) (*httptest.ResponseRecorder, *gin.Context, *gin.Engine) {
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
-	r.Use(GeneralHandler())
+	r.Use(handlers...)
 	return w, c, r
 }
 
@@ -79,18 +79,14 @@ func assertErrorResponse(name string, t *testing.T, w *httptest.ResponseRecorder
 		var msg errInfo
 		if err := json.Unmarshal(w.Body.Bytes(), &msg); err != nil {
 			t.Errorf("%s.body.err got %v, want nil", name, err)
-		} else if got, ok := msg.Err.([]interface{}); !ok {
-			t.Errorf("%s.body.err got type %s, want type []interface{} (details = %v)", name, reflect.TypeOf(msg.Err), msg.Err)
 		} else {
+			got := msg.Err
 			if len(got) != len(want) {
 				t.Errorf("%s.body got %d errors, want %d errors", name, len(got), len(want))
 			} else {
 				for i := 0; i < len(got); i++ {
-					got, want := got[i], want[i]
-					if str, ok := got.(string); !ok {
-						t.Errorf("%s.body[%d] got type %s, want string (details = got %v, want %v)", name, i, reflect.TypeOf(got), got, want)
-					} else if str != want {
-						t.Errorf("%s.body[%d] got %s, want %s", name, i, str, want)
+					if got, want := got[i], want[i]; got != want {
+						t.Errorf("%s.body[%d] got %s, want %s", name, i, got, want)
 					}
 				}
 			}
@@ -148,15 +144,9 @@ func assertUnauthorized(t *testing.T, args paramAssertUnauthorized) {
 	}
 }
 
-func TestBuildJwt(t *testing.T) {
-	if _, err := buildJwt(&entities.Player{}); err != nil {
-		t.Errorf("buildJwt().err got %v, want nil", err)
-	}
-}
-
 func TestInitController(t *testing.T) {
 	bkConf := conf
-	wantConf := config.Config{
+	wantConf := &config.Config{
 		Game: config.CnfGame{
 			Entity: config.CnfEntity{
 				MaxScale: 5,

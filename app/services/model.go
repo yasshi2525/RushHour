@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
@@ -90,7 +89,7 @@ func processMsg(msg *Operation) time.Time {
 		switch msg.Target {
 		case entities.PLAYER:
 			level := entities.Normal
-			if strings.Compare(msg.OName, "admin") == 0 {
+			if msg.OName == "admin" {
 				level = entities.Admin
 			}
 			CreatePlayer(msg.OName, msg.OName, msg.OName, rand.Intn(360), level)

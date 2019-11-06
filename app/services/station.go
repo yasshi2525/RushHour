@@ -9,9 +9,6 @@ import (
 
 //CreateStation create Station
 func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*entities.Station, error) {
-	if err := CheckMaintenance(); err != nil {
-		return nil, err
-	}
 	if err := CheckAuth(o, rn); err != nil {
 		return nil, err
 	}
@@ -31,9 +28,6 @@ func CreateStation(o *entities.Player, rn *entities.RailNode, name string) (*ent
 
 //RemoveStation remove Station
 func RemoveStation(o *entities.Player, id uint) error {
-	if err := CheckMaintenance(); err != nil {
-		return err
-	}
 	if st, err := Model.DeleteIf(o, entities.STATION, id); err != nil {
 		return err
 	} else {

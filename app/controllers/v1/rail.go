@@ -23,14 +23,12 @@ type deptResponse struct {
 // @Param y body number true "y coordinate"
 // @Param scale body number true "width,height(100%)=2^scale"
 // @Success 200 {object} deptResponse "created rail node"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /rail_nodes [post]
 func Depart(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	params := pointRequest{}
 	if err := c.Bind(&params); err != nil {
 		c.Set(keyErr, err)
@@ -66,14 +64,12 @@ type extendResponse struct {
 // @Param scale body number true "width,height(100%)=2^scale"
 // @Param rnid body integer true "tail rail node id"
 // @Success 200 {object} extendResponse "extend rail node"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /rail_nodes/extend [post]
 func Extend(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	params := extendRequest{}
 	if err := c.Bind(&params); err != nil {
 		c.Set(keyErr, err)
@@ -112,14 +108,12 @@ type connectResponse struct {
 // @Param from body integer true "from rail node id"
 // @Param to body integer true "to rail node id"
 // @Success 200 {object} connectResponse "connect rail node"
-// @Success 400 {object} errInfo "reason of fail"
+// @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /rail_nodes/connect [post]
 func Connect(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	params := connectRequest{}
 	if err := c.Bind(&params); err != nil {
 		c.Set(keyErr, err)
@@ -160,12 +154,10 @@ type removeRailNodeResponse struct {
 // @Success 200 {object} removeRailNodeResponse "connect rail node"
 // @Success 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
+// @Failure 503 {object} errInfo "under maintenance"
 // @Router /rail_nodes [delete]
 func RemoveRailNode(c *gin.Context) {
-	o := authorize(c)
-	if o == nil {
-		return
-	}
+	o := c.MustGet(keyOwner).(*entities.Player)
 	params := removeRailNodeRequest{}
 	if err := c.Bind(&params); err != nil {
 		c.Set(keyErr, err)

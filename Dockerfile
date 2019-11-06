@@ -56,4 +56,6 @@ VOLUME [ "/rushhour/src/github.com/yasshi2525/RushHour/log" ]
 
 USER rushhour
 
+ENV GIN_MODE "release"
+
 ENTRYPOINT [ "./docker-entrypoint.sh" ]

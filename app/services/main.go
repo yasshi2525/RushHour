@@ -1,12 +1,8 @@
 package services
 
 import (
-	crand "crypto/rand"
 	"fmt"
 	"log"
-	"math"
-	"math/big"
-	"math/rand"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,21 +16,21 @@ import (
 var db *gorm.DB
 
 var isInOperation bool
-var isPersist bool
 
 // ServiceConfig represents service settings
 type ServiceConfig struct {
 	// IsPersist is whether storing user data to database
 	IsPersist bool
-	// LoadsConf is whether using conf file
-	AppConf config.Config
+	// AppConf is whether using conf file
+	AppConf *config.Config
+	// Auther has encrypt keys
+	Auther *auth.Auther
 }
 
-var serviceConf ServiceConfig
-var auther *auth.Auther
+var serviceConf *ServiceConfig
 
 // Init prepares for starting game
-func Init(sc ServiceConfig) {
+func Init(sc *ServiceConfig) {
 	log.Println("start preparation for game")
 	defer log.Println("end preparation for game")
 
@@ -42,15 +38,7 @@ func Init(sc ServiceConfig) {
 
 	start := time.Now()
 
-	seed, _ := crand.Int(crand.Reader, big.NewInt(math.MaxInt64))
-	rand.Seed(seed.Int64())
-
 	InitLock()
-	var err error
-	auther, err = auth.GetAuther(serviceConf.AppConf.Secret.Auth)
-	if err != nil {
-		panic(err)
-	}
 	defer WarnLongExec(start, start, serviceConf.AppConf.Game.Service.Perf.Init.D, "initialization", true)
 	InitRepository()
 	if serviceConf.IsPersist {

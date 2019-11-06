@@ -2,8 +2,8 @@ package services
 
 import (
 	"fmt"
-	"time"
 	"log"
+	"time"
 
 	"github.com/yasshi2525/RushHour/app/entities"
 	"github.com/yasshi2525/RushHour/app/route"
@@ -11,9 +11,6 @@ import (
 
 // CreateRailLine create RailLine
 func CreateRailLine(o *entities.Player, name string, ext bool, pass bool) (*entities.RailLine, error) {
-	if err := CheckMaintenance(); err != nil {
-		return nil, err
-	}
 	l := Model.NewRailLine(o)
 	l.Name = name
 	l.AutoExt = ext
@@ -29,9 +26,6 @@ func StartRailLine(
 	o *entities.Player,
 	l *entities.RailLine,
 	p *entities.Platform) error {
-	if err := CheckMaintenance(); err != nil {
-		return err
-	}
 	if err := CheckAuth(o, l); err != nil {
 		return err
 	}
@@ -53,9 +47,6 @@ func StartRailLine(
 func StartRailLineEdge(o *entities.Player,
 	l *entities.RailLine,
 	re *entities.RailEdge) error {
-	if err := CheckMaintenance(); err != nil {
-		return err
-	}
 	if err := CheckAuth(o, l); err != nil {
 		return err
 	}
@@ -75,9 +66,6 @@ func StartRailLineEdge(o *entities.Player,
 }
 
 func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entities.RailEdge) error {
-	if err := CheckMaintenance(); err != nil {
-		return err
-	}
 	if err := CheckAuth(o, re); err != nil {
 		return err
 	}
@@ -95,9 +83,6 @@ func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entiti
 }
 
 func ComplementRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
-	if err := CheckMaintenance(); err != nil {
-		return false, err
-	}
 	if err := CheckAuth(o, l); err != nil {
 		return false, err
 	}
@@ -111,9 +96,6 @@ func ComplementRailLine(o *entities.Player, l *entities.RailLine) (bool, error) 
 
 // RingRailLine connects tail and head
 func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
-	if err := CheckMaintenance(); err != nil {
-		return false, err
-	}
 	if err := CheckAuth(o, l); err != nil {
 		return false, err
 	}
@@ -128,9 +110,6 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 }
 
 func RemoveRailLine(o *entities.Player, id uint) error {
-	if err := CheckMaintenance(); err != nil {
-		return err
-	}
 	if l, err := Model.DeleteIf(o, entities.RAILLINE, id); err != nil {
 		return err
 	} else {

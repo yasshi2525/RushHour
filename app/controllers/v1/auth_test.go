@@ -28,7 +28,7 @@ func TestLogin(t *testing.T) {
 		}
 
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.POST("/login", Login)
 			assertOkResponse(t, paramAssertOk{
 				Method: "POST",
@@ -78,7 +78,7 @@ func TestLogin(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.POST("/login", Login)
 			str, _ := json.Marshal(c.in)
 			req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(str))
@@ -155,7 +155,7 @@ func TestRegister(t *testing.T) {
 		}
 
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.POST("/register", Register)
 			assertOkResponse(t, paramAssertOk{
 				Method: "POST",
@@ -212,7 +212,7 @@ func TestRegister(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.POST("/register", Register)
 			str, _ := json.Marshal(c.in)
 			req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(str))
@@ -242,7 +242,7 @@ func TestSettings(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(JWTHandler(), ModelHandler())
 			r.GET("/settings", Settings)
 			assertOkResponse(t, paramAssertOk{
 				Method: "GET",
@@ -263,7 +263,7 @@ func TestSettings(t *testing.T) {
 	})
 
 	t.Run("unauthorized", func(t *testing.T) {
-		w, _, r := prepare()
+		w, _, r := prepare(JWTHandler(), ModelHandler())
 		r.GET("/settings", Settings)
 		assertUnauthorized(t, paramAssertUnauthorized{
 			Method: "GET",
@@ -308,7 +308,7 @@ func TestChangeSettings(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.POST("/settings/:resname", ChangeSettings)
 			assertOkResponse(t, paramAssertOk{
 				Method: "POST",

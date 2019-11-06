@@ -10,18 +10,15 @@ import (
 
 // CreatePlayer creates player.
 func CreatePlayer(loginid string, displayname string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
-	if err := CheckMaintenance(); err != nil {
-		return nil, err
-	}
 	o, err := Model.PasswordSignUp(loginid, password, lv)
 	if err != nil {
 		return nil, err
 	}
-	o.CustomDisplayName = auther.Encrypt(displayname)
+	o.CustomDisplayName = serviceConf.Auther.Encrypt(displayname)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
 	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
-	o.CustomImage = auther.Encrypt(url)
+	o.CustomImage = serviceConf.Auther.Encrypt(url)
 	o.UseCustomImage = true
 	AddOpLog("CreatePlayer", o)
 	return o, nil
@@ -31,8 +28,6 @@ func CreatePlayer(loginid string, displayname string, password string, hue int, 
 // OAuthSignIn find or create Player by OAuth
 func OAuthSignIn(authType entities.AuthType, info *auth.OAuthInfo) (*entities.Player, error) {
 	if o, err := Model.OAuthSignIn(authType, info); err != nil {
-		return nil, err
-	} else if err := CheckMaintenance(o); err != nil {
 		return nil, err
 	} else {
 		return o, nil
@@ -48,8 +43,6 @@ func SignOut(o *entities.Player) {
 func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
 	if o, err := Model.PasswordSignIn(loginid, password); err != nil {
 		return nil, err
-	} else if err := CheckMaintenance(o); err != nil {
-		return nil, err
 	} else {
 		return o, nil
 	}
@@ -57,18 +50,15 @@ func PasswordSignIn(loginid string, password string) (*entities.Player, error) {
 
 // PasswordSignUp creates Player with loginid and password
 func PasswordSignUp(loginid string, name string, password string, hue int, lv entities.PlayerType) (*entities.Player, error) {
-	if err := CheckMaintenance(); lv != entities.Admin && err != nil {
-		return nil, err
-	}
 	o, err := Model.PasswordSignUp(loginid, password, lv)
 	if err != nil {
 		return nil, err
 	}
-	o.CustomDisplayName = auther.Encrypt(name)
+	o.CustomDisplayName = serviceConf.Auther.Encrypt(name)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
 	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
-	o.CustomImage = auther.Encrypt(url)
+	o.CustomImage = serviceConf.Auther.Encrypt(url)
 	o.UseCustomImage = true
 	return o, nil
 
@@ -95,7 +85,7 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 			LoginID string `json:"email"`
 			*Alias
 		}{
-			LoginID: auther.Decrypt(s.Player.LoginID),
+			LoginID: serviceConf.Auther.Decrypt(s.Player.LoginID),
 			Alias:   (*Alias)(s),
 		})
 	}
@@ -106,9 +96,9 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 		UseCustomImage bool   `json:"use_cimage"`
 		*Alias
 	}{
-		OAuthName:      auther.Decrypt(s.Player.OAuthDisplayName),
+		OAuthName:      serviceConf.Auther.Decrypt(s.Player.OAuthDisplayName),
 		UseCustomName:  s.Player.UseCustomDisplayName,
-		OAuthImage:     auther.Decrypt(s.Player.OAuthImage),
+		OAuthImage:     serviceConf.Auther.Decrypt(s.Player.OAuthImage),
 		UseCustomImage: s.Player.UseCustomImage,
 		Alias:          (*Alias)(s),
 	})
@@ -118,8 +108,8 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 func GetAccountSettings(o *entities.Player) *AccountSettings {
 	return &AccountSettings{
 		Player:      o,
-		CustomName:  auther.Decrypt(o.CustomDisplayName),
-		CustomImage: auther.Decrypt(o.CustomImage),
+		CustomName:  serviceConf.Auther.Decrypt(o.CustomDisplayName),
+		CustomImage: serviceConf.Auther.Decrypt(o.CustomImage),
 		AuthType:    o.Auth,
 	}
 }
