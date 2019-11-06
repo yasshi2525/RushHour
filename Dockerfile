@@ -19,19 +19,13 @@ COPY . src/github.com/yasshi2525/RushHour
 
 RUN apk update && apk add --no-cache git && \
     mkdir -p /rushhour/config && \
-    cd app && \
+    cd src/github.com/yasshi2525/RushHour/app && \
     go mod download && \
     go build -o /rushhour/RushHour && \
     cp config/*.conf /rushhour/config
 
 FROM alpine
 
-ENV DB_USER "rushhourgo"
-ENV DB_PASSWORD "rushhourgo"
-ENV DB_HOST "localhost"
-ENV DB_PORT "3306"
-ENV DB_DATABASE "rushhourgo"
-ENV DB_ARGS "?parseTime=true&loc=Asia%2FTokyo"
 ENV admin_username "admin"
 ENV admin_password "password"
 ENV baseurl "https://localhost:9000/"
@@ -39,6 +33,7 @@ ENV salt ""
 ENV key "1234567890123456"
 ENV state ""
 ENV cookie kO0HKDOKQRLT6y9Vo0Uk69X2nxQ1p2Ln485wrYZmxiGiR7MDHa4TBxLvwLfWojcg
+ENV db_spec "rushhourgo:rushhourgo@tcp(localhost:3306)/rushhourgo?parseTime=true&loc=Asia%2FTokyo"
 ENV twitter_token ""
 ENV twitter_secret ""
 ENV google_client ""
