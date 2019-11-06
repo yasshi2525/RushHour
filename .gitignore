@@ -3,14 +3,16 @@ reports
 tmp/
 node_modules/
 .vscode/
-app/assets/fonts
-app/assets/spritesheet
-app/assets/js/bundle.*.js
+assets/fonts
+assets/spritesheet
+assets/js/bundle.*.js
+coverage
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
 docs/api/swagger.json
 docs/api/swagger.yaml
 docs/api/docs.go
+junit.xml
 
 !.gitkeep
 

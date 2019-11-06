@@ -19,7 +19,7 @@ COPY . src/github.com/yasshi2525/RushHour
 
 RUN apk update && apk add --no-cache git && \
     mkdir -p /rushhour/config && \
-    cd src/github.com/yasshi2525/RushHour/app && \
+    cd src/github.com/yasshi2525/RushHour && \
     go mod download && \
     go build -o /rushhour/RushHour && \
     cp config/*.conf /rushhour/config
