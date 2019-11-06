@@ -76,7 +76,7 @@ func validRegisterRequest(sl validator.StructLevel) {
 // @Param id body string true "email address"
 // @Param password body string true "password"
 // @Param name body string false "display name"
-// @Param hue body integer "player's rail line symbol color (HSV model)"
+// @Param hue body integer true "player's rail line symbol color (HSV model)"
 // @Success 200 {object} jwtInfo "json web token containing user attributes"
 // @Failure 400 {object} errInfo "reasons of error when register"
 // @Router /register [post]
@@ -170,7 +170,7 @@ func ChangeSettings(c *gin.Context) {
 // @Summary execute user sign out
 // @Accept json
 // @Produce json
-// @Success 200 {object} null "sign out successfully"
+// @Success 200 {object} string "sign out successfully"
 // @Failure 401 {object} errInfo "invalid jwt"
 // @Router /signout [get]
 func SignOut(c *gin.Context) {
