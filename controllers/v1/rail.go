@@ -1,9 +1,8 @@
 package v1
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 
 	"github.com/yasshi2525/RushHour/entities"
 	"github.com/yasshi2525/RushHour/services"
@@ -30,11 +29,10 @@ type deptResponse struct {
 func Depart(c *gin.Context) {
 	o := c.MustGet(keyOwner).(*entities.Player)
 	params := pointRequest{}
-	if err := c.Bind(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		c.Set(keyErr, err)
 	} else {
-		x, y, sc := params.export()
-		if rn, err := services.CreateRailNode(o, x, y, sc); err != nil {
+		if rn, err := services.CreateRailNode(o, params.X, params.Y, params.Scale); err != nil {
 			c.Set(keyErr, err)
 		} else {
 			c.Set(keyOk, &deptResponse{RailNode: rn})
@@ -43,8 +41,7 @@ func Depart(c *gin.Context) {
 }
 
 type extendRequest struct {
-	pointRequest
-	RailNode string `form:"rnid" json:"rnid" validate:"required,numeric"`
+	RailNode uint `form:"rnid" json:"rnid" validate:"required,numeric"`
 }
 
 type extendResponse struct {
@@ -70,25 +67,28 @@ type extendResponse struct {
 // @Router /rail_nodes/extend [post]
 func Extend(c *gin.Context) {
 	o := c.MustGet(keyOwner).(*entities.Player)
-	params := extendRequest{}
-	if err := c.Bind(&params); err != nil {
-		c.Set(keyErr, err)
-	} else if rn, err := validateEntity(entities.RAILNODE, params.RailNode); err != nil {
+	p := pointRequest{}
+	if err := c.ShouldBindBodyWith(&p, binding.JSON); err != nil {
 		c.Set(keyErr, err)
 	} else {
-		x, y, sc := params.export()
-		if to, re, err := services.ExtendRailNode(o, rn.(*entities.RailNode), x, y, sc); err != nil {
+		ex := extendRequest{}
+		if err := c.ShouldBindBodyWith(&ex, binding.JSON); err != nil {
+			c.Set(keyErr, err)
+		} else if rn, err := validateEntity(entities.RAILNODE, ex.RailNode); err != nil {
 			c.Set(keyErr, err)
 		} else {
-			c.Set(keyOk, &extendResponse{to, re, re.Reverse})
+			if to, re, err := services.ExtendRailNode(o, rn.(*entities.RailNode), p.X, p.Y, p.Scale); err != nil {
+				c.Set(keyErr, err)
+			} else {
+				c.Set(keyOk, &extendResponse{to, re, re.Reverse})
+			}
 		}
 	}
 }
 
 type connectRequest struct {
-	scaleRequest
-	From string `form:"from" json:"from" validate:"required,numeric"`
-	To   string `form:"to" json:"to" validate:"required,numeric"`
+	From uint `form:"from" json:"from" validate:"required,numeric"`
+	To   uint `form:"to" json:"to" validate:"required,numeric"`
 }
 
 type connectResponse struct {
@@ -114,34 +114,33 @@ type connectResponse struct {
 // @Router /rail_nodes/connect [post]
 func Connect(c *gin.Context) {
 	o := c.MustGet(keyOwner).(*entities.Player)
-	params := connectRequest{}
-	if err := c.Bind(&params); err != nil {
-		c.Set(keyErr, err)
-	} else if from, err := validateEntity(entities.RAILNODE, params.From); err != nil {
-		c.Set(keyErr, err)
-	} else if to, err := validateEntity(entities.RAILNODE, params.To); err != nil {
+	sc := scaleRequest{}
+	if err := c.ShouldBindBodyWith(&sc, binding.JSON); err != nil {
 		c.Set(keyErr, err)
 	} else {
-		sc := params.export()
-		if re, err := services.ConnectRailNode(o, from.(*entities.RailNode), to.(*entities.RailNode), sc); err != nil {
+		ex := connectRequest{}
+		if err := c.ShouldBindBodyWith(&ex, binding.JSON); err != nil {
+			c.Set(keyErr, err)
+		} else if from, err := validateEntity(entities.RAILNODE, ex.From); err != nil {
+			c.Set(keyErr, err)
+		} else if to, err := validateEntity(entities.RAILNODE, ex.To); err != nil {
 			c.Set(keyErr, err)
 		} else {
-			c.Set(keyOk, &connectResponse{re, re.Reverse})
+			if re, err := services.ConnectRailNode(o, from.(*entities.RailNode), to.(*entities.RailNode), sc.Scale); err != nil {
+				c.Set(keyErr, err)
+			} else {
+				c.Set(keyOk, &connectResponse{re, re.Reverse})
+			}
 		}
 	}
 }
 
 type removeRailNodeRequest struct {
-	RailNode string `form:"rnid" json:"rnid" validate:"required,numeric"`
-}
-
-func (v *removeRailNodeRequest) export() uint {
-	rnid, _ := strconv.ParseFloat(v.RailNode, 64)
-	return uint(rnid)
+	RailNode uint `form:"id" json:"id" validate:"required,numeric"`
 }
 
 type removeRailNodeResponse struct {
-	RailNode string `json:"rnid"`
+	RailNode uint `json:"id"`
 }
 
 // RemoveRailNode returns result of rail deletion
@@ -159,9 +158,9 @@ type removeRailNodeResponse struct {
 func RemoveRailNode(c *gin.Context) {
 	o := c.MustGet(keyOwner).(*entities.Player)
 	params := removeRailNodeRequest{}
-	if err := c.Bind(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		c.Set(keyErr, err)
-	} else if err := services.RemoveRailNode(o, params.export()); err != nil {
+	} else if err := services.RemoveRailNode(o, params.RailNode); err != nil {
 		c.Set(keyErr, err)
 	} else {
 		c.Set(keyOk, &removeRailNodeResponse{params.RailNode})

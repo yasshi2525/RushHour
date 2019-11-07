@@ -2,6 +2,7 @@
 
 BASEDIR="/rushhour/config"
 
+sed -i -e "s/enabled = .*/enabled = ${persist:false}/1" ${BASEDIR}/game.conf
 sed -i -e "s/__ADMIN_USERNAME__/${admin_username}/" ${BASEDIR}/secret.conf
 sed -i -e "s/__ADMIN_PASSWORD__/${admin_password}/" ${BASEDIR}/secret.conf
 sed -i -e "s|^baseurl = .*$|baseurl = \"${baseurl}\"|" ${BASEDIR}/secret.conf

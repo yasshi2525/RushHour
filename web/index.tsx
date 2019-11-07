@@ -1,12 +1,11 @@
 import "typeface-roboto";
-import * as jwt from "jsonwebtoken";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { CircularProgress } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/styles";
 import GameContainer from "./common";
-import { UserInfo } from "./common/interfaces";
+import { jwtToUserInfo } from "./state";
 import store from "./store";
 import RushHourTheme from "./components";
 import AppBar from "./components/AppBar";
@@ -23,21 +22,8 @@ let canvas = document.getElementById("canvas")
 let loading = document.getElementById("loading")
 
 if (props !== null && appbar !== null && actionmenu !== null && canvas !== null && loading !== null) {
-    let my: UserInfo | undefined = undefined;
-
     let token = localStorage.getItem("jwt");
-    if (token !== null) {
-        let obj = jwt.decode(token);
-        if (obj instanceof Object) {
-            my = {
-                id: obj[`${window.location.href}id`],
-                name: obj[`${window.location.href}name`],
-                image: obj[`${window.location.href}image`],
-                hue: obj[`${window.location.href}hue`],
-                admin: obj[`${window.location.href}admin`]
-            }
-        }
-    }
+    let my = jwtToUserInfo(token)
 
     let inOperation = props.dataset.inoperation !== undefined;
 

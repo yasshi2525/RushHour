@@ -15,7 +15,7 @@ function buildQuery(model: GameModel): string {
 
 export async function fetchMap(model: GameModel) {
     let json = await http(mapURL + "?" + buildQuery(model))
-    let error = model.gamemap.mergeAll(json.results);
+    let error = model.gamemap.mergeAll(json);
     model.timestamp = json.timestamp;
     if (model.gamemap.isChanged()) {
         model.gamemap.updateDisplayInfo();

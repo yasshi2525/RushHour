@@ -56,7 +56,7 @@ export default function() {
                                 {sns.map(item => (
                                     <ListItem button key={item.msg} onClick={() => { location.href=`/${item.image}` }}>
                                         <ListItemAvatar>
-                                            <Avatar src={`/public/img/${item.image}.png`} />
+                                            <Avatar src={`/assets/img/${item.image}.png`} />
                                         </ListItemAvatar>
                                         <ListItemText primary={item.msg} />
                                     </ListItem>

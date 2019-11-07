@@ -3,14 +3,13 @@ const path = require("path");
 module.exports = {
     watch: false,
     watchOptions: {
-        ignored: ["./node_modules", "./app", "./public"]
+        ignored: "^((?!web).)*$"
     },
     entry: {
-        index: ["./web/index.js", "./web/index.tsx"]
+        index: ["./web/index.tsx"]
     },
     output: {
-        path: path.join(__dirname, "public/js"),
-        filename: "bundle.[name].js",
+        path: path.join(__dirname, "assets/bundle/js"),
     },
     module: {
         rules: [
@@ -30,7 +29,7 @@ module.exports = {
                         options: {
                             name: "[name].[ext]",
                             outputPath: "../fonts",
-                            publicPath: "public/fonts"
+                            publicPath: "assets/bundle/fonts"
                         }
                     }
                 ]

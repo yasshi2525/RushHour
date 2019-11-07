@@ -2,13 +2,6 @@ import { ReactNode } from "react";
 import GameModel from "../models";
 import { MenuStatus } from "../../state";
 
-export interface ActionPayload {
-    [index: string]: any,
-    status: boolean,
-    timestamp: number,
-    results: any
-};
-
 export interface BaseProperty {
     [key: string]: any,
     children: ReactNode | undefined

@@ -1,3 +1,4 @@
+import * as jwt from "jsonwebtoken";
 import { Entry, UserInfo, AsyncStatus } from "../common/interfaces";
 import { Point } from "../common/interfaces/gamemap";
 
@@ -100,3 +101,21 @@ export function defaultState(opts: DefaultProp): RushHourStatus {
         players: { waiting: false, value: [] }
     };
 };
+
+export function jwtToUserInfo(token: string | null): UserInfo | undefined {
+    if (token == null) {
+        return undefined
+    }
+    let obj = jwt.decode(token)
+    if (obj instanceof Object) {
+        return {
+            id: obj[`${window.location.href}id`],
+            name: obj[`${window.location.href}name`],
+            image: obj[`${window.location.href}image`],
+            hue: obj[`${window.location.href}hue`],
+            admin: obj[`${window.location.href}admin`]
+        }
+    } else {
+        return undefined
+    }
+}

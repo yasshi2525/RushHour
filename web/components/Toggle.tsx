@@ -32,12 +32,14 @@ const Toggle = (on = MenuStatus.IDLE, off = MenuStatus.IDLE) =>
         render() {
             return (
                 <>
-                    <Fab color="primary" hidden={!this.state.selected} onClick={this.toggle}>
-                        <WrappedComponent {...this.props} />
-                    </Fab>
-                    <Fab hidden={this.state.selected} onClick={this.toggle}>
-                        <WrappedComponent {...this.props} />
-                    </Fab>
+                    {this.state.selected ? 
+                        <Fab color="primary" onClick={this.toggle}>
+                            <WrappedComponent {...this.props} />
+                        </Fab> 
+                        : <Fab  onClick={this.toggle}>
+                            <WrappedComponent {...this.props} />
+                        </Fab>
+                    }
                 </>
             );
         }

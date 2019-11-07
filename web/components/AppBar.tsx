@@ -1,12 +1,13 @@
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { AppBar as AppBarOrg, Toolbar, Typography, Button, Avatar, Link, Theme, useTheme, useMediaQuery } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
 import { UserInfo } from "../common/interfaces";
 import { hueToRgb } from "../common/interfaces/gamemap";
+import { RushHourStatus } from "../state";
+import * as Actions from "../actions";
 import SignIn from "./SignIn";
 import UserSettings from "./UserSettings";
-import { RushHourStatus } from "@/state";
-import { useSelector } from "react-redux";
 import Administrator from "./Administrator";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -61,8 +62,13 @@ export default function() {
     });
     const isAdmin = useSelector<RushHourStatus, boolean>(state => state.isAdmin);
     const inOperation = useSelector<RushHourStatus, boolean>(state => state.inOperation.value);
+    const dispatch = useDispatch();
 
     const myColor = my !== undefined ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
+
+    const signOut = () => {
+        dispatch(Actions.signout.request({}))
+    }
 
     return (
         <AppBarOrg position="sticky">
@@ -79,7 +85,7 @@ export default function() {
                         { isAdmin && <Administrator /> }
                         <UserSettings />
                         <Button className={classes.item} variant="contained">
-                            <Link href="/signout" onClick={() => localStorage.removeItem("jwt")}>サインアウト</Link>
+                            <Link onClick={() => signOut()}>サインアウト</Link>
                         </Button>
                     </> 
                 }

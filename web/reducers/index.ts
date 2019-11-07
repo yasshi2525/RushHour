@@ -1,8 +1,8 @@
 import * as Actions from "../actions";
-import { ActionPayload, AsyncStatus } from "..//common/interfaces";
+import { AsyncStatus } from "../common/interfaces";
 import { RushHourStatus } from "../state";
 
-export default (state: RushHourStatus, action: {type: string, payload: ActionPayload}) => {
+export default (state: RushHourStatus, action: {type: string, payload: any}) => {
     switch (action.type) {
         case Actions.login.success.toString():
             return Object.assign({}, state, { isLoginSucceeded: true });
@@ -15,13 +15,16 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
         case Actions.register.failure.toString():
             return Object.assign({}, state, { isRegisterFailed: true });
         case Actions.settings.success.toString():
-            return Object.assign({}, state, { settings: action.payload.results });
+            return Object.assign({}, state, { settings: action.payload });
         case Actions.editSettings.request.toString():
             return Object.assign({}, state, { waitingFor: action.payload });
         case Actions.editSettings.success.toString():
-            let my = Object.assign({}, state.my, action.payload.results.my)
-            let settings = Object.assign({}, state.settings, { [action.payload.results.key]: action.payload.results.value });
-            return Object.assign({}, state, { waitingFor: undefined, settings, my });
+            let val = Object.assign({}, state, { waitingFor: undefined });
+            if (action.payload.my) {
+                return Object.assign({}, val, { my: action.payload.my });
+            } else {
+                return val;
+            }
         case Actions.editSettings.failure.toString():
             return Object.assign({}, state, { waitingFor: undefined });
         case Actions.setMenu.success.toString():
@@ -44,7 +47,7 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
             return Object.assign({}, state, inOperation);
         case Actions.gameStatus.success.toString(): 
         case Actions.inOperation.success.toString():
-            var inOperation: AsyncStatus = Object.assign({}, state.inOperation, { waiting: false, value: action.payload.results });
+            var inOperation: AsyncStatus = Object.assign({}, state.inOperation, { waiting: false, value: action.payload });
             return Object.assign({}, state, {inOperation});
         case Actions.gameStatus.failure.toString():
         case Actions.inOperation.failure.toString():
@@ -62,7 +65,7 @@ export default (state: RushHourStatus, action: {type: string, payload: ActionPay
             return Object.assign({}, state, {players});
         case Actions.playersPlain.success.toString():
         case Actions.playersPlain.failure.toString():
-            var players: AsyncStatus = Object.assign({}, state.players, { waiting: false, value: action.payload.results });
+            var players: AsyncStatus = Object.assign({}, state.players, { waiting: false, value: action.payload });
             return Object.assign({}, state, {players});
         default:
             return state;

@@ -37,7 +37,7 @@ func StartRailLine(
 	}
 	l.StartPlatform(p)
 	if l.ReRouting {
-		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 	}
 	StartRouting()
 	AddOpLog("StartRailLine", o, l, p)
@@ -58,7 +58,7 @@ func StartRailLineEdge(o *entities.Player,
 	}
 	l.StartEdge(re)
 	if l.ReRouting {
-		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 	}
 	StartRouting()
 	AddOpLog("StartRailLineEdge", o, l, re)
@@ -75,7 +75,7 @@ func InsertLineTaskRailEdge(o *entities.Player, l *entities.RailLine, re *entiti
 		}
 	}
 	if l.ReRouting {
-		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 	}
 	StartRouting()
 	AddOpLog("InsertLineTaskRailEdge", o, l, re)
@@ -102,7 +102,7 @@ func RingRailLine(o *entities.Player, l *entities.RailLine) (bool, error) {
 	// Check RainLine is not ringing
 	ret := l.RingIf()
 	if ret {
-		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 		StartRouting()
 		AddOpLog("RingRailLine", o, l)
 	}

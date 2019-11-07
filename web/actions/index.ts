@@ -53,28 +53,16 @@ export interface MenuRequest extends ModelRequest {
     menu: MenuStatus
 }
 
-export interface ActionPayload {
-    [index: string]: any,
-    status: boolean,
-    timestamp: number,
-    results: any
-};
-
-export interface GameMapResponse extends ActionPayload {
-    results: GameMap
-};
-
-export interface GameResponse extends ActionPayload {
-    results: {[index: string]: any}
-};
+type GameResponse = {[index: string]: any}
 
 export interface MenuResponse {
     menu: MenuStatus
 }
 
 export const initPIXI = createAsyncAction("INIT_PIXI_REQUESTED", "INIT_PIXI_SUCCEEDED", "INIT_PIXI_FAILED")<GameContainer, GameContainer, Error>();
-export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEEDED", "FETCH_MAP_FAILED")<ModelRequest, GameMapResponse, Error>();
+export const fetchMap = createAsyncAction("FETCH_MAP_REQUESTED", "FETCH_MAP_SUCCEEDED", "FETCH_MAP_FAILED")<ModelRequest, GameMap, Error>();
 export const login = createAsyncAction("LOGGEDIN_REQUESTED", "LOGGEDIN_SUCCEEDED", "LOGGEDIN_FAILED")<LoginRequest, GameResponse, Error>();
+export const signout = createAsyncAction("SIGNEDOUT_REQUESTED", "SIGNEDOUT_SUCCEEDED", "SIGNEDOUT_FAILED")<Request, GameResponse, Error>();
 export const resetLoginError = createAction("RESET_LOGIN_ERROR");
 export const register = createAsyncAction("REGISTER_REQUESTED", "REGISTER_SUCCEEDED", "REGISTER_FAILED")<RegisterRequest, GameResponse, Error>();
 export const settings = createAsyncAction("SETTINGS_REQUESTED", "SETTINGS_SUCCEEDED", "SETTINGS_FAILED")<Request, GameResponse, Error>();

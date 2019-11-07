@@ -9,9 +9,6 @@ import (
 
 // CreateRailNode create RailNode
 func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*entities.DelegateRailNode, error) {
-	if err := CheckArea(x, y); err != nil {
-		return nil, err
-	}
 	rn := Model.NewRailNode(o, x, y)
 	StartRouting()
 	AddOpLog("CreateRailNode", o, rn)
@@ -29,11 +26,11 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 	} else {
 		rn := rn.(*entities.RailNode)
 		if o.ReRouting {
-			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+			route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+				route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()
@@ -48,14 +45,11 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, err
 	}
-	if err := CheckArea(x, y); err != nil {
-		return nil, nil, err
-	}
 	to, e1 := from.Extend(x, y)
-	route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+	route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 	for _, l := range o.RailLines {
 		if l.ReRouting {
-			route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+			route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 		}
 	}
 	StartRouting()
@@ -86,7 +80,7 @@ func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.R
 		}
 	}
 	e1 := from.Connect(to)
-	route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+	route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 	StartRouting()
 	AddOpLog("ConnectRailNode", o, from, to, e1, e1.Reverse)
 
@@ -105,11 +99,11 @@ func RemoveRailEdge(o *entities.Player, id uint) error {
 	} else {
 		re := re.(*entities.RailEdge)
 		if o.ReRouting {
-			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+			route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+				route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()

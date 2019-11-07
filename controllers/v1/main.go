@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"strconv"
 
 	"gopkg.in/go-playground/validator.v9"
 
@@ -24,8 +23,8 @@ import (
 
 // entry represents generic key-value pair
 type entry struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
 }
 
 type jwtInfo struct {
@@ -55,58 +54,44 @@ var auther *auth.Auther
 var excludeList []string
 
 type scaleRequest struct {
-	Scale string `form:"scale" json:"scale" validate:"required,numeric"`
-}
-
-func (v *scaleRequest) export() float64 {
-	sc, _ := strconv.ParseFloat(v.Scale, 64)
-	return sc
+	Scale float64 `form:"scale" json:"scale" validate:"required"`
 }
 
 func validScaleRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(scaleRequest)
-	sc := v.export()
 
 	minSc := conf.Game.Entity.MinScale
 	maxSc := conf.Game.Entity.MaxScale
 
 	// validate scale
-	if sc < minSc {
+	if v.Scale < minSc {
 		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
 		return
 	}
-	if sc > maxSc {
+	if v.Scale > maxSc {
 		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
 		return
 	}
 }
 
 type pointRequest struct {
-	X     string `form:"x" json:"x" validate:"required,numeric"`
-	Y     string `form:"y" json:"y" validate:"required,numeric"`
-	Scale string `form:"scale" json:"scale" validate:"required,numeric"`
-}
-
-func (v *pointRequest) export() (float64, float64, float64) {
-	x, _ := strconv.ParseFloat(v.X, 64)
-	y, _ := strconv.ParseFloat(v.Y, 64)
-	sc, _ := strconv.ParseFloat(v.Scale, 64)
-	return x, y, sc
+	X     float64 `form:"x" json:"x" validate:"required"`
+	Y     float64 `form:"y" json:"y" validate:"required"`
+	Scale float64 `form:"scale" json:"scale" validate:"required"`
 }
 
 func validPointRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(pointRequest)
-	x, y, sc := v.export()
 
 	minSc := conf.Game.Entity.MinScale
 	maxSc := conf.Game.Entity.MaxScale
 
 	// validate scale
-	if sc < minSc {
+	if v.Scale < minSc {
 		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
 		return
 	}
-	if sc > maxSc {
+	if v.Scale > maxSc {
 		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
 		return
 	}
@@ -114,29 +99,24 @@ func validPointRequest(sl validator.StructLevel) {
 	border := math.Pow(2, maxSc-1)
 
 	// left over
-	if x < -border {
+	if v.X < -border {
 		sl.ReportError(v.X, "cx", "Cx", "gte", fmt.Sprintf("%f", -border))
 	}
 	// right over
-	if x > border {
+	if v.X > border {
 		sl.ReportError(v.X, "cx", "Cx", "lte", fmt.Sprintf("%f", border))
 	}
 	// top over
-	if y < -border {
+	if v.Y < -border {
 		sl.ReportError(v.Y, "cy", "Cy", "gte", fmt.Sprintf("%f", -border))
 	}
 	// bottom over
-	if y > border {
+	if v.Y > border {
 		sl.ReportError(v.Y, "cy", "Cy", "lte", fmt.Sprintf("%f", border))
 	}
 }
 
-func validateEntity(res entities.ModelType, raw interface{}) (entities.Entity, error) {
-	idnum, ok := raw.(float64)
-	if !ok {
-		return nil, fmt.Errorf("%s[%v] doesn't exist", res.String(), raw)
-	}
-	id := uint(idnum)
+func validateEntity(res entities.ModelType, id uint) (entities.Entity, error) {
 	val := services.Model.Values[res].MapIndex(reflect.ValueOf(id))
 	if !val.IsValid() {
 		return nil, fmt.Errorf("%s[%d] doesn't exist", res.String(), id)

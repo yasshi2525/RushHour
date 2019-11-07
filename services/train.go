@@ -30,7 +30,7 @@ func DeployTrain(o *entities.Player, t *entities.Train, l *entities.RailLine) er
 		break
 	}
 	t.SetTask(start)
-	route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+	route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 	AddOpLog("DeployTrain", o, t, start)
 	return nil
 }
@@ -42,7 +42,7 @@ func UnDeployTrain(o *entities.Player, t *entities.Train) error {
 	if lt := t.Task(); lt != nil {
 		t.UnLoad()
 		t.SetTask(nil)
-		route.RefreshTransports(lt.RailLine, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(lt.RailLine, conf.Game.Service.Routing.Worker)
 	}
 	return nil
 }

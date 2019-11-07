@@ -98,34 +98,22 @@ func TestValidRegisterRequest(t *testing.T) {
 	}{
 		{
 			in: registerRequest{
-				loginRequest: loginRequest{
-					ID:       "test@example.com",
-					Password: "password",
-				},
 				DisplayName: "Test",
-				Hue:         "0",
+				Hue:         0,
 			},
 			want: nil,
 		}, {
 			// too small hue
 			in: registerRequest{
-				loginRequest: loginRequest{
-					ID:       "test@example.com",
-					Password: "password",
-				},
 				DisplayName: "",
-				Hue:         "-1",
+				Hue:         -1,
 			},
 			want: []string{"Key: 'registerRequest.hue' Error:Field validation for 'hue' failed on the 'gte' tag"},
 		}, {
 			// too large hue
 			in: registerRequest{
-				loginRequest: loginRequest{
-					ID:       "test@example.com",
-					Password: "password",
-				},
 				DisplayName: "",
-				Hue:         "360",
+				Hue:         360,
 			},
 			want: []string{"Key: 'registerRequest.hue' Error:Field validation for 'hue' failed on the 'lt' tag"},
 		},
@@ -136,19 +124,25 @@ func TestValidRegisterRequest(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
+
+	type actualRegisterReq struct {
+		ID          string `json:"id"`
+		Password    string `json:"password"`
+		DisplayName string `json:"name"`
+		Hue         int    `json:"hue"`
+	}
+
 	t.Run("ok", func(t *testing.T) {
 		cases := []struct {
-			in      registerRequest
+			in      actualRegisterReq
 			wantNot string
 		}{
 			{
-				in: registerRequest{
-					loginRequest: loginRequest{
-						ID:       "ok@example.com",
-						Password: "password",
-					},
+				in: actualRegisterReq{
+					ID:          "ok@example.com",
+					Password:    "password",
 					DisplayName: "ok",
-					Hue:         "0",
+					Hue:         0,
 				},
 				wantNot: "",
 			},
@@ -183,30 +177,26 @@ func TestRegister(t *testing.T) {
 	})
 	t.Run("error", func(t *testing.T) {
 		cases := []struct {
-			in   registerRequest
+			in   actualRegisterReq
 			want []string
 		}{
 			{
 				// too small hue
-				in: registerRequest{
-					loginRequest: loginRequest{
-						ID:       "test@example.com",
-						Password: "password",
-					},
+				in: actualRegisterReq{
+					ID:          "test@example.com",
+					Password:    "password",
 					DisplayName: "",
-					Hue:         "-1",
+					Hue:         -1,
 				},
 				want: []string{"hue must be gte 0"},
 			},
 			{
 				// too large hue
-				in: registerRequest{
-					loginRequest: loginRequest{
-						ID:       "test@example.com",
-						Password: "password",
-					},
+				in: actualRegisterReq{
+					ID:          "test@example.com",
+					Password:    "password",
 					DisplayName: "",
-					Hue:         "360",
+					Hue:         360,
 				},
 				want: []string{"hue must be lt 360"},
 			},
@@ -236,7 +226,7 @@ func TestSettings(t *testing.T) {
 				want: map[string]interface{}{
 					"email":        "setting@example.com",
 					"custom_name":  "setting@example.com",
-					"custom_image": "/public/img/player.png",
+					"custom_image": "/assets/img/player.png",
 					"auth_type":    "RushHour",
 				},
 			},
@@ -303,8 +293,8 @@ func TestChangeSettings(t *testing.T) {
 				in:   entry{Key: "custom_name", Value: "changed"},
 				want: "changed",
 			}, {
-				in:   entry{Key: "use_cname", Value: "true"},
-				want: "true",
+				in:   entry{Key: "use_cname", Value: true},
+				want: true,
 			},
 		}
 		for _, c := range cases {
@@ -317,7 +307,7 @@ func TestChangeSettings(t *testing.T) {
 				R:      r,
 				W:      w,
 				In: struct {
-					Value string `json:"value"`
+					Value interface{} `json:"value"`
 				}{c.in.Value},
 				Assert: func(got map[string]interface{}) {
 					if got["key"] != c.in.Key {

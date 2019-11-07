@@ -77,6 +77,7 @@ type CnfRouting struct {
 
 // CnfBackup is configuration about backup interval
 type CnfBackup struct {
+	Enabled  bool
 	Interval duration
 }
 
