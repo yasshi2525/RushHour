@@ -5,6 +5,6 @@ import { MenuStatus } from "../state";
 import ToggleButton from "./Toggle"
 
 const RailCreator = ToggleButton(MenuStatus.SEEK_DEPARTURE)
-    (() => <Avatar alt="rail" src="/public/img/rail.png" />);
+    (() => <Avatar alt="rail" src="/assets/img/rail.png" />);
 
 export default connect(null)(RailCreator)

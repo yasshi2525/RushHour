@@ -24,7 +24,7 @@ func Restore(withLock bool) {
 		defer MuModel.Unlock()
 	}
 	lock := time.Now()
-	defer WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Restore.D, "restore", true)
+	defer WarnLongExec(start, lock, conf.Game.Service.Perf.Restore.D, "restore", true)
 
 	setNextID()
 	fetchStatic()
@@ -98,9 +98,9 @@ func resolveStatic() {
 // genDynamics create Dynamic instances
 func genDynamics() {
 	for _, o := range Model.Players {
-		hash := serviceConf.Auther.Digest(serviceConf.Auther.Decrypt(o.LoginID))
+		hash := auther.Digest(auther.Decrypt(o.LoginID))
 		Model.Logins[o.Auth][hash] = o
-		route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 	}
 	for _, r := range Model.Residences {
 		r.GenOutSteps()
@@ -112,7 +112,7 @@ func genDynamics() {
 		p.GenOutSteps()
 	}
 	for _, l := range Model.RailLines {
-		route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+		route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 	}
 	for _, h := range Model.Humans {
 		h.GenOutSteps()

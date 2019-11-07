@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,8 +26,6 @@ func abortByError(c *gin.Context, err error) {
 // It redirects OAuth sites when keyRedirect is set
 func OAuthHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before OAuthHandler")
-		defer log.Println("after OAuthHandler")
 
 		c.Next()
 
@@ -55,8 +52,6 @@ const keyAuthInfo = "keyAuthInfo"
 // CallbackHandler parse state and code in order to sign in
 func CallbackHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before OAuthHandler")
-		defer log.Println("after OAuthHandler")
 
 		c.Next()
 
@@ -80,8 +75,6 @@ func CallbackHandler() gin.HandlerFunc {
 // It should be called after CallbackHandler is called
 func RegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before RegisterHandler")
-		defer log.Println("after RegisterHandler")
 
 		c.Next()
 

@@ -2,9 +2,9 @@ package v1
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/yasshi2525/RushHour/entities"
@@ -33,7 +33,7 @@ type loginRequest struct {
 // @Router /login [post]
 func Login(c *gin.Context) {
 	params := loginRequest{}
-	if err := c.Bind(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		c.Set(keyErr, err)
 	} else {
 		if o, err := services.PasswordSignIn(params.ID, params.Password); err != nil {
@@ -50,22 +50,19 @@ func Login(c *gin.Context) {
 
 // registerRequest represents requirement for sign up to RushHour server
 type registerRequest struct {
-	loginRequest
 	// DisplayName is shown by everyone (default: NoName)
 	DisplayName string `json:"name" validate:"omitempty"`
 	// Hue is rail line symbol color (HSV model)
-	Hue string `json:"hue" validate:"required,numeric"`
+	Hue int `json:"hue"`
 }
 
 // validRegisterRequest validates that Register satisfies sign in conditions
 func validRegisterRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(registerRequest)
-	hue, _ := strconv.Atoi(v.Hue)
-
-	if hue < 0 {
+	if v.Hue < 0 {
 		sl.ReportError(v.Hue, "hue", "Hue", "gte", "0")
 	}
-	if hue >= 360 {
+	if v.Hue >= 360 {
 		sl.ReportError(v.Hue, "hue", "Hue", "lt", "360")
 	}
 }
@@ -85,12 +82,14 @@ func validRegisterRequest(sl validator.StructLevel) {
 // @Failure 503 {object} errInfo "under maintenance"
 // @Router /register [post]
 func Register(c *gin.Context) {
-	params := registerRequest{}
-	if err := c.Bind(&params); err != nil {
+	params := loginRequest{}
+	if err := c.ShouldBindBodyWith(&params, binding.JSON); err != nil {
 		c.Set(keyErr, err)
 	} else {
-		hue, _ := strconv.Atoi(params.Hue)
-		if o, err := services.PasswordSignUp(params.ID, params.DisplayName, params.Password, hue, entities.Normal); err != nil {
+		ex := registerRequest{}
+		if err := c.ShouldBindBodyWith(&ex, binding.JSON); err != nil {
+			c.Set(keyErr, err)
+		} else if o, err := services.PasswordSignUp(params.ID, ex.DisplayName, params.Password, ex.Hue, entities.Normal); err != nil {
 			c.Set(keyErr, err)
 		} else if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
 			c.Set(keyErr, err)
@@ -123,19 +122,32 @@ type settingsCName struct {
 }
 
 type settingsUseCname struct {
-	Value string `form:"value" json:"value" validation:"required,eq=true|eq=false"`
+	Value bool `form:"value" json:"value" validation:"required"`
+}
+
+type changeSettingsResponse struct {
+	entry
+	JWT string `json:"jwt"`
+}
+
+func handleChangeSettings(c *gin.Context, o *entities.Player, key string, val interface{}) {
+	if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
+		c.Set(keyErr, err)
+	} else {
+		c.Set(keyOk, changeSettingsResponse{entry{key, val}, jwt})
+	}
 }
 
 // ChangeSettings returns the result of change profile
 // @Description change user attributes including private one
-// @Tags entry
+// @Tags changeSettingsResponse
 // @Summary change user attributes
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "with the bearer started"
 // @Param resname path string true "changing resource name" Enums(custom_name, use_cname)
 // @Param value body string true "changing resource value"
-// @Success 200 {object} entry "changed user attributes"
+// @Success 200 {object} changeSettingsResponse "changed user attributes"
 // @Failure 400 {object} errInfo "invalid parameter"
 // @Failure 401 {object} errInfo "invalid jwt"
 // @Failure 503 {object} errInfo "under maintenance"
@@ -146,19 +158,19 @@ func ChangeSettings(c *gin.Context) {
 	switch res {
 	case "custom_name":
 		val := settingsCName{}
-		if err := c.Bind(&val); err != nil {
+		if err := c.ShouldBind(&val); err != nil {
 			c.Set(keyErr, err)
 		} else {
 			o.CustomDisplayName = auther.Encrypt(val.Value)
-			c.Set(keyOk, entry{Key: res, Value: val.Value})
+			handleChangeSettings(c, o, res, val.Value)
 		}
 	case "use_cname":
 		val := settingsUseCname{}
-		if err := c.Bind(&val); err != nil {
+		if err := c.ShouldBind(&val); err != nil {
 			c.Set(keyErr, err)
 		} else {
-			o.UseCustomDisplayName, _ = strconv.ParseBool(val.Value)
-			c.Set(keyOk, entry{Key: res, Value: val.Value})
+			o.UseCustomDisplayName = val.Value
+			handleChangeSettings(c, o, res, val.Value)
 		}
 	default:
 		c.Set(keyErr, fmt.Errorf("invalid attribute %s", res))

@@ -7,9 +7,9 @@
             "label": "run RushHour",
             "type": "shell",
             "command": "go run .",
-            "options": {
-                "cwd": "app"
-            }
+            "problemMatcher": [
+                "$go"
+            ]
         },
         {
             "type": "npm",
@@ -27,7 +27,7 @@
             "script": "build-watch",
             "problemMatcher": [
                 "$tsc",
-                "$eslint-compact",
+                "$eslint-compact"
             ]
         },
         {
@@ -35,6 +35,6 @@
             "type": "shell",
             "command": "swag init -d app -o docs/api",
             "problemMatcher": []
-        },
+        }
     ]
 }

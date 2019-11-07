@@ -21,10 +21,3 @@ func CheckAuth(owner *entities.Player, res entities.Entity) error {
 	}
 	return fmt.Errorf("no permission to operate %v", res)
 }
-
-func CheckArea(x float64, y float64) error {
-	if (&entities.Point{X: x, Y: y}).IsIn(0, 0, serviceConf.AppConf.Game.Entity.MaxScale) {
-		return nil
-	}
-	return fmt.Errorf("out of bounds")
-}

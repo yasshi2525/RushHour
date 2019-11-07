@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/yasshi2525/RushHour/auth"
 	"github.com/yasshi2525/RushHour/config"
@@ -83,6 +84,7 @@ func setupRouter(secret string) *gin.Engine {
 			shared := ops.Group("/", v1.ModelHandler())
 			{
 				shared.GET("/gamemap", v1.GameMap)
+				shared.GET("/players", v1.Players)
 				shared.POST("/register", v1.Register)
 			}
 
@@ -91,8 +93,7 @@ func setupRouter(secret string) *gin.Engine {
 			{
 				user.GET("/settings", v1.Settings)
 				user.POST("/settings/:resname", v1.ChangeSettings)
-				user.GET("/signout", v1.SignOut)
-				user.GET("/players", v1.Players)
+				user.POST("/signout", v1.SignOut)
 				user.POST("/rail_nodes", v1.Depart)
 				user.POST("/rail_nodes/extend", v1.Extend)
 				user.POST("/rail_nodes/connect", v1.Connect)
@@ -138,11 +139,7 @@ func main() {
 		panic(err)
 	} else {
 		// prepare service
-		services.Init(&services.ServiceConfig{
-			AppConf:   conf,
-			IsPersist: true,
-			Auther:    auther,
-		})
+		services.Init(conf, auther)
 		defer services.Terminate()
 		services.Start()
 		defer services.Stop()

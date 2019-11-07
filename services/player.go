@@ -14,11 +14,11 @@ func CreatePlayer(loginid string, displayname string, password string, hue int, 
 	if err != nil {
 		return nil, err
 	}
-	o.CustomDisplayName = serviceConf.Auther.Encrypt(displayname)
+	o.CustomDisplayName = auther.Encrypt(displayname)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
-	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
-	o.CustomImage = serviceConf.Auther.Encrypt(url)
+	url := fmt.Sprintf("%s/assets/img/player.png", conf.Secret.Auth.BaseURL)
+	o.CustomImage = auther.Encrypt(url)
 	o.UseCustomImage = true
 	AddOpLog("CreatePlayer", o)
 	return o, nil
@@ -54,11 +54,11 @@ func PasswordSignUp(loginid string, name string, password string, hue int, lv en
 	if err != nil {
 		return nil, err
 	}
-	o.CustomDisplayName = serviceConf.Auther.Encrypt(name)
+	o.CustomDisplayName = auther.Encrypt(name)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
-	url := fmt.Sprintf("%s/public/img/player.png", serviceConf.AppConf.Secret.Auth.BaseURL)
-	o.CustomImage = serviceConf.Auther.Encrypt(url)
+	url := fmt.Sprintf("%s/assets/img/player.png", conf.Secret.Auth.BaseURL)
+	o.CustomImage = auther.Encrypt(url)
 	o.UseCustomImage = true
 	return o, nil
 
@@ -85,7 +85,7 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 			LoginID string `json:"email"`
 			*Alias
 		}{
-			LoginID: serviceConf.Auther.Decrypt(s.Player.LoginID),
+			LoginID: auther.Decrypt(s.Player.LoginID),
 			Alias:   (*Alias)(s),
 		})
 	}
@@ -96,9 +96,9 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 		UseCustomImage bool   `json:"use_cimage"`
 		*Alias
 	}{
-		OAuthName:      serviceConf.Auther.Decrypt(s.Player.OAuthDisplayName),
+		OAuthName:      auther.Decrypt(s.Player.OAuthDisplayName),
 		UseCustomName:  s.Player.UseCustomDisplayName,
-		OAuthImage:     serviceConf.Auther.Decrypt(s.Player.OAuthImage),
+		OAuthImage:     auther.Decrypt(s.Player.OAuthImage),
 		UseCustomImage: s.Player.UseCustomImage,
 		Alias:          (*Alias)(s),
 	})
@@ -108,8 +108,8 @@ func (s *AccountSettings) MarshalJSON() ([]byte, error) {
 func GetAccountSettings(o *entities.Player) *AccountSettings {
 	return &AccountSettings{
 		Player:      o,
-		CustomName:  serviceConf.Auther.Decrypt(o.CustomDisplayName),
-		CustomImage: serviceConf.Auther.Decrypt(o.CustomImage),
+		CustomName:  auther.Decrypt(o.CustomDisplayName),
+		CustomImage: auther.Decrypt(o.CustomImage),
 		AuthType:    o.Auth,
 	}
 }

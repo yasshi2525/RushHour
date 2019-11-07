@@ -14,7 +14,7 @@ var backupTicker *time.Ticker
 
 // StartBackupTicker start tikcer
 func StartBackupTicker() {
-	backupTicker = time.NewTicker(serviceConf.AppConf.Game.Service.Backup.Interval.D)
+	backupTicker = time.NewTicker(conf.Game.Service.Backup.Interval.D)
 
 	go watchBackup()
 	log.Println("backup ticker was successfully started.")
@@ -48,7 +48,7 @@ func Backup(withLock bool) {
 	logOp := logOperation(tx)
 	tx.Commit()
 
-	WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Backup.D, "backup")
+	WarnLongExec(start, lock, conf.Game.Service.Perf.Backup.D, "backup")
 	log.Printf("backup was successfully ended (new %d, up %d, del %d, skip %d, log %d)", new, up, del, skip, logOp)
 }
 

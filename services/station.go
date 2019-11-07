@@ -33,11 +33,11 @@ func RemoveStation(o *entities.Player, id uint) error {
 	} else {
 		st := st.(*entities.Station)
 		if o.ReRouting {
-			route.RefreshTracks(o, serviceConf.AppConf.Game.Service.Routing.Worker)
+			route.RefreshTracks(o, conf.Game.Service.Routing.Worker)
 		}
 		for _, l := range o.RailLines {
 			if l.ReRouting {
-				route.RefreshTransports(l, serviceConf.AppConf.Game.Service.Routing.Worker)
+				route.RefreshTransports(l, conf.Game.Service.Routing.Worker)
 			}
 		}
 		StartRouting()

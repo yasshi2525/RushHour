@@ -5,6 +5,6 @@ import ToggleButton from "./Toggle"
 import { MenuStatus } from "@/state";
 
 const Destroyer = ToggleButton(MenuStatus.DESTROY)
-    (() => <Avatar alt="destroy" src="/public/img/destroyer.png" />);
+    (() => <Avatar alt="destroy" src="/assets/img/destroyer.png" />);
 
 export default connect(null)(Destroyer)

@@ -1,17 +1,19 @@
 import { Entry } from "../common/interfaces";
 import GameMap from "../common/models/map";
+import { jwtToUserInfo } from "../state";
 import * as Action from "../actions";
 import { generateRequest, http, Method } from ".";
 
 const playersURL = "api/v1/players";
 const loginURL = "api/v1/login";
+const signoutURL = "api/v1/signout";
 const registerURL = "api/v1/register";
 const settingsURL = "api/v1/settings";
 
 export async function fetchPlayers(map: GameMap | undefined = undefined) {
     let json = await http(playersURL)
     if (map !== undefined) {
-        map.mergeChildren("players", json.results);
+        map.mergeChildren("players", json);
         map.resolve();
     }
     return json;
@@ -22,13 +24,23 @@ async function fetchSettings() {
 }
 
 async function editSettings(entry: Entry) {
-    return await http(`${settingsURL}/${entry.key}`, Method.POST, {value: entry.value});
+    let res = await http(`${settingsURL}/${entry.key}`, Method.POST, {value: entry.value});
+    localStorage.setItem("jwt", res.jwt)
+    let my = jwtToUserInfo(res.jwt)
+    return my == undefined ? res : { ...res, my }
 }
 
 async function login(opts: Action.LoginRequest) {
     let json = await http(loginURL, Method.POST, opts);
-    localStorage.setItem("jwt", json.results)
+    localStorage.setItem("jwt", json.jwt)
     return json;
+}
+
+async function signout(opts: Action.Request) {
+    let json = await http(signoutURL, Method.POST, opts);
+    localStorage.removeItem("jwt");
+    location.href = "/";
+    return json
 }
 
 async function register(opts: Action.RegisterRequest) {
@@ -45,6 +57,10 @@ export function* generatePlayersPlain(action: ReturnType<typeof Action.playersPl
 
 export function* generateLogin(action: ReturnType<typeof Action.login.request>) {
     return yield generateRequest(() => login(action.payload), action, Action.login);
+}
+
+export function* generateSignOut(action: ReturnType<typeof Action.signout.request>) {
+    return yield generateRequest(() => signout(action.payload), action, Action.signout);
 }
 
 export function* generateRegister(action: ReturnType<typeof Action.register.request>) {

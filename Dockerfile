@@ -7,28 +7,29 @@ RUN apt-get update && apt-get install -y git && \
     npm ci && \
     npm run build && \
     git clone https://github.com/yasshi2525/RushHourResource.git && \
-    mkdir -p public/spritesheet && \
-    cp -r RushHourResource/dist/* public/spritesheet/
+    mkdir -p ./assets/bundle/spritesheet && \
+    cp -r RushHourResource/dist/* ./assets/bundle/spritesheet/
 
 FROM golang:alpine as server
 
 WORKDIR /go
 
-RUN mkdir -p src/github.com/yasshi2525/RushHour
-COPY . src/github.com/yasshi2525/RushHour
+COPY . .
 
 RUN apk update && apk add --no-cache git && \
-    mkdir -p /rushhour/config && \
-    cd src/github.com/yasshi2525/RushHour && \
     go mod download && \
-    go build -o /rushhour/RushHour && \
-    cp config/*.conf /rushhour/config
+    mkdir -p ./dist && \
+    go build -o ./dist/RushHour && \
+    cp config ./dist && \
+    assets config ./dist && \
+    templates config ./dist
 
 FROM alpine
 
+ENV persist "false"
 ENV admin_username "admin"
 ENV admin_password "password"
-ENV baseurl "https://localhost:9000/"
+ENV baseurl "http://localhost:8080/"
 ENV salt ""
 ENV key "1234567890123456"
 ENV state ""
@@ -44,15 +45,15 @@ RUN apk update && apk --no-cache add tzdata && \
 
 WORKDIR /rushhour
 
-COPY --from=server --chown=rushhour:rushhour /rushhour/ ./
-COPY --from=client --chown=rushhour:rushhour /data/public/ src/github.com/yasshi2525/RushHour/public/
+COPY --from=server --chown=rushhour:rushhour /go/dist/ ./
+COPY --from=client --chown=rushhour:rushhour /data/assets/bundle /rushhour/assets
 COPY --chown=rushhour:rushhour docker-entrypoint.sh .
 
 RUN chmod u+x docker-entrypoint.sh
 
-EXPOSE 9000
+EXPOSE 8080
 
-VOLUME [ "/rushhour/src/github.com/yasshi2525/RushHour/log" ]
+VOLUME [ "/rushhour/logs" ]
 
 USER rushhour
 

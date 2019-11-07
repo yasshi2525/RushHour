@@ -95,7 +95,7 @@ func validGameMapRequest(sl validator.StructLevel) {
 // @Router /gamemap [get]
 func GameMap(c *gin.Context) {
 	params := gameMapRequest{}
-	if err := c.Bind(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		c.Set(keyErr, err)
 	} else {
 		c.Set(keyOk, services.ViewDelegateMap(params.export()))

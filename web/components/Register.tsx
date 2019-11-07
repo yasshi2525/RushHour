@@ -196,7 +196,7 @@ export default function(props: Attributes) {
                                             value={hue}
                                             min={0} max={360}
                                             onChange={handleChange} />
-                                        <img className={classes.colorImage} src={`/public/spritesheet/color@${window.devicePixelRatio}x.png`} />
+                                        <img className={classes.colorImage} src={`/assets/bundle/spritesheet/color@${window.devicePixelRatio}x.png`} />
                                     </Box>
                                     <Box className={classes.sampleBox}>
                                         <div 

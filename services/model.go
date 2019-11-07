@@ -34,7 +34,7 @@ var rmFuncs map[entities.ModelType]interface{}
 // StartModelWatching setup watching model
 func StartModelWatching() {
 
-	modelChannel = make(chan *Operation, serviceConf.AppConf.Game.Service.Procedure.Queue)
+	modelChannel = make(chan *Operation, conf.Game.Service.Procedure.Queue)
 
 	mkFuncs = make(map[entities.ModelType]interface{})
 	mkFuncs[entities.PLAYER] = CreatePlayer
@@ -71,7 +71,7 @@ func watchModel() {
 	for msg := range modelChannel {
 		start := time.Now()
 		lock := processMsg(msg)
-		WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
+		WarnLongExec(start, lock, conf.Game.Service.Perf.Operation.D, fmt.Sprintf("operation(%v)", msg))
 	}
 	log.Println("model watching channel was closed.")
 }
@@ -121,7 +121,7 @@ func processMsg(msg *Operation) time.Time {
 					Y: rn.Y + math.Sin(theta)*size,
 				}
 
-				for !p.IsIn(0, 0, serviceConf.AppConf.Game.Entity.MaxScale) {
+				for !p.IsIn(0, 0, conf.Game.Entity.MaxScale) {
 					size = math.Pow(2, 10) * rand.Float64()
 					theta = 2 * math.Pi * rand.Float64()
 
@@ -167,7 +167,7 @@ func processMsg(msg *Operation) time.Time {
 					Y: re.ToNode.Y + math.Sin(theta)*size,
 				}
 
-				for !p.IsIn(0, 0, serviceConf.AppConf.Game.Entity.MaxScale) {
+				for !p.IsIn(0, 0, conf.Game.Entity.MaxScale) {
 					size = math.Pow(2, 10) * rand.Float64()
 					theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 

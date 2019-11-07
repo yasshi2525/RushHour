@@ -31,10 +31,7 @@ func TestMain(m *testing.M) {
 	if auther, err = auth.GetAuther(conf.Secret.Auth); err != nil {
 		panic(fmt.Errorf("failed to create auther: %v", err))
 	} else {
-		services.Init(&services.ServiceConfig{
-			AppConf: conf,
-			Auther:  auther,
-		})
+		services.Init(conf, auther)
 		defer services.Terminate()
 		services.CreateIfAdmin()
 		services.Start()
@@ -170,10 +167,19 @@ func registerTestUser(t *testing.T, id string, password string) string {
 	t.Helper()
 	w, _, r := prepare(ModelHandler())
 	r.POST("/register", Register)
-	str, _ := json.Marshal(&registerRequest{
-		loginRequest: loginRequest{ID: id, Password: password},
-		DisplayName:  id,
-		Hue:          "0",
+
+	type actual struct {
+		ID          string `json:"id"`
+		Password    string `json:"password"`
+		DisplayName string `json:"name"`
+		Hue         int    `json:"hue"`
+	}
+
+	str, _ := json.Marshal(&actual{
+		ID:          id,
+		Password:    password,
+		DisplayName: id,
+		Hue:         0,
 	})
 	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(str))
 	req.Header.Set("Content-Type", "application/json")

@@ -14,7 +14,6 @@ import (
 // @Accept json
 // @Produce json
 // @Success 200 {array} entities.Player "list of player"
-// @Failure 401 {object} errInfo "invalid jwt"
 // @Failure 503 {object} errInfo "under maintenance"
 // @Router /players [get]
 func Players(c *gin.Context) {

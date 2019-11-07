@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -34,8 +33,6 @@ func abortByMaintenance(c *gin.Context) {
 // MaintenanceHandler blocks user access under maintenance
 func MaintenanceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before MaintenanceHandler")
-		defer log.Println("after MaintenanceHandler")
 		if !services.IsInOperation() {
 			abortByMaintenance(c)
 		} else {
@@ -48,8 +45,6 @@ func MaintenanceHandler() gin.HandlerFunc {
 // It should be called after MaintenanceHandler is called
 func JWTHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before JWTHandler")
-		defer log.Println("after JWTHandler")
 		o, err := parseJWT(c.GetHeader("Authorization"))
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, &errInfo{Err: []string{err.Error()}})
@@ -64,8 +59,6 @@ func JWTHandler() gin.HandlerFunc {
 // It should be called after JWTHandler is called
 func AdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("before AdminHandler")
-		defer log.Println("after AdminHandler")
 		if c.MustGet(keyOwner).(*entities.Player).Level != entities.Admin {
 			c.JSON(http.StatusUnauthorized, &errInfo{Err: []string{"permission denied"}})
 			c.Abort()
@@ -81,8 +74,6 @@ func ModelHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		services.MuModel.Lock()
 		defer services.MuModel.Unlock()
-		log.Println("before ModelHandler")
-		defer log.Println("after ModelHandler")
 		c.Next()
 		// error reported
 		if res, has := c.Get(keyErr); has {
@@ -103,7 +94,7 @@ func ModelHandler() gin.HandlerFunc {
 					c.JSON(http.StatusBadRequest, &errInfo{Err: msgs})
 				} else {
 					// unhandle error
-					c.JSON(http.StatusBadRequest, &errInfo{Err: []string{fmt.Sprintf("%s", e)}})
+					c.JSON(http.StatusBadRequest, &errInfo{Err: []string{fmt.Sprintf("%v", e)}})
 				}
 
 			}

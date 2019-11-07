@@ -10,7 +10,7 @@ var beforeProcedure time.Time
 
 // StartProcedure start game.
 func StartProcedure() {
-	gamemaster = time.NewTicker(serviceConf.AppConf.Game.Service.Procedure.Interval.D)
+	gamemaster = time.NewTicker(conf.Game.Service.Procedure.Interval.D)
 
 	go watchGame()
 	log.Println("game procedure was successfully started.")
@@ -35,7 +35,7 @@ func processGame() {
 	MuModel.Lock()
 	defer MuModel.Unlock()
 	lock := time.Now()
-	defer WarnLongExec(start, lock, serviceConf.AppConf.Game.Service.Perf.Game.D, "procedure")
+	defer WarnLongExec(start, lock, conf.Game.Service.Perf.Game.D, "procedure")
 	defer func() { beforeProcedure = time.Now() }()
 
 	if beforeProcedure.IsZero() {

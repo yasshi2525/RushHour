@@ -70,6 +70,6 @@ func InitLock() {
 
 // InitRepository initialize storage
 func InitRepository() {
-	Model = entities.NewModel(serviceConf.AppConf.Game.Entity, serviceConf.Auther)
+	Model = entities.NewModel(conf.Game.Entity, auther)
 	OpCache = []*OpLog{}
 }

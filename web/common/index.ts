@@ -27,10 +27,10 @@ export default class {
             myid
         });
 
-        //this.images.forEach(key => this.app.loader.add(key, `public/img/${key}.png`));
+        //this.images.forEach(key => this.app.loader.add(key, `assets/img/${key}.png`));
         
         this.sheets.forEach(key => {
-            this.app.loader.add(key, `public/spritesheet/${key}@${Math.floor(this.model.renderer.resolution)}x.json`);
+            this.app.loader.add(key, `assets/bundle/spritesheet/${key}@${Math.floor(this.model.renderer.resolution)}x.json`);
         });
     }
 

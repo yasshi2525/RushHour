@@ -3,9 +3,7 @@ reports
 tmp/
 node_modules/
 .vscode/
-assets/fonts
-assets/spritesheet
-assets/js/bundle.*.js
+assets/bundle
 coverage
 docs/spec/dist
 docs/spec/src/_ext/__pycache__

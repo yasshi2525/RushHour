@@ -2,14 +2,14 @@ import { MenuStatus } from "../state";
 import * as Action from "../actions";
 import { generateRequest, http, Method } from ".";
 
-const departURL = "api/v1/dept";
-const extendURL = "api/v1/extend";
-const connectURL = "api/v1/connect";
+const departURL = "api/v1/rail_nodes";
+const extendURL = "api/v1/rail_nodes/extend";
+const connectURL = "api/v1/rail_nodes/connect";
 
 export async function postDepart(params: Action.PointRequest) {
     let json = await http(departURL, Method.POST, params);
     let model = params.model;
-    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
+    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.rn);
     if (anchorObj !== undefined) {
         anchorObj.resolve({});
         model.setMenuState(MenuStatus.EXTEND_RAIL);
@@ -25,9 +25,9 @@ export async function postDepart(params: Action.PointRequest) {
 export async function postExtend(params: Action.ExtendRequest) {
     let json = await http(extendURL, Method.POST, params);
     let model = params.model;
-    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.results.rn);
-    let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
-    let e2 = model.gamemap.mergeChild("rail_edges", json.results.e2);
+    let anchorObj = model.gamemap.mergeChild("rail_nodes", json.rn);
+    let e1 = model.gamemap.mergeChild("rail_edges", json.e1);
+    let e2 = model.gamemap.mergeChild("rail_edges", json.e2);
     if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
         anchorObj.resolve({});
         e1.resolve({});
@@ -44,9 +44,9 @@ export async function postExtend(params: Action.ExtendRequest) {
 export async function postConnect(params: Action.ConnectRequest) {
     let json = await http(connectURL, Method.POST, params);
     let model = params.model;
-    let anchorObj = model.gamemap.get("rail_nodes", json.results.e1.to);
-    let e1 = model.gamemap.mergeChild("rail_edges", json.results.e1);
-    let e2 = model.gamemap.mergeChild("rail_edges", json.results.e2);
+    let anchorObj = model.gamemap.get("rail_nodes", json.e1.to);
+    let e1 = model.gamemap.mergeChild("rail_edges", json.e1);
+    let e2 = model.gamemap.mergeChild("rail_edges", json.e2);
     if (anchorObj !== undefined && e1 !== undefined && e2 !== undefined) {
         e1.resolve({});
         e2.resolve({});

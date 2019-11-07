@@ -53,7 +53,7 @@ jobs:
           root: .
           paths: 
             - reports
-            - public/js
+            - assets/bundle/js
             - codeclimate.client.json
 
   test-server:

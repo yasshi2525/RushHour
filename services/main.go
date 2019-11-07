@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 
 	"github.com/yasshi2525/RushHour/auth"
@@ -17,31 +16,22 @@ var db *gorm.DB
 
 var isInOperation bool
 
-// ServiceConfig represents service settings
-type ServiceConfig struct {
-	// IsPersist is whether storing user data to database
-	IsPersist bool
-	// AppConf is whether using conf file
-	AppConf *config.Config
-	// Auther has encrypt keys
-	Auther *auth.Auther
-}
-
-var serviceConf *ServiceConfig
+var conf *config.Config
+var auther *auth.Auther
 
 // Init prepares for starting game
-func Init(sc *ServiceConfig) {
+func Init(c *config.Config, a *auth.Auther) {
 	log.Println("start preparation for game")
 	defer log.Println("end preparation for game")
 
-	serviceConf = sc
+	conf, auther = c, a
 
 	start := time.Now()
 
 	InitLock()
-	defer WarnLongExec(start, start, serviceConf.AppConf.Game.Service.Perf.Init.D, "initialization", true)
+	defer WarnLongExec(start, start, conf.Game.Service.Perf.Init.D, "initialization", true)
 	InitRepository()
-	if serviceConf.IsPersist {
+	if conf.Game.Service.Backup.Enabled {
 		db = connectDB()
 		//db.LogMode(true)
 		MigrateDB()
@@ -58,11 +48,11 @@ func Purge(o *entities.Player) error {
 	}
 	log.Println("start purging user data")
 	defer log.Println("end purging user data")
-	if serviceConf.IsPersist {
+	if conf.Game.Service.Backup.Enabled {
 		PurgeDB(o)
 	}
 	InitRepository()
-	if serviceConf.IsPersist {
+	if conf.Game.Service.Backup.Enabled {
 		Restore(false)
 	}
 	CreateIfAdmin()
@@ -81,12 +71,12 @@ func Terminate() {
 func Start() {
 	log.Println("start starting game procedure")
 	defer log.Println("end starting game procedure")
-	if serviceConf.IsPersist {
+	if conf.Game.Service.Backup.Enabled {
 		StartBackupTicker()
 	}
 	StartProcedure()
 	isInOperation = true
-	if serviceConf.AppConf.Game.Service.Procedure.Simulation {
+	if conf.Game.Service.Procedure.Simulation {
 		StartModelWatching()
 		StartSimulation()
 	}
@@ -96,14 +86,14 @@ func Start() {
 func Stop() {
 	log.Println("start stopping game procedure")
 	defer log.Println("end stopping game procedure")
-	if serviceConf.AppConf.Game.Service.Procedure.Simulation {
+	if conf.Game.Service.Procedure.Simulation {
 		StopSimulation()
 		StopModelWatching()
 	}
 	isInOperation = false
 	CancelRouting()
 	StopProcedure()
-	if serviceConf.IsPersist {
+	if conf.Game.Service.Backup.Enabled {
 		StopBackupTicker()
 		Backup(false)
 	}
@@ -114,8 +104,8 @@ func connectDB() *gorm.DB {
 		database *gorm.DB
 		err      error
 	)
-	driver := serviceConf.AppConf.Secret.DB.Driver
-	spec := serviceConf.AppConf.Secret.DB.Spec
+	driver := conf.Secret.DB.Driver
+	spec := conf.Secret.DB.Spec
 
 	for i := 1; i <= 60; i++ {
 		database, err = gorm.Open(driver, spec)
