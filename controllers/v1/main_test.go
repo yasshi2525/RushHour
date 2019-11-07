@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -39,7 +40,7 @@ func TestMain(m *testing.M) {
 		services.Start()
 		defer services.Stop()
 		binding.Validator = new(DefaultValidator)
-		m.Run()
+		os.Exit(m.Run())
 	}
 }
 
@@ -167,7 +168,7 @@ func TestInitController(t *testing.T) {
 
 func registerTestUser(t *testing.T, id string, password string) string {
 	t.Helper()
-	w, _, r := prepare()
+	w, _, r := prepare(ModelHandler())
 	r.POST("/register", Register)
 	str, _ := json.Marshal(&registerRequest{
 		loginRequest: loginRequest{ID: id, Password: password},

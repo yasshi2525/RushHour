@@ -9,21 +9,7 @@
             "command": "go run .",
             "options": {
                 "cwd": "app"
-            },
-            "problemMatcher": [
-                "$go"
-            ]
-        },
-        {
-            "label": "go test",
-            "type": "shell",
-            "command": "go test -v ./... -coverprofile ../reports/golang/c.out |& tee /dev/tty | go-junit-report > ../reports/golang/results.xml",
-            "options": {
-                "cwd": "app"
-            },
-            "problemMatcher": [
-                "$go"
-            ]
+            }
         },
         {
             "type": "npm",

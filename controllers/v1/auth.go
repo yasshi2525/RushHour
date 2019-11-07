@@ -43,7 +43,7 @@ func Login(c *gin.Context) {
 		} else if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
 			c.Set(keyErr, err)
 		} else {
-			c.Set(keyOk, jwt)
+			c.Set(keyOk, &jwtInfo{jwt})
 		}
 	}
 }
@@ -95,7 +95,7 @@ func Register(c *gin.Context) {
 		} else if jwt, err := auther.BuildJWT(o.ExportJWTInfo()); err != nil {
 			c.Set(keyErr, err)
 		} else {
-			c.Set(keyOk, jwt)
+			c.Set(keyOk, &jwtInfo{jwt})
 		}
 	}
 }

@@ -277,7 +277,7 @@ func TestSettings(t *testing.T) {
 
 func fetchSettings(t *testing.T, token string) *services.AccountSettings {
 	t.Helper()
-	w, _, r := prepare()
+	w, _, r := prepare(JWTHandler(), ModelHandler())
 	r.GET("/settings", Settings)
 	req, _ := http.NewRequest("GET", "/settings", nil)
 	req.Header.Set("Content-Type", "application/json")
@@ -308,7 +308,7 @@ func TestChangeSettings(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare(ModelHandler())
+			w, _, r := prepare(JWTHandler(), ModelHandler())
 			r.POST("/settings/:resname", ChangeSettings)
 			assertOkResponse(t, paramAssertOk{
 				Method: "POST",

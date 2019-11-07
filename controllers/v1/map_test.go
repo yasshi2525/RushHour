@@ -158,7 +158,7 @@ func TestGameMap(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.GET("/gamemap", GameMap)
 			assertOkResponse(t, paramAssertOk{
 				Method: "GET",
@@ -288,7 +288,7 @@ func TestGameMap(t *testing.T) {
 			},
 		}
 		for _, c := range cases {
-			w, _, r := prepare()
+			w, _, r := prepare(ModelHandler())
 			r.GET("/gamemap", GameMap)
 			url := fmt.Sprintf("/gamemap?cx=%s&cy=%s&scale=%s&delegate=%s", c.in.Cx, c.in.Cy, c.in.Scale, c.in.Delegate)
 			req, _ := http.NewRequest("GET", url, nil)
