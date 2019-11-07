@@ -88,20 +88,15 @@ jobs:
       - run:
           name: Module download
           command: |
-            cd app
             go mod download
             go get -u github.com/jstemmer/go-junit-report
-            cd ..
       
       - run: 
           name: Run Test
           command: |
             ./cc-test-reporter before-build
             mkdir -p reports/golang
-            cd app
-            go test -coverprofile ../c.out -v ./... | tee results.txt
-            cat results.txt | go-junit-report > ../reports/golang/results.xml
-            cd ..
+            go test -coverprofile ./c.out -v ./... | tee /dev/tty | go-junit-report > ./reports/golang/results.xml
             ./cc-test-reporter after-build
 
       - save_cache:

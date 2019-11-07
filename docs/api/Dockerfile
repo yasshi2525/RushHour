@@ -2,7 +2,7 @@ FROM golang:alpine as base
 
 WORKDIR /go
 
-COPY /app ./src/github.com/yasshi2525/RushHour/app
+COPY /app ./src/github.com/yasshi2525/RushHour
 
 RUN apk update && apk add --no-cache git && \
     go get -u github.com/swaggo/swag/cmd/swag && \
