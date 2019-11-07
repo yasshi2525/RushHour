@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y git && \
 
 FROM golang:alpine as server
 
-WORKDIR /go
+WORKDIR /work
 
 COPY . .
 
