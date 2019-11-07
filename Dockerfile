@@ -20,9 +20,9 @@ RUN apk update && apk add --no-cache git && \
     go mod download && \
     mkdir -p ./dist && \
     go build -o ./dist/RushHour && \
-    cp config ./dist && \
-    assets config ./dist && \
-    templates config ./dist
+    cp -R config ./dist && \
+    cp -R assets ./dist && \
+    cp -R templates ./dist
 
 FROM alpine
 
