@@ -46,7 +46,7 @@ RUN apk update && apk --no-cache add tzdata && \
 WORKDIR /rushhour
 
 COPY --from=server --chown=rushhour:rushhour /work/dist/ ./
-COPY --from=client --chown=rushhour:rushhour /data/assets/bundle /rushhour/assets
+COPY --from=client --chown=rushhour:rushhour /data/assets/bundle/ /rushhour/assets/bundle/
 COPY --chown=rushhour:rushhour docker-entrypoint.sh .
 
 RUN chmod u+x docker-entrypoint.sh
