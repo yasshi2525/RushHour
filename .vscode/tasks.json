@@ -33,7 +33,7 @@
         {
             "label": "swagger",
             "type": "shell",
-            "command": "swag init -d app -o docs/api",
+            "command": "swag init -o docs/api",
             "problemMatcher": []
         }
     ]
