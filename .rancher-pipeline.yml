@@ -26,9 +26,9 @@ stages:
 - name: Upgrade Helm Release
   steps:
   - applyAppConfig:
-      catalogTemplate: p-pmlwb:rushhour-rushhour
+      catalogTemplate: p-g82fr:rushhour-rushhour-helm
       version: 0.1.0
-      name: rushhour
+      name: rushhour-helm
       targetNamespace: rushhour
 timeout: 60
 branch:
