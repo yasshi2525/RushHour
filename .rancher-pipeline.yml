@@ -36,8 +36,8 @@ branch:
   - master
 notification:
   recipients:
-  - recipient: "#dev"
-    notifier: c-hmkdm:n-bwk89
+  - recipient: '#dev'
+    notifier: c-rns5q:n-htl8w
   condition:
   - Success
   - Changed
