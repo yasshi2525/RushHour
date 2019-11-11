@@ -39,17 +39,19 @@ const Menu = () =>
                     {/* スマホ向け */}
                     <Hidden smUp>
                         {/* メニュー表示なし */}
-                        <Fab color="primary" hidden={this.state.expands} onClick={this.expands}>
-                            <ExpandIcon fontSize="large" />
-                        </Fab>
+                        { this.state.expands ? 
+                            <Fab hidden={!this.state.expands} onClick={this.expands}>
+                                <MinimizeIcon fontSize="large" />
+                            </Fab> 
+                            : <Fab color="primary" onClick={this.expands}>
+                                <ExpandIcon fontSize="large" />
+                            </Fab>
+                         }
+                        
     
                         {/* メニュー表示あり */}
-                        <Fab hidden={!this.state.expands} onClick={this.expands}>
-                            <MinimizeIcon fontSize="large" />
-                        </Fab>
-                        {this.state.expands ?
-                            <WrappedComponent {...this.props} />
-                        : null }
+                        
+                        {this.state.expands && <WrappedComponent {...this.props} /> }
                     </Hidden>
                 </>);
         }
