@@ -1,6 +1,6 @@
-test-results/
 reports
-tmp/
+logs
+tmp
 node_modules/
 .vscode/
 assets/bundle
