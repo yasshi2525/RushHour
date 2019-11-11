@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/big"
 	"math/rand"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/sessions"
@@ -29,6 +30,8 @@ import (
 // @BasePath /api/v1
 // @schemes https
 
+var readiness string
+
 func loadConf() (*config.Config, error) {
 	if dir, err := os.Getwd(); err != nil {
 		return nil, err
@@ -42,15 +45,29 @@ func loadConf() (*config.Config, error) {
 func setupRouter(secret string) *gin.Engine {
 	binding.Validator = new(v1.DefaultValidator)
 	router := gin.New()
-	store := cookie.NewStore([]byte(secret))
-	router.Use(sessions.Sessions("mysession", store), gin.Logger(), gin.Recovery())
+	router.Use(gin.Recovery())
 
-	router.Static("/assets", "./assets")
-	router.StaticFile("/favicon.ico", "./assets/favicon.ico")
+	// healthCheck
+	router.GET("/healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
+	router.GET("/readiness", func(c *gin.Context) {
+		if readiness != "" {
+			c.String(http.StatusServiceUnavailable, readiness)
+		} else {
+			c.String(http.StatusOK, "OK")
+		}
+	})
+
+	store := cookie.NewStore([]byte(secret))
+	app := router.Group("/", gin.Logger(), sessions.Sessions("rushhour", store))
+
+	app.Static("/assets", "./assets")
+	app.StaticFile("/favicon.ico", "./assets/favicon.ico")
 	router.LoadHTMLGlob("templates/*")
 
 	// index always return html
-	index := router.Group("/")
+	index := app.Group("/")
 	{
 		index.GET("/", controllers.Index)
 		index.POST("/", controllers.Index)
@@ -58,7 +75,7 @@ func setupRouter(secret string) *gin.Engine {
 
 	// redirecting page for OAuth
 	// it might causes err in invalid configuration
-	oauth := router.Group("/", controllers.OAuthHandler())
+	oauth := app.Group("/", controllers.OAuthHandler())
 	{
 		oauth.GET("/twitter", controllers.Twitter)
 		oauth.GET("/google", controllers.Google)
@@ -67,15 +84,15 @@ func setupRouter(secret string) *gin.Engine {
 
 	// callback page from OAuth
 	// it might causes err in invalid configuration
-	callback := router.Group("/", controllers.CallbackHandler(), controllers.RegisterHandler())
+	callback := app.Group("/", controllers.CallbackHandler(), controllers.RegisterHandler())
 	{
 		callback.GET("/google/callback", controllers.GoogleCallback)
 		callback.GET("/github/callback", controllers.GitHubCallback)
 	}
 	// twitter callback is irregular pattern
-	router.GET("/twitter/callback", controllers.TwitterCallback, controllers.RegisterHandler())
+	app.GET("/twitter/callback", controllers.TwitterCallback, controllers.RegisterHandler())
 
-	api := router.Group("/api/v1")
+	api := app.Group("/api/v1")
 	{
 		// available only in operation
 		ops := api.Group("/", v1.MaintenanceHandler())
@@ -118,9 +135,6 @@ func setupRouter(secret string) *gin.Engine {
 				admin.DELETE("/game/purge", v1.PurgeUserData)
 			}
 		}
-
-		// need administrator authorization
-
 	}
 	return router
 }
@@ -138,9 +152,18 @@ func main() {
 	} else if auther, err := auth.GetAuther(conf.Secret.Auth); err != nil {
 		panic(err)
 	} else {
+		// run server
+		router := setupRouter(conf.Secret.Auth.Cookie)
+		router.Run(":8080")
+
+		readiness = "initializing ..."
+
 		// prepare service
 		services.Init(conf, auther)
 		defer services.Terminate()
+
+		readiness = "starting ..."
+
 		services.Start()
 		defer services.Stop()
 
@@ -148,8 +171,9 @@ func main() {
 		controllers.InitController(auther)
 		v1.InitController(conf, auther)
 
-		// run server
-		router := setupRouter(conf.Secret.Auth.Cookie)
-		router.Run(":8080")
+		readiness = ""
+		defer func() {
+			readiness = "shut down ..."
+		}()
 	}
 }
