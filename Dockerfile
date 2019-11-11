@@ -18,9 +18,9 @@ COPY . .
 
 RUN apk update && apk add --no-cache git && \
     go mod download && \
-    mkdir -p ./dist && \
+    mkdir -p ./dist/config && \
     go build -o ./dist/RushHour && \
-    cp -R config ./dist && \
+    cp -R config/*.conf ./dist/config && \
     cp -R assets ./dist && \
     cp -R templates ./dist
 
