@@ -37,9 +37,13 @@ async function login(opts: Action.LoginRequest) {
 }
 
 async function signout(opts: Action.Request) {
-    let json = await http(signoutURL, Method.POST, opts);
-    localStorage.removeItem("jwt");
-    location.href = "/";
+    let json: string = ""
+    try {
+        json = await http(signoutURL, Method.POST, opts);
+    } finally {
+        localStorage.removeItem("jwt");
+        location.href = "/";
+    }
     return json
 }
 
