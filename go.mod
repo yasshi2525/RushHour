@@ -21,4 +21,5 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.13.0
 	gopkg.in/go-playground/validator.v9 v9.30.0
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )

@@ -3,6 +3,8 @@ package main
 import (
 	crand "crypto/rand"
 	"fmt"
+	"io"
+	"log"
 	"math"
 	"math/big"
 	"math/rand"
@@ -14,6 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	_ "github.com/go-sql-driver/mysql"
+
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/yasshi2525/RushHour/auth"
 	"github.com/yasshi2525/RushHour/config"
@@ -31,6 +35,20 @@ import (
 // @schemes https
 
 var readiness string
+
+func setupLogger() error {
+	if _, err := os.Stat("logs"); os.IsNotExist(err) {
+		os.Mkdir("logs", 0755)
+	}
+	logger := &lumberjack.Logger{
+		Filename:  "logs/app.log",
+		LocalTime: true,
+	}
+
+	gin.DefaultWriter = io.MultiWriter(logger)
+	log.SetOutput(io.MultiWriter(logger, os.Stdout, os.Stderr))
+	return nil
+}
 
 func loadConf() (*config.Config, error) {
 	if dir, err := os.Getwd(); err != nil {
@@ -140,6 +158,9 @@ func setupRouter(secret string) *gin.Engine {
 }
 
 func main() {
+	if err := setupLogger(); err != nil {
+		panic(err)
+	}
 	// randomization
 	if seed, err := crand.Int(crand.Reader, big.NewInt(math.MaxInt64)); err != nil {
 		panic(err)
