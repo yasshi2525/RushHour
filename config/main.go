@@ -28,8 +28,7 @@ func Load(confDir string) (*Config, error) {
 		if err := validator.New().Struct(v); err != nil {
 			return &config, fmt.Errorf("%+v, %v", v, err)
 		}
-		log.Println("config file was successfully loaded.")
 	}
-
+	log.Println("config file was successfully loaded.")
 	return &config, nil
 }

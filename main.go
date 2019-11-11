@@ -152,28 +152,29 @@ func main() {
 	} else if auther, err := auth.GetAuther(conf.Secret.Auth); err != nil {
 		panic(err)
 	} else {
-		// run server
-		router := setupRouter(conf.Secret.Auth.Cookie)
-		router.Run(":8080")
-
 		readiness = "initializing ..."
-
-		// prepare service
-		services.Init(conf, auther)
-		defer services.Terminate()
-
-		readiness = "starting ..."
-
-		services.Start()
-		defer services.Stop()
-
-		// prepare controller
-		controllers.InitController(auther)
-		v1.InitController(conf, auther)
-
-		readiness = ""
 		defer func() {
 			readiness = "shut down ..."
 		}()
+
+		go func() {
+			// prepare service
+			services.Init(conf, auther)
+			readiness = "starting ..."
+			services.Start()
+
+			// prepare controller
+			controllers.InitController(auther)
+			v1.InitController(conf, auther)
+
+			readiness = ""
+		}()
+
+		defer services.Terminate()
+		defer services.Stop()
+
+		// run server
+		router := setupRouter(conf.Secret.Auth.Cookie)
+		router.Run(":8080")
 	}
 }
