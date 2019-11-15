@@ -108,12 +108,13 @@ export function jwtToUserInfo(token: string | null): UserInfo | undefined {
     }
     let obj = jwt.decode(token)
     if (obj instanceof Object) {
+        console.log(process.env.baseurl)
         return {
-            id: obj[`${window.location.href}id`],
-            name: obj[`${window.location.href}name`],
-            image: obj[`${window.location.href}image`],
-            hue: obj[`${window.location.href}hue`],
-            admin: obj[`${window.location.href}admin`]
+            id: obj[`${process.env.baseurl}/id`],
+            name: obj[`${process.env.baseurl}/name`],
+            image: obj[`${process.env.baseurl}/image`],
+            hue: obj[`${process.env.baseurl}/hue`],
+            admin: obj[`${process.env.baseurl}/admin`]
         }
     } else {
         return undefined

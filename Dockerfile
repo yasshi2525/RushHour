@@ -1,5 +1,7 @@
 FROM node:12 AS client
 
+ENV baseurl "http://localhost:8080"
+
 WORKDIR /data
 COPY . .
 
@@ -29,7 +31,7 @@ FROM alpine
 ENV persist "false"
 ENV admin_username "admin"
 ENV admin_password "password"
-ENV baseurl "http://localhost:8080/"
+ENV baseurl "http://localhost:8080"
 ENV salt ""
 ENV key "1234567890123456"
 ENV state ""
@@ -39,6 +41,8 @@ ENV twitter_token ""
 ENV twitter_secret ""
 ENV google_client ""
 ENV google_secret ""
+ENV github_client ""
+ENV github_secret ""
 
 RUN apk update && apk --no-cache add tzdata && \
     addgroup rushhour && adduser rushhour --disabled-password -G rushhour
