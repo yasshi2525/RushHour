@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
     watch: false,
@@ -46,4 +47,9 @@ module.exports = {
         },
         extensions: [".js", ".jsx", ".ts", ".tsx"]
     },
+    plugins: [
+        new webpack.EnvironmentPlugin({
+            baseurl: "http://localhost:8080"
+        })
+    ]
 };

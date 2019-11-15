@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	crand "crypto/rand"
 	"fmt"
 	"io"
@@ -10,6 +11,9 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -46,7 +50,7 @@ func setupLogger() error {
 	}
 
 	gin.DefaultWriter = io.MultiWriter(logger)
-	log.SetOutput(io.MultiWriter(logger, os.Stdout, os.Stderr))
+	log.SetOutput(io.MultiWriter(logger, os.Stdout))
 	return nil
 }
 
@@ -174,28 +178,53 @@ func main() {
 		panic(err)
 	} else {
 		readiness = "initializing ..."
-		defer func() {
-			readiness = "shut down ..."
-		}()
 
-		go func() {
-			// prepare service
-			services.Init(conf, auther)
-			readiness = "starting ..."
-			services.Start()
+		router := setupRouter(conf.Secret.Auth.Cookie)
 
-			// prepare controller
-			controllers.InitController(auther)
-			v1.InitController(conf, auther)
-
-			readiness = ""
-		}()
-
-		defer services.Terminate()
-		defer services.Stop()
+		srv := &http.Server{
+			Addr:    ":8080",
+			Handler: router,
+		}
 
 		// run server
-		router := setupRouter(conf.Secret.Auth.Cookie)
-		router.Run(":8080")
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("listen: %s\n", err)
+			}
+		}()
+
+		// prepare service
+		services.Init(conf, auther)
+		readiness = "starting ..."
+		services.Start()
+
+		// prepare controller
+		controllers.InitController(auther)
+		v1.InitController(conf, auther)
+
+		readiness = ""
+
+		quit := make(chan os.Signal)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+		<-quit
+
+		readiness = "shut down ..."
+		log.Println("Shutdown Server ...")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatal("Server Shutdown:", err)
+		}
+		select {
+		case <-ctx.Done():
+			log.Println("timeout of 5 seconds.")
+		}
+
+		services.Stop()
+		services.Terminate()
+
+		log.Println("Server exiting")
 	}
 }

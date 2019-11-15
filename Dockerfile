@@ -1,14 +1,17 @@
 FROM node:12 AS client
 
+ENV baseurl "http://localhost:8080"
+
 WORKDIR /data
 COPY . .
 
-RUN apt-get update && apt-get install -y git && \
-    npm ci && \
+ENV RES_VRS "0.1.0"
+
+RUN npm ci && \
     npm run build && \
-    git clone https://github.com/yasshi2525/RushHourResource.git && \
+    curl -LsS https://github.com/yasshi2525/RushHourResource/archive/v${RES_VRS}.tar.gz | tar zx && \
     mkdir -p ./assets/bundle/spritesheet && \
-    cp -r RushHourResource/dist/* ./assets/bundle/spritesheet/
+    cp -r RushHourResource-${RES_VRS}/dist/* ./assets/bundle/spritesheet/
 
 FROM golang:alpine as server
 
@@ -29,7 +32,7 @@ FROM alpine
 ENV persist "false"
 ENV admin_username "admin"
 ENV admin_password "password"
-ENV baseurl "http://localhost:8080/"
+ENV baseurl "http://localhost:8080"
 ENV salt ""
 ENV key "1234567890123456"
 ENV state ""
@@ -39,6 +42,8 @@ ENV twitter_token ""
 ENV twitter_secret ""
 ENV google_client ""
 ENV google_secret ""
+ENV github_client ""
+ENV github_secret ""
 
 RUN apk update && apk --no-cache add tzdata && \
     addgroup rushhour && adduser rushhour --disabled-password -G rushhour

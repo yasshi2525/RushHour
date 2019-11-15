@@ -10,7 +10,7 @@ sed -i -e "s/__SALT__/${salt}/" ${BASEDIR}/secret.conf
 sed -i -e "s/______KEY_______/${key}/" ${BASEDIR}/secret.conf
 sed -i -e "s/__STATE__/${state}/" ${BASEDIR}/secret.conf
 sed -i -e "s/__COOKIE__/${cookie}/" ${BASEDIR}/secret.conf
-sed -i -e "s|^spec *= *.*$|spec = \"${db_spec}\"|" ${BASEDIR}/secret.conf
+sed -i -e "s|^spec *= *(.*)?$|spec = \"${db_spec}\"|" ${BASEDIR}/secret.conf
 sed -i -e "s/__TWITTER_TOKEN__/${twitter_token}/" ${BASEDIR}/secret.conf
 sed -i -e "s/__TWITTER_SECRET__/${twitter_secret}/" ${BASEDIR}/secret.conf
 sed -i -e "s/__GOOGLE_CLIENT__/${google_client}/" ${BASEDIR}/secret.conf
