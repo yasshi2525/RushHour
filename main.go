@@ -209,10 +209,13 @@ func main() {
 
 		<-quit
 
-		readiness = "shut down ..."
 		log.Println("Shutdown Server ...")
 
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		services.Stop()
+		services.Terminate()
+		readiness = "shut down ..."
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Fatal("Server Shutdown:", err)
@@ -221,9 +224,6 @@ func main() {
 		case <-ctx.Done():
 			log.Println("timeout of 5 seconds.")
 		}
-
-		services.Stop()
-		services.Terminate()
 
 		log.Println("Server exiting")
 	}
