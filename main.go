@@ -46,7 +46,7 @@ func setupLogger() error {
 	}
 
 	gin.DefaultWriter = io.MultiWriter(logger)
-	log.SetOutput(io.MultiWriter(logger, os.Stdout, os.Stderr))
+	log.SetOutput(io.MultiWriter(logger, os.Stdout))
 	return nil
 }
 

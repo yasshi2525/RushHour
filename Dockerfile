@@ -5,12 +5,13 @@ ENV baseurl "http://localhost:8080"
 WORKDIR /data
 COPY . .
 
-RUN apt-get update && apt-get install -y git && \
-    npm ci && \
+ENV RES_VRS "0.1.0"
+
+RUN npm ci && \
     npm run build && \
-    git clone https://github.com/yasshi2525/RushHourResource.git && \
+    curl -LsS https://github.com/yasshi2525/RushHourResource/archive/v${RES_VRS}.tar.gz | tar zx && \
     mkdir -p ./assets/bundle/spritesheet && \
-    cp -r RushHourResource/dist/* ./assets/bundle/spritesheet/
+    cp -r RushHourResource-${RES_VRS}/dist/* ./assets/bundle/spritesheet/
 
 FROM golang:alpine as server
 
