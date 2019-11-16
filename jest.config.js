@@ -1,9 +1,9 @@
 module.exports = {
     preset: "ts-jest",
-    testMatch: ["<rootDir>/webtests/**/*.test.(ts|tsx)"],
+    testMatch: ["<rootDir>/client/test/**/*.test.(ts|tsx)"],
     collectCoverage: true,
     moduleNameMapper: {
-        "^@/(.+)": "<rootDir>/web/$1",
+        "^@/(.+)": "<rootDir>/client/src/$1",
         "\\.(css|less)$": "identity-obj-proxy"
     },
     setupFilesAfterEnv: ["./setup.ts"],

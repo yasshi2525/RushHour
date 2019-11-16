@@ -4,10 +4,10 @@ const webpack = require("webpack");
 module.exports = {
     watch: false,
     watchOptions: {
-        ignored: "^((?!web).)*$"
+        ignored: "^((?!client).)*$"
     },
     entry: {
-        index: ["./web/index.tsx"]
+        index: ["./client/src/index.tsx"]
     },
     output: {
         path: path.join(__dirname, "assets/bundle/js"),
@@ -43,7 +43,7 @@ module.exports = {
     }, 
     resolve: {
         alias: {
-            "@": path.resolve(__dirname, "web")
+            "@": path.resolve(__dirname, "client/src")
         },
         extensions: [".js", ".jsx", ".ts", ".tsx"]
     },

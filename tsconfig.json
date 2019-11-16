@@ -3,7 +3,7 @@
     "compilerOptions": {
         "baseUrl": "./",
         "paths": {
-            "@/*": ["web/*"]
+            "@/*": ["client/src/*"]
         },
         "esModuleInterop": true,
         "sourceMap": true,
@@ -21,8 +21,7 @@
         "jsx": "react"
     },
     "exclude": [
-        "app",
         "node_modules",
-        "public/js/bundle.*.js"
+        "assets/bundle/js/*.js"
     ]
 }
