@@ -5,11 +5,11 @@ import ResponsiveMenu from "./ResponsiveMenu";
 import RailCreator from "./Rail";
 import Destroyer from "./Destroyer";
 
-const ActionMenu = (props: any) => 
-    <Container>
-        <RailCreator {...props} />
-        <Destroyer {...props} />
-    </Container>
-        
+const ActionMenu = (props: any) => (
+  <Container>
+    <RailCreator {...props} />
+    <Destroyer {...props} />
+  </Container>
+);
 
 export default connect(null)(ResponsiveMenu()(ActionMenu));

@@ -1,9 +1,10 @@
 reports
 logs
 tmp
-node_modules/
 .vscode/
 assets/bundle
+client/dist
+client/node_modules
 coverage
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
