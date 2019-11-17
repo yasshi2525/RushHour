@@ -119,6 +119,7 @@ export default function() {
           onInput={e =>
             (settings.custom_name = (e.target as HTMLInputElement).value)
           }
+          onClick={() => setEditingName(true)}
         />
         <Box marginRight="auto">
           <IconButton

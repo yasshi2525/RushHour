@@ -58,7 +58,7 @@ export default (
     case Actions.inOperation.success.toString():
       var inOperation: AsyncStatus = Object.assign({}, state.inOperation, {
         waiting: false,
-        value: action.payload
+        value: action.payload.status
       });
       return Object.assign({}, state, { inOperation });
     case Actions.gameStatus.failure.toString():
