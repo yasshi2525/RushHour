@@ -1,7 +1,9 @@
 const path = require("path");
 const EnvironmentPlugin = require("webpack").EnvironmentPlugin;
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const HtmlWebpackHarddiskPlugin = require("html-webpack-harddisk-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
@@ -9,20 +11,11 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    publicPath: "/assets/bundle",
+    publicPath: "/assets/bundle/",
     filename: "[name].js"
   },
   module: {
     rules: [
-      {
-        test: /\.(html)$/,
-        use: {
-          loader: "html-loader",
-          options: {
-            attrs: [":data-src"]
-          }
-        }
-      },
       {
         test: /\.css$/,
         use: ["style-loader", "css-loader" /* css-loader?modules */]
@@ -48,10 +41,12 @@ module.exports = {
           loader: "file-loader",
           options: {
             name: "[name].[ext]"
-            /* outputPath: "../fonts" ,
-                            publicPath: "assets/bundle/fonts" */
           }
         }
+      },
+      {
+        test: /\.html$/,
+        loader: "html-loader"
       }
     ]
   },
@@ -62,6 +57,17 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new EnvironmentPlugin({ baseurl: "http://localhost:8080" }),
-    new HtmlWebpackPlugin({})
+    new HtmlWebpackPlugin({
+      title: "RushHour",
+      favicon: "src/favicon.ico",
+      template: path.resolve(__dirname, "src", "index.ejs"),
+      meta: {
+        viewport: "width=device-width,initial-scale=1,shrink-to-fi=no",
+        "Content-Type": "text/html; charset=utf-8"
+      },
+      alwaysWriteToDisk: true
+    }),
+    new HtmlWebpackHarddiskPlugin(),
+    new CopyPlugin([{ from: "src/static/import", to: "spritesheet" }])
   ]
 };

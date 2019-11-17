@@ -18,8 +18,8 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { RushHourStatus } from "../state";
-import * as Actions from "../actions";
+import { RushHourStatus } from "state";
+import * as Actions from "actions";
 import PasswordLogin from "./Password";
 import Register from "./Register";
 

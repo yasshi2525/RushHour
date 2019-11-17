@@ -18,9 +18,9 @@ import {
   Container
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { hueToRgb } from "../common/interfaces/gamemap";
-import { RushHourStatus } from "../state";
-import * as Actions from "../actions";
+import { hueToRgb } from "common/interfaces/gamemap";
+import { RushHourStatus } from "state";
+import * as Actions from "actions";
 
 interface Attributes {
   hue: number;

@@ -5,6 +5,7 @@ tmp
 assets/bundle
 client/dist
 client/node_modules
+client/src/static/import
 coverage
 docs/spec/dist
 docs/spec/src/_ext/__pycache__

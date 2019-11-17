@@ -2,9 +2,9 @@ import * as React from "react";
 import { AnyAction } from "redux";
 import { connect } from "react-redux";
 import { Fab } from "@material-ui/core";
-import { MenuProperty } from "../common/interfaces";
-import { setMenu, MenuRequest } from "../actions";
-import { MenuStatus, RushHourStatus } from "../state";
+import { MenuProperty } from "common/interfaces";
+import { setMenu, MenuRequest } from "actions";
+import { MenuStatus, RushHourStatus } from "state";
 
 interface ToggleState {
   selected: boolean;

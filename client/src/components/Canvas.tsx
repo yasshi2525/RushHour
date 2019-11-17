@@ -1,14 +1,14 @@
 import * as style from "./style.css";
 import * as React from "react";
 import { connect } from "react-redux";
-import { CanvasProperty } from "../common/interfaces";
-import { MouseDragHandler, TouchDragHandler } from "../common/handlers/drag";
-import ResizeHandler from "../common/handlers/window";
-import { WheelHandler } from "../common/handlers/wheel";
-import { PinchHandler } from "../common/handlers/pinch";
-import { fetchMap, players } from "../actions";
-import { RushHourStatus } from "../state";
-import { ClickCursor, TapCursor } from "../common/handlers/cursor";
+import { CanvasProperty } from "common/interfaces";
+import { MouseDragHandler, TouchDragHandler } from "common/handlers/drag";
+import ResizeHandler from "common/handlers/window";
+import { WheelHandler } from "common/handlers/wheel";
+import { PinchHandler } from "common/handlers/pinch";
+import { fetchMap, players } from "actions";
+import { RushHourStatus } from "state";
+import { ClickCursor, TapCursor } from "common/handlers/cursor";
 
 // Pixi.js が作成する canvas を管理するコンポーネント
 class Canvas extends React.Component<CanvasProperty, RushHourStatus> {

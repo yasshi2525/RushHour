@@ -24,9 +24,9 @@ import { makeStyles, createStyles } from "@material-ui/styles";
 import SettingsIcon from "@material-ui/icons/Settings";
 import EditIcon from "@material-ui/icons/Edit";
 import SendIcon from "@material-ui/icons/Send";
-import { Entry } from "../common/interfaces";
-import * as Actions from "../actions";
-import { RushHourStatus, AccountSettings } from "../state";
+import { Entry } from "common/interfaces";
+import * as Actions from "actions";
+import { RushHourStatus, AccountSettings } from "state";
 
 const use_cname = "use_cname";
 const custom_name = "custom_name";

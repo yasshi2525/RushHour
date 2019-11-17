@@ -4,9 +4,9 @@ import { connect } from "react-redux";
 import { Hidden, Fab } from "@material-ui/core";
 import ExpandIcon from "@material-ui/icons/Add";
 import MinimizeIcon from "@material-ui/icons/Remove";
-import { MenuProperty } from "../common/interfaces";
-import { setMenu, MenuRequest } from "../actions";
-import { RushHourStatus, MenuStatus } from "../state";
+import { MenuProperty } from "common/interfaces";
+import { setMenu, MenuRequest } from "actions";
+import { RushHourStatus, MenuStatus } from "state";
 
 interface MenuState {
   expands: boolean;

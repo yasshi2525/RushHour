@@ -23,10 +23,10 @@ import {
   Avatar
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { AsyncStatus } from "../common/interfaces";
-import * as Actions from "../actions";
-import { RushHourStatus } from "../state";
-import { hueToRgb } from "../common/interfaces/gamemap";
+import { AsyncStatus } from "common/interfaces";
+import * as Actions from "actions";
+import { RushHourStatus } from "state";
+import { hueToRgb } from "common/interfaces/gamemap";
 
 const msg = {
   start: "稼働状態にしてもよろしいですか？",

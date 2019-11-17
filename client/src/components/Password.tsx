@@ -2,8 +2,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Theme, TextField, Box, useTheme } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { RushHourStatus } from "../state";
-import * as Actions from "../actions";
+import { RushHourStatus } from "state";
+import * as Actions from "actions";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({

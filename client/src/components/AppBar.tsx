@@ -12,10 +12,10 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import { UserInfo } from "../common/interfaces";
-import { hueToRgb } from "../common/interfaces/gamemap";
-import { RushHourStatus } from "../state";
-import * as Actions from "../actions";
+import { UserInfo } from "common/interfaces";
+import { hueToRgb } from "common/interfaces/gamemap";
+import { RushHourStatus } from "state";
+import * as Actions from "actions";
 import SignIn from "./SignIn";
 import UserSettings from "./UserSettings";
 import Administrator from "./Administrator";
