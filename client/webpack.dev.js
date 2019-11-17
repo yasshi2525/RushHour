@@ -21,7 +21,11 @@ module.exports = merge(common, {
     proxy: {
       "/api": "http://localhost:8080"
     },
-    clientLogLevel: "info"
+    before(app) {
+      app.post("/", (req, res) => {
+        res.redirect("/");
+      });
+    }
   },
   plugins
 });

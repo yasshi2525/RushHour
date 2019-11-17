@@ -14,7 +14,11 @@
         {
             "type": "npm",
             "script": "build",
-            "problemMatcher": []
+            "problemMatcher": [
+                "$tsc",
+                "$eslint-compact"
+            ],
+            "options": {"cwd": "client"}
         },
         {
             "label": "build document",
@@ -24,11 +28,12 @@
         },
         {
             "type": "npm",
-            "script": "build-watch",
+            "script": "start",
             "problemMatcher": [
                 "$tsc",
                 "$eslint-compact"
-            ]
+            ],
+            "options": {"cwd": "client"}
         },
         {
             "label": "swagger",

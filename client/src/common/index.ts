@@ -34,9 +34,6 @@ export default class {
       zoom: 0,
       myid
     });
-
-    //this.images.forEach(key => this.app.loader.add(key, `assets/img/${key}.png`));
-
     this.sheets.forEach(key => {
       this.app.loader.add(
         key,

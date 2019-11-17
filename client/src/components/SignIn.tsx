@@ -18,15 +18,18 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
+import twitter from "static/img/twitter.png";
+import google from "static/img/google.png";
+import github from "static/img/github.png";
 import { RushHourStatus } from "state";
 import * as Actions from "actions";
 import PasswordLogin from "./Password";
 import Register from "./Register";
 
 const sns = [
-  { image: "twitter", msg: "Twitterでログイン" },
-  { image: "google", msg: "Googleでログイン" },
-  { image: "github", msg: "GitHubでログイン" }
+  { image: twitter, msg: "Twitterでログイン" },
+  { image: google, msg: "Googleでログイン" },
+  { image: github, msg: "GitHubでログイン" }
 ];
 
 const useStyles = makeStyles(() =>
@@ -79,7 +82,7 @@ export default function() {
                     }}
                   >
                     <ListItemAvatar>
-                      <Avatar src={`/assets/img/${item.image}.png`} />
+                      <Avatar src={item.image} />
                     </ListItemAvatar>
                     <ListItemText primary={item.msg} />
                   </ListItem>

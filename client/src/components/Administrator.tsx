@@ -23,6 +23,7 @@ import {
   Avatar
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
+import player from "static/img/player.png";
 import { AsyncStatus } from "common/interfaces";
 import * as Actions from "actions";
 import { RushHourStatus } from "state";
@@ -192,7 +193,7 @@ export default function() {
                       <TableRow key={o.id}>
                         <TableCell>{o.id}</TableCell>
                         <TableCell>
-                          <Avatar src={o.image} />
+                          <Avatar src={o.image != "" ? o.image : player} />
                         </TableCell>
                         <TableCell>
                           <Typography>{o.name}</Typography>

@@ -12,6 +12,7 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
+import player from "static/img/player.png";
 import { UserInfo } from "common/interfaces";
 import { hueToRgb } from "common/interfaces/gamemap";
 import { RushHourStatus } from "state";
@@ -107,7 +108,7 @@ export default function() {
             <Avatar
               style={{ borderColor: myColor }}
               className={classes.profile}
-              src={my.image}
+              src={my.image != "" ? my.image : player}
             />
             <div className={classes.name}>{my.name}</div>
             <div className={classes.grow} />
