@@ -27,9 +27,9 @@ import PasswordLogin from "./Password";
 import Register from "./Register";
 
 const sns = [
-  { image: twitter, msg: "Twitterでログイン" },
-  { image: google, msg: "Googleでログイン" },
-  { image: github, msg: "GitHubでログイン" }
+  { image: twitter, msg: "Twitterでログイン", link: "twitter" },
+  { image: google, msg: "Googleでログイン", link: "google" },
+  { image: github, msg: "GitHubでログイン", link: "github" }
 ];
 
 const useStyles = makeStyles(() =>
@@ -78,7 +78,7 @@ export default function() {
                     button
                     key={item.msg}
                     onClick={() => {
-                      location.href = `/${item.image}`;
+                      location.href = `/${item.link}`;
                     }}
                   >
                     <ListItemAvatar>

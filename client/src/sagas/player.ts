@@ -50,7 +50,9 @@ async function signout(opts: Action.Request) {
 }
 
 async function register(opts: Action.RegisterRequest) {
-  return await http(registerURL, Method.POST, opts);
+  let json = await http(registerURL, Method.POST, opts);
+  localStorage.setItem("jwt", json.jwt);
+  return json;
 }
 
 export function* generatePlayers(
