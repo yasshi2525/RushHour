@@ -23,7 +23,7 @@ import {
   Avatar
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import player from "static/img/player.png";
+import player from "static/player.png";
 import { AsyncStatus } from "common/interfaces";
 import * as Actions from "actions";
 import { RushHourStatus } from "state";

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Avatar } from "@material-ui/core";
-import rail from "static/img/rail.png";
+import rail from "static/rail.png";
 import { MenuStatus } from "state";
 import ToggleButton from "./Toggle";
 

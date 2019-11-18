@@ -12,7 +12,7 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import player from "static/img/player.png";
+import player from "static/player.png";
 import { UserInfo } from "common/interfaces";
 import { hueToRgb } from "common/interfaces/gamemap";
 import { RushHourStatus } from "state";

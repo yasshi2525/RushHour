@@ -18,9 +18,9 @@ import {
   useMediaQuery
 } from "@material-ui/core";
 import { makeStyles, createStyles } from "@material-ui/styles";
-import twitter from "static/img/twitter.png";
-import google from "static/img/google.png";
-import github from "static/img/github.png";
+import twitter from "static/twitter.png";
+import google from "static/google.png";
+import github from "static/github.png";
 import { RushHourStatus } from "state";
 import * as Actions from "actions";
 import PasswordLogin from "./Password";
