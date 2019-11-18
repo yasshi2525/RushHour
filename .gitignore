@@ -6,7 +6,7 @@ assets/bundle
 client/dist
 client/node_modules
 client/src/static/import
-coverage
+client/coverage
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
 docs/api/swagger.json

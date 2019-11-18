@@ -18,7 +18,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader" /* css-loader?modules */]
+        use: ["style-loader", "css-loader"]
       },
       {
         test: /\.tsx?$/,
@@ -33,7 +33,12 @@ module.exports = {
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
-        use: "file-loader"
+        use: {
+          loader: "file-loader",
+          options: {
+            name: "[name].[ext]"
+          }
+        }
       },
       {
         test: /\.(woff|woff2|eot|ttf)$/,
