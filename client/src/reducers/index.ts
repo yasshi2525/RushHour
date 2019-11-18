@@ -8,7 +8,7 @@ export default (
   action: { type: string; payload: any }
 ) => {
   if (state == undefined) {
-    return defaultState({ inOperation: false, my: undefined });
+    return defaultState({ my: undefined });
   }
   switch (action.type) {
     case Actions.login.success.toString():

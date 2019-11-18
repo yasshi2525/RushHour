@@ -81,6 +81,7 @@ export default function() {
     state => state.inOperation.value
   );
   const dispatch = useDispatch();
+  dispatch(Actions.gameStatus.request({}));
 
   const myColor =
     my !== undefined ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";

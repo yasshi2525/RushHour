@@ -78,7 +78,6 @@ export interface RushHourStatus {
 
 export interface DefaultProp {
   my: UserInfo | undefined;
-  inOperation: boolean;
 }
 
 export function defaultState(opts: DefaultProp): RushHourStatus {
@@ -95,7 +94,7 @@ export function defaultState(opts: DefaultProp): RushHourStatus {
     readOnly: opts.my === undefined,
     settings: undefined,
     waitingFor: undefined,
-    inOperation: { waiting: false, value: opts.inOperation },
+    inOperation: { waiting: false, value: true },
     isAdmin: opts.my !== undefined ? opts.my.admin : false,
     inPurge: { waiting: false, value: false },
     players: { waiting: false, value: [] }

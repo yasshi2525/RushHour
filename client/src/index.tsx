@@ -32,12 +32,10 @@ if (
   let token = localStorage.getItem("jwt");
   let my = jwtToUserInfo(token);
 
-  let inOperation = props.dataset.inoperation !== undefined;
-
   function wrap(props: any = {}) {
     return function(Component: React.ComponentType) {
       return (
-        <Provider store={store({ my, inOperation: true })}>
+        <Provider store={store({ my })}>
           <ThemeProvider theme={RushHourTheme}>
             <Component {...props} />
           </ThemeProvider>
@@ -63,7 +61,7 @@ if (
       if (loading !== null) {
         loading.remove();
       }
-      if (my !== undefined || !inOperation) {
+      if (my !== undefined) {
         ReactDOM.render(wrap({ model: game.model })(ActionMenu), actionmenu);
       }
       ReactDOM.render(
