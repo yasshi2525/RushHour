@@ -17,23 +17,25 @@ jobs:
 
   test-client:
     docker:
-      - image: circleci/node:12-browsers
+      - image: circleci/node
 
     steps:
       - checkout
 
       # load cc-test-reporter
       - attach_workspace:
-          at: .
+          at: client
 
       # reuse node_modules
       - restore_cache:
-          key: v1-dependencies-{{ checksum "package-lock.json" }}
+          key: v1-dependencies-{{ checksum "client/package-lock.json" }}
 
-      - run: npm install
+      - run:
+          command: npm install
+          working_directory: client
 
       - save_cache:
-          paths: [node_modules]
+          paths: [client/node_modules]
           key: v1-dependencies-{{ checksum "package-lock.json" }}
 
       - run: 
@@ -41,38 +43,31 @@ jobs:
           environment:
             JEST_JUNIT_OUTPUT_DIR: "reports/jest"
             JEST_JUNIT_OUTPUT_NAME: "results.xml"
+          working_directory: client
           
       - run: 
           name: Collect Coverage
           command: ./cc-test-reporter format-coverage -t lcov -o "codeclimate.client.json" coverage/lcov.info
+          working_directory: client
       
       # reuse compiled js file
-      - run: npm run build
+      - run: 
+          command: npm run build
+          working_directory: client
 
       - persist_to_workspace:
           root: .
           paths: 
-            - reports
-            - assets/bundle/js
-            - codeclimate.client.json
+            - client/reports
+            - client/dist
+            - client/codeclimate.client.json
 
   test-server:
     working_directory: /go/src/github.com/yasshi2525/RushHour
     environment:
       CC_TEST_REPORTER_ID: d089f5de52d5f084943cffbf7281df1a041a0926cf1d184ec90ebafdbdfd3f42
-      DB_USER: rushhourgo
-      DB_PASSWORD: rushhourgo
-      DB_HOST: localhost
-      DB_PORT: "3306"
-      DB_DATABASE: rushhourgo
-      DB_ARGS: "?parseTime=true&loc=Asia%2FTokyo"
     docker:
       - image: circleci/golang:latest
-      - image: circleci/mariadb:latest
-        environment: 
-          MYSQL_USER: rushhourgo
-          MYSQL_PASSWORD: rushhourgo
-          MYSQL_DATABASE: rushhourgo
 
     steps:
       - checkout
@@ -96,6 +91,7 @@ jobs:
           command: |
             ./cc-test-reporter before-build
             mkdir -p reports/golang
+            cp -r dist/ assets/bundle/
             go test -coverprofile ./c.out -v ./... | tee /dev/tty | go-junit-report > ./reports/golang/results.xml
             ./cc-test-reporter after-build
 

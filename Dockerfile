@@ -1,4 +1,4 @@
-FROM node:12 AS client
+FROM node AS client
 
 ENV baseurl "http://localhost:8080"
 
@@ -7,12 +7,12 @@ COPY . .
 
 ENV RES_VRS "0.1.0"
 
-RUN npm ci && \
-    npm run build && \
+RUN cd client && npm ci && \
     curl -LsS https://github.com/yasshi2525/RushHourResource/archive/v${RES_VRS}.tar.gz | tar zx && \
-    mkdir -p ./assets/bundle/spritesheet && \
-    cp -r RushHourResource-${RES_VRS}/dist/* ./assets/bundle/spritesheet/
-
+    mkdir -p ./src/static/import && \
+    cp -r RushHourResource-${RES_VRS}/dist/* ./src/static/import/ && \
+    npm run build
+    
 FROM golang:alpine as server
 
 WORKDIR /work
@@ -24,7 +24,6 @@ RUN apk update && apk add --no-cache git && \
     mkdir -p ./dist/config && \
     go build -o ./dist/RushHour && \
     cp -R config/*.conf ./dist/config && \
-    cp -R assets ./dist && \
     cp -R templates ./dist
 
 FROM alpine
@@ -51,7 +50,7 @@ RUN apk update && apk --no-cache add tzdata && \
 WORKDIR /rushhour
 
 COPY --from=server --chown=rushhour:rushhour /work/dist/ ./
-COPY --from=client --chown=rushhour:rushhour /data/assets/bundle/ /rushhour/assets/bundle/
+COPY --from=client --chown=rushhour:rushhour /data/client/dist/ /rushhour/assets/bundle/
 COPY --chown=rushhour:rushhour docker-entrypoint.sh .
 
 RUN chmod u+x docker-entrypoint.sh
