@@ -36,7 +36,7 @@ jobs:
 
       - save_cache:
           paths: [client/node_modules]
-          key: v1-dependencies-{{ checksum "package-lock.json" }}
+          key: v1-dependencies-{{ checksum "client/package-lock.json" }}
 
       - run: 
           command: npm test
