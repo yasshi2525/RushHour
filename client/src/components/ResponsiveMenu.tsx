@@ -1,77 +1,50 @@
 import * as React from "react";
-import { AnyAction } from "redux";
-import { connect } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Hidden, Fab } from "@material-ui/core";
 import ExpandIcon from "@material-ui/icons/Add";
 import MinimizeIcon from "@material-ui/icons/Remove";
-import { MenuProperty } from "common/interfaces";
-import { setMenu, MenuRequest } from "actions";
-import { RushHourStatus, MenuStatus } from "state";
+import GameModel from "common/models";
+import { setMenu } from "actions";
+import { MenuStatus } from "state";
 
-interface MenuState {
-  expands: boolean;
+interface ModelProperty {
+  children: JSX.Element;
+  model: GameModel;
 }
 
-function mapStateToProps(state: RushHourStatus) {
-  return { menu: state.menu };
-}
+export default (props: ModelProperty) => {
+  const dispatch = useDispatch();
 
-function mapDispatchToProps(dispatch: React.Dispatch<AnyAction>) {
-  return { setMenu: (opts: MenuRequest) => dispatch(setMenu.request(opts)) };
-}
+  const [expands, setExpand] = React.useState(false);
 
-const Menu = () => (WrappedComponent: React.ComponentType<MenuProperty>) => {
-  class ResponsiveMenu extends React.Component<MenuProperty, MenuState> {
-    constructor(props: MenuProperty) {
-      super(props);
-      this.state = { expands: false };
-      this.expands = this.expands.bind(this);
+  const toggle = () => {
+    let newState = !expands;
+    if (!newState) {
+      dispatch(setMenu.request({ model: props.model, menu: MenuStatus.IDLE }));
     }
+    setExpand(newState);
+  };
 
-    render() {
-      return (
-        <>
-          {/* PC向け */}
-          <Hidden xsDown>
-            <WrappedComponent {...this.props} />
-          </Hidden>
-          {/* スマホ向け */}
-          <Hidden smUp>
-            {/* メニュー表示なし */}
-            {this.state.expands ? (
-              <Fab hidden={!this.state.expands} onClick={this.expands}>
-                <MinimizeIcon fontSize="large" />
-              </Fab>
-            ) : (
-              <Fab color="primary" onClick={this.expands}>
-                <ExpandIcon fontSize="large" />
-              </Fab>
-            )}
+  return (
+    <>
+      {/* PC向け */}
+      <Hidden xsDown>{props.children}</Hidden>
+      {/* スマホ向け */}
+      <Hidden smUp>
+        {/* メニュー表示なし */}
+        {expands ? (
+          <Fab hidden={!expands} onClick={toggle}>
+            <MinimizeIcon fontSize="large" />
+          </Fab>
+        ) : (
+          <Fab color="primary" onClick={toggle}>
+            <ExpandIcon fontSize="large" />
+          </Fab>
+        )}
 
-            {/* メニュー表示あり */}
-
-            {this.state.expands && <WrappedComponent {...this.props} />}
-          </Hidden>
-        </>
-      );
-    }
-
-    protected expands() {
-      let newState = !this.state.expands;
-      if (!newState) {
-        this.props.setMenu({ model: this.props.model, menu: MenuStatus.IDLE });
-      }
-      this.setState({ expands: newState });
-    }
-
-    componentDidUpdate() {
-      if (!this.state.expands && this.props.menu !== MenuStatus.IDLE) {
-        this.setState({ expands: true });
-      }
-    }
-  }
-
-  return connect(mapStateToProps, mapDispatchToProps)(ResponsiveMenu);
+        {/* メニュー表示あり */}
+        {expands && props.children}
+      </Hidden>
+    </>
+  );
 };
-
-export default Menu;

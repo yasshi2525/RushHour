@@ -16,6 +16,10 @@ import { loadImages } from "sagas/model";
 import { fetchMap } from "sagas/map";
 import { fetchPlayers } from "sagas/player";
 
+interface ModelProperty {
+  children: JSX.Element;
+}
+
 let props = document.getElementById("properties");
 let appbar = document.getElementById("appbar");
 let actionmenu = document.getElementById("actionmenu");
@@ -32,17 +36,11 @@ if (
   let token = localStorage.getItem("jwt");
   let my = jwtToUserInfo(token);
 
-  function wrap(props: any = {}) {
-    return function(Component: React.ComponentType) {
-      return (
-        <Provider store={store({ my })}>
-          <ThemeProvider theme={RushHourTheme}>
-            <Component {...props} />
-          </ThemeProvider>
-        </Provider>
-      );
-    };
-  }
+  const Wrapper = (props: ModelProperty) => (
+    <Provider store={store({ my })}>
+      <ThemeProvider theme={RushHourTheme}>{props.children}</ThemeProvider>
+    </Provider>
+  );
 
   ReactDOM.render(
     <ThemeProvider theme={RushHourTheme}>
@@ -51,7 +49,12 @@ if (
     loading
   );
 
-  ReactDOM.render(wrap()(AppBar), appbar);
+  ReactDOM.render(
+    <Wrapper>
+      <AppBar />
+    </Wrapper>,
+    appbar
+  );
 
   let myid = my !== undefined ? my.id : 0;
   let game = new GameContainer(myid);
@@ -62,13 +65,17 @@ if (
         loading.remove();
       }
       if (my !== undefined) {
-        ReactDOM.render(wrap({ model: game.model })(ActionMenu), actionmenu);
+        ReactDOM.render(
+          <Wrapper>
+            <ActionMenu model={game.model} />
+          </Wrapper>,
+          actionmenu
+        );
       }
       ReactDOM.render(
-        wrap({
-          readOnly: my === undefined,
-          model: game.model
-        })(Canvas),
+        <Wrapper>
+          <Canvas readOnly={my === undefined} model={game.model} />
+        </Wrapper>,
         canvas
       );
       return fetchPlayers(game.model.gamemap);

@@ -1,12 +1,16 @@
 import * as React from "react";
-import { connect } from "react-redux";
 import { Avatar } from "@material-ui/core";
+import GameModel from "common/models";
 import rail from "static/rail.png";
 import { MenuStatus } from "state";
 import ToggleButton from "./Toggle";
 
-const RailCreator = ToggleButton(MenuStatus.SEEK_DEPARTURE)(() => (
-  <Avatar alt="rail" src={rail} />
-));
+interface ModelProperty {
+  model: GameModel;
+}
 
-export default connect(null)(RailCreator);
+export default (props: ModelProperty) => (
+  <ToggleButton {...props} on={MenuStatus.SEEK_DEPARTURE}>
+    <Avatar alt="rail" src={rail} />
+  </ToggleButton>
+);

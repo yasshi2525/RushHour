@@ -1,15 +1,20 @@
 import * as React from "react";
-import { connect } from "react-redux";
 import { Container } from "@material-ui/core";
+import GameModel from "common/models";
 import ResponsiveMenu from "./ResponsiveMenu";
 import RailCreator from "./Rail";
 import Destroyer from "./Destroyer";
 
-const ActionMenu = (props: any) => (
-  <Container>
-    <RailCreator {...props} />
-    <Destroyer {...props} />
-  </Container>
-);
+interface ModelProperty {
+  children?: JSX.Element;
+  model: GameModel;
+}
 
-export default connect(null)(ResponsiveMenu()(ActionMenu));
+export default (props: ModelProperty) => (
+  <ResponsiveMenu model={props.model}>
+    <Container>
+      <RailCreator {...props} />
+      <Destroyer {...props} />
+    </Container>
+  </ResponsiveMenu>
+);
