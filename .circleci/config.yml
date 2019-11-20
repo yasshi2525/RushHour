@@ -125,6 +125,7 @@ jobs:
           command: |
             ./cc-test-reporter sum-coverage codeclimate.*.json -p 1
             ./cc-test-reporter upload-coverage
+          working_directory: reports
 
       - store_test_results:
           path: reports
