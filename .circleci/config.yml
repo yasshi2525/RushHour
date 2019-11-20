@@ -52,7 +52,13 @@ jobs:
       
       # reuse compiled js file
       - run: 
-          command: npm run build
+          command: |
+            curl -LsS https://github.com/yasshi2525/RushHourResource/archive/v${RES_VRS}.tar.gz | tar zx
+            mkdir -p ./src/static/import
+            cp -r RushHourResource-${RES_VRS}/dist/* ./src/static/import/
+            npm run build
+          environment:
+            RES_VRS: "0.1.0"
           working_directory: client
 
       - persist_to_workspace:
@@ -91,7 +97,7 @@ jobs:
           command: |
             ./cc-test-reporter before-build
             mkdir -p reports/golang
-            cp -r dist/ assets/bundle/
+            cp -r client/dist/ assets/bundle/
             go test -coverprofile ./c.out -v ./... | tee /dev/tty | go-junit-report > ./reports/golang/results.xml
             ./cc-test-reporter after-build
 
