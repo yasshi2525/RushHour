@@ -1,7 +1,6 @@
 module.exports = {
   errorOnDeprecated: true,
   collectCoverage: true,
-  modulePaths: ["<rootDir>/src"],
 
   preset: "ts-jest",
   projects: [
@@ -12,8 +11,10 @@ module.exports = {
           tsConfig: "<rootDir>/tests/unit/tsconfig.json"
         }
       },
+      modulePaths: ["<rootDir>/src"],
+      preset: "ts-jest",
       roots: ["<rootDir>/src/", "<rootDir>/tests/unit/"],
-      preset: "ts-jest"
+      setupFiles: ["jest-canvas-mock", "jest-webgl-canvas-mock"]
     },
     {
       displayName: "e2e test",
@@ -24,12 +25,14 @@ module.exports = {
           tsConfig: "<rootDir>/tests/e2e/tsconfig.json"
         }
       },
-      roots: ["<rootDir>/src/", "<rootDir>/tests/e2e/"],
+      modulePaths: ["<rootDir>/src"],
       preset: "jest-puppeteer",
+      roots: ["<rootDir>/src/", "<rootDir>/tests/e2e/"],
       setupFilesAfterEnv: ["<rootDir>/tests/e2e/jest-setup.ts"],
       testEnvironment: "jest-environment-puppeteer",
       transform: { ".+\\.tsx?": "ts-jest" }
     }
   ],
-  reporters: ["default", "jest-junit"]
+  reporters: ["default", "jest-junit"],
+  verbose: true
 };

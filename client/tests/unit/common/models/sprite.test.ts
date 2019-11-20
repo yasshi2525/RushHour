@@ -1,6 +1,3 @@
-console.log("start to mock");
-jest.mock("pixi.js");
-
 import * as PIXI from "pixi.js";
 import GameModel from "common/models";
 import { SpriteModel } from "common/models/sprite";
