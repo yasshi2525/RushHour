@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/yasshi2525/RushHour/auth"
 	"github.com/yasshi2525/RushHour/entities"
@@ -17,8 +16,6 @@ func CreatePlayer(loginid string, displayname string, password string, hue int, 
 	o.CustomDisplayName = auther.Encrypt(displayname)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
-	url := fmt.Sprintf("%s/assets/img/player.png", conf.Secret.Auth.BaseURL)
-	o.CustomImage = auther.Encrypt(url)
 	o.UseCustomImage = true
 	AddOpLog("CreatePlayer", o)
 	return o, nil
@@ -57,8 +54,6 @@ func PasswordSignUp(loginid string, name string, password string, hue int, lv en
 	o.CustomDisplayName = auther.Encrypt(name)
 	o.UseCustomDisplayName = true
 	o.Hue = hue
-	url := fmt.Sprintf("%s/assets/img/player.png", conf.Secret.Auth.BaseURL)
-	o.CustomImage = auther.Encrypt(url)
 	o.UseCustomImage = true
 	return o, nil
 

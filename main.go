@@ -84,16 +84,14 @@ func setupRouter(secret string) *gin.Engine {
 	store := cookie.NewStore([]byte(secret))
 	app := router.Group("/", gin.Logger(), sessions.Sessions("rushhour", store))
 
+	app.StaticFile("/", "./assets/bundle/index.html")
 	app.Static("/assets", "./assets")
-	app.StaticFile("/favicon.ico", "./assets/favicon.ico")
 	router.LoadHTMLGlob("templates/*")
 
-	// index always return html
-	index := app.Group("/")
-	{
-		index.GET("/", controllers.Index)
-		index.POST("/", controllers.Index)
-	}
+	app.POST("/", func(c *gin.Context) {
+		c.Request.URL.Path = "/"
+		c.Redirect(http.StatusFound, "/")
+	})
 
 	// redirecting page for OAuth
 	// it might causes err in invalid configuration
@@ -215,14 +213,14 @@ func main() {
 		services.Terminate()
 		readiness = "shut down ..."
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Fatal("Server Shutdown:", err)
 		}
 		select {
 		case <-ctx.Done():
-			log.Println("timeout of 5 seconds.")
+			log.Println("timeout of 3 seconds.")
 		}
 
 		log.Println("Server exiting")

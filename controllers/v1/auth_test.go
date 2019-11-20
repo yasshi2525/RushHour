@@ -226,7 +226,7 @@ func TestSettings(t *testing.T) {
 				want: map[string]interface{}{
 					"email":        "setting@example.com",
 					"custom_name":  "setting@example.com",
-					"custom_image": "/assets/img/player.png",
+					"custom_image": "",
 					"auth_type":    "RushHour",
 				},
 			},

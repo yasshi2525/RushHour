@@ -12,11 +12,6 @@
             ]
         },
         {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": []
-        },
-        {
             "label": "build document",
             "type": "shell",
             "command": "docs/make.bat html",
@@ -24,11 +19,12 @@
         },
         {
             "type": "npm",
-            "script": "build-watch",
+            "script": "start",
             "problemMatcher": [
                 "$tsc",
                 "$eslint-compact"
-            ]
+            ],
+            "options": {"cwd": "client"}
         },
         {
             "label": "swagger",

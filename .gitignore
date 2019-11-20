@@ -1,16 +1,19 @@
 reports
 logs
 tmp
-node_modules/
 .vscode/
 assets/bundle
-coverage
+client/dist
+client/lib
+client/node_modules
+client/src/static/import
+client/coverage
+client/junit.xml
 docs/spec/dist
 docs/spec/src/_ext/__pycache__
 docs/api/swagger.json
 docs/api/swagger.yaml
 docs/api/docs.go
-junit.xml
 
 !.gitkeep
 
