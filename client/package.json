@@ -1,5 +1,5 @@
 {
-  "name": "rushhour",
+  "name": "@yasshi2525/rushhour",
   "version": "0.1.2",
   "description": "",
   "main": "./dist/index.js",
@@ -9,6 +9,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "scripts": {
     "test": "jest --runInBand",
     "build": "webpack --config webpack.prod.js",
@@ -17,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yasshi2525/RushHour.git"
+    "url": "git://github.com/yasshi2525/RushHour.git"
   },
   "author": "yasshi2525",
   "license": "MIT",
