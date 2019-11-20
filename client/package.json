@@ -1,12 +1,14 @@
 {
   "name": "rushhour",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
-  "private": true,
   "main": "./dist/index.js",
   "directories": {
     "test": "tests"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "jest --runInBand",
     "build": "webpack --config webpack.prod.js",
