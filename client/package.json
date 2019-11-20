@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "description": "",
   "private": true,
+  "main": "./dist/index.js",
   "directories": {
     "test": "tests"
   },
