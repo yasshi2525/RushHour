@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "baseUrl": "../../src",
+    "composite": true,
+    "outDir": "../../lib/tests/unit",
+    "types": ["jest"],
+    "rootDir": "."
+  },
+  "references": [
+    { "path": "../../src" }
+  ],
+  "include": ["./**/*"]
+}

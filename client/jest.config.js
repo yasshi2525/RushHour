@@ -1,21 +1,35 @@
 module.exports = {
-  collectCoverage: true,
   errorOnDeprecated: true,
-  globalSetup: "./setup.js",
-  globalTeardown: "./teardown.js",
-  moduleNameMapper: {
-    "\\.(png|svg|jpg|gif|woff|woff2|eot|ttf)$":
-      "<rootDir>/tests/__mocks__/fileMock.js",
-    "\\.(css|less)$": "identity-obj-proxy"
-  },
-  modulePathIgnorePatterns: ["<rootDir>/dist/"],
-  modulePaths: ["<rootDir>/src/"],
-  preset: "jest-runner-prettier",
-  reporters: ["default", "jest-junit"],
-  runner: "prettier",
-  roots: ["<rootDir>/src/", "<rootDir>/tests/"],
-  setupFilesAfterEnv: ["./setup.ts"],
-  setupFiles: ["./client.js"],
-  testEnvironment: "./puppeteer_environment.js",
-  testMatch: ["<rootDir>/tests/**/*.test.ts"]
+  collectCoverage: true,
+  modulePaths: ["<rootDir>/src"],
+
+  preset: "ts-jest",
+  projects: [
+    {
+      displayName: "unit test",
+      globals: {
+        "ts-jest": {
+          tsConfig: "<rootDir>/tests/unit/tsconfig.json"
+        }
+      },
+      roots: ["<rootDir>/src/", "<rootDir>/tests/unit/"],
+      preset: "ts-jest"
+    },
+    {
+      displayName: "e2e test",
+      globalSetup: "jest-environment-puppeteer/setup",
+      globalTeardown: "jest-environment-puppeteer/teardown",
+      globals: {
+        "ts-jest": {
+          tsConfig: "<rootDir>/tests/e2e/tsconfig.json"
+        }
+      },
+      roots: ["<rootDir>/src/", "<rootDir>/tests/e2e/"],
+      preset: "jest-puppeteer",
+      setupFilesAfterEnv: ["<rootDir>/tests/e2e/jest-setup.ts"],
+      testEnvironment: "jest-environment-puppeteer",
+      transform: { ".+\\.tsx?": "ts-jest" }
+    }
+  ],
+  reporters: ["default", "jest-junit"]
 };

@@ -12,15 +12,6 @@
             ]
         },
         {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": [
-                "$tsc",
-                "$eslint-compact"
-            ],
-            "options": {"cwd": "client"}
-        },
-        {
             "label": "build document",
             "type": "shell",
             "command": "docs/make.bat html",
