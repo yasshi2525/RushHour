@@ -60,7 +60,7 @@
     "@types/react": "^16.9.11",
     "@types/react-dom": "^16.9.4",
     "@types/react-redux": "^7.1.5",
-    "ejs": "^2.7.2",
+    "ejs": "^2.7.4",
     "jsonwebtoken": "^8.5.1",
     "pixi-filters": "^3.0.3",
     "pixi.js": "^5.2.0",
