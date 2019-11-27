@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
-import GameModel from "common/models";
-import { SpriteModel } from "common/models/sprite";
+import GameModel from "models";
+import { SpriteModel } from "models/sprite";
 
 let instance: SpriteModel;
 const app = new PIXI.Application();

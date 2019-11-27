@@ -1,7 +1,7 @@
 import * as styles from "./style.css";
 import * as React from "react";
 import { PointHandler, getCenterXY } from "./point";
-import GameModel from "common/models";
+import GameModel from "models";
 
 abstract class DragHandler<T extends React.SyntheticEvent> extends PointHandler<
   T

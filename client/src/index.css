@@ -1,8 +1,4 @@
-div#actionmenu {
-    display: inline;
-}
-
-div#loading {
+div#app {
     position: absolute;
     top: 0;
     left: 0;
@@ -13,4 +9,10 @@ div#loading {
     display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+canvas {
+    position: fixed;
+    left: 0px;
+    top: 0px;
 }

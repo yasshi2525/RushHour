@@ -1,13 +1,6 @@
 const path = require("path");
 const merge = require("webpack-merge");
 const common = require("./webpack.common.js");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
-  .BundleAnalyzerPlugin;
-
-const plugins = [];
-if (process.env.analyze) {
-  plugins.push(new BundleAnalyzerPlugin());
-}
 
 module.exports = merge(common, {
   mode: "development",
@@ -26,6 +19,5 @@ module.exports = merge(common, {
         res.redirect("/");
       });
     }
-  },
-  plugins
+  }
 });

@@ -24,13 +24,24 @@
                 "$tsc",
                 "$eslint-compact"
             ],
-            "options": {"cwd": "client"}
+            "options": {
+                "cwd": "client"
+            }
         },
         {
             "label": "swagger",
             "type": "shell",
             "command": "swag init -o docs/api",
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "path": "client/",
+            "problemMatcher": [
+                "$eslint-compact"
+            ],
+            "group": "build"
         }
     ]
 }

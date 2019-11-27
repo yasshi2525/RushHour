@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
-import GameModel from "common/models";
-import Base from "common/models/base";
+import GameModel from "models";
+import Base from "models/base";
 
 const app = new PIXI.Application();
 const model = new GameModel({ app, cx: 0, cy: 0, scale: 10, zoom: 0 });
