@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useMemo } from "react";
+import React, { Fragment, useContext, useMemo, useEffect } from "react";
 import AppBarOrg from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
@@ -11,11 +11,12 @@ import createStyles from "@material-ui/styles/createStyles";
 import player from "static/player.png";
 import { ComponentProperty } from "interfaces/component";
 import { hueToRgb } from "interfaces/gamemap";
-import LoginContext from "common/auth";
+import AuthContext from "common/auth";
 // import AdminPageContext from "common/admin";
 // import SignIn from "./SignIn";
 // import UserSettings from "./UserSettings";
 import LogOut from "./LogOut";
+import LoadingContext, { LoadingStatus } from "common/loading";
 
 // const Administrator = lazy(() => import("./Administrator"));
 
@@ -106,13 +107,22 @@ export default function() {
   const theme = useTheme();
   const classes = useStyles(theme);
   const isTiny = useMediaQuery(theme.breakpoints.down("xs"));
-  const [[, my]] = useContext(LoginContext);
+  const { update } = useContext(LoadingContext);
+  const [[, my]] = useContext(AuthContext);
   const myColor = useMemo(() => {
     console.info("memo myColor");
     return my ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
   }, [my]);
   const myImage = my ? my.image : player;
   const myName = my ? my.name : "名無しさん";
+
+  useEffect(() => {
+    console.info(`useEffect AppBar ${LoadingStatus.CREATED_MENU}`);
+    update(LoadingStatus.CREATED_MENU);
+    return () => {
+      console.info("cleanup AppBar");
+    };
+  }, []);
 
   return (
     <AppBarOrg position="sticky" className={classes.root}>

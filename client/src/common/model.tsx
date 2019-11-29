@@ -1,10 +1,13 @@
-import { createContext, useEffect, useReducer } from "react";
+import React, { createContext, useEffect, useReducer, useContext } from "react";
 import { createAction } from "typesafe-actions";
 import * as PIXI from "pixi.js";
 import { config } from "interfaces/gamemap";
 import { UserInfo } from "interfaces/user";
+import { UnhandledError } from "interfaces/error";
+import { ComponentProperty } from "interfaces/component";
+import AuthContext from "./auth";
+import { LoadingCircle } from "./loading";
 import GameModel from "models";
-import { UnhandledError } from "../interfaces/error";
 
 const sheets = [
   "cursor",
@@ -85,7 +88,7 @@ const loadImages = (model: GameModel) =>
     model.app.loader.onError = () => reject(model);
   });
 
-export const useModel = (my?: UserInfo | null) => {
+const useModel = (my?: UserInfo | null) => {
   const [state, dispatch] = useReducer(reducer, {
     completed: false,
     error: null,
@@ -113,6 +116,28 @@ export const useModel = (my?: UserInfo | null) => {
     UnhandledError | null,
     GameModel
   ];
+};
+
+export const ModelProvider = (props: ComponentProperty) => {
+  const [[, my]] = useContext(AuthContext);
+  const [completed, err, model] = useModel(my);
+
+  if (!completed) {
+    return <LoadingCircle />;
+  } else if (err) {
+    <>
+      <div>画像データの読み込みに失敗しました。</div>
+      <div>画面を更新してください</div>
+      {err?.messages.map(msg => (
+        <div>{msg}</div>
+      ))}
+    </>;
+  }
+  return (
+    <ModelContext.Provider value={model}>
+      {props.children}
+    </ModelContext.Provider>
+  );
 };
 
 export default ModelContext;

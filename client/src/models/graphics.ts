@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
-import { PIXIProperty } from "common/interfaces/pixi";
-import { Monitorable, MonitorContainer } from "common/interfaces/monitor";
+import { PIXIProperty } from "interfaces/pixi";
+import { Monitorable, MonitorContainer } from "interfaces/monitor";
 import { PointModel, PointContainer } from "./point";
 
 export abstract class GraphicsModel extends PointModel implements Monitorable {

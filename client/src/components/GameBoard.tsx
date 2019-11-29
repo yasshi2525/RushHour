@@ -1,36 +1,28 @@
-import React, { useContext, useEffect } from "react";
+import React, { Suspense, lazy, useContext, useEffect } from "react";
 import { Entity, GameMap } from "interfaces";
-import { players, fetchMap } from "interfaces/endpoint";
+import {
+  FetchMap as FetchMapType,
+  players,
+  fetchMap
+} from "interfaces/endpoint";
 import { useFetch } from "common/http";
-import { useLoading, LoadingStatus } from "common/loading";
-import LoginContext from "common/auth";
-import ModelContext, { useModel } from "common/model";
-import { LoadingCircle } from "./Loading";
+import LoadingContext, { LoadingStatus, LoadingCircle } from "common/loading";
+import ModelContext, { ModelProvider } from "common/model";
 
-//const Canvas = lazy(() => import("./Canvas"));
+const Canvas = lazy(() => import("./Canvas"));
 
 const TryCanvas = () => {
-  const [loading, update] = useLoading();
-  useEffect(() => update(LoadingStatus.LOADED_CANVAS), []);
   return (
-    <></>
-    // <Suspense fallback={<LoadingCircle />}>
-    //   <Canvas />
-    // </Suspense>
+    <Suspense fallback={<LoadingCircle />}>
+      <Canvas />
+    </Suspense>
   );
 };
 
-interface FetchMapRequest {
-  cx: number;
-  cy: number;
-  scale: number;
-  delegate: number;
-}
-
 const FetchMap = () => {
+  const { update } = useContext(LoadingContext);
   const model = useContext(ModelContext);
-  const [, update] = useLoading();
-  const [completed, err, data] = useFetch<FetchMapRequest, GameMap>(fetchMap, {
+  const [completed, err, data] = useFetch<FetchMapType, GameMap>(fetchMap, {
     ...model.coord,
     delegate: model.delegate
   });
@@ -61,8 +53,8 @@ const FetchMap = () => {
 };
 
 const FetchPlayers = () => {
+  const { update } = useContext(LoadingContext);
   const model = useContext(ModelContext);
-  const [, update] = useLoading();
   const [completed, err, data] = useFetch<{}, Entity[]>(players);
   useEffect(() => {
     if (completed) {
@@ -91,33 +83,17 @@ const FetchPlayers = () => {
 };
 
 export default () => {
-  const [, update] = useLoading();
-  const [[, my]] = useContext(LoginContext);
-  const [completed, err, model] = useModel(my);
+  const { update } = useContext(LoadingContext);
   useEffect(() => {
-    console.info(`effect GameBoard ${completed}`);
-    if (completed) {
-      update(LoadingStatus.LOADED_RESOURCE);
-    }
-  }, [completed]);
-
-  if (!completed) {
-    return <LoadingCircle />;
-  } else if (err) {
-    return (
-      <>
-        <div>画像データの読み込みに失敗しました。</div>
-        <div>画面を更新してください</div>
-        {err?.messages.map(msg => (
-          <div>{msg}</div>
-        ))}
-      </>
-    );
-  } else {
-    return (
-      <ModelContext.Provider value={model}>
-        <FetchPlayers />
-      </ModelContext.Provider>
-    );
-  }
+    console.info(`useEffect GameBoard ${LoadingStatus.LOADED_RESOURCE}`);
+    update(LoadingStatus.LOADED_RESOURCE);
+    return () => {
+      console.info("cleanup GameBoard");
+    };
+  }, []);
+  return (
+    <ModelProvider>
+      <FetchPlayers />
+    </ModelProvider>
+  );
 };

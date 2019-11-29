@@ -1,11 +1,16 @@
-import React, { Suspense, lazy, useState, useEffect } from "react";
+import React, { Suspense, lazy, useEffect, useContext } from "react";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
+import { SnackbarProvider } from "notistack";
 import { ComponentProperty } from "interfaces/component";
-import LoadingContext, { LoadingStatus, useLoading } from "common/loading";
-import AdministratorContext from "common/admin";
-import LoginContext, { useAuth } from "common/auth";
+import LoadingContext, {
+  LoadingStatus,
+  LoadingCircle,
+  LoadingProvider
+} from "common/loading";
+import { AdminPageProvider } from "common/admin";
+import { AuthProvider } from "common/auth";
 import theme from "./theme";
-import LoadingProgress, { LoadingCircle } from "./Loading";
+import LoadingProgress from "./Loading";
 
 const Operation = lazy(() => import("./Operation"));
 
@@ -14,7 +19,7 @@ interface RootComponentProperty extends ComponentProperty {
 }
 
 const Contents = () => {
-  const [, update] = useLoading();
+  const { update } = useContext(LoadingContext);
   useEffect(() => {
     console.info(`effect Root.Contents ${LoadingStatus.IMPORTED_OPERATION}`);
     update(LoadingStatus.IMPORTED_OPERATION);
@@ -30,22 +35,24 @@ const Contents = () => {
  * `localStorage["jwt"]` からユーザ情報の取得を試みて、コンポーネントを描画する
  */
 export default (props: RootComponentProperty) => {
-  const isAdminPage = props.admin === true;
-  const [status, update] = useState<LoadingStatus>(
-    LoadingStatus.CREATED_ELEMENT
-  );
-  const handlers = useAuth();
-
   return (
     <ThemeProvider theme={theme}>
-      <LoadingContext.Provider value={[status, update]}>
-        <AdministratorContext.Provider value={isAdminPage}>
-          <LoadingProgress />
-          <LoginContext.Provider value={handlers}>
-            <Contents />
-          </LoginContext.Provider>
-        </AdministratorContext.Provider>
-      </LoadingContext.Provider>
+      <SnackbarProvider
+        maxSnack={5}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right"
+        }}
+      >
+        <LoadingProvider>
+          <AdminPageProvider admin={props.admin === true}>
+            <LoadingProgress />
+            <AuthProvider>
+              <Contents />
+            </AuthProvider>
+          </AdminPageProvider>
+        </LoadingProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };

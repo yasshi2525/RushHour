@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { UnhandledError, ServerErrors, isServerErrors } from "interfaces/error";
+import { useSnack } from "./snack";
 
 /**
  * * `[]` タスク停止中
  * * `[aborter]` タスク実行中
  */
-type TaskState<T> = [AbortController?, T?];
+type TaskState<T> = [AbortController, T] | [];
 
 /**
  * 非同期にタスクを実行する。タスクをキックするメソッドと、キャンセルするメソッドを返す
@@ -19,24 +20,25 @@ type TaskState<T> = [AbortController?, T?];
  * ```
  */
 export const useTask = <I, O>(
-  task: (signal: AbortSignal, args?: I) => Promise<O>,
+  task: (signal: AbortSignal, args: I) => Promise<O>,
   onOK?: (data: O) => void,
   onError?: (e: ServerErrors) => void
 ) => {
-  const [[aborter, args], setExecutor] = useState<TaskState<I>>([]);
+  const [exec, setExecutor] = useState<TaskState<I>>([]);
+  const snack = useSnack();
 
   /**
    * `fire()` でタスクを開始する
    */
   const fire = useCallback(
-    (args?: I) => {
+    (args: I) => {
       console.info("callback useTask fire");
-      if (aborter) {
+      if (exec) {
         throw new UnhandledError("cannot start running task");
       }
       setExecutor([new AbortController(), args]);
     },
-    [aborter]
+    [exec]
   );
 
   /**
@@ -44,13 +46,13 @@ export const useTask = <I, O>(
    */
   const cancel = useCallback(() => {
     console.info("callback useTask cancel");
-    if (!aborter) {
+    if (!exec.length) {
       console.info("callback useTask cancel skip");
     } else {
-      aborter.abort();
+      exec[0].abort();
       setExecutor([]);
     }
-  }, [aborter]);
+  }, [exec]);
 
   /**
    * タスクが完了したら `onOK`、エラーなら `onError` をコールし、初期状態に戻す。
@@ -59,8 +61,8 @@ export const useTask = <I, O>(
   useEffect(() => {
     console.info(`effect useTask`);
     (async () => {
-      if (aborter) {
-        await task(aborter.signal, args)
+      if (exec.length) {
+        await task(exec[0].signal, exec[1])
           .then(data => {
             if (onOK) {
               onOK(data);
@@ -73,6 +75,7 @@ export const useTask = <I, O>(
               if (onError) {
                 onError(e);
               } else {
+                snack(e);
                 console.warn("effect useTask error");
                 console.warn(e);
               }
@@ -88,11 +91,11 @@ export const useTask = <I, O>(
 
     return () => {
       console.info("cleanup useTask");
-      if (aborter) {
-        aborter.abort();
+      if (exec.length) {
+        exec[0].abort();
       }
     };
-  }, [aborter]);
+  }, [exec]);
 
   return [fire, cancel];
 };

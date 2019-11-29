@@ -1,19 +1,18 @@
-import React, { Suspense, lazy, useState, useEffect } from "react";
-import { ComponentProperty } from "interfaces/component";
-import { game } from "interfaces/endpoint";
-import OperationContext from "common/operation";
-import { useFetch } from "common/http";
-import { LoadingStatus, useLoading } from "common/loading";
-import { LoadingCircle } from "./Loading";
+import React, { Suspense, lazy, useEffect, useContext } from "react";
+import OperationContext, { OperationProvider } from "common/operation";
+import LoadingContext, { LoadingStatus, LoadingCircle } from "common/loading";
 
 const Application = lazy(() => import("./Application"));
 const Maintenance = lazy(() => import("./Maintenance"));
 
 const InOperation = () => {
-  const [, update] = useLoading();
+  const { update } = useContext(LoadingContext);
   useEffect(() => {
-    console.info(`effect InOperation ${LoadingStatus.IMPORTED_APPLICATION}`);
-    update(LoadingStatus.IMPORTED_APPLICATION);
+    console.info(`effect InOperation ${LoadingStatus.CHECKED_OPERATION}`);
+    update(LoadingStatus.CHECKED_OPERATION);
+    return () => {
+      console.info("cleanup InOperation");
+    };
   }, []);
   return (
     <Suspense fallback={<LoadingCircle />}>
@@ -22,23 +21,25 @@ const InOperation = () => {
   );
 };
 
-const UnderMaintenance = () => (
-  <Suspense fallback={<LoadingCircle />}>
-    <Maintenance />
-  </Suspense>
-);
-
-interface OperationProperty extends ComponentProperty {
-  status: boolean;
-}
-
-const Operation = (props: OperationProperty) => {
-  const [inOperation, setOperation] = useState(props.status);
+const UnderMaintenance = () => {
+  const { update } = useContext(LoadingContext);
+  useEffect(() => {
+    console.info(`useEffect UnderMaintenance ${LoadingStatus.END}`);
+    update(LoadingStatus.END);
+    return () => {
+      console.info("cleanup UnderMaintenance");
+    };
+  }, []);
   return (
-    <OperationContext.Provider value={[inOperation, setOperation]}>
-      {inOperation ? <InOperation /> : <UnderMaintenance />}
-    </OperationContext.Provider>
+    <Suspense fallback={<LoadingCircle />}>
+      <Maintenance />
+    </Suspense>
   );
+};
+
+const Operation = () => {
+  const { status } = useContext(OperationContext);
+  return status ? <InOperation /> : <UnderMaintenance />;
 };
 
 /**
@@ -50,34 +51,17 @@ const Operation = (props: OperationProperty) => {
  * `setter` をコンテキスト化する
  */
 export default () => {
-  const [, update] = useLoading();
-  const [completed, err, data] = useFetch<{}, { status: boolean }>(game.status);
-  const [inOperation, setOperation] = useState<boolean | undefined>();
-
+  const { update } = useContext(LoadingContext);
   useEffect(() => {
-    console.info(`effect Operation ${completed} ${err} ${data}`);
-    if (!completed) {
-      console.info(`effect Operation WAIT`);
-    } else {
-      const ok = data?.status === true;
-      if (ok) {
-        console.info(`effect Operation OK`);
-        update(LoadingStatus.CHECKED_OPERATION);
-        setOperation(true);
-      } else {
-        console.info(`effect Operation NG`);
-        update(LoadingStatus.END);
-        setOperation(false);
-      }
-    }
+    console.info(`useEffect Operation ${LoadingStatus.CREATED_OPERATION}`);
+    update(LoadingStatus.CREATED_OPERATION);
     return () => {
       console.info("cleanup Operation");
     };
-  }, [completed]);
-
-  if (inOperation === undefined) {
-    return <LoadingCircle />;
-  } else {
-    return <Operation status={inOperation === true} />;
-  }
+  }, []);
+  return (
+    <OperationProvider>
+      <Operation />
+    </OperationProvider>
+  );
 };

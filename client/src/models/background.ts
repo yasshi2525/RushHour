@@ -1,9 +1,9 @@
 import { AnimatedSpriteModel, AnimatedSpriteContainer } from "./sprite";
-import { Monitorable, MonitorContainer } from "common/interfaces/monitor";
+import { Monitorable, MonitorContainer } from "interfaces/monitor";
 import {
   AnimatedSpriteProperty,
   AnimatedSpriteContainerProperty
-} from "common/interfaces/pixi";
+} from "interfaces/pixi";
 
 const defaultValues: { [index: string]: {} } = {
   alpha: 1

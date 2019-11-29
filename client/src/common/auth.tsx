@@ -1,9 +1,11 @@
+import React from "react";
 import { useState, useCallback, createContext } from "react";
 import { decode } from "jsonwebtoken";
 import { UserInfo } from "interfaces/user";
 import { AuthError, UnhandledError } from "interfaces/error";
 import { signout } from "interfaces/endpoint";
-import { useHttpTask } from "common/http";
+import { ComponentProperty } from "interfaces/component";
+import { useHttpTask } from "./http";
 
 type LogoutState = [undefined, null];
 type LoginState = [undefined, UserInfo];
@@ -95,6 +97,12 @@ let initialState: LogoutState | LoginState = LOGOUT_STATE;
   }
 }
 
+/**
+ * ```
+ * Handlers : [auth, login, logout, cancel]
+ * ```
+ * @see `useAuth`
+ */
 type Handlers = [AuthState, (token: string) => void, () => void, () => void];
 
 /**
@@ -107,7 +115,7 @@ type Handlers = [AuthState, (token: string) => void, () => void, () => void];
  * `auth` にユーザ情報が格納されている。
  * logout時サーバにリクエストを送る。中止させたいときは `cancel()` を呼び出す
  */
-export const useAuth = (): Handlers => {
+const useAuth = (): Handlers => {
   const [auth, setAuth] = useState<AuthState>(initialState);
   const [logout, logoutCancel] = useHttpTask(signout, () => {
     console.info("task useAuth logout true");
@@ -133,15 +141,26 @@ export const useAuth = (): Handlers => {
   return [auth, login, logoutWrapper, logoutCancelWrapper];
 };
 
+const AuthContext = createContext<Handlers>([
+  LOGOUT_STATE,
+  () => {},
+  () => {},
+  () => {}
+]);
+
 /**
  * ```
  * const [auth, login, logout, cancel] = useContext(LoginContext)
  * ```
  * @see `useAuth`
  */
-export default createContext<Handlers>([
-  LOGOUT_STATE,
-  () => {},
-  () => {},
-  () => {}
-]);
+export const AuthProvider = (props: ComponentProperty) => {
+  const handlers = useAuth();
+  return (
+    <AuthContext.Provider value={handlers}>
+      {props.children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthContext;

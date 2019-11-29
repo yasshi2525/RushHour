@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import useTheme from "@material-ui/core/styles/useTheme";
 import makeStyles from "@material-ui/styles/makeStyles";
@@ -8,15 +8,15 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import { ComponentProperty } from "interfaces/component";
-import { LoadingStatus, useLoading } from "common/loading";
+import LoadingContext, { LoadingStatus } from "common/loading";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       position: "absolute",
-      top: "100px"
+      top: "100px",
+      zIndex: 1000
     },
     area: {
       padding: theme.spacing(),
@@ -58,13 +58,7 @@ const Linear = (props: LinearProperty) => {
   );
 };
 
-export const LoadingCircle = () => (
-  <CircularProgress aria-describedby="loading-description" aria-busy={true}>
-    <div id="loading-description">読み込み中</div>
-  </CircularProgress>
-);
-
 export default () => {
-  const [status] = useLoading();
+  const { status } = useContext(LoadingContext);
   return status !== LoadingStatus.END ? <Linear phase={status} /> : null;
 };

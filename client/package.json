@@ -67,6 +67,7 @@
     "@types/react-redux": "^7.1.5",
     "ejs": "^2.7.4",
     "jsonwebtoken": "^8.5.1",
+    "notistack": "^0.9.6",
     "pixi-filters": "^3.0.3",
     "pixi.js": "^5.2.0",
     "react": "^16.12.0",

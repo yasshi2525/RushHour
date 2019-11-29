@@ -1,4 +1,6 @@
-import { Dispatch, createContext, useContext, useCallback } from "react";
+import React, { Dispatch, createContext, useState, useCallback } from "react";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { ComponentProperty } from "interfaces/component";
 
 export enum LoadingStatus {
   /**
@@ -9,22 +11,12 @@ export enum LoadingStatus {
    * 稼働中確認コンポーネントのロード完了
    */
   IMPORTED_OPERATION,
+  CREATED_OPERATION,
   /**
    * メンテナンス中か確認完了
    */
   CHECKED_OPERATION,
-  /**
-   * アプリケーションコンポーネントのロード完了
-   */
-  IMPORTED_APPLICATION,
-  /**
-   * メニューバーのインポート完了
-   */
-  IMPORTED_MENU,
-  /**
-   * ゲームボードのインポート完了
-   */
-  IMPORTED_BOARD,
+  CREATED_MENU,
   /**
    * 画像情報の読み込み完了
    */
@@ -38,10 +30,6 @@ export enum LoadingStatus {
    * マップ情報の取得完了
    */
   FETCHED_MAP,
-  /**
-   * キャンバスのロード完了
-   */
-  LOADED_CANVAS,
   /**
    * コントローラーの初期化完了
    */
@@ -59,22 +47,18 @@ export namespace LoadingStatus {
         return "ベースコンポーネントを読み込んでいます";
       case LoadingStatus.IMPORTED_OPERATION:
         return "ベースコンポーネントを構築しています";
+      case LoadingStatus.CREATED_OPERATION:
+        return "ゲームの稼働ステータスを確認しています";
       case LoadingStatus.CHECKED_OPERATION:
-        return "アプリケーションコンポーネントを読み込んでいます";
-      case LoadingStatus.IMPORTED_APPLICATION:
-        return "メニューバーを読み込んでいます";
-      case LoadingStatus.IMPORTED_MENU:
-        return "ゲームコンポーネントを読み込んでいます";
-      case LoadingStatus.IMPORTED_BOARD:
-        return "画像情報を読み込んでいます";
+        return "メニューバーを構築しています";
+      case LoadingStatus.CREATED_MENU:
+        return "画像データを読み込んでいます";
       case LoadingStatus.LOADED_RESOURCE:
         return "プレイヤー情報を取得しています";
       case LoadingStatus.FETCHED_PLAYERS:
         return "マップ情報を取得しています";
       case LoadingStatus.FETCHED_MAP:
-        return "コントローラーを構築しています";
-      case LoadingStatus.LOADED_CANVAS:
-        return "コントローラーを構築しています";
+        return "ハンドラを構築しています";
       case LoadingStatus.INITED_CONTROLLER:
         return "ロード処理を完了しています";
       default:
@@ -84,23 +68,45 @@ export namespace LoadingStatus {
   }
 }
 
-type LoadingState = [LoadingStatus, Dispatch<LoadingStatus>];
-const LoadingContext = createContext<LoadingState>([0, () => {}]);
+interface LoadingState {
+  status: LoadingStatus;
+  update: Dispatch<LoadingStatus>;
+}
 
-export const useLoading = (): [LoadingStatus, Dispatch<LoadingStatus>] => {
-  const [status, update] = useContext(LoadingContext);
-  const updateWrapper = useCallback(
+const useLoading = (): LoadingState => {
+  const [status, _update] = useState(0);
+  const update = useCallback(
     (next: LoadingStatus) => {
       console.info(`callback useLoading ${status}=>${next}`);
       if (next > status) {
-        update(next);
+        _update(next);
       } else {
         console.warn(`progress fallback: ${status}=>${next}`);
       }
     },
-    [status, update]
+    [status]
   );
-  return [status, updateWrapper];
+  return { status, update };
+};
+
+export const LoadingCircle = () => (
+  <CircularProgress aria-describedby="loading-description" aria-busy={true}>
+    <div id="loading-description">読み込み中</div>
+  </CircularProgress>
+);
+
+const LoadingContext = createContext<LoadingState>({
+  status: 0,
+  update: () => {}
+});
+
+export const LoadingProvider = (props: ComponentProperty) => {
+  const context = useLoading();
+  return (
+    <LoadingContext.Provider value={context}>
+      {props.children}
+    </LoadingContext.Provider>
+  );
 };
 
 export default LoadingContext;

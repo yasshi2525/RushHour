@@ -149,7 +149,7 @@ type removeRailNodeResponse struct {
 // @Summary remove rail node
 // @Accept json
 // @Produce json
-// @Param rnid body integer true "rail node id"
+// @Param id body integer true "rail node id"
 // @Success 200 {object} removeRailNodeResponse "connect rail node"
 // @Success 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"

@@ -9,7 +9,8 @@ import {
 } from "interfaces/error";
 import { GeneralObject, Entity } from "interfaces";
 import { Method, Endpoint } from "interfaces/endpoint";
-import { useTask } from "common/task";
+import { useTask } from "./task";
+import { useSnack } from "./snack";
 
 interface ErrContents {
   err: string[];
@@ -141,12 +142,17 @@ const initErr = new UnhandledError("under fetching...");
 export const useFetch = <I = {}, O = {}>(ep: Endpoint, args?: I) => {
   const [completed, setCompleted] = useState(false);
   const [contents, setContents] = useState<Http<O>>([initErr, undefined]);
+  const snack = useSnack();
   useEffect(() => {
     console.info(`effect useFetch ${ep.url}`);
     const aborter = new AbortController();
     let setContentsSafe = (c: Http<O>) => setContents(c);
     (async () => {
-      setContentsSafe(await http(ep, aborter.signal, args));
+      const result = await http<I, O>(ep, aborter.signal, args);
+      if (result[0]) {
+        snack(result[0]);
+      }
+      setContentsSafe(result);
       setCompleted(true);
     })();
     return () => {
@@ -173,10 +179,10 @@ export const useFetch = <I = {}, O = {}>(ep: Endpoint, args?: I) => {
  * ```
  * @see `useTask`
  */
-export const useHttpTask = <I = {}, O = {}>(
+export const useHttpTask = <I, O>(
   ep: Endpoint,
   ok?: (d: O) => void,
   ng?: (e: ServerErrors) => void
 ) => {
-  return useTask((sig, args?: I) => _http(ep, sig, args), ok, ng);
+  return useTask((sig, args: I) => _http(ep, sig, args), ok, ng);
 };

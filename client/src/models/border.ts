@@ -246,7 +246,7 @@ abstract class NormalBorderContainer
   }
 
   protected getId(offset: number, scale: number) {
-    return offset + scale;
+    return offset + scale * config.scale.max;
   }
 
   protected abstract getOffset(chunk: Chunk): number;
