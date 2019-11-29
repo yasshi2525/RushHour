@@ -73,20 +73,20 @@ type delegateLocalable interface {
 type DelegateNode struct {
 	Base
 
-	Pos      *Point             `json:"pos"`
-	Multi    int                `json:"mul"`
-	ParentID uint               `json:"pid,omitempty"`
-	ChildID  uint               `json:"cid,omitempty"`
-	List     map[uint]Localable `json:"-"`
+	Pos       *Point             `json:"pos"`
+	Multi     int                `json:"mul"`
+	ParentIDs []uint             `json:"pids,omitempty"`
+	ChildID   uint               `json:"cid,omitempty"`
+	List      map[uint]Localable `json:"-"`
 }
 
 // NewDelegateNode creates instance.
-func (ch *Chunk) NewDelegateNode(obj Localable, pid uint) DelegateNode {
+func (ch *Chunk) NewDelegateNode(obj Localable, pids []uint) DelegateNode {
 	return DelegateNode{
-		Base:     ch.M.NewBase(obj.B().T, obj.B().O),
-		Pos:      obj.Pos().Clone(),
-		ParentID: pid,
-		List:     make(map[uint]Localable),
+		Base:      ch.M.NewBase(obj.B().T, obj.B().O),
+		Pos:       obj.Pos().Clone(),
+		ParentIDs: pids,
+		List:      make(map[uint]Localable),
 	}
 }
 

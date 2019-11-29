@@ -64,13 +64,15 @@ func (ch *Chunk) addLocalable(obj Localable) {
 	}
 
 	if nodeField.IsNil() {
+		var pids []uint
 		var pid uint
 		if parent := ch.Parent.Parent; parent != nil && parent.Data[oid] != nil {
 			parentTarget := reflect.ValueOf(parent.Data[oid]).Elem().FieldByName(fieldName)
 			pid = uint(parentTarget.Elem().FieldByName("ID").Uint())
+			pids = append(parentTarget.Elem().FieldByName("ParentIDs").Interface().([]uint), pid)
 		}
 		node := reflect.New(delegateTypes[obj.B().T])
-		node.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pid)))
+		node.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pids)))
 		nodeField.Set(node)
 	}
 	nodeField.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
