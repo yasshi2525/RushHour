@@ -4,6 +4,29 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackHarddiskPlugin = require("html-webpack-harddisk-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+  .BundleAnalyzerPlugin;
+
+const plugins = [
+  new CleanWebpackPlugin(),
+  new EnvironmentPlugin({ baseurl: "http://localhost:8080" }),
+  new HtmlWebpackPlugin({
+    title: "RushHour",
+    favicon: "src/favicon.ico",
+    template: path.resolve(__dirname, "src", "index.ejs"),
+    meta: {
+      viewport: "width=device-width,initial-scale=1",
+      "Content-Type": "text/html; charset=utf-8"
+    },
+    alwaysWriteToDisk: true
+  }),
+  new HtmlWebpackHarddiskPlugin(),
+  new CopyPlugin([{ from: "src/static/import", to: "spritesheet" }])
+];
+
+if (process.env.analyze) {
+  plugins.push(new BundleAnalyzerPlugin());
+}
 
 module.exports = {
   entry: {
@@ -59,20 +82,5 @@ module.exports = {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
     extensions: [".ts", ".tsx", ".js", ",jsx"]
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-    new EnvironmentPlugin({ baseurl: "http://localhost:8080" }),
-    new HtmlWebpackPlugin({
-      title: "RushHour",
-      favicon: "src/favicon.ico",
-      template: path.resolve(__dirname, "src", "index.ejs"),
-      meta: {
-        viewport: "width=device-width,initial-scale=1",
-        "Content-Type": "text/html; charset=utf-8"
-      },
-      alwaysWriteToDisk: true
-    }),
-    new HtmlWebpackHarddiskPlugin(),
-    new CopyPlugin([{ from: "src/static/import", to: "spritesheet" }])
-  ]
+  plugins
 };

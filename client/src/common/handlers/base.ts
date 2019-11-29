@@ -1,6 +1,6 @@
-import { Edge } from "common/interfaces/gamemap";
+import { Edge } from "interfaces/gamemap";
 import { fetchMap } from "actions";
-import GameModel from "common/models";
+import GameModel from "models";
 
 export default abstract class<T> {
   protected isExec: boolean;

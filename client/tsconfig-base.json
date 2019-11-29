@@ -5,6 +5,7 @@
     "esModuleInterop": true,
     "jsx": "react",
     "locale": "en",
+    "module": "commonjs",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,

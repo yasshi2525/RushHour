@@ -1,8 +1,8 @@
 import * as PIXI from "pixi.js";
-import GameModel from "common/models";
-import Container from "common/models/container";
-import Model, { BaseProperty } from "common/models/base";
-import { Monitorable, MonitorContainer } from "common/interfaces/monitor";
+import GameModel from "models";
+import Container from "models/container";
+import Model, { BaseProperty } from "models/base";
+import { Monitorable, MonitorContainer } from "interfaces/monitor";
 
 const app = new PIXI.Application();
 const model = new GameModel({ app: app, cx: 0, cy: 0, scale: 10, zoom: 0 });
@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 describe("mergeChild", () => {
-  let testId = "test";
+  let testId = 0;
 
   test("add child when new instance is specified", () => {
     instance.mergeChild({ id: testId });
@@ -64,7 +64,7 @@ describe("mergeChild", () => {
 });
 
 describe("mergeChildren", () => {
-  let testId = "test";
+  let testId = 0;
   test("remove child when no property is specified", () => {
     instance.mergeChild({ id: testId });
     instance.mergeChildren([], {});
@@ -75,7 +75,7 @@ describe("mergeChildren", () => {
 
 describe("removeChild", () => {
   test("do nothing when unregisted child is specified", () => {
-    instance.removeChild("unregistered");
+    instance.removeChild(-2);
     expect(instance.isChanged()).toBe(false);
   });
 });
