@@ -8,7 +8,7 @@ import (
 // Chunk represents square area. Many Entities are deployed over Chunk.
 type Chunk struct {
 	Base
-	Point
+	ChunkPoint
 
 	Residence *DelegateResidence
 	Company   *DelegateCompany
@@ -23,8 +23,8 @@ type Chunk struct {
 // NewChunk create Chunk on specified Cluster
 func (m *Model) NewChunk(p *Cluster, o *Player) *Chunk {
 	ch := &Chunk{
-		Base:  m.NewBase(CHUNK, o),
-		Point: p.Point,
+		Base:       m.NewBase(CHUNK, o),
+		ChunkPoint: p.ChunkPoint,
 	}
 	ch.Init(m)
 	ch.Resolve(p)
@@ -64,13 +64,15 @@ func (ch *Chunk) addLocalable(obj Localable) {
 	}
 
 	if nodeField.IsNil() {
+		var pids []uint
 		var pid uint
 		if parent := ch.Parent.Parent; parent != nil && parent.Data[oid] != nil {
 			parentTarget := reflect.ValueOf(parent.Data[oid]).Elem().FieldByName(fieldName)
 			pid = uint(parentTarget.Elem().FieldByName("ID").Uint())
+			pids = append(parentTarget.Elem().FieldByName("ParentIDs").Interface().([]uint), pid)
 		}
 		node := reflect.New(delegateTypes[obj.B().T])
-		node.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pid)))
+		node.Elem().FieldByName("DelegateNode").Set(reflect.ValueOf(ch.NewDelegateNode(obj, pids)))
 		nodeField.Set(node)
 	}
 	nodeField.MethodByName("Add").Call([]reflect.Value{reflect.ValueOf(obj)})
@@ -258,8 +260,8 @@ func (ch *Chunk) Export(dm *DelegateMap) {
 
 // String represents status
 func (ch *Chunk) String() string {
-	return fmt.Sprintf("%s(%.1f:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.T.Short(),
+	return fmt.Sprintf("%s(%d:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.T.Short(),
 		ch.Parent.Scale, ch.ID, ch.OwnerID,
 		ch.Residence, ch.Company, ch.RailNode,
-		len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)
+		len(ch.InRailEdges), len(ch.OutRailEdges), ch.ChunkPoint)
 }

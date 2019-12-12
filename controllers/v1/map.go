@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +12,10 @@ import (
 
 // gameMapRequest represents requirement to view game map
 type gameMapRequest struct {
-	// Cx is center x coordinate
-	Cx string `form:"cx" json:"cx" validate:"required,numeric"`
-	// Cy is center y coordinate
-	Cy string `form:"cy" json:"cy" validate:"required,numeric"`
+	// X is center x scalized coordinate
+	X string `form:"x" json:"x" validate:"required,numeric"`
+	// Y is center y scalized coordinate
+	Y string `form:"y" json:"y" validate:"required,numeric"`
 	// Scale is 2^Scale coordinate maps size
 	Scale string `form:"scale" json:"scale" validate:"required,numeric"`
 	// Delegate is 2^Delegate grid of map
@@ -24,29 +23,29 @@ type gameMapRequest struct {
 }
 
 // export converts string to float64
-func (v *gameMapRequest) export() (float64, float64, float64, float64) {
-	cx, _ := strconv.ParseFloat(v.Cx, 64)
-	cy, _ := strconv.ParseFloat(v.Cy, 64)
-	sc, _ := strconv.ParseFloat(v.Scale, 64)
-	dlg, _ := strconv.ParseFloat(v.Delegate, 64)
-	return cx, cy, sc, dlg
+func (v *gameMapRequest) export() (int, int, int, int) {
+	x, _ := strconv.ParseInt(v.X, 10, 64)
+	y, _ := strconv.ParseInt(v.Y, 10, 64)
+	sc, _ := strconv.ParseInt(v.Scale, 10, 64)
+	dlg, _ := strconv.ParseInt(v.Delegate, 10, 64)
+	return int(x), int(y), int(sc), int(dlg)
 }
 
 // validGameMapRequest validates that GameMapRequest contains game whole map
 func validGameMapRequest(sl validator.StructLevel) {
 	v := sl.Current().Interface().(gameMapRequest)
-	cx, cy, sc, dlg := v.export()
+	x, y, sc, dlg := v.export()
 
 	minSc := conf.Game.Entity.MinScale
 	maxSc := conf.Game.Entity.MaxScale
 
 	// validate scale
 	if sc < minSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%d", minSc))
 		return
 	}
 	if sc > maxSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%d", maxSc))
 		return
 	}
 
@@ -56,27 +55,27 @@ func validGameMapRequest(sl validator.StructLevel) {
 	}
 
 	if sc-dlg < minSc {
-		sl.ReportError(v.Delegate, "delegate", "Delegate", "lte", fmt.Sprintf("%f", sc-minSc))
+		sl.ReportError(v.Delegate, "delegate", "Delegate", "lte", fmt.Sprintf("%d", sc-minSc))
 	}
 
-	radius := math.Pow(2, sc-1)
-	border := math.Pow(2, maxSc-1)
+	length := 1 << (sc - minSc)
+	border := 1 << (maxSc - minSc)
 
 	// left over
-	if cx-radius < -border {
-		sl.ReportError(v.Cx, "cx", "Cx", "gte", fmt.Sprintf("%f", radius-border))
+	if x < 0 {
+		sl.ReportError(v.X, "x", "X", "gte", fmt.Sprintf("%d", 0))
 	}
 	// right over
-	if cx+radius > border {
-		sl.ReportError(v.Cx, "cx", "Cx", "lte", fmt.Sprintf("%f", border-radius))
+	if x+length > border {
+		sl.ReportError(v.X, "x", "X", "lte", fmt.Sprintf("%d", border-length))
 	}
 	// top over
-	if cy-radius < -border {
-		sl.ReportError(v.Cy, "cy", "Cy", "gte", fmt.Sprintf("%f", radius-border))
+	if y < 0 {
+		sl.ReportError(v.Y, "y", "Y", "gte", fmt.Sprintf("%d", 0))
 	}
 	// bottom over
-	if cy+radius > border {
-		sl.ReportError(v.Cy, "cy", "Cy", "lte", fmt.Sprintf("%f", border-radius))
+	if y+length > border {
+		sl.ReportError(v.Y, "y", "Y", "lte", fmt.Sprintf("%d", border-length))
 	}
 }
 

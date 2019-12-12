@@ -3,7 +3,6 @@ package entities
 import (
 	"fmt"
 	"log"
-	"math"
 	"strings"
 )
 
@@ -18,19 +17,44 @@ const (
 	E = 1
 )
 
+// ChunkPoint is scaled value
+type ChunkPoint struct {
+	X     int
+	Y     int
+	Scale int
+}
+
+func (p *ChunkPoint) has(pos *Point) bool {
+	x, y := int(pos.X), int(pos.Y)
+	left, right := p.X<<p.Scale, p.X<<p.Scale+1
+	top, buttom := p.Y<<p.Scale, p.Y<<p.Scale+1
+	return left <= x && x < right && top <= y && y < buttom
+}
+
+func (p *ChunkPoint) contains(oth *ChunkPoint) bool {
+	if p.Scale < oth.Scale {
+		return false
+	}
+	diff := p.Scale - oth.Scale
+	return p.X == oth.X>>diff && p.Y == oth.Y>>diff
+}
+
+func (p *ChunkPoint) String() string {
+	return fmt.Sprintf("(%d,%d,%d)", p.X, p.Y, p.Scale)
+}
+
 // Cluster summarize entities of each owner.
 type Cluster struct {
 	Base
-	Point
-	Scale  float64
+	ChunkPoint
 	Parent *Cluster
 	Data   map[uint]*Chunk
 
-	ChPos    [2][2]*Point
 	Children [2][2]*Cluster
 }
 
 // NewCluster creates Cluster on specified point.
+// dx, dy must be 0 or 1
 func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 	cl := &Cluster{
 		Base: m.NewBase(CLUSTER),
@@ -40,12 +64,9 @@ func (m *Model) NewCluster(p *Cluster, dx int, dy int) *Cluster {
 	} else {
 		cl.Parent = p
 		cl.Scale = p.Scale - 1
-		len := math.Pow(2, p.Scale-2)
-		cl.X = p.X + len*float64(dx)
-		cl.Y = p.Y + len*float64(dy)
-		x := int(math.Ceil(float64(dx) / 2))
-		y := int(math.Ceil(float64(dy) / 2))
-		p.Children[y][x] = cl
+		cl.X = p.X<<1 + dx
+		cl.Y = p.Y<<1 + dy
+		p.Children[dy][dx] = cl
 	}
 	cl.Init(m)
 	m.Add(cl)
@@ -60,21 +81,11 @@ func (cl *Cluster) B() *Base {
 // Init creates map.
 func (cl *Cluster) Init(m *Model) {
 	cl.Base.Init(CLUSTER, m)
-
 	cl.Data = make(map[uint]*Chunk)
-
-	if cl.Scale > cl.M.conf.MinScale {
-		len := math.Pow(2, cl.Scale-2)
-		cl.ChPos = [2][2]*Point{}
-		cl.ChPos[N][W] = &Point{cl.X - len, cl.Y - len}
-		cl.ChPos[N][E] = &Point{cl.X + len, cl.Y - len}
-		cl.ChPos[S][W] = &Point{cl.X - len, cl.Y + len}
-		cl.ChPos[S][E] = &Point{cl.X + len, cl.Y + len}
-	}
 }
 
 // FindChunk returns specific scale's Chunk which has specified Entity.
-func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
+func (cl *Cluster) FindChunk(obj Entity, scale int) *Chunk {
 	if cl.Scale == scale {
 		data := cl.Data[obj.B().OwnerID]
 		if data != nil && data.Has(obj) {
@@ -94,21 +105,6 @@ func (cl *Cluster) FindChunk(obj Entity, scale float64) *Chunk {
 	return nil
 }
 
-// FindChild returns child Cluster on specified point.
-func (cl *Cluster) FindChild(dx int, dy int) (*Cluster, *Point) {
-	x := int(math.Ceil(float64(dx) / 2))
-	y := int(math.Ceil(float64(dy) / 2))
-	return cl.Children[y][x], cl.ChPos[y][x]
-}
-
-// FindOrCreateChild must returns child Cluster on specified point.
-func (cl *Cluster) FindOrCreateChild(dx int, dy int) *Cluster {
-	if c, _ := cl.FindChild(dx, dy); c != nil {
-		return c
-	}
-	return cl.M.NewCluster(cl, dx, dy)
-}
-
 // Add deploy Entity over related Chunk.
 func (cl *Cluster) Add(raw Entity) {
 	if obj, ok := raw.(Connectable); ok {
@@ -123,8 +119,7 @@ func (cl *Cluster) addEntity(obj Entity, p *Point) {
 	if p == nil {
 		return
 	}
-
-	if !cl.Point.IsIn(p.X, p.Y, cl.Scale) {
+	if cl.Parent == nil && (int(p.X)>>cl.Scale > 0 || int(p.Y)>>cl.Scale > 0) {
 		log.Printf("%v(%v) is out of bounds for %v", obj, p, cl)
 	}
 
@@ -135,8 +130,8 @@ func (cl *Cluster) addEntity(obj Entity, p *Point) {
 
 	cl.Data[oid].Add(obj)
 
-	cl.eachChildren(func(dx int, dy int, c *Cluster, pos *Point) {
-		if pos.IsIn(p.X, p.Y, cl.Scale-1) {
+	cl.eachChildren(func(dx int, dy int, c *Cluster, pos *ChunkPoint) {
+		if pos.has(p) {
 			if c == nil {
 				c = cl.M.NewCluster(cl, dx, dy)
 			}
@@ -165,7 +160,7 @@ func (cl *Cluster) removeEntity(obj Entity) {
 	oid := obj.B().OwnerID
 	if chunk := cl.Data[oid]; chunk != nil {
 		chunk.Remove(obj)
-		cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
+		cl.eachChildren(func(dx int, dy int, c *Cluster, p *ChunkPoint) {
 			if c != nil && c.Data[oid] != nil && c.Data[oid].Has(obj) {
 				c.Remove(obj)
 			}
@@ -180,28 +175,28 @@ func (cl *Cluster) removeEntity(obj Entity) {
 }
 
 // ViewMap set delegate Entity to DelegateMap.
-func (cl *Cluster) ViewMap(dm *DelegateMap, cx float64, cy float64, scale float64, span float64) {
-	if cl.intersectsWith(cx, cy, scale) {
-		if cl.Scale <= scale-span {
+func (cl *Cluster) ViewMap(dm *DelegateMap, pos *ChunkPoint, span int) {
+	if cl.ChunkPoint.contains(pos) {
+		if cl.Scale <= pos.Scale-span {
 			for _, d := range cl.Data {
 				d.Export(dm)
 			}
 		} else {
-			cl.eachChildren(func(dx int, dy int, c *Cluster, p *Point) {
+			cl.eachChildren(func(dx int, dy int, c *Cluster, p *ChunkPoint) {
 				if c != nil {
-					c.ViewMap(dm, cx, cy, scale, span)
+					c.ViewMap(dm, pos, span)
 				}
 			})
 		}
 	}
 }
 
-func (cl *Cluster) eachChildren(callback func(int, int, *Cluster, *Point)) {
+func (cl *Cluster) eachChildren(callback func(int, int, *Cluster, *ChunkPoint)) {
 	if cl.Scale > cl.M.conf.MinScale {
-		for _, dy := range []int{-1, +1} {
-			for _, dx := range []int{-1, +1} {
-				c, p := cl.FindChild(dx, dy)
-				callback(dx, dy, c, p)
+		for _, dy := range []int{0, 1} {
+			for _, dx := range []int{0, 1} {
+				callback(dx, dy, cl.Children[dy][dx],
+					&ChunkPoint{cl.X<<1 + dx, cl.Y<<1 + dy, cl.Scale - 1})
 			}
 		}
 	}
@@ -278,20 +273,12 @@ func (cl *Cluster) Delete() {
 	cl.M.Delete(cl)
 }
 
-func (cl *Cluster) intersectsWith(cx float64, cy float64, scale float64) bool {
-	myL := math.Pow(2, cl.Scale) / 2
-	othL := math.Pow(2, scale) / 2
-
-	return math.Max(cl.X-myL, cx-othL) <= math.Min(cl.X+myL, cx+othL) &&
-		math.Max(cl.Y-myL, cy-othL) <= math.Min(cl.Y+myL, cy+othL)
-}
-
 // String represents status
 func (cl *Cluster) String() string {
 	list := []string{}
 	for id := range cl.Data {
 		list = append(list, fmt.Sprintf("ch(%d)", id))
 	}
-	return fmt.Sprintf("%s(%.1f:%d):%s,%v", cl.Type().Short(),
-		cl.Scale, cl.ID, strings.Join(list, ","), cl.Point)
+	return fmt.Sprintf("%s(%d:%d):%s,%v", cl.Type().Short(),
+		cl.Scale, cl.ID, strings.Join(list, ","), cl.ChunkPoint)
 }

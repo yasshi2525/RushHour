@@ -145,6 +145,11 @@ func assertUnauthorized(t *testing.T, args paramAssertUnauthorized) {
 func TestInitController(t *testing.T) {
 	bkConf := conf
 	wantConf := &config.Config{
+		Secret: config.CnfSecret{
+			Auth: config.CnfAuth{
+				Key: "----------------",
+			},
+		},
 		Game: config.CnfGame{
 			Entity: config.CnfEntity{
 				MaxScale: 5,

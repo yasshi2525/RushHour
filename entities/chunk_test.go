@@ -8,9 +8,9 @@ import (
 )
 
 func TestChunk(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
 	t.Run("Add", func(t *testing.T) {
 		t.Run("RailNode", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 1,
 			}, a)
@@ -28,7 +28,6 @@ func TestChunk(t *testing.T) {
 		})
 
 		t.Run("RailEdge", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 2,
 			}, a)

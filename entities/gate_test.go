@@ -8,8 +8,8 @@ import (
 )
 
 func TestGate(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
 	t.Run("NewGate", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		m.NewCompany(0, 0)
 		m.NewResidence(0, 0)
@@ -30,7 +30,6 @@ func TestGate(t *testing.T) {
 		}.Assert(t)
 	})
 	t.Run("Delete", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		m.NewCompany(0, 0)
 		m.NewResidence(0, 0)

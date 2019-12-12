@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"math"
 	"net/http"
 	"testing"
 
@@ -17,95 +16,95 @@ func TestValidgameMapRequest(t *testing.T) {
 	}{
 		{
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
+				X:        "0.0",
+				Y:        "0.0",
+				Scale:    fmt.Sprintf("%d.0", conf.Game.Entity.MinScale),
 				Delegate: "0.0",
 			},
 			want: nil,
 		}, {
 			// too small Scale
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale-0.0001),
-				Delegate: "0.0",
+				X:        "0",
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale-1),
+				Delegate: "0",
 			},
 			want: []string{"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'gte' tag"},
 		}, {
 			// too large Scale
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MaxScale+0.0001),
+				X:        "0",
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MaxScale+1),
 				Delegate: "0.0",
 			},
 			want: []string{"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'lte' tag"},
 		}, {
 			// too small Delegate
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: "-0.0001",
+				X:        "0",
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: "-1",
 			},
 			want: []string{"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'gte' tag"},
 		}, {
 			// too large Delegate
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: fmt.Sprintf("%f", conf.Game.Entity.MinScale+1),
+				X:        "0",
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: fmt.Sprintf("%d", conf.Game.Entity.MinScale+1),
 			},
 			want: []string{"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'lte' tag"},
 		}, {
 			// left over
 			in: gameMapRequest{
-				Cx:       fmt.Sprintf("%f", -math.Pow(2, conf.Game.Entity.MaxScale)),
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: "0.0",
+				X:        "-1",
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: "0",
 			},
-			want: []string{"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'gte' tag"},
+			want: []string{"Key: 'gameMapRequest.x' Error:Field validation for 'x' failed on the 'gte' tag"},
 		}, {
 			// right over
 			in: gameMapRequest{
-				Cx:       fmt.Sprintf("%f", math.Pow(2, conf.Game.Entity.MaxScale)),
-				Cy:       "0.0",
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: "0.0",
+				X:        fmt.Sprintf("%d", 0x1<<(conf.Game.Entity.MaxScale-conf.Game.Entity.MinScale)),
+				Y:        "0",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: "0",
 			},
-			want: []string{"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'lte' tag"},
+			want: []string{"Key: 'gameMapRequest.x' Error:Field validation for 'x' failed on the 'lte' tag"},
 		}, {
 			// top over
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       fmt.Sprintf("%f", -math.Pow(2, conf.Game.Entity.MaxScale)),
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: "0.0",
+				X:        "0",
+				Y:        "-1",
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: "0",
 			},
-			want: []string{"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'gte' tag"},
+			want: []string{"Key: 'gameMapRequest.y' Error:Field validation for 'y' failed on the 'gte' tag"},
 		}, {
 			// bottom over
 			in: gameMapRequest{
-				Cx:       "0.0",
-				Cy:       fmt.Sprintf("%f", math.Pow(2, conf.Game.Entity.MaxScale)),
-				Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-				Delegate: "0.0",
+				X:        "0",
+				Y:        fmt.Sprintf("%d", 0x1<<(conf.Game.Entity.MaxScale-conf.Game.Entity.MinScale)),
+				Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+				Delegate: "0",
 			},
-			want: []string{"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'lte' tag"},
+			want: []string{"Key: 'gameMapRequest.y' Error:Field validation for 'y' failed on the 'lte' tag"},
 		}, {
 			// invalid format
 			in: gameMapRequest{
-				Cx:       "invalid",
-				Cy:       "invalid",
+				X:        "invalid",
+				Y:        "invalid",
 				Scale:    "invalid",
 				Delegate: "invalid",
 			},
 			want: []string{
-				"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'numeric' tag",
-				"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'numeric' tag",
+				"Key: 'gameMapRequest.x' Error:Field validation for 'x' failed on the 'numeric' tag",
+				"Key: 'gameMapRequest.y' Error:Field validation for 'y' failed on the 'numeric' tag",
 				"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'numeric' tag",
 				"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'numeric' tag",
 			},
@@ -113,8 +112,8 @@ func TestValidgameMapRequest(t *testing.T) {
 			// empty
 			in: gameMapRequest{},
 			want: []string{
-				"Key: 'gameMapRequest.cx' Error:Field validation for 'cx' failed on the 'required' tag",
-				"Key: 'gameMapRequest.cy' Error:Field validation for 'cy' failed on the 'required' tag",
+				"Key: 'gameMapRequest.x' Error:Field validation for 'x' failed on the 'required' tag",
+				"Key: 'gameMapRequest.y' Error:Field validation for 'y' failed on the 'required' tag",
 				"Key: 'gameMapRequest.scale' Error:Field validation for 'scale' failed on the 'required' tag",
 				"Key: 'gameMapRequest.delegate' Error:Field validation for 'delegate' failed on the 'required' tag",
 			},
@@ -129,6 +128,10 @@ func TestValidgameMapRequest(t *testing.T) {
 			res := rawResult.(validator.ValidationErrors)
 			if len(res) != len(c.want) {
 				t.Errorf("validgameMapRequest(%v) == %d errors, want %d errors", c.in, len(res), len(c.want))
+				for i := 0; i < len(res); i++ {
+					got := res[i]
+					t.Errorf("validgameMapRequest(%v)[%d] == %s", c.in, i, got)
+				}
 			} else {
 				for i := 0; i < len(res); i++ {
 					got, want := res[i], c.want[i]
@@ -149,9 +152,9 @@ func TestGameMap(t *testing.T) {
 		}{
 			{
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MaxScale),
+					X:        "0.0",
+					Y:        "0.0",
+					Scale:    fmt.Sprintf("%d.0", conf.Game.Entity.MaxScale),
 					Delegate: "0.0",
 				},
 				want: true,
@@ -162,7 +165,7 @@ func TestGameMap(t *testing.T) {
 			r.GET("/gamemap", GameMap)
 			assertOkResponse(t, paramAssertOk{
 				Method: "GET",
-				Path:   fmt.Sprintf("/gamemap?cx=%s&cy=%s&scale=%s&delegate=%s", c.in.Cx, c.in.Cy, c.in.Scale, c.in.Delegate),
+				Path:   fmt.Sprintf("/gamemap?x=%s&y=%s&scale=%s&delegate=%s", c.in.X, c.in.Y, c.in.Scale, c.in.Delegate),
 				R:      r,
 				W:      w,
 				Jwt:    "",
@@ -184,94 +187,94 @@ func TestGameMap(t *testing.T) {
 			{
 				// too small Scale
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale-0.0001),
+					X:        "0",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale-1),
 					Delegate: "0.0",
 				},
-				want: []string{"scale must be gte 0.000000"},
+				want: []string{"scale must be gte 0"},
 			},
 			{
 				// too large Scale
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MaxScale+0.0001),
-					Delegate: "0.0",
+					X:        "0",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MaxScale+1),
+					Delegate: "0",
 				},
-				want: []string{"scale must be lte 16.000000"},
+				want: []string{"scale must be lte 16"},
 			},
 			{
 				// too small Delegate
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: "-0.0001",
+					X:        "0",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: "-1",
 				},
 				want: []string{"delegate must be gte 0"},
 			},
 			{
 				// too large Delegate
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: fmt.Sprintf("%f", conf.Game.Entity.MinScale+1),
+					X:        "0",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: fmt.Sprintf("%d", conf.Game.Entity.MinScale+1),
 				},
-				want: []string{"delegate must be lte 0.000000"},
+				want: []string{"delegate must be lte 0"},
 			},
 			{
 				// left over
 				in: gameMapRequest{
-					Cx:       fmt.Sprintf("%f", -math.Pow(2, conf.Game.Entity.MaxScale)),
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: "0.0",
+					X:        "-1",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: "0",
 				},
-				want: []string{"cx must be gte -32767.500000"},
+				want: []string{"x must be gte 0"},
 			},
 			{
 				// right over
 				in: gameMapRequest{
-					Cx:       fmt.Sprintf("%f", math.Pow(2, conf.Game.Entity.MaxScale)),
-					Cy:       "0.0",
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: "0.0",
+					X:        "65536",
+					Y:        "0",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: "0",
 				},
-				want: []string{"cx must be lte 32767.500000"},
+				want: []string{"x must be lte 65535"},
 			},
 			{
 				// top over
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       fmt.Sprintf("%f", -math.Pow(2, conf.Game.Entity.MaxScale)),
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: "0.0",
+					X:        "0",
+					Y:        "-1",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: "0",
 				},
-				want: []string{"cy must be gte -32767.500000"},
+				want: []string{"y must be gte 0"},
 			},
 			{
 				// bottom over
 				in: gameMapRequest{
-					Cx:       "0.0",
-					Cy:       fmt.Sprintf("%f", math.Pow(2, conf.Game.Entity.MaxScale)),
-					Scale:    fmt.Sprintf("%f", conf.Game.Entity.MinScale),
-					Delegate: "0.0",
+					X:        "0",
+					Y:        "65536",
+					Scale:    fmt.Sprintf("%d", conf.Game.Entity.MinScale),
+					Delegate: "0",
 				},
-				want: []string{"cy must be lte 32767.500000"},
+				want: []string{"y must be lte 65535"},
 			},
 			{
 				// invalid format
 				in: gameMapRequest{
-					Cx:       "invalid",
-					Cy:       "invalid",
+					X:        "invalid",
+					Y:        "invalid",
 					Scale:    "invalid",
 					Delegate: "invalid",
 				},
 				want: []string{
-					"cx must be numeric",
-					"cy must be numeric",
+					"x must be numeric",
+					"y must be numeric",
 					"scale must be numeric",
 					"delegate must be numeric",
 				},
@@ -280,8 +283,8 @@ func TestGameMap(t *testing.T) {
 				// empty
 				in: gameMapRequest{},
 				want: []string{
-					"cx must be required",
-					"cy must be required",
+					"x must be required",
+					"y must be required",
 					"scale must be required",
 					"delegate must be required",
 				},
@@ -290,7 +293,7 @@ func TestGameMap(t *testing.T) {
 		for _, c := range cases {
 			w, _, r := prepare(ModelHandler())
 			r.GET("/gamemap", GameMap)
-			url := fmt.Sprintf("/gamemap?cx=%s&cy=%s&scale=%s&delegate=%s", c.in.Cx, c.in.Cy, c.in.Scale, c.in.Delegate)
+			url := fmt.Sprintf("/gamemap?x=%s&y=%s&scale=%s&delegate=%s", c.in.X, c.in.Y, c.in.Scale, c.in.Delegate)
 			req, _ := http.NewRequest("GET", url, nil)
 			req.Header.Set("Content-Type", "application/json")
 			r.ServeHTTP(w, req)

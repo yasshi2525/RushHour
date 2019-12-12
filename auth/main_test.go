@@ -14,15 +14,9 @@ const plainValue = "non-zero"
 const encValue = "4Y3XEKaZrYpB5djETs9cM9DnOeLmuDxr2IKupYKXmtM="
 const digestValue = "AOChf1F7i9DWMvrd8EXUYbv5V9FlXU+HbBv8DIM4X5hLz+8U48Fy2z8Y6aGJndEj3W7YeQwLd+xwE36l1DwQWA=="
 
-func TestGetAuther(t *testing.T) {
-	if _, err := GetAuther(config.CnfAuth{}); err != nil {
-		t.Errorf("GetAuther({}) got %v, want nil", err)
-	}
-}
-
 func TestOAuth(t *testing.T) {
 	t.Run("IsValid", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in   *OAuthInfo
 			want bool
@@ -73,7 +67,7 @@ func TestOAuth(t *testing.T) {
 	})
 
 	t.Run("Enc", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in      *OAuthInfo
 			wantNot string
@@ -123,7 +117,7 @@ func TestOAuth(t *testing.T) {
 	})
 
 	t.Run("Dec", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in   *OAuthInfo
 			want string
@@ -168,7 +162,7 @@ func TestOAuth(t *testing.T) {
 
 func TestAuther(t *testing.T) {
 	t.Run("Digest", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in   string
 			want string
@@ -190,7 +184,7 @@ func TestAuther(t *testing.T) {
 		}
 	})
 	t.Run("Encrypt", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in      string
 			wantNot string
@@ -212,7 +206,7 @@ func TestAuther(t *testing.T) {
 		}
 	})
 	t.Run("Decrypt", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		cases := []struct {
 			in   string
 			want string
@@ -238,7 +232,7 @@ func TestAuther(t *testing.T) {
 		}
 	})
 	t.Run("BuildJWT", func(t *testing.T) {
-		a, _ := GetAuther(config.CnfAuth{})
+		a, _ := GetAuther(config.CnfAuth{Key: "0123456789abcdef"})
 		if _, err := a.BuildJWT(&JWTInfo{}); err != nil {
 			t.Errorf("buildJWT().err got %v, want nil", err)
 		}

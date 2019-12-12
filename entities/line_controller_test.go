@@ -8,9 +8,9 @@ import (
 )
 
 func TestLineController(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
 	t.Run("Shrink", func(t *testing.T) {
 		t.Run("head", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)
@@ -40,7 +40,6 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("tail", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)
@@ -73,7 +72,6 @@ func TestLineController(t *testing.T) {
 
 	t.Run("Shave", func(t *testing.T) {
 		t.Run("no reverse set next to nil", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)
@@ -99,7 +97,6 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("no next set next to nil", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)
@@ -126,7 +123,6 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("delete redundant departure", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)
@@ -160,7 +156,6 @@ func TestLineController(t *testing.T) {
 		})
 
 		t.Run("change passing to stopping", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 6,
 			}, a)

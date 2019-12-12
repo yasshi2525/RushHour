@@ -8,8 +8,10 @@ import (
 )
 
 func TestStation(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{
+		Key: "----------------",
+	})
 	t.Run("NewStation", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		o := m.NewPlayer()
 		st := m.NewStation(o)
@@ -21,7 +23,6 @@ func TestStation(t *testing.T) {
 	})
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("isolate", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			st := m.NewStation(o)
@@ -35,7 +36,6 @@ func TestStation(t *testing.T) {
 			}.Assert(t)
 		})
 		t.Run("station", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{}, a)
 			o := m.NewPlayer()
 			st := m.NewStation(o)

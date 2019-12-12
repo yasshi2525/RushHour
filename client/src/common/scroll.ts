@@ -99,7 +99,7 @@ export const useDrag = () => {
     } else {
       update(model, start, now);
     }
-  }, [now]);
+  }, [pressed, start, now]);
 
   return {
     onMouseDown,
@@ -167,7 +167,7 @@ export const useSwipe = () => {
     } else {
       update(model, start, now);
     }
-  }, [now]);
+  }, [pressed, start, now]);
 
   return {
     onTouchStart,

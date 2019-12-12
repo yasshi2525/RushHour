@@ -8,9 +8,9 @@ import (
 )
 
 func TestPlatform(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
 	t.Run("NewPlatform", func(t *testing.T) {
 		t.Run("stop", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 7,
 			}, a)
@@ -60,7 +60,6 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("pass", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 7,
 			}, a)
@@ -91,7 +90,6 @@ func TestPlatform(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("stop", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 7,
 			}, a)
@@ -123,7 +121,6 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("pass", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 7,
 			}, a)
@@ -156,7 +153,6 @@ func TestPlatform(t *testing.T) {
 		})
 
 		t.Run("multiple", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
 			m := NewModel(config.CnfEntity{
 				MaxScale: 7,
 			}, a)

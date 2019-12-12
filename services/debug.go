@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -100,13 +99,14 @@ func watchSim() {
 
 // mkOp returns creation operation
 func mkOp(src string, target entities.ModelType) *Operation {
+	size := 1 << (conf.Game.Entity.MaxScale - conf.Game.Entity.MinScale)
 	return &Operation{
 		Source: src,
 		Op:     "create",
 		Target: target,
 		OName:  src,
-		X:      rand.Float64()*math.Pow(2, 16) - math.Pow(2, 15),
-		Y:      rand.Float64()*math.Pow(2, 16) - math.Pow(2, 15),
+		X:      float64(size) * rand.Float64(),
+		Y:      float64(size) * rand.Float64(),
 	}
 }
 

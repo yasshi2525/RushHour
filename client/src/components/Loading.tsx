@@ -8,7 +8,6 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import { ComponentProperty } from "interfaces/component";
 import LoadingContext, { LoadingStatus } from "common/loading";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -31,13 +30,10 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface LinearProperty extends ComponentProperty {
-  phase: LoadingStatus;
-}
-
-const Linear = (props: LinearProperty) => {
+const Linear = () => {
   const theme = useTheme();
   const classes = useStyles(theme);
+  const [phase] = useContext(LoadingContext);
   return (
     <Container maxWidth="xs" className={classes.root}>
       <Paper className={classes.area}>
@@ -46,11 +42,11 @@ const Linear = (props: LinearProperty) => {
           aria-describedby="loading-description"
           aria-busy={true}
           variant="determinate"
-          value={LoadingStatus.progress(props.phase)}
+          value={LoadingStatus.progress(phase)}
         />
         <Box className={classes.desc}>
           <Typography id="loading-description" variant="subtitle1">
-            {LoadingStatus.description(props.phase)}
+            {LoadingStatus.description(phase)}
           </Typography>
         </Box>
       </Paper>
@@ -59,6 +55,6 @@ const Linear = (props: LinearProperty) => {
 };
 
 export default () => {
-  const { status } = useContext(LoadingContext);
-  return status !== LoadingStatus.END ? <Linear phase={status} /> : null;
+  const [status] = useContext(LoadingContext);
+  return status !== LoadingStatus.END ? <Linear /> : null;
 };

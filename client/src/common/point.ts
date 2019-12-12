@@ -14,3 +14,5 @@ const useClitoSrv = () => {
     return [(client[0] - w / 2) / size, (client[1] - h / 2) / size];
   }, [client]);
 };
+
+export const useCoord = () => {};

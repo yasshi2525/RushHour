@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useMemo, useEffect } from "react";
+import React, { FC, Fragment, useContext, useMemo, useEffect } from "react";
 import AppBarOrg from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
@@ -9,7 +9,6 @@ import useMediaQuery from "@material-ui/core/useMediaQuery";
 import makeStyles from "@material-ui/styles/makeStyles";
 import createStyles from "@material-ui/styles/createStyles";
 import player from "static/player.png";
-import { ComponentProperty } from "interfaces/component";
 import { hueToRgb } from "interfaces/gamemap";
 import AuthContext from "common/auth";
 // import AdminPageContext from "common/admin";
@@ -61,13 +60,13 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface UserInfoProperty extends ComponentProperty {
+interface UserInfoProperty {
   myColor: string;
   myImage: string;
   myName: string;
 }
 
-const ShowUserInfo = (props: UserInfoProperty) => {
+const ShowUserInfo: FC<UserInfoProperty> = props => {
   const theme = useTheme();
   const classes = useStyles(theme);
   //const isAdmin = useContext(AdminPageContext);
@@ -107,21 +106,16 @@ export default function() {
   const theme = useTheme();
   const classes = useStyles(theme);
   const isTiny = useMediaQuery(theme.breakpoints.down("xs"));
-  const { update } = useContext(LoadingContext);
+  const [, update] = useContext(LoadingContext);
   const [[, my]] = useContext(AuthContext);
   const myColor = useMemo(() => {
-    console.info("memo myColor");
     return my ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
   }, [my]);
   const myImage = my ? my.image : player;
   const myName = my ? my.name : "名無しさん";
 
   useEffect(() => {
-    console.info(`useEffect AppBar ${LoadingStatus.CREATED_MENU}`);
-    update(LoadingStatus.CREATED_MENU);
-    return () => {
-      console.info("cleanup AppBar");
-    };
+    console.info(`after AppBar`);
   }, []);
 
   return (

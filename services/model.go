@@ -82,6 +82,8 @@ func processMsg(msg *Operation) time.Time {
 	lock := time.Now()
 
 	owner, _ := PasswordSignIn(msg.OName, msg.OName)
+	size := 1 << (conf.Game.Entity.MaxScale - conf.Game.Entity.MinScale)
+	rnd := float64(size) * rand.Float64()
 
 	switch msg.Op {
 	case "create":
@@ -107,27 +109,26 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(owner),
 					reflect.ValueOf(msg.X),
 					reflect.ValueOf(msg.Y),
-					reflect.ValueOf(10.0),
+					reflect.ValueOf(10),
 				})
 			}
 		case entities.RAILEDGE:
 			if raw := randEntity(owner, entities.RAILNODE); raw != nil {
 				rn := raw.(*entities.RailNode)
-				size := math.Pow(2, 10) * rand.Float64()
 				theta := 2 * math.Pi * rand.Float64()
 
 				p := &entities.Point{
-					X: rn.X + math.Cos(theta)*size,
-					Y: rn.Y + math.Sin(theta)*size,
+					X: rn.X + math.Cos(theta)*rnd,
+					Y: rn.Y + math.Sin(theta)*rnd,
 				}
 
-				for !p.IsIn(0, 0, conf.Game.Entity.MaxScale) {
-					size = math.Pow(2, 10) * rand.Float64()
+				for !p.IsIn(0, 0, float64(conf.Game.Entity.MaxScale)) {
 					theta = 2 * math.Pi * rand.Float64()
+					rnd := float64(size) * rand.Float64()
 
 					p = &entities.Point{
-						X: rn.X + math.Cos(theta)*size,
-						Y: rn.Y + math.Sin(theta)*size,
+						X: rn.X + math.Cos(theta)*rnd,
+						Y: rn.Y + math.Sin(theta)*rnd,
 					}
 				}
 
@@ -136,7 +137,7 @@ func processMsg(msg *Operation) time.Time {
 					reflect.ValueOf(raw),
 					reflect.ValueOf(p.X),
 					reflect.ValueOf(p.Y),
-					reflect.ValueOf(10.0),
+					reflect.ValueOf(10),
 				})
 
 				if oth := randEntity(owner, entities.RAILNODE); oth != nil {
@@ -158,22 +159,21 @@ func processMsg(msg *Operation) time.Time {
 			}
 			if raw := randEntity(owner, entities.RAILEDGE); raw != nil {
 				re := raw.(*entities.RailEdge)
-				size := math.Pow(2, 10) * rand.Float64()
 				d := re.ToNode.Point.Sub(&re.FromNode.Point)
-				theta := math.Atan2(d.Y, d.Y) + (rand.Float64()-0.5)*math.Pi/8
+				theta := math.Atan2(d.Y, d.Y) + (rand.Float64()-0.5)*math.Pi/32
 
 				p := &entities.Point{
-					X: re.ToNode.X + math.Cos(theta)*size,
-					Y: re.ToNode.Y + math.Sin(theta)*size,
+					X: re.ToNode.X + math.Cos(theta)*rnd,
+					Y: re.ToNode.Y + math.Sin(theta)*rnd,
 				}
 
-				for !p.IsIn(0, 0, conf.Game.Entity.MaxScale) {
-					size = math.Pow(2, 10) * rand.Float64()
+				for !p.IsIn(0, 0, float64(conf.Game.Entity.MaxScale)) {
+					rnd := float64(size) * rand.Float64()
 					theta = math.Atan2(d.Y, d.Y) + rand.Float64() - 0.5
 
 					p = &entities.Point{
-						X: re.ToNode.X + math.Cos(theta)*size,
-						Y: re.ToNode.Y + math.Sin(theta)*size,
+						X: re.ToNode.X + math.Cos(theta)*rnd,
+						Y: re.ToNode.Y + math.Sin(theta)*rnd,
 					}
 				}
 

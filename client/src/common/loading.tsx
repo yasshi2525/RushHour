@@ -1,6 +1,12 @@
-import React, { Dispatch, createContext, useState, useCallback } from "react";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import { ComponentProperty } from "interfaces/component";
+import React, {
+  FC,
+  Dispatch,
+  createContext,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback
+} from "react";
 
 export enum LoadingStatus {
   /**
@@ -63,15 +69,12 @@ export namespace LoadingStatus {
         return "ロード処理を完了しています";
       default:
         console.warn(`invalid status : ${st}`);
-        return `エラーが発生しました。画面をリロードしてください`;
+        return `エラーが発生しました。画面を更新してください`;
     }
   }
 }
 
-interface LoadingState {
-  status: LoadingStatus;
-  update: Dispatch<LoadingStatus>;
-}
+type LoadingState = [LoadingStatus, Dispatch<LoadingStatus>];
 
 const useLoading = (): LoadingState => {
   const [status, _update] = useState(0);
@@ -86,26 +89,31 @@ const useLoading = (): LoadingState => {
     },
     [status]
   );
-  return { status, update };
+  return [status, update];
 };
 
-export const LoadingCircle = () => (
-  <CircularProgress aria-describedby="loading-description" aria-busy={true}>
-    <div id="loading-description">読み込み中</div>
-  </CircularProgress>
-);
+const LoadingContext = createContext<LoadingState>([
+  0,
+  () => {
+    console.warn("not initialized LoadingContext");
+  }
+]);
+LoadingContext.displayName = "LoadingContext";
 
-const LoadingContext = createContext<LoadingState>({
-  status: 0,
-  update: () => {}
-});
-
-export const LoadingProvider = (props: ComponentProperty) => {
+export const LoadingProvider: FC = props => {
   const context = useLoading();
-  return (
-    <LoadingContext.Provider value={context}>
-      {props.children}
-    </LoadingContext.Provider>
+
+  useEffect(() => {
+    console.info(`after LoadingProvider`);
+  }, []);
+
+  return useMemo(
+    () => (
+      <LoadingContext.Provider value={context}>
+        {props.children}
+      </LoadingContext.Provider>
+    ),
+    [context]
   );
 };
 

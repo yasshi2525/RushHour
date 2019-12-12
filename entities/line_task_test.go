@@ -8,10 +8,11 @@ import (
 )
 
 func TestLineTask(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
+	c := config.CnfEntity{MaxScale: 16}
 	t.Run("NewLineTaskDept", func(t *testing.T) {
 		t.Run("new", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -39,8 +40,7 @@ func TestLineTask(t *testing.T) {
 		})
 
 		t.Run("extend", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			n1, e01 := n0.Extend(10, 0)
@@ -62,8 +62,7 @@ func TestLineTask(t *testing.T) {
 	t.Run("NewLineTask", func(t *testing.T) {
 		t.Run("new", func(t *testing.T) {
 			t.Run("moving", func(t *testing.T) {
-				a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+				m := NewModel(c, a)
 				o := m.NewPlayer()
 				n0 := m.NewRailNode(o, 0, 0)
 				n1, e01 := n0.Extend(10, 0)
@@ -87,8 +86,7 @@ func TestLineTask(t *testing.T) {
 			})
 
 			t.Run("stopping", func(t *testing.T) {
-				a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+				m := NewModel(c, a)
 				o := m.NewPlayer()
 				n0 := m.NewRailNode(o, 0, 0)
 				n1, e01 := n0.Extend(10, 0)
@@ -106,8 +104,7 @@ func TestLineTask(t *testing.T) {
 			})
 
 			t.Run("passing", func(t *testing.T) {
-				a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+				m := NewModel(c, a)
 				o := m.NewPlayer()
 				n0 := m.NewRailNode(o, 0, 0)
 				n1, e01 := n0.Extend(10, 0)
@@ -125,8 +122,7 @@ func TestLineTask(t *testing.T) {
 		})
 
 		t.Run("extend", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			n0 := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -147,8 +143,7 @@ func TestLineTask(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("dept", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			rn := m.NewRailNode(o, 0, 0)
@@ -169,8 +164,7 @@ func TestLineTask(t *testing.T) {
 		})
 
 		t.Run("moving", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			l := m.NewRailLine(o)
 			n0 := m.NewRailNode(o, 0, 0)
