@@ -85,6 +85,24 @@ func (p *Point) Clone() *Point {
 	return &Point{p.X, p.Y}
 }
 
+// Logarithm calculates log (2^base) num
+func Logarithm(num float64, base int) int {
+	if base < 0 {
+		return int(num * math.Pow(2, float64(-base)))
+	}
+	// upper scale bit
+	return int(num) >> base
+}
+
+// DeLogarithm calculates num / 2 ^ base
+func DeLogarithm(num int, base int) float64 {
+	if base < 0 {
+		max := 1 << -base
+		return float64(num) / float64(max)
+	}
+	return float64(num << base)
+}
+
 func (p Point) String() string {
 	return fmt.Sprintf("(%.2f,%.2f)", p.X, p.Y)
 }

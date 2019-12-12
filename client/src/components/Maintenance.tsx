@@ -1,4 +1,4 @@
-import React, { Fragment, useContext } from "react";
+import React, { useMemo, Fragment, useContext } from "react";
 import AdminPageContext from "common/admin";
 import LogOut from "./LogOut";
 
@@ -18,8 +18,7 @@ const TopPage = () => (
 export default () => {
   const isAdminPage = useContext(AdminPageContext);
 
-  if (isAdminPage) {
-    return <AdminPage />;
-  }
-  return <TopPage />;
+  return useMemo(() => (isAdminPage ? <AdminPage /> : <TopPage />), [
+    isAdminPage
+  ]);
 };

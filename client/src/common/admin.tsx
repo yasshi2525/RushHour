@@ -1,16 +1,19 @@
-import React, { createContext } from "react";
-import { ComponentProperty } from "interfaces/component";
+import React, { FC, createContext, useMemo, useEffect } from "react";
 
 const AdminPageContext = createContext(false);
+AdminPageContext.displayName = "AdminPageContext";
 
-interface ProviderProperty extends ComponentProperty {
-  admin: boolean;
-}
-export const AdminPageProvider = (props: ProviderProperty) => {
-  return (
-    <AdminPageContext.Provider value={props.admin}>
-      {props.children}
-    </AdminPageContext.Provider>
+export const AdminPageProvider: FC<{ admin?: boolean }> = props => {
+  useEffect(() => {
+    console.info("after AdminPageProvider");
+  }, []);
+  return useMemo(
+    () => (
+      <AdminPageContext.Provider value={props.admin === true}>
+        {props.children}
+      </AdminPageContext.Provider>
+    ),
+    []
   );
 };
 

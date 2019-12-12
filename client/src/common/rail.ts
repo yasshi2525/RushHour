@@ -5,15 +5,15 @@ import { MenuStatus, ResolveError } from "interfaces/gamemap";
 import { useTask } from "./task";
 import { useHttpTask, http } from "./http";
 import ModelContext from "./model";
-import { usePlayers } from "./map";
+import PlayerContext from "./player";
 
 export const useRail = () => {
   const model = useContext(ModelContext);
-  const players = usePlayers();
+  const [, reloadPlayers] = useContext(PlayerContext);
 
   const resolve = useCallback((err: ResolveError) => {
     if (err.hasUnresolvedOwner) {
-      players();
+      reloadPlayers();
     }
   }, []);
 
@@ -80,7 +80,9 @@ export const useRail = () => {
 
   const [_destroy] = useTask(
     (sig, args: { id: number; cid: number }) =>
-      http(rail.destroy, sig, { id: args.id }).then(() => args.cid),
+      http({ ...rail.destroy, args: { id: args.id } }, sig).then(
+        () => args.cid
+      ),
     id => {
       model.gamemap.removeChild("rail_nodes", id);
     }

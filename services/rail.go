@@ -8,7 +8,7 @@ import (
 )
 
 // CreateRailNode create RailNode
-func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*entities.DelegateRailNode, error) {
+func CreateRailNode(o *entities.Player, x float64, y float64, scale int) (*entities.DelegateRailNode, error) {
 	rn := Model.NewRailNode(o, x, y)
 	StartRouting()
 	AddOpLog("CreateRailNode", o, rn)
@@ -16,7 +16,7 @@ func CreateRailNode(o *entities.Player, x float64, y float64, scale float64) (*e
 	if ch := Model.RootCluster.FindChunk(rn, scale); ch != nil {
 		return ch.RailNode, nil
 	}
-	return nil, fmt.Errorf("invalid scale=%f", scale)
+	return nil, fmt.Errorf("invalid scale=%d", scale)
 }
 
 // RemoveRailNode remove RailNode
@@ -41,7 +41,7 @@ func RemoveRailNode(o *entities.Player, id uint) error {
 
 // ExtendRailNode extends Rail
 func ExtendRailNode(o *entities.Player, from *entities.RailNode,
-	x float64, y float64, scale float64) (*entities.DelegateRailNode, *entities.DelegateRailEdge, error) {
+	x float64, y float64, scale int) (*entities.DelegateRailNode, *entities.DelegateRailEdge, error) {
 	if err := CheckAuth(o, from); err != nil {
 		return nil, nil, err
 	}
@@ -58,13 +58,13 @@ func ExtendRailNode(o *entities.Player, from *entities.RailNode,
 	fch := Model.RootCluster.FindChunk(from, scale)
 	tch := Model.RootCluster.FindChunk(to, scale)
 	if fch == nil || tch == nil {
-		return nil, nil, fmt.Errorf("invalid scale=%f", scale)
+		return nil, nil, fmt.Errorf("invalid scale=%d", scale)
 	}
 	return tch.RailNode, fch.OutRailEdges[tch.ID], nil
 }
 
 // ConnectRailNode connects Rail
-func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.RailNode, scale float64) (*entities.DelegateRailEdge, error) {
+func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.RailNode, scale int) (*entities.DelegateRailEdge, error) {
 	if err := CheckAuth(o, from); err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func ConnectRailNode(o *entities.Player, from *entities.RailNode, to *entities.R
 	fch := Model.RootCluster.FindChunk(from, scale)
 	tch := Model.RootCluster.FindChunk(to, scale)
 	if fch == nil || tch == nil {
-		return nil, fmt.Errorf("invalid scale=%f", scale)
+		return nil, fmt.Errorf("invalid scale=%d", scale)
 	}
 	return fch.OutRailEdges[tch.ID], nil
 }

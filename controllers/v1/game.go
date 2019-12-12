@@ -30,7 +30,7 @@ func GameStatus(c *gin.Context) {
 // @Success 200 {object} gameStatus "game status"
 // @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /admin/game/start [post]
+// @Router /game/start [post]
 func StartGame(c *gin.Context) {
 	if !services.IsInOperation() {
 		services.Start()
@@ -46,7 +46,7 @@ func StartGame(c *gin.Context) {
 // @Success 200 {object} gameStatus "game status"
 // @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /admin/game/stop [post]
+// @Router /game/stop [post]
 func StopGame(c *gin.Context) {
 	if services.IsInOperation() {
 		services.Stop()
@@ -66,7 +66,7 @@ type purgeStatus struct {
 // @Success 200 {object} gameStatus "game status"
 // @Failure 400 {object} errInfo "reason of fail"
 // @Failure 401 {object} errInfo "invalid jwt"
-// @Router /admin/game/purge [post]
+// @Router /game/purge [post]
 func PurgeUserData(c *gin.Context) {
 	o := c.MustGet(keyOwner).(*entities.Player)
 	if err := services.Purge(o.O); err != nil {
@@ -74,4 +74,23 @@ func PurgeUserData(c *gin.Context) {
 	} else {
 		c.Set(keyOk, &purgeStatus{true})
 	}
+}
+
+type gameConst struct {
+	MinScale int `json:"min_scale"`
+	MaxScale int `json:"max_scale"`
+}
+
+// GameConst returns constant value about game
+// @Description constant value
+// @Tags gameConst
+// @Summary constant value
+// @Produce json
+// @Success 200 {object} gameConst "game constant"
+// @Router /game/const [get]
+func GameConst(c *gin.Context) {
+	c.Set(keyOk, &gameConst{
+		MinScale: conf.Game.Entity.MinScale,
+		MaxScale: conf.Game.Entity.MaxScale,
+	})
 }

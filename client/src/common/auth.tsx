@@ -1,18 +1,11 @@
-import React from "react";
-import { useState, useCallback, createContext } from "react";
+import React, { ReactNode, createContext } from "react";
 import { decode } from "jsonwebtoken";
 import { UserInfo } from "interfaces/user";
-import { AuthError, UnhandledError } from "interfaces/error";
+import { AuthError, Errors, isAuthError } from "interfaces/error";
 import { signout } from "interfaces/endpoint";
-import { ComponentProperty } from "interfaces/component";
-import { useHttpTask } from "./http";
-
-type LogoutState = [undefined, null];
-type LoginState = [undefined, UserInfo];
-type InvalidState = [AuthError, undefined];
-type AuthState = LogoutState | LoginState | InvalidState;
-
-const LOGOUT_STATE: LogoutState = [undefined, null];
+import { OkResponse, ErrorResponse } from "./utils/http_common";
+import { httpHttp } from "./utils/http_http";
+import AsyncProvider from "./utils/provider_async";
 
 const keySet = ["id", "name", "image", "admin", "hue"];
 const fullKeySet = keySet.map(key => `${process.env.baseurl}/${key}`);
@@ -68,98 +61,97 @@ const parse = (token: string) => {
 };
 
 /**
- * 引数のトークンからユーザ情報、エラー情報を返す
+ * JWTの解析に成功すればローカルストレージに保存する。
+ * 失敗した場合、ローカルストレージを削除する。
+ * @throws `AuthError` 失敗時(必須キーがない、値の型が違う、期限切れ)
  */
-const _login = (token: string): LoginState | InvalidState => {
+const parseWithSync = (token: string) => {
   try {
-    return [undefined, parse(token)];
+    const result = parse(token);
+    localStorage.setItem("jwt", token);
+    return result;
+  } catch (e) {
+    if (isAuthError(e)) {
+      localStorage.removeItem("jwt");
+    }
+    throw e;
+  }
+};
+
+const authorize = (
+  session: string | null
+): OkResponse<string, UserInfo | null> | ErrorResponse<string> => {
+  if (session == null) {
+    return { args: "", payload: null };
+  }
+  try {
+    return { args: session, payload: parseWithSync(session) };
   } catch (e) {
     if (e instanceof AuthError) {
-      return [e, undefined];
+      return { args: session, error: e };
     } else {
-      throw new UnhandledError(e);
+      throw e;
     }
   }
 };
 
-let initialState: LogoutState | LoginState = LOGOUT_STATE;
-{
-  let token = localStorage.getItem("jwt");
-  if (token) {
-    const result = _login(token);
-    if (result[0]) {
-      console.warn("logout caused by invalid jwt");
-      localStorage.removeItem("jwt");
-    } else {
-      console.info("login initially");
-      initialState = result;
-    }
+const initial = authorize(localStorage.getItem("jwt"));
+
+type Endpoint = { args: string; payload: UserInfo | null };
+
+const localEndpoint: Endpoint = {
+  args: "",
+  payload: null
+};
+
+const authTask = async (ep: Endpoint, signal: AbortSignal) => {
+  if (ep.args) {
+    return parseWithSync(ep.args);
+  } else {
+    await httpHttp(signout, signal);
+    localStorage.removeItem("jwt");
+    return null;
   }
+};
+
+const converter = (data: UserInfo | null) => data;
+
+type AuthStatus = [
+  UserInfo | null,
+  (token: string) => void,
+  (e: Errors) => void
+];
+const AuthContext = createContext<AuthStatus>([
+  null,
+  () => console.warn("not initialized AuthContext"),
+  () => console.warn("not initialized AuthContext")
+]);
+AuthContext.displayName = "AuthContext";
+
+interface ProviderProperties {
+  children?: ReactNode;
+  onError: ReactNode;
 }
 
 /**
  * ```
- * Handlers : [auth, login, logout, cancel]
+ * const [user, login, report] = useContext(AuthContext);
+ * login("new_jwt_token");
+ * login("") // sign out
  * ```
- * @see `useAuth`
  */
-type Handlers = [AuthState, (token: string) => void, () => void, () => void];
-
-/**
- * ローカルストレージに保存されたJWTキーを解析し、ユーザ情報を取得する。
- * ```
- * [auth, login, logout, cancel] = useAuth();
- * login("new jwt");     // 再ログイン、ユーザ情報変更時
- * logout(null);         // ログアウト
- * ```
- * `auth` にユーザ情報が格納されている。
- * logout時サーバにリクエストを送る。中止させたいときは `cancel()` を呼び出す
- */
-const useAuth = (): Handlers => {
-  const [auth, setAuth] = useState<AuthState>(initialState);
-  const [logout, logoutCancel] = useHttpTask(signout, () => {
-    console.info("task useAuth logout true");
-    setAuth(LOGOUT_STATE);
-    localStorage.removeItem("jwt");
-  });
-
-  const logoutWrapper = useCallback(() => logout(undefined), [logout]);
-  const logoutCancelWrapper = useCallback(() => logoutCancel(undefined), [
-    logout
-  ]);
-
-  const login = useCallback((t: string) => {
-    console.info("callback useAuth login");
-    const result = _login(t);
-    setAuth(result);
-    if (!result[0]) {
-      console.info("save useAuth token");
-      localStorage.setItem("jwt", t);
-    }
-  }, []);
-
-  return [auth, login, logoutWrapper, logoutCancelWrapper];
-};
-
-const AuthContext = createContext<Handlers>([
-  LOGOUT_STATE,
-  () => {},
-  () => {},
-  () => {}
-]);
-
-/**
- * ```
- * const [auth, login, logout, cancel] = useContext(LoginContext)
- * ```
- * @see `useAuth`
- */
-export const AuthProvider = (props: ComponentProperty) => {
-  const handlers = useAuth();
+export const AuthProvider = (props: ProviderProperties) => {
   return (
-    <AuthContext.Provider value={handlers}>
+    <AsyncProvider
+      ctx={AuthContext}
+      initialFetch={initial}
+      endpoint={localEndpoint}
+      reloadTask={authTask}
+      convert={converter}
+      onError={props.onError}
+    >
       {props.children}
-    </AuthContext.Provider>
+    </AsyncProvider>
   );
 };
 

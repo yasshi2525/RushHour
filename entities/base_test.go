@@ -9,8 +9,8 @@ import (
 )
 
 func TestBase(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
 	t.Run("NewBase", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		t.Run("without owner", func(t *testing.T) {
 			b := m.NewBase(COMPANY)
@@ -39,7 +39,6 @@ func TestBase(t *testing.T) {
 	})
 
 	t.Run("Permits", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		my, oth, guest, admin := m.NewPlayer(), m.NewPlayer(), m.NewPlayer(), m.NewPlayer()
 		my.Level, oth.Level, guest.Level, admin.Level = Normal, Normal, Guest, Admin
@@ -55,7 +54,6 @@ func TestBase(t *testing.T) {
 	})
 
 	t.Run("IsChanged", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
 		m := NewModel(config.CnfEntity{}, a)
 		b := m.NewBase(RESIDENCE)
 

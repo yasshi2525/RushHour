@@ -13,31 +13,31 @@ const SENSITIVITY = 2;
 export const useCursor = () => {
   const model = useContext(ModelContext);
   const [count, setCount] = useState(0);
-  const [client, setClient] = useState<Point | undefined>();
+  const [client, setClient] = useState<Point>();
   const [pressed, setPressed] = useState(false);
   const { depart, extend, connect, destroy } = useRail();
   const _zoom = useZoom();
   const reload = useReload();
 
-  const zoom = useCallback((x: number, y: number) => {
-    model.setCoord(..._zoom(x, y, model.coord.scale - 1));
-    reload();
-  }, []);
+  const zoom = useCallback(
+    (x: number, y: number) => {
+      model.setCoord(..._zoom(x, y, model.coord.scale - 1));
+      reload();
+    },
+    [_zoom, reload]
+  );
 
   const onMouseDown = useCallback((_: React.MouseEvent) => {
     setCount(0);
   }, []);
 
-  const onMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      setClient([
-        e.clientX * model.renderer.resolution,
-        e.clientY * model.renderer.resolution
-      ]);
-      setCount(count + 1);
-    },
-    [count]
-  );
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    setClient([
+      e.clientX * model.renderer.resolution,
+      e.clientY * model.renderer.resolution
+    ]);
+    setCount(c => c + 1);
+  }, []);
 
   const onMouseOut = useCallback((_: React.MouseEvent) => {
     setClient(undefined);
@@ -74,7 +74,7 @@ export const useCursor = () => {
       } else if (count > SENSITIVITY) {
         console.info("touchmove overmove useTouch");
       } else {
-        setCount(count + 1);
+        setCount(c => c + 1);
       }
     },
     [count]
@@ -163,7 +163,7 @@ export const useCursor = () => {
       }
       setPressed(false);
     }
-  }, [pressed]);
+  }, [client, zoom, pressed, depart, extend, connect, destroy]);
 
   return {
     onMouseDown,

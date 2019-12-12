@@ -8,7 +8,7 @@ import (
 // Chunk represents square area. Many Entities are deployed over Chunk.
 type Chunk struct {
 	Base
-	Point
+	ChunkPoint
 
 	Residence *DelegateResidence
 	Company   *DelegateCompany
@@ -23,8 +23,8 @@ type Chunk struct {
 // NewChunk create Chunk on specified Cluster
 func (m *Model) NewChunk(p *Cluster, o *Player) *Chunk {
 	ch := &Chunk{
-		Base:  m.NewBase(CHUNK, o),
-		Point: p.Point,
+		Base:       m.NewBase(CHUNK, o),
+		ChunkPoint: p.ChunkPoint,
 	}
 	ch.Init(m)
 	ch.Resolve(p)
@@ -260,8 +260,8 @@ func (ch *Chunk) Export(dm *DelegateMap) {
 
 // String represents status
 func (ch *Chunk) String() string {
-	return fmt.Sprintf("%s(%.1f:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.T.Short(),
+	return fmt.Sprintf("%s(%d:%d):u=%d,r=%v,c=%v,rn=%v,i=%d,o=%d:%v", ch.T.Short(),
 		ch.Parent.Scale, ch.ID, ch.OwnerID,
 		ch.Residence, ch.Company, ch.RailNode,
-		len(ch.InRailEdges), len(ch.OutRailEdges), ch.Point)
+		len(ch.InRailEdges), len(ch.OutRailEdges), ch.ChunkPoint)
 }

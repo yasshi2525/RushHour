@@ -2,7 +2,8 @@ import * as PIXI from "pixi.js";
 import { ZIndex } from "interfaces/pixi";
 import { ResolveError } from "interfaces/gamemap";
 import { Monitorable } from "interfaces/monitor";
-import { GameMap, Entity } from "interfaces";
+import { Entity } from "interfaces";
+import { FetchMapResponse, FetchMapResponseKeys } from "interfaces/endpoint";
 import GroupModel from "./group";
 import { ResidenceContainer, CompanyContainer } from "./background";
 import { RailNodeContainer, RailEdgeContainer } from "./rail";
@@ -74,9 +75,10 @@ export default class extends GroupModel {
     }
   }
 
-  mergeAll(payload: GameMap) {
-    Object.entries(payload).forEach(([key, value]) => {
-      this.mergeChildren(key, value, { coord: this.model.coord });
+  mergeAll(payload: FetchMapResponse) {
+    FetchMapResponseKeys.forEach(key => {
+      const list = Object.values(payload[key]);
+      this.mergeChildren(key, list, { coord: this.model.coord });
     });
     let error = this.resolve();
     this.model.controllers.updateAnchor();

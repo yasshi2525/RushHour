@@ -52,8 +52,8 @@ type CnfHuman struct {
 
 // CnfEntity is entity section of game.conf
 type CnfEntity struct {
-	MaxScale  float64 `toml:"max_scale" validate:"gtfield=MinScale"`
-	MinScale  float64 `toml:"min_scale" validate:"ltfield=MaxScale"`
+	MaxScale  int `toml:"max_scale" validate:"gtfield=MinScale"`
+	MinScale  int `toml:"min_scale" validate:"ltfield=MaxScale"`
 	Residence CnfResidence
 	Company   CnfCompany
 	Gate      CnfGate

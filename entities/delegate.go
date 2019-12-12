@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -11,69 +10,61 @@ import (
 // DelegateMap represents Map for client view.
 type DelegateMap struct {
 	// Residences is the list of delegated Residence information
-	Residences []*DelegateResidence `json:"residences"`
+	Residences map[uint]*DelegateResidence `json:"residences"`
 	// Companies is the list of delegated Company information
-	Companies []*DelegateCompany `json:"companies"`
+	Companies map[uint]*DelegateCompany `json:"companies"`
 	// RailNodes is the list of delegated RailNode information
-	RailNodes []*DelegateRailNode `json:"rail_nodes"`
+	RailNodes map[uint]*DelegateRailNode `json:"rail_nodes"`
 	// RailEdges is the list of delegated RailEdge information
-	RailEdges []*DelegateRailEdge `json:"rail_edges"`
-	Timestamp int64               `json:"timestamp"`
+	RailEdges map[uint]*DelegateRailEdge `json:"rail_edges"`
+
+	Values map[ModelType]reflect.Value `json:"-"`
+
+	Timestamp int64 `json:"timestamp"`
 }
 
+// Init initialize map
 func (dm *DelegateMap) Init() {
-	dm.Residences = []*DelegateResidence{}
-	dm.Companies = []*DelegateCompany{}
-	dm.RailNodes = []*DelegateRailNode{}
-	dm.RailEdges = []*DelegateRailEdge{}
+	dm.Residences = make(map[uint]*DelegateResidence)
+	dm.Companies = make(map[uint]*DelegateCompany)
+	dm.RailNodes = make(map[uint]*DelegateRailNode)
+	dm.RailEdges = make(map[uint]*DelegateRailEdge)
+
+	dm.Values = make(map[ModelType]reflect.Value)
+	v := reflect.ValueOf(dm).Elem()
+	for idx, ty := range []ModelType{RESIDENCE, COMPANY, RAILNODE, RAILEDGE} {
+		dm.Values[ty] = v.Field(idx)
+	}
+
 	dm.Timestamp = time.Now().Unix()
 }
 
-func (dm *DelegateMap) Add(obj interface{}) {
+// Add add delegatable object to map
+func (dm *DelegateMap) Add(obj delegateLocalable) {
 	if reflect.ValueOf(obj).IsNil() {
 		return
 	}
-	root := reflect.ValueOf(dm).Elem()
-
-	for i := 0; i < root.NumField()-1; i++ {
-		slice := root.Field(i)
-		if slice.Type().Elem() == reflect.TypeOf(obj) {
-			var contains bool
-			for j := 0; j < slice.Len(); j++ {
-				if obj == slice.Index(j).Interface() {
-					contains = true
-					break
-				}
-			}
-			if !contains {
-				newSlice := reflect.Append(slice, reflect.ValueOf(obj))
-				root.Field(i).Set(newSlice)
-			}
-		}
-	}
-}
-
-// JSONPlayer is collection of Player.
-type JSONPlayer map[uint]*Player
-
-// MarshalJSON serializes collection of Player.
-func (jp JSONPlayer) MarshalJSON() ([]byte, error) {
-	os := []*Player{}
-	for _, o := range jp {
-		os = append(os, o)
-	}
-	return json.Marshal(os)
+	dm.Values[obj.B().Type()].SetMapIndex(
+		reflect.ValueOf(obj.B().Idx()), reflect.ValueOf(obj))
 }
 
 type delegateLocalable interface {
 	B() *Base
 }
 
+type delegatePoint struct {
+	SumX int     `json:"-"`
+	SumY int     `json:"-"`
+	AveX float64 `json:"x"`
+	AveY float64 `json:"y"`
+}
+
 // DelegateNode represents delegation Localable.
 type DelegateNode struct {
 	Base
 
-	Pos       *Point             `json:"pos"`
+	Scale     int                `json:"-"`
+	Pos       *delegatePoint     `json:"pos"`
 	Multi     int                `json:"mul"`
 	ParentIDs []uint             `json:"pids,omitempty"`
 	ChildID   uint               `json:"cid,omitempty"`
@@ -82,9 +73,12 @@ type DelegateNode struct {
 
 // NewDelegateNode creates instance.
 func (ch *Chunk) NewDelegateNode(obj Localable, pids []uint) DelegateNode {
+	scale := ch.Scale - ch.M.conf.MinScale
+	x, y := Logarithm(obj.Pos().X, scale), Logarithm(obj.Pos().Y, scale)
 	return DelegateNode{
 		Base:      ch.M.NewBase(obj.B().T, obj.B().O),
-		Pos:       obj.Pos().Clone(),
+		Scale:     ch.Scale,
+		Pos:       &delegatePoint{x, y, float64(x), float64(y)},
 		ParentIDs: pids,
 		List:      make(map[uint]Localable),
 	}
@@ -94,11 +88,17 @@ func (ch *Chunk) NewDelegateNode(obj Localable, pids []uint) DelegateNode {
 func (dn *DelegateNode) Add(obj Localable) {
 	dn.List[obj.B().ID] = obj
 	dn.updateMulti()
+	scale := dn.Scale - dn.M.conf.MinScale
+	dn.Pos.SumX += Logarithm(obj.Pos().X, scale)
+	dn.Pos.SumY += Logarithm(obj.Pos().Y, scale)
 	dn.updatePos()
 }
 
 // Remove delete argument from list ant decrement count variable
 func (dn *DelegateNode) Remove(obj Localable) {
+	scale := dn.Scale - dn.M.conf.MinScale
+	dn.Pos.SumX -= Logarithm(obj.Pos().X, scale)
+	dn.Pos.SumY -= Logarithm(obj.Pos().Y, scale)
 	delete(dn.List, obj.B().ID)
 	dn.updateMulti()
 	dn.updatePos()
@@ -116,11 +116,12 @@ func (dn *DelegateNode) updateMulti() {
 }
 
 func (dn *DelegateNode) updatePos() {
-	dn.Pos = &Point{}
-
-	for _, child := range dn.List {
-		dn.Pos.X += child.Pos().X / float64(len(dn.List))
-		dn.Pos.Y += child.Pos().Y / float64(len(dn.List))
+	if len(dn.List) > 0 {
+		dn.Pos.AveX = float64(dn.Pos.SumX) / float64(len(dn.List))
+		dn.Pos.AveY = float64(dn.Pos.SumY) / float64(len(dn.List))
+	} else {
+		dn.Pos.AveX = 0
+		dn.Pos.AveY = 0
 	}
 }
 
@@ -194,16 +195,6 @@ func (dr DelegateResidence) B() *Base {
 	return &dr.Base
 }
 
-type jsonDelegateResidence map[uint]*DelegateResidence
-
-func (jr jsonDelegateResidence) MarshalJSON() ([]byte, error) {
-	rs := []*DelegateResidence{}
-	for _, r := range jr {
-		rs = append(rs, r)
-	}
-	return json.Marshal(rs)
-}
-
 // DelegateCompany is delegate of RailNode
 type DelegateCompany struct {
 	DelegateNode
@@ -212,16 +203,6 @@ type DelegateCompany struct {
 // B returns reference of Base Object
 func (dc DelegateCompany) B() *Base {
 	return &dc.Base
-}
-
-type jsonDelegateCompany map[uint]*DelegateCompany
-
-func (jc jsonDelegateCompany) MarshalJSON() ([]byte, error) {
-	cs := []*DelegateCompany{}
-	for _, c := range jc {
-		cs = append(cs, c)
-	}
-	return json.Marshal(cs)
 }
 
 // DelegateRailNode is delegate of RailNode
@@ -234,16 +215,6 @@ func (drn DelegateRailNode) B() *Base {
 	return &drn.Base
 }
 
-type jsonDelegateRailNode map[uint]*DelegateRailNode
-
-func (jrn jsonDelegateRailNode) MarshalJSON() ([]byte, error) {
-	rns := []*DelegateRailNode{}
-	for _, rn := range jrn {
-		rns = append(rns, rn)
-	}
-	return json.Marshal(rns)
-}
-
 // DelegateRailEdge is delegate of RailEdge
 type DelegateRailEdge struct {
 	DelegateEdge
@@ -252,12 +223,7 @@ type DelegateRailEdge struct {
 	ReverseID uint              `json:"eid"`
 }
 
-type jsonDelegateRailEdge map[uint]*DelegateRailEdge
-
-func (jre jsonDelegateRailEdge) MarshalJSON() ([]byte, error) {
-	res := []*DelegateRailEdge{}
-	for _, re := range jre {
-		res = append(res, re)
-	}
-	return json.Marshal(res)
+// B returns reference of Base Object
+func (dre DelegateRailEdge) B() *Base {
+	return &dre.Base
 }

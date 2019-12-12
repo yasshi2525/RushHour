@@ -8,9 +8,10 @@ import (
 )
 
 func TestRailLine(t *testing.T) {
+	a, _ := auth.GetAuther(config.CnfAuth{Key: "----------------"})
+	c := config.CnfEntity{MaxScale: 16}
 	t.Run("NewRailLine", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
-		m := NewModel(config.CnfEntity{}, a)
+		m := NewModel(c, a)
 		o := m.NewPlayer()
 		l := m.NewRailLine(o)
 
@@ -23,8 +24,7 @@ func TestRailLine(t *testing.T) {
 
 	t.Run("StartPlatform", func(t *testing.T) {
 		t.Run("auto ext", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			from := m.NewRailNode(o, 0, 0)
 			_, re := from.Extend(10, 0)
@@ -47,8 +47,7 @@ func TestRailLine(t *testing.T) {
 			}.Assert(t, head)
 		})
 		t.Run("manual", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -63,8 +62,7 @@ func TestRailLine(t *testing.T) {
 			}.Assert(t, head)
 		})
 		t.Run("auto pass", func(t *testing.T) {
-			a, _ := auth.GetAuther(config.CnfAuth{})
-			m := NewModel(config.CnfEntity{}, a)
+			m := NewModel(c, a)
 			o := m.NewPlayer()
 			rn := m.NewRailNode(o, 0, 0)
 			st := m.NewStation(o)
@@ -84,8 +82,7 @@ func TestRailLine(t *testing.T) {
 	})
 
 	t.Run("Complement", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
-		m := NewModel(config.CnfEntity{}, a)
+		m := NewModel(c, a)
 		o := m.NewPlayer()
 		from := m.NewRailNode(o, 0, 0)
 		to, re := from.Extend(10, 0)
@@ -111,8 +108,7 @@ func TestRailLine(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		a, _ := auth.GetAuther(config.CnfAuth{})
-		m := NewModel(config.CnfEntity{}, a)
+		m := NewModel(c, a)
 		o := m.NewPlayer()
 		from := m.NewRailNode(o, 0, 0)
 		_, re := from.Extend(10, 0)

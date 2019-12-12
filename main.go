@@ -146,6 +146,7 @@ func setupRouter(secret string) *gin.Engine {
 			{
 				shared.POST("/login", v1.Login) // forbit normal user under maintenance
 				shared.GET("/game", v1.GameStatus)
+				shared.GET("/game/const", v1.GameConst)
 			}
 			// need administrator authorization (always)
 			admin := always.Group("/", v1.JWTHandler(), v1.AdminHandler(), v1.ModelHandler())
@@ -213,14 +214,14 @@ func main() {
 		services.Terminate()
 		readiness = "shut down ..."
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Fatal("Server Shutdown:", err)
 		}
 		select {
 		case <-ctx.Done():
-			log.Println("timeout of 3 seconds.")
+			log.Println("timeout of 1 seconds.")
 		}
 
 		log.Println("Server exiting")

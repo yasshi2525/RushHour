@@ -1,58 +1,54 @@
-import React, { Suspense, lazy, useEffect, useContext } from "react";
+import React, {
+  Suspense,
+  PropsWithChildren,
+  lazy,
+  useEffect,
+  useMemo
+} from "react";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
-import { SnackbarProvider } from "notistack";
-import { ComponentProperty } from "interfaces/component";
-import LoadingContext, {
-  LoadingStatus,
-  LoadingCircle,
-  LoadingProvider
-} from "common/loading";
+import { SnackbarProvider, SnackbarProviderProps } from "notistack";
+import LoadingCircle from "common/utils/loading";
+import { OperationProvider } from "common/utils/operation";
+import { LoadingProvider } from "common/loading";
 import { AdminPageProvider } from "common/admin";
-import { AuthProvider } from "common/auth";
 import theme from "./theme";
 import LoadingProgress from "./Loading";
+import Maintenance from "./Maintenance";
 
-const Operation = lazy(() => import("./Operation"));
+const Application = lazy(() => import("./Application"));
 
-interface RootComponentProperty extends ComponentProperty {
-  admin?: boolean;
-}
-
-const Contents = () => {
-  const { update } = useContext(LoadingContext);
-  useEffect(() => {
-    console.info(`effect Root.Contents ${LoadingStatus.IMPORTED_OPERATION}`);
-    update(LoadingStatus.IMPORTED_OPERATION);
-  }, []);
-  return (
-    <Suspense fallback={<LoadingCircle />}>
-      <Operation />
-    </Suspense>
-  );
+const snackOpts: SnackbarProviderProps = {
+  maxSnack: 5,
+  anchorOrigin: {
+    vertical: "bottom",
+    horizontal: "right"
+  }
 };
 
 /**
  * `localStorage["jwt"]` からユーザ情報の取得を試みて、コンポーネントを描画する
  */
-export default (props: RootComponentProperty) => {
-  return (
-    <ThemeProvider theme={theme}>
-      <SnackbarProvider
-        maxSnack={5}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right"
-        }}
-      >
-        <LoadingProvider>
-          <AdminPageProvider admin={props.admin === true}>
+export default (props: PropsWithChildren<{ admin?: boolean }>) => {
+  useEffect(() => {
+    console.info("after RootElement");
+  }, []);
+  return useMemo(
+    () => (
+      <ThemeProvider theme={theme}>
+        <SnackbarProvider {...snackOpts}>
+          <LoadingProvider>
             <LoadingProgress />
-            <AuthProvider>
-              <Contents />
-            </AuthProvider>
-          </AdminPageProvider>
-        </LoadingProvider>
-      </SnackbarProvider>
-    </ThemeProvider>
+            <AdminPageProvider admin={props.admin}>
+              <OperationProvider maintenance={<Maintenance />}>
+                <Suspense fallback={<LoadingCircle />}>
+                  <Application />
+                </Suspense>
+              </OperationProvider>
+            </AdminPageProvider>
+          </LoadingProvider>
+        </SnackbarProvider>
+      </ThemeProvider>
+    ),
+    []
   );
 };

@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"math"
 	"reflect"
 
 	"gopkg.in/go-playground/validator.v9"
@@ -54,7 +53,7 @@ var auther *auth.Auther
 var excludeList []string
 
 type scaleRequest struct {
-	Scale float64 `form:"scale" json:"scale" validate:"required"`
+	Scale int `form:"scale" json:"scale" validate:"required"`
 }
 
 func validScaleRequest(sl validator.StructLevel) {
@@ -65,11 +64,11 @@ func validScaleRequest(sl validator.StructLevel) {
 
 	// validate scale
 	if v.Scale < minSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%d", minSc))
 		return
 	}
 	if v.Scale > maxSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%d", maxSc))
 		return
 	}
 }
@@ -77,7 +76,7 @@ func validScaleRequest(sl validator.StructLevel) {
 type pointRequest struct {
 	X     float64 `form:"x" json:"x" validate:"required"`
 	Y     float64 `form:"y" json:"y" validate:"required"`
-	Scale float64 `form:"scale" json:"scale" validate:"required"`
+	Scale int     `form:"scale" json:"scale" validate:"required"`
 }
 
 func validPointRequest(sl validator.StructLevel) {
@@ -88,31 +87,31 @@ func validPointRequest(sl validator.StructLevel) {
 
 	// validate scale
 	if v.Scale < minSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%f", minSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "gte", fmt.Sprintf("%d", minSc))
 		return
 	}
 	if v.Scale > maxSc {
-		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%f", maxSc))
+		sl.ReportError(v.Scale, "scale", "Scale", "lte", fmt.Sprintf("%d", maxSc))
 		return
 	}
 
-	border := math.Pow(2, maxSc-1)
+	border := 1 << (maxSc - v.Scale)
 
 	// left over
-	if v.X < -border {
-		sl.ReportError(v.X, "cx", "Cx", "gte", fmt.Sprintf("%f", -border))
+	if v.X < 0 {
+		sl.ReportError(v.X, "x", "X", "gte", fmt.Sprintf("%d", 0))
 	}
 	// right over
-	if v.X > border {
-		sl.ReportError(v.X, "cx", "Cx", "lte", fmt.Sprintf("%f", border))
+	if int(v.X) > border {
+		sl.ReportError(v.X, "x", "X", "lte", fmt.Sprintf("%d", border))
 	}
 	// top over
-	if v.Y < -border {
-		sl.ReportError(v.Y, "cy", "Cy", "gte", fmt.Sprintf("%f", -border))
+	if v.Y < 0 {
+		sl.ReportError(v.Y, "y", "Y", "gte", fmt.Sprintf("%d", 0))
 	}
 	// bottom over
-	if v.Y > border {
-		sl.ReportError(v.Y, "cy", "Cy", "lte", fmt.Sprintf("%f", border))
+	if int(v.Y) > border {
+		sl.ReportError(v.Y, "y", "Y", "lte", fmt.Sprintf("%d", border))
 	}
 }
 
