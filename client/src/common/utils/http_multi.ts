@@ -52,6 +52,7 @@ export const useMultiHttpCommon = <E, I, O>(
   const [state, setState] = useState<MultiFetchStatus<I, O>>(false);
 
   useEffect(() => {
+    console.info("effect useHttpMulti");
     const aborter = new AbortController();
     let setStateSafe = (c: MultiFetchStatus<I, O>) => setState(c);
     (async () => {

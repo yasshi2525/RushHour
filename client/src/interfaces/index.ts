@@ -35,7 +35,4 @@ export const EMPTY_DLG: Delegatable = {
   scale: 0
 };
 
-export type Dimension = [number, number];
-export type Coordinates = [number, number, number];
-
 export type HashContainer<T extends Entity> = { [index: number]: T };

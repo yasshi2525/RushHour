@@ -31,6 +31,7 @@ const useLoader = () => {
   const [err, setError] = useState<Errors>();
   const app = useContext(PixiContext);
   useEffect(() => {
+    console.info(`effect useLoader`);
     (async () => {
       await load(app).catch(e => setError(new ServerError(e)));
       setCompleted(true);

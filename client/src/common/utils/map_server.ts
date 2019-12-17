@@ -1,114 +1,141 @@
-import { useCallback, useEffect, useState } from "react";
-import { MultiError } from "interfaces/error";
+import { useCallback, useState, useMemo, useEffect } from "react";
+import { MultiError, Errors } from "interfaces/error";
 import {
   FetchMap,
   fetchMap,
   FetchMapResponse,
   FetchMapResponseKeys
 } from "interfaces/endpoint";
-import { useMultiHttpGet } from "./http_get";
-import { newInstance, Chunk, CoreMap } from "./map_core";
-import { OkResponse } from "./http_common";
+import { GraceHandler } from "./flash";
+import { useMultiHttpGetTask, useHttpGetTask } from "./http_get";
+import { OkResponse, ErrorResponse } from "./http_common";
+import { newInstance, CoreMap } from "./map_core";
 
 const X = 0;
 const Y = 1;
 const S = 2;
 const D = 3;
 
-export const encode = (chunk: Chunk): FetchMap => ({
-  x: chunk[X],
-  y: chunk[Y],
-  scale: chunk[S],
-  delegate: chunk[D]
-});
+export const encode = (hash: string): FetchMap => {
+  const v = hash.split("_").map(v => parseInt(v));
+  return {
+    x: v[X],
+    y: v[Y],
+    scale: v[S],
+    delegate: v[D]
+  };
+};
 
-const decode = (args: FetchMap): Chunk => [
-  args.x,
-  args.y,
-  args.scale,
-  args.delegate
-];
+const decode = (v: FetchMap) => `${v.x}_${v.y}_${v.scale}_${v.delegate}`;
 
-const hash = (x: number, y: number, scale: number, dlg: number) =>
-  `${x}_${y}_${scale}_${dlg}`;
-
-const toHash = (args: FetchMap) =>
-  hash(args.x, args.y, args.scale, args.delegate);
-
-const toCoreMap = (args: FetchMap, payload: FetchMapResponse) => {
+const toCoreMap = (payload: FetchMapResponse, scale: number) => {
   const coreMap = newInstance();
   FetchMapResponseKeys.forEach(key => {
     Object.values(payload[key]).forEach(obj => {
       coreMap[key][obj.id] = {
         ...obj,
-        scale: args.scale,
-        memberOf: [toHash(args)]
+        scale,
+        memberOf: []
       };
     });
   });
   return coreMap;
 };
 
-type Handlers = [
-  boolean,
-  MultiError | undefined,
-  (payload: OkResponse<FetchMap, FetchMapResponse>) => void,
-  (payloadList: OkResponse<FetchMap, FetchMapResponse>[]) => void
-];
+const makeBulkHandler = (
+  bulkInsert: (payloadList: OkResponse<FetchMap, FetchMapResponse>[]) => void,
+  setError: (v: MultiError) => void
+) => ({
+  onOK: bulkInsert,
+  onError: (payloadList: ErrorResponse<FetchMap>[]) =>
+    setError(new MultiError(payloadList.map(v => v.error)))
+});
+
+const makeHandler = (
+  insert: (payload: OkResponse<FetchMap, FetchMapResponse>) => void,
+  setError: (v: MultiError) => void
+) => ({
+  onOK: (payload: FetchMapResponse, args: FetchMap) =>
+    insert({ payload, args }),
+  onError: (e: Errors) => setError(new MultiError([e]))
+});
+
+type Handlers = [MultiError | undefined, () => void, () => void];
 
 /**
  * ```
- * const [response, put, putAll] = useServerMap(put, expired);
+ * const [error, onBulkGrace] = useServerMap(key, keyAll, put, handler);
  * ```
  */
 const useServerMap = (
-  put: (key: Chunk, value: CoreMap) => void,
-  expired: Chunk[]
+  key: string,
+  keyAll: string[],
+  put: (key: string, value: CoreMap) => void,
+  graceHandler: GraceHandler
 ): Handlers => {
-  /**
-   * リクエストパラメタとしてストレージにデータがないチャンクを指定する
-   * キャッシュにない coord 周辺チャンクのデータをサーバから取得する
-   */
-  const response = useMultiHttpGet({
-    ...fetchMap,
-    argsList: expired.map(encode)
-  });
-
-  const insert = useCallback(
-    (payload: OkResponse<FetchMap, FetchMapResponse>) =>
-      put(decode(payload.args), toCoreMap(payload.args, payload.payload)),
+  const register = useCallback(
+    (response: OkResponse<FetchMap, FetchMapResponse>) => {
+      put(
+        decode(response.args),
+        toCoreMap(response.payload, response.args.scale)
+      );
+    },
     [put]
   );
 
   /**
-   * 受信したレスポンスデータをストレージに格納する
+   * サーバからの複数レスポンスをストレージに登録、結果を一つにまとめる
    */
   const bulkInsert = useCallback(
-    (payloadList: OkResponse<FetchMap, FetchMapResponse>[]) =>
-      payloadList.forEach(insert),
-    [put, insert]
+    (responseList: OkResponse<FetchMap, FetchMapResponse>[]) =>
+      responseList.forEach(register),
+    [register]
   );
 
   const [error, setError] = useState<MultiError>();
-  const [isInited, setInited] = useState(false);
+
+  const bulkHandler = useMemo(() => makeBulkHandler(bulkInsert, setError), [
+    bulkInsert
+  ]);
+
+  const [bulkFetch, bulkFetchCancel] = useMultiHttpGetTask(
+    fetchMap,
+    bulkHandler
+  );
 
   /**
-   * サーバからの複数レスポンスをストレージに登録、結果を一つにまとめる
+   * リクエストパラメタとしてストレージにデータがないチャンクを指定する
+   * キャッシュにない coord 周辺チャンクのデータをサーバから取得する
    */
-  useEffect(() => {
-    if (response) {
-      console.info(`insert server response to flash memory`);
-      bulkInsert(response.payloadList);
-      if (response.errorList.length) {
-        setError(
-          new MultiError(response.errorList.map(payload => payload.error))
-        );
-      }
-      setInited(true);
-    }
-  }, [response, bulkInsert]);
+  const onBulkGrace = useCallback(
+    (required: string[]) => {
+      console.info(`request bulk fetch (cancel prev request): ${required}`);
+      bulkFetchCancel();
+      bulkFetch(required.map(encode));
+    },
+    [bulkFetch, bulkFetchCancel]
+  );
 
-  return [isInited, error, insert, bulkInsert];
+  const handler = useMemo(() => makeHandler(register, setError), [register]);
+
+  const [singleFetch, singleFetchCancel] = useHttpGetTask(fetchMap, handler);
+
+  useEffect(() => {
+    graceHandler.prepared = true;
+    graceHandler.send = onBulkGrace;
+  }, [graceHandler, onBulkGrace]);
+
+  const reload = useCallback(() => {
+    singleFetchCancel();
+    singleFetch(encode(key));
+  }, [singleFetch, key]);
+
+  const bulkReload = useCallback(() => {
+    bulkFetchCancel();
+    bulkFetch(keyAll.map(encode));
+  }, [bulkFetch, keyAll]);
+
+  return [error, reload, bulkReload];
 };
 
 export default useServerMap;

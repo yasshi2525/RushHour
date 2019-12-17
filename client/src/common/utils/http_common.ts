@@ -21,7 +21,7 @@ interface ErrContents {
  * @param obj 判定対象のオブジェクト
  */
 const isErrContents = (obj: any): obj is ErrContents => {
-  return obj?.err instanceof Array;
+  return "err" in obj && obj.err instanceof Array;
 };
 
 /**
@@ -148,6 +148,7 @@ export const useHttpCommon = <E, I, O>(
       setStateSafe(await httpCommon(endpoint, task, aborter.signal, maintain));
     })();
     return () => {
+      console.info(`clean up ${aborter}`);
       setStateSafe = () => null;
       aborter.abort();
       setState(false);

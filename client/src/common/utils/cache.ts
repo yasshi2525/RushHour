@@ -1,77 +1,124 @@
-import { useRef, useEffect, useCallback, useState, useMemo } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
-type Storage<T> = { [index: string]: { payload: T; timer: NodeJS.Timeout } };
+export enum CacheStatus {
+  ACTIVE,
+  GRACE
+}
+
+type StatefulObject<T> = {
+  data: T;
+  status: CacheStatus;
+  timer: NodeJS.Timeout;
+};
+
 type Handlers<T> = [
   (key: string) => T | undefined,
   (key: string, data: T) => void,
-  (key: string) => void,
-  string[]
+  (key: string, notify?: boolean) => T | undefined,
+  (key: string[]) => [string, T][],
+  (key: string[]) => void,
+  (key: string) => CacheStatus | undefined
 ];
 
+const ACTIVE = 15 * 1000;
+const GRACE = 10 * 1000;
+
 /**
+ * 一定期間のみオブジェクトを保管する。
+ * `[active] = activeTime => [grace] = graceTime => (delete)`
+ * 例えば、サーバからデータをとるとき、状態がgraceになったら取得する。
+ * この場合、graceTimeを想定レスポンスタイムにする
  * ```
- * const [get, put, remove, keys] = useCache();
+ * const [get, put, remove, getIn, removeOutOf, status] = useCache(fn, fn, activeTime, graceTime);
  * ```
  */
-const useCache = <T>(timeout: number = 5000): Handlers<T> => {
-  const [lastUpdated, setLastUpdated] = useState(0);
-  const storage = useRef<Storage<T>>({});
+const useCache = <T>(
+  onGrace: (key: string, data: T) => void = () => {},
+  onExpired: (key: string, data: T) => void = () => {},
+  activeTime: number = ACTIVE,
+  graceTime: number = GRACE
+): Handlers<T> => {
+  const storage = useRef(new Map<string, StatefulObject<T>>());
 
-  const put = useCallback(
-    (key: string, payload: T) => {
-      if (key in storage.current) {
-        console.info(`override ${key}, delete old timer`);
-        clearTimeout(storage.current[key].timer);
+  const expire = useCallback(
+    (key: string, notify: boolean = true) => {
+      console.info(`expires ${key}`);
+      const obj = storage.current.get(key);
+      if (obj !== undefined) {
+        clearTimeout(obj.timer);
+        storage.current.delete(key);
+        if (notify) {
+          onExpired(key, obj.data);
+        }
+        return obj.data;
       }
-      console.info(`add ${key}`);
-      storage.current[key] = {
-        payload,
-        timer: setTimeout(() => {
-          console.info(`delete ${key} by timeout`);
-          delete storage.current[key];
-          setLastUpdated(new Date().getTime());
-        }, timeout)
-      };
-      setLastUpdated(new Date().getTime());
+      return undefined;
     },
-    [storage]
+    [storage, onExpired]
   );
 
-  const get = useCallback(
-    (key: string) =>
-      key in storage.current ? storage.current[key].payload : undefined,
-    [storage]
-  );
-
-  const remove = useCallback(
-    (key: string) => {
-      if (key in storage.current) {
-        console.info(`delete ${key}`);
-        clearTimeout(storage.current[key].timer);
-        delete storage.current[key];
-        setLastUpdated(new Date().getTime());
-      }
+  const grace = useCallback(
+    (key: string, obj: StatefulObject<T>) => {
+      console.info(`grace ${key}`);
+      obj.status = CacheStatus.GRACE;
+      clearTimeout(obj.timer);
+      obj.timer = setTimeout(() => expire(key), graceTime);
+      onGrace(key, obj.data);
     },
-    [storage]
+    [expire, onGrace, graceTime]
   );
 
-  const keys = useMemo(() => Object.keys(storage.current), [
-    storage,
-    lastUpdated
+  const get = useCallback((key: string) => storage.current.get(key)?.data, [
+    storage
   ]);
 
-  useEffect(() => {
-    const debug = setInterval(() => {
-      if (keys.length > 0) {
-        console.info(keys);
+  const put = useCallback(
+    (key: string, data: T) => {
+      const prev = storage.current.get(key);
+      if (prev !== undefined) {
+        console.info(`override ${key}, delete old timer`);
+        clearTimeout(prev.timer);
       }
-    }, 1000);
-    return () => {
-      clearInterval(debug);
-    };
-  }, [keys]);
+      const obj: StatefulObject<T> = {
+        data,
+        status: CacheStatus.ACTIVE,
+        timer: setTimeout(() => grace(key, obj), activeTime)
+      };
+      storage.current.set(key, obj);
+    },
+    [storage, grace, activeTime]
+  );
 
-  return [get, put, remove, keys];
+  const getIn = useCallback(
+    (boundary: string[]) => {
+      const result: [string, T][] = [];
+      for (const [key, data] of storage.current.entries()) {
+        if (boundary.includes(key)) {
+          result.push([key, data.data]);
+        }
+      }
+      return result;
+    },
+    [storage]
+  );
+
+  const removeOutOf = useCallback(
+    (boundary: string[]) => {
+      for (const key of storage.current.keys()) {
+        if (!boundary.includes(key)) {
+          expire(key);
+        }
+      }
+    },
+    [storage, expire]
+  );
+
+  const status = useCallback(
+    (key: string) => storage.current.get(key)?.status,
+    [storage]
+  );
+
+  return [get, put, expire, getIn, removeOutOf, status];
 };
 
 export default useCache;
