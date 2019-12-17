@@ -58,8 +58,8 @@ func validGameMapRequest(sl validator.StructLevel) {
 		sl.ReportError(v.Delegate, "delegate", "Delegate", "lte", fmt.Sprintf("%d", sc-minSc))
 	}
 
-	length := 1 << (sc - minSc)
-	border := 1 << (maxSc - minSc)
+	length := 1 << sc
+	border := 1 << maxSc
 
 	// left over
 	if x < 0 {

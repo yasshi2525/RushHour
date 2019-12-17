@@ -1,34 +1,19 @@
 import React, {
   FC,
   useMemo,
-  useState,
-  useCallback,
   useEffect,
   useContext,
   createContext
 } from "react";
-import { useTicker } from "./utils/tick";
+import { useCounter } from "./utils/tick";
 import PixiContext from "./pixi";
 
 const ROUND = 240;
+const clock = () => {};
 
 const useClock = () => {
   const pixi = useContext(PixiContext);
-  const [offset, setOffset] = useState(0);
-
-  const tick = useCallback(() => {
-    setOffset(v => v + 1);
-  }, []);
-
-  useTicker(pixi, tick);
-
-  useEffect(() => {
-    if (offset >= ROUND) {
-      setOffset(0);
-    }
-  }, [offset]);
-
-  return offset;
+  return useCounter(pixi, clock, ROUND, true);
 };
 
 const ClockContext = createContext(0);

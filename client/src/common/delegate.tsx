@@ -30,7 +30,7 @@ const level = (width: number) => {
 const useDelegate = () => {
   const [config] = useContext(ConfigContext);
   const window = useContext(WindowContext);
-  const [[, , scale]] = useContext(CoordContext);
+  const [, , scale] = useContext(CoordContext);
   const delegate = useMemo(
     () => Math.min(level(window[W]), Math.floor(scale) - config.min_scale),
     [config, window, scale]

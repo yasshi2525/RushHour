@@ -1,26 +1,52 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import * as PIXI from "pixi.js";
 
-type Ticker = (delta?: number) => void;
+type Counter = (offset: number, delta: number) => void;
 
-export const useTicker = (app: PIXI.Application, fn: Ticker) => {
-  const cancel = useCallback(() => app.ticker.remove(fn), [app]);
+export const useCounter = (
+  pixi: PIXI.Application,
+  fn: Counter,
+  interval: number,
+  repeat: boolean = false
+) => {
+  const counter = useRef(0);
+  const [cache, setCache] = useState(counter.current);
+  const get = useCallback(() => counter.current, [counter]);
+  const put = useCallback(
+    (v: number) => {
+      counter.current = v;
+      setCache(v);
+    },
+    [counter]
+  );
 
   useEffect(() => {
-    app.ticker.add(fn);
-    return () => {
-      app.ticker.remove(fn);
-    };
-  }, [app]);
+    console.info(`fn is changed, set counter 0`);
+    put(0);
+  }, [fn]);
 
-  return cancel;
-};
-
-export const useOnceTicker = (app: PIXI.Application, fn: Ticker) => {
   useEffect(() => {
-    app.ticker.addOnce(fn);
-    return () => {
-      app.ticker.remove(fn);
+    const wrapper = (delta: number) => {
+      const now = get() + 1;
+      if (now <= interval) {
+        fn(now / interval, delta);
+        if (now === interval && repeat) {
+          console.info("counter is rounded");
+          put(0);
+        } else {
+          put(now);
+        }
+      } else {
+        console.info("counter is expired");
+        pixi.ticker.remove(wrapper);
+      }
     };
-  }, [app]);
+    pixi.ticker.add(wrapper);
+    return () => {
+      console.info("cleanup old counter");
+      pixi.ticker.remove(wrapper);
+    };
+  }, [pixi, fn, interval, repeat]);
+
+  return cache;
 };

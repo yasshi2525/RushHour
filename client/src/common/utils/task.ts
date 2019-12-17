@@ -86,6 +86,7 @@ const useTask = <I, O>(
    * 実行中の場合、キャンセルする
    */
   useEffect(() => {
+    console.info("effect useTask");
     if (prevState.current[0]) {
       console.warn("abort previsos task because new task is fired");
       prevState.current[0].abort();

@@ -1,10 +1,4 @@
-import React, {
-  Suspense,
-  PropsWithChildren,
-  lazy,
-  useEffect,
-  useMemo
-} from "react";
+import React, { FC, Suspense, lazy, useEffect, useMemo } from "react";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
 import { SnackbarProvider, SnackbarProviderProps } from "notistack";
 import LoadingCircle from "common/utils/loading";
@@ -28,7 +22,7 @@ const snackOpts: SnackbarProviderProps = {
 /**
  * `localStorage["jwt"]` からユーザ情報の取得を試みて、コンポーネントを描画する
  */
-export default (props: PropsWithChildren<{ admin?: boolean }>) => {
+const RootElement: FC<{ admin?: boolean }> = props => {
   useEffect(() => {
     console.info("after RootElement");
   }, []);
@@ -52,3 +46,5 @@ export default (props: PropsWithChildren<{ admin?: boolean }>) => {
     []
   );
 };
+
+export default RootElement;

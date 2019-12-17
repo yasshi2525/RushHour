@@ -8,29 +8,30 @@ import React, {
 } from "react";
 import PixiContext from "./pixi";
 
-type Dimension = [number, number];
-const getSize = (): Dimension => [window.innerWidth, window.innerHeight];
-
 const useWindow = () => {
   const app = useContext(PixiContext);
-  const [size, setSize] = useState(getSize());
+  const [width, setWidth] = useState(window.innerWidth);
+  const [height, setHeight] = useState(window.innerHeight);
 
   useEffect(() => {
+    console.info("effect useWindow");
     const onResize = () => {
-      const now = getSize();
-      app.renderer.resize(...now);
-      setSize(now);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      app.renderer.resize(width, height);
+      setWidth(width);
+      setHeight(height);
     };
     window.addEventListener("resize", onResize);
     return () => {
       window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [app]);
 
-  return size;
+  return [width, height];
 };
 
-const WindowContext = createContext(getSize());
+const WindowContext = createContext([window.innerWidth, window.innerHeight]);
 WindowContext.displayName = "WindowContext";
 
 export const WindowProvider: FC = props => {

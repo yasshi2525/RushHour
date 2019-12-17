@@ -107,7 +107,7 @@ export default function() {
   const classes = useStyles(theme);
   const isTiny = useMediaQuery(theme.breakpoints.down("xs"));
   const [, update] = useContext(LoadingContext);
-  const [[, my]] = useContext(AuthContext);
+  const [my] = useContext(AuthContext);
   const myColor = useMemo(() => {
     return my ? `rgb(${hueToRgb(my.hue).join(",")})` : "inherit";
   }, [my]);

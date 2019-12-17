@@ -1,13 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useRef, useState, useMemo } from "react";
 import { Locatable, HashContainer } from "interfaces";
 import {
   IFetchMapResponseKeys,
   FetchMapResponseKeys
 } from "interfaces/endpoint";
 
-export type Chunk = [number, number, number, number];
-
-interface Pluggnable extends Locatable {
+export interface Pluggnable extends Locatable {
   scale: number;
   memberOf: string[];
 }
@@ -26,45 +24,70 @@ export const newInstance = (): CoreMap => ({
   timestamp: 0
 });
 
-const isMapNotNull = (obj: any): obj is CoreMap => obj;
-
-const reduce = (prev: CoreMap, current: CoreMap) => {
-  FetchMapResponseKeys.forEach(key => {
-    Object.values(current[key]).forEach(obj => {
-      prev[key][obj.id] = {
-        ...obj,
-        memberOf: [...prev[key][obj.id].memberOf, ...obj.memberOf]
-      };
+const add = (body: CoreMap, key: string, value: CoreMap) => {
+  FetchMapResponseKeys.forEach(i => {
+    Object.values(value[i]).forEach(obj => {
+      if (obj.id in body[i]) {
+        body[i][obj.id].memberOf.push(key);
+      } else {
+        obj.memberOf.push(key);
+        body[i][obj.id] = obj;
+      }
     });
   });
-  prev.timestamp = Math.max(prev.timestamp, current.timestamp);
-  return prev;
+  body.timestamp = Math.max(body.timestamp, value.timestamp);
+  return body;
 };
 
-type Handlers = CoreMap;
+const sub = (prev: CoreMap, hash: string) => {
+  FetchMapResponseKeys.forEach(key => {
+    const garbage: number[] = [];
+    Object.values(prev[key])
+      .filter(obj => obj.memberOf.includes(hash))
+      .forEach(obj => {
+        obj.memberOf = obj.memberOf.filter(key => key != hash);
+        if (!obj.memberOf.length) {
+          garbage.push(obj.id);
+        }
+      });
+    garbage.forEach(id => delete prev[key][id]);
+  });
+};
+
+type Handlers = [
+  CoreMap,
+  (k: string, v: CoreMap) => void,
+  (key: string) => void
+];
 
 /**
- * ```
- * const coreMap = useCoreMap(get, keys);
- * ```
+ * const [data, add, sub, rev] = useCoreMapReduce();
  */
-const useCoreMap = (
-  get: (key: Chunk) => CoreMap | undefined,
-  keys: Chunk[]
-): Handlers => {
-  /**
-   * target 以内にあるデータを一つにまとめる
-   */
-  const combine = useCallback(
-    (init: CoreMap) =>
-      keys
-        .map(key => get(key))
-        .filter(isMapNotNull)
-        .reduce(reduce, init),
-    [get, keys]
+const useCoreMap = (): Handlers => {
+  const storage = useRef(newInstance());
+  const [rev, setRev] = useState(0);
+  const notify = useCallback(() => {
+    setRev(v => v + 1);
+  }, []);
+  const include = useCallback(
+    (k: string, v: CoreMap) => {
+      add(storage.current, k, v);
+      notify();
+    },
+    [storage]
   );
-
-  return useMemo(() => combine(newInstance()), [combine]);
+  const remove = useCallback(
+    (key: string) => {
+      sub(storage.current, key);
+      notify();
+    },
+    [storage]
+  );
+  const core = useMemo(() => Object.assign({}, storage.current), [
+    storage,
+    rev
+  ]);
+  return [core, include, remove];
 };
 
 export default useCoreMap;

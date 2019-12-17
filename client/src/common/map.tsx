@@ -3,24 +3,20 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useMemo
+  useMemo,
+  useRef
 } from "react";
 import { MultiError } from "interfaces/error";
 import useCoreMapStorage from "./utils/map_storage";
 import useCoreMap, { CoreMap, newInstance } from "./utils/map_core";
 import useServerMap from "./utils/map_server";
-import useServerMapReload from "./utils/map_reload";
+import useCoreMapChunk from "./utils/map_chunk";
 import ConfigContext from "./config";
 import DelegateContext from "./delegate";
 import CoordContext from "./coord";
+import { GraceHandler } from "./utils/flash";
 
-type Handler = [
-  boolean,
-  MultiError | undefined,
-  CoreMap,
-  () => void,
-  () => void
-];
+type Handler = [MultiError | undefined, CoreMap, () => void, () => void];
 
 /**
  * ```
@@ -28,24 +24,43 @@ type Handler = [
  * ```
  */
 const useMap = (): Handler => {
-  const [config] = useContext(ConfigContext);
-  const [coord] = useContext(CoordContext);
+  const [{ min_scale, max_scale }] = useContext(ConfigContext);
+  const [coordX, coordY, coordS] = useContext(CoordContext);
   const delegate = useContext(DelegateContext);
 
-  const [getCore, putCore, keys, current, expired] = useCoreMapStorage(
-    coord,
+  const [core, add, sub] = useCoreMap();
+
+  const [current, cube] = useCoreMapChunk(
+    coordX,
+    coordY,
+    coordS,
     delegate,
-    config.min_scale,
-    config.max_scale
+    min_scale,
+    max_scale
   );
 
-  const coreMap = useCoreMap(getCore, keys);
+  const graceHandler = useRef<GraceHandler>({
+    prepared: false,
+    send: () => console.warn("not initialized grace handler")
+  });
 
-  const [isInited, error, put, putAll] = useServerMap(putCore, expired);
+  const [, put, , key, keyAll] = useCoreMapStorage(
+    current,
+    cube,
+    min_scale,
+    graceHandler.current,
+    add,
+    sub
+  );
 
-  const [reload, bulkReload] = useServerMapReload(current, keys, put, putAll);
+  const [error, reload, bulkReload] = useServerMap(
+    key,
+    keyAll,
+    put,
+    graceHandler.current
+  );
 
-  return [isInited, error, coreMap, reload, bulkReload];
+  return [error, core, reload, bulkReload];
 };
 
 type Contents = [CoreMap, () => void, () => void];
@@ -58,7 +73,7 @@ const GameMapContext = createContext<Contents>([
 GameMapContext.displayName = "GameMapContext";
 
 export const GameMapProvider: FC = props => {
-  const [isInited, error, data, reload, bulkReload] = useMap();
+  const [error, data, reload, bulkReload] = useMap();
   const contents = useMemo<Contents>(() => [data, reload, bulkReload], [
     data,
     reload,
@@ -84,7 +99,7 @@ export const GameMapProvider: FC = props => {
         </GameMapContext.Provider>
       );
     }
-  }, [isInited, error, contents]);
+  }, [error, contents]);
 };
 
 /**

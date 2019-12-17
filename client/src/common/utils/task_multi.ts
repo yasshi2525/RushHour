@@ -11,10 +11,10 @@ import {
   CancelError,
   isErrors,
   ErrorType,
-  Errors,
   isCancelError,
   isOperationError
 } from "interfaces/error";
+import { OkResponse, ErrorResponse } from "./http_common";
 import { Task } from "./task";
 import useSnack from "./snack";
 import OperationContext from "./operation";
@@ -23,15 +23,12 @@ type MultiTaskState<I, O> =
   | [undefined, undefined, undefined]
   | [AbortController, Task<I, O>, I[]];
 
-type ResultType<I, O> = OkResult<I, O> | ErrorResult<I> | CancelResult<I>;
-
-type OkResult<I, O> = { args: I; payload: O };
-type ErrorResult<I> = { args: I; error: Errors };
 type CancelResult<I> = { args: I; error: CancelError };
+type ResultType<I, O> = OkResponse<I, O> | ErrorResponse<I> | CancelResult<I>;
 
 export interface MultiTaskHandler<I, O> {
-  onOK?: (payloadList: OkResult<I, O>[]) => void;
-  onError?: (payloadList: ErrorResult<I>[]) => void;
+  onOK?: (payloadList: OkResponse<I, O>[]) => void;
+  onError?: (payloadList: ErrorResponse<I>[]) => void;
   onCancel?: (payloadList: CancelResult<I>[]) => void;
 }
 
@@ -51,6 +48,8 @@ const wrap = async <I, O>(
   }
 };
 
+type Handlers<T> = [(argsList: T[]) => void, () => void];
+
 /**
  * ```
  * const [fire, cancel] = useMultiTask((sig, args)=>http(sig, args));
@@ -60,7 +59,7 @@ const wrap = async <I, O>(
 const useMultiTask = <I, O>(
   task: Task<I, O>,
   handlers?: MultiTaskHandler<I, O>
-) => {
+): Handlers<I> => {
   const [, maintain] = useContext(OperationContext);
   const initState = useMemo<MultiTaskState<I, O>>(
     () => [undefined, undefined, undefined],
@@ -72,9 +71,9 @@ const useMultiTask = <I, O>(
 
   const isCanceled = <I>(obj: ResultType<I, O>): obj is CancelResult<I> =>
     "error" in obj && isCancelError(obj.error);
-  const isErrored = <I>(obj: ResultType<I, O>): obj is ErrorResult<I> =>
+  const isErrored = <I>(obj: ResultType<I, O>): obj is ErrorResponse<I> =>
     "error" in obj && isErrors(obj.error);
-  const isOk = <I, O>(obj: ResultType<I, O>): obj is OkResult<I, O> =>
+  const isOk = <I, O>(obj: ResultType<I, O>): obj is OkResponse<I, O> =>
     "payload" in obj;
 
   const fire = useCallback(
@@ -95,6 +94,7 @@ const useMultiTask = <I, O>(
   }, [exec]);
 
   useEffect(() => {
+    console.info("effect useTaskMulti");
     if (prevState.current[0]) {
       console.warn("abort previsos task because new task is fired");
       prevState.current[0].abort();

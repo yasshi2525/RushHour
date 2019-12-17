@@ -16,11 +16,12 @@ import { MultiTaskHandler } from "./task_multi";
 
 const toQuery = (url: string, args: FlatObject) => {
   if (Object.keys(args).length) {
+    const builder = new URLSearchParams();
+    Object.entries(args).forEach(([k, v]) => builder.set(k, v.toString()));
+    return `${url}?${builder.toString()}`;
+  } else {
     return url;
   }
-  const builder = new URLSearchParams();
-  Object.entries(args).forEach(([k, v]) => builder.set(k, v.toString()));
-  return `${url}?${builder.toString()}`;
 };
 
 const opts = (signal: AbortSignal, auth: boolean): RequestInit => {

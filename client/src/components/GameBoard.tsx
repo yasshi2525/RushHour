@@ -10,6 +10,7 @@ import { WindowProvider } from "common/windows";
 import { DelegateProvider } from "common/delegate";
 import { ConfigProvider } from "common/config";
 import GameMapContext, { GameMapProvider } from "common/map";
+import CacheMap from "./CacheMap";
 
 // const Canvas = lazy(() => import("./Canvas"));
 
@@ -56,7 +57,7 @@ import GameMapContext, { GameMapProvider } from "common/map";
 
 const Test = () => {
   const [data] = useContext(GameMapContext);
-  const [, , update] = useContext(CoordContext);
+  const [, , , , , update] = useContext(CoordContext);
   useEffect(() => {
     console.info("after Test");
   }, []);
@@ -111,6 +112,7 @@ export default () => {
                 <ClockProvider>
                   <LoadResource>
                     <PlayerProvider>
+                      {/* <CacheMap /> */}
                       <GameMapProvider>
                         <Test />
                       </GameMapProvider>
