@@ -2,7 +2,6 @@ import {
   FlatObject,
   SerializableObject,
   HashContainer,
-  Locatable,
   Entity,
   Delegatable,
   EMPTY_DLG
@@ -60,7 +59,7 @@ export const FetchMapResponseKeys: IFetchMapResponseKeys[] = [
   "rail_edges"
 ];
 export type FetchMapResponse = {
-  [index in IFetchMapResponseKeys]: HashContainer<Locatable>;
+  [index in IFetchMapResponseKeys]: HashContainer<Delegatable>;
 } & {
   timestamp: number;
 };

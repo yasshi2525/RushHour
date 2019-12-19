@@ -57,7 +57,8 @@ const sub = (prev: CoreMap, hash: string) => {
 type Handlers = [
   CoreMap,
   (k: string, v: CoreMap) => void,
-  (key: string) => void
+  (key: string) => void,
+  number
 ];
 
 /**
@@ -87,7 +88,7 @@ const useCoreMap = (): Handlers => {
     storage,
     rev
   ]);
-  return [core, include, remove];
+  return [core, include, remove, rev];
 };
 
 export default useCoreMap;
