@@ -2,16 +2,6 @@ import { useRef, useCallback, useEffect } from "react";
 import * as PIXI from "pixi.js";
 import { Pluggnable } from "./map_core";
 
-interface Container<T extends Pluggnable> {
-  props: T;
-  container: PIXI.Container;
-}
-
-type Handler<T extends Pluggnable> = [
-  (props: T) => Container<T>,
-  (id: number) => void
-];
-
 const usePixiGraphics = <T extends Pluggnable>(
   stage: PIXI.Container,
   x: number,

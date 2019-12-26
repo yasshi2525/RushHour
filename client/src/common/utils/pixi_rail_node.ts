@@ -5,6 +5,8 @@ import usePixiGraphics from "./pixi_graphics";
 
 interface RailNode extends Pluggnable {}
 
+type Handlers = [(props: RailNode) => Container];
+
 const useRailNode = (
   stage: PIXI.Container,
   offset: number,
@@ -19,7 +21,10 @@ const useRailNode = (
   const add = useCallback(
     (props: RailNode) => {
       const body = _add(props);
+      return body;
     },
     [_add]
   );
+
+  return [add, remove];
 };

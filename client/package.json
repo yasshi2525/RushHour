@@ -29,6 +29,8 @@
   },
   "homepage": "https://github.com/yasshi2525/RushHour#readme",
   "devDependencies": {
+    "@testing-library/react": "^9.4.0",
+    "@testing-library/react-hooks": "^3.2.1",
     "@types/jest": "^24.0.23",
     "@types/jsonwebtoken": "^8.3.5",
     "@types/puppeteer": "^2.0.0",

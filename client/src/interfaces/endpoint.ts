@@ -21,7 +21,19 @@ type _HTTP = { method: HttpMethod };
 type _AUTH = { auth: true };
 type _ARGS<T> = { args: T };
 
+type Primitive = boolean | number | string;
+
+export type SerializableObject = {
+  [index: string]: Primitive | Array<Primitive> | Object | Array<Object>;
+  [index: number]: Primitive | Array<Primitive> | Object | Array<Object>;
+};
+
 type _PAYLOAD<T extends SerializableObject> = { payload: T };
+
+export type FlatObject = {
+  [index: string]: Primitive | Array<Primitive>;
+  [index: number]: Primitive | Array<Primitive>;
+};
 
 export type GetEndpoint<
   I extends FlatObject = {},
