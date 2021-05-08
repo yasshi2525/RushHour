@@ -2,7 +2,6 @@ import {
   FlatObject,
   SerializableObject,
   HashContainer,
-  Locatable,
   Entity,
   Delegatable,
   EMPTY_DLG
@@ -22,7 +21,19 @@ type _HTTP = { method: HttpMethod };
 type _AUTH = { auth: true };
 type _ARGS<T> = { args: T };
 
+type Primitive = boolean | number | string;
+
+export type SerializableObject = {
+  [index: string]: Primitive | Array<Primitive> | Object | Array<Object>;
+  [index: number]: Primitive | Array<Primitive> | Object | Array<Object>;
+};
+
 type _PAYLOAD<T extends SerializableObject> = { payload: T };
+
+export type FlatObject = {
+  [index: string]: Primitive | Array<Primitive>;
+  [index: number]: Primitive | Array<Primitive>;
+};
 
 export type GetEndpoint<
   I extends FlatObject = {},
@@ -60,7 +71,7 @@ export const FetchMapResponseKeys: IFetchMapResponseKeys[] = [
   "rail_edges"
 ];
 export type FetchMapResponse = {
-  [index in IFetchMapResponseKeys]: HashContainer<Locatable>;
+  [index in IFetchMapResponseKeys]: HashContainer<Delegatable>;
 } & {
   timestamp: number;
 };

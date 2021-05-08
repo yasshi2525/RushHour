@@ -34,6 +34,7 @@ const useLoader = () => {
     console.info(`effect useLoader`);
     (async () => {
       await load(app).catch(e => setError(new ServerError(e)));
+      app.loader.resources;
       setCompleted(true);
     })();
     return () => {

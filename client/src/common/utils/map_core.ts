@@ -1,18 +1,23 @@
 import { useCallback, useRef, useState, useMemo } from "react";
-import { Locatable, HashContainer } from "interfaces";
+import { Locatable, HashContainer, RailNode, RailEdge } from "interfaces";
 import {
   IFetchMapResponseKeys,
   FetchMapResponseKeys
 } from "interfaces/endpoint";
 
-export interface Pluggnable extends Locatable {
-  scale: number;
-  memberOf: string[];
+export interface Container<T extends Pluggnable> {
+  props: T;
+  container: PIXI.Container;
 }
 
+export type ContainerHandler<T extends Pluggnable> = [
+  (props: T) => Container<T>,
+  (id: number) => void
+];
+
 export type CoreMap = {
-  [index in IFetchMapResponseKeys]: HashContainer<Pluggnable>;
-} & {
+  rail_nodes: HashContainer<RailNode>;
+  rail_edges: HashContainer<RailEdge>;
   timestamp: number;
 };
 
@@ -57,7 +62,8 @@ const sub = (prev: CoreMap, hash: string) => {
 type Handlers = [
   CoreMap,
   (k: string, v: CoreMap) => void,
-  (key: string) => void
+  (key: string) => void,
+  number
 ];
 
 /**
@@ -87,7 +93,7 @@ const useCoreMap = (): Handlers => {
     storage,
     rev
   ]);
-  return [core, include, remove];
+  return [core, include, remove, rev];
 };
 
 export default useCoreMap;
